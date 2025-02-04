@@ -7683,6 +7683,52 @@ end
 --local unitName = "uh2-1"          --"uh1-1"  --"uh2-1"
 --ctld.reconShowTargetsInLosOnF10Map(Unit.getByName(unitName),2000,200)
 
+--================================================================================================
+--  Generic tools
+--================================================================================================
+---------------------------------------------------------------------------------
+-- Check if a point is free of units
+-- returns true and unit if a unit is found in the circle
+-- or false if no units are found in the circle 
+-- params : _unit_names to check table 
+--          _centerCirclePointToCheck point {x=1, y=2, z=3}
+--          _radius in meters
+function ctld.isUnitInCircle(_unit_names, _centerCirclePointToCheck, _radius)
+	local units = {}
+
+    -- build units & static list to check
+	for k = 1, #_unit_names do
+		local unit = Unit.getByName(unit_names[k]) or StaticObject.getByName(unit_names[k])
+		if unit and unit:isExist() == true then
+			units[#units + 1] = unit
+		end
+	end
+
+    -- check if one of existing units is in the circle defined by center & radius
+	for units_ind = 1, #units do
+        local currentUnitPoint = units[units_ind]:getPoint()
+        if mist.utils.get2DDist(_centerCirclePointToCheck, currentUnitPoint) <= _radius then
+            return true, units[units_ind]
+        end
+	end
+    return false    -- no units in circle
+end
+----- examples ------------------------------------------------------------------
+--- local isOneUnitInCircle, unit = ctld.getUnitsIncircle({"unit1", "unit2"}, {x=1, y=2, z=3}, 100)
+--- local isOneUnitInCircle, unit = ctld.getUnitsIncircle(mist.makeUnitTable({"[all]"}), {x=1, y=2, z=3}, 100)
+---------------------------------------------------------------------------------
+-- return logisticIndex from ctld.logisticUnits for e given LogisticUnitName
+function ctld.getLogisticIndexByName(_LogUnitName)
+	if _LogUnitName then
+		for i=1, #ctld.logisticUnits do
+			if ctld.logisticUnits[i] == _LogUnitName then
+				return i
+			end
+		end
+	end
+	return nil
+end
+---------------------------------------------------------------------------------
 
 --**********************************************************************
 
