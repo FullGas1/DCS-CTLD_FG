@@ -10662,7 +10662,7 @@ end
 ctld.Id = "CTLD - "
 
 --- Version.
-ctld.Version = "1.6.1"
+ctld.Version = "1.6.4"
 
 -- To add debugging messages to dcs.log, change the following log levels to `true`; `Debug` is less detailed than `Trace`
 ctld.Debug = false
@@ -10670,9 +10670,6 @@ ctld.Trace = true
 
 if ctld.Debug then
     env.info(ctld.Id .. "Debug logging is ENABLED")
-
-    require "CTLD_complt"          -- load the complete version with debug functions
-    require "FARP_spwanSceneDatas" -- load sample FARP spawn scene data
 end
 
 ctld.dontInitialize = false -- if true, ctld.initialize() will not run; instead, you'll have to run it from your own code - it's useful when you want to override some functions/parameters before the initialization takes place
@@ -12017,7 +12014,7 @@ function ctld.cratesInZone(_zone, _flagNumber)
         return
     end
 
-    local _zonePos = mist.utils.zoneToVec3(_zone)
+    local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
 
     --ignore side, if crate has been used its discounted from the count
     local _crateTables = { ctld.spawnedCratesRED, ctld.spawnedCratesBLUE, ctld.missionEditorCargoCrates }
@@ -12141,7 +12138,7 @@ function ctld.countDroppedGroupsInZone(_zone, _blueFlag, _redFlag)
         return
     end
 
-    local _zonePos = mist.utils.zoneToVec3(_zone)
+    local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
 
     local _redCount = 0;
     local _blueCount = 0;
@@ -12153,7 +12150,7 @@ function ctld.countDroppedGroupsInZone(_zone, _blueFlag, _redFlag)
             local _groupUnits = ctld.getGroup(_groupName)
 
             if #_groupUnits > 0 then
-                local _zonePos = mist.utils.zoneToVec3(_zone)
+                local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
                 local _dist = ctld.getDistance(_groupUnits[1]:getPoint(), _zonePos)
 
                 if _dist <= _triggerZone.radius then
@@ -12186,7 +12183,7 @@ function ctld.countDroppedUnitsInZone(_zone, _blueFlag, _redFlag)
         return
     end
 
-    local _zonePos = mist.utils.zoneToVec3(_zone)
+    local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
 
     local _redCount = 0;
     local _blueCount = 0;
@@ -12199,7 +12196,7 @@ function ctld.countDroppedUnitsInZone(_zone, _blueFlag, _redFlag)
             local _groupUnits = ctld.getGroup(_groupName)
 
             if #_groupUnits > 0 then
-                local _zonePos = mist.utils.zoneToVec3(_zone)
+                local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
                 for _, _unit in pairs(_groupUnits) do
                     local _dist = ctld.getDistance(_unit:getPoint(), _zonePos)
 
@@ -12244,7 +12241,7 @@ function ctld.createRadioBeaconAtZone(_zone, _coalition, _batteryLife, _name)
         return
     end
 
-    local _zonePos = mist.utils.zoneToVec3(_zone)
+    local _zonePos = CTLD_extAPI.utils.zoneToVec3("GLOBAL_SCOPE", _zone)
 
     ctld.beaconCount = ctld.beaconCount + 1
 
@@ -12628,7 +12625,7 @@ function ctld.getUnitsInRepackRadius(_PlayerTransportUnitName, _radius)
         local repackableUnit = ctld.isRepackableUnit(unitsNamesList[i])
         if repackableUnit then
             repackableUnit["repackableUnitGroupID"] = unitObject:getGroup():getID()
-            table.insert(repackableUnits, mist.utils.deepCopy(repackableUnit))
+            table.insert(repackableUnits, CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", repackableUnit))
         end
     end
     return repackableUnits
@@ -12642,14 +12639,14 @@ function ctld.getNearbyUnits(_point, _radius, _coalition)
     local unitsByDistance = {}
     local cpt = 1
     local _units = {}
-    for _unitName, _ in pairs(mist.DBs.unitsByName) do
+    for _unitName, _ in pairs(CTLD_extAPI.DBs.unitsByName) do
         local u = Unit.getByName(_unitName)
         local e = (u and u:isExist()) or false
         -- pcall is needed because getCoalition() fails if the unit is an object without coalition (like a smoke effect)
         local c = nil
         pcall(function() c = (u and e and u:getCoalition()) or nil end)
         if u and e and (_coalition == 4 or c == _coalition) then
-            local _dist = mist.utils.get2DDist(u:getPoint(), _point)
+            local _dist = CTLD_extAPI.utils.get2DDist("GLOBAL_SCOPE", u:getPoint(), _point)
             if _dist <= _radius then
                 unitsByDistance[cpt] = { id = cpt, dist = _dist, unit = _unitName, typeName = u:getTypeName() }
                 cpt = cpt + 1
@@ -12673,7 +12670,8 @@ function ctld.isRepackableUnit(_unitName)
         for i = 1, #ctld.spawnableCrates[k] do
             if _unitName then
                 if ctld.spawnableCrates[k][i].unit == unitType then
-                    local repackableUnit = mist.utils.deepCopy(ctld.spawnableCrates[k][i])
+                    local repackableUnit = CTLD_extAPI.utils.deepCopy("ctld.isRepackableUnit", ctld.spawnableCrates[k]
+                        [i])
                     repackableUnit["repackableUnitName"] = _unitName
                     return repackableUnit
                 end
@@ -12724,7 +12722,7 @@ function ctld.repackVehicle(_params, t) -- scan rrs table 'repackRequestsStack' 
                 local playerCoa           = PlayerTransportUnit:getCoalition()
                 local refCountry          = PlayerTransportUnit:getCountry()
                 -- calculate the heading of the spawns to be carried out
-                local playerHeading       = mist.getHeading(PlayerTransportUnit)
+                local playerHeading       = CTLD_extAPI.getHeading("GLOBAL_SCOPE", PlayerTransportUnit)
                 local playerPoint         = PlayerTransportUnit:getPoint()
                 local offset              = 5
                 local randomHeading       = ctld.RandomReal(playerHeading - math.pi / 4, playerHeading + math.pi / 4)
@@ -12779,7 +12777,7 @@ function ctld.addStaticLogisticUnit(_point, _country) -- create a temporary logi
         ["heading"] = 0,
     }
     LogUnit["country"] = _country
-    mist.dynAddStatic(LogUnit)
+    CTLD_extAPI.dynAddStatic("ctld.addStaticLogisticUnit", LogUnit)
     return StaticObject.getByName(LogUnit["name"])
 end
 
@@ -13082,7 +13080,7 @@ function ctld.spawnCrateStatic(_country, _unitId, _point, _name, _weight, _side,
         _group.category = Group.Category.GROUND;
         _group.country = _country;
 
-        local _spawnedGroup = Group.getByName(mist.dynAdd(_group).name)
+        local _spawnedGroup = Group.getByName(CTLD_extAPI.dynAdd("ctld.spawnCrateStatic", _group).name)
 
         -- Turn off AI
         trigger.action.setGroupAIOff(_spawnedGroup)
@@ -13090,11 +13088,11 @@ function ctld.spawnCrateStatic(_country, _unitId, _point, _name, _weight, _side,
         _spawnedCrate = Unit.getByName(_name)
     else
         if _model_type ~= nil then
-            _crate = mist.utils.deepCopy(ctld.spawnableCratesModels[_model_type])
+            _crate = CTLD_extAPI.utils.deepCopy("ctld.spawnCrateStatic", ctld.spawnableCratesModels[_model_type])
         elseif ctld.slingLoad then
-            _crate = mist.utils.deepCopy(ctld.spawnableCratesModels["sling"])
+            _crate = CTLD_extAPI.utils.deepCopy("ctld.spawnCrateStatic", ctld.spawnableCratesModels["sling"])
         else
-            _crate = mist.utils.deepCopy(ctld.spawnableCratesModels["load"])
+            _crate = CTLD_extAPI.utils.deepCopy("ctld.spawnCrateStatic", ctld.spawnableCratesModels["load"])
         end
 
         _crate["y"] = _point.z
@@ -13104,7 +13102,7 @@ function ctld.spawnCrateStatic(_country, _unitId, _point, _name, _weight, _side,
         _crate["heading"] = hdg
         _crate["country"] = _country
 
-        mist.dynAddStatic(_crate)
+        CTLD_extAPI.dynAddStatic("GLOBAL_SCOPE", _crate)
 
         _spawnedCrate = StaticObject.getByName(_crate["name"])
     end
@@ -13136,7 +13134,7 @@ function ctld.spawnFOBCrateStatic(_country, _unitId, _point, _name)
 
     _crate["country"] = _country
 
-    mist.dynAddStatic(_crate)
+    CTLD_extAPI.dynAddStatic("ctld.spawnFOBCrateStatic", _crate)
 
     local _spawnedCrate = StaticObject.getByName(_crate["name"])
     --local _spawnedCrate = coalition.addStaticObject(_country, _crate)
@@ -13157,7 +13155,7 @@ function ctld.spawnFOB(_country, _unitId, _point, _name)
     }
 
     _crate["country"] = _country
-    mist.dynAddStatic(_crate)
+    CTLD_extAPI.dynAddStatic("ctld.spawnFOB", _crate)
     local _spawnedCrate = StaticObject.getByName(_crate["name"])
     --local _spawnedCrate = coalition.addStaticObject(_country, _crate)
 
@@ -13176,7 +13174,7 @@ function ctld.spawnFOB(_country, _unitId, _point, _name)
     --coalition.addStaticObject(_country, _tower)
     _tower["country"] = _country
 
-    mist.dynAddStatic(_tower)
+    CTLD_extAPI.dynAddStatic("ctld.spawnFOB", _tower)
 
     return _spawnedCrate
 end
@@ -13301,7 +13299,7 @@ end
 
 function ctld.getPointInFrontSector(_unit, _offset)
     if _unit then
-        local playerHeading = mist.getHeading(_unit)
+        local playerHeading = CTLD_extAPI.getHeading("ctld.getPointInFrontSector", _unit)
         local randomHeading = ctld.RandomReal(playerHeading - math.pi / 4, playerHeading + math.pi / 4)
         if _offset == nil then
             _offset = 20
@@ -13312,7 +13310,7 @@ end
 
 function ctld.getPointInRearSector(_unit, _offset)
     if _unit then
-        local playerHeading = mist.getHeading(_unit)
+        local playerHeading = CTLD_extAPI.getHeading("ctld.getPointInRearSector", _unit)
         local randomHeading = ctld.RandomReal(playerHeading + math.pi - math.pi / 4, playerHeading + math.pi + math.pi /
             4)
         if _offset == nil then
@@ -13403,7 +13401,7 @@ function ctld.safeToFastRope(_heli)
     end
 
     --landed or speed is less than 8 km/h and height is less than fast rope height
-    if (ctld.inAir(_heli) == false or (ctld.heightDiff(_heli) <= ctld.fastRopeMaximumHeight + 3.0 and mist.vec.mag(_heli:getVelocity()) < 2.2)) then
+    if (ctld.inAir(_heli) == false or (ctld.heightDiff(_heli) <= ctld.fastRopeMaximumHeight + 3.0 and CTLD_extAPI.vec.mag("GLOBAL_SCOPE", _heli:getVelocity()) < 2.2)) then
         return true
     end
 end
@@ -13411,7 +13409,7 @@ end
 function ctld.metersToFeet(_meters)
     local _feet = _meters * 3.2808399
 
-    return mist.utils.round(_feet)
+    return CTLD_extAPI.utils.round("ctld.metersToFeet", _feet)
 end
 
 function ctld.inAir(_heli)
@@ -13421,7 +13419,7 @@ function ctld.inAir(_heli)
 
     -- less than 5 cm/s a second so landed
     -- BUT AI can hold a perfect hover so ignore AI
-    if mist.vec.mag(_heli:getVelocity()) < 0.05 and _heli:getPlayerName() ~= nil then
+    if CTLD_extAPI.vec.mag("GLOBAL_SCOPE", _heli:getVelocity()) < 0.05 and _heli:getPlayerName() ~= nil then
         return false
     end
     return true
@@ -14250,7 +14248,7 @@ function ctld.checkHoverStatus()
 
                                 _crate.crateUnit:destroy()
 
-                                local _copiedCrate = mist.utils.deepCopy(_crate.details)
+                                local _copiedCrate = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", _crate.details)
                                 _copiedCrate.simulatedSlingload = true
                                 table.insert(ctld.inTransitSlingLoadCrates[_name], _copiedCrate)
                                 ctld.adaptWeightToCargo(_name)
@@ -14316,7 +14314,7 @@ function ctld.loadNearbyCrate(_name)
 
                     _crate.crateUnit:destroy()
 
-                    local _copiedCrate = mist.utils.deepCopy(_crate.details)
+                    local _copiedCrate = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", _crate.details)
                     _copiedCrate.simulatedSlingload = true
                     table.insert(ctld.inTransitSlingLoadCrates[_name], _copiedCrate)
                     loaded = true
@@ -14380,9 +14378,9 @@ function ctld.getClockDirection(_heli, _crate)
 
     local _position = _crate:getPosition().p      -- get position of crate
     local _playerPosition = _heli:getPosition().p -- get position of helicopter
-    local _relativePosition = mist.vec.sub(_position, _playerPosition)
+    local _relativePosition = CTLD_extAPI.vec.sub("ctld.getClockDirection", _position, _playerPosition)
 
-    local _playerHeading = mist.getHeading(_heli) -- the rest of the code determines the 'o'clock' bearing of the missile relative to the helicopter
+    local _playerHeading = CTLD_extAPI.getHeading("ctld.getClockDirection", _heli) -- the rest of the code determines the 'o'clock' bearing of the missile relative to the helicopter
 
     local _headingVector = { x = math.cos(_playerHeading), y = 0, z = math.sin(_playerHeading) }
 
@@ -14393,9 +14391,9 @@ function ctld.getClockDirection(_heli, _crate)
             math.pi / 2)
     }
 
-    local _forwardDistance = mist.vec.dp(_relativePosition, _headingVector)
+    local _forwardDistance = CTLD_extAPI.vec.dp("ctld.getClockDirection", _relativePosition, _headingVector)
 
-    local _rightDistance = mist.vec.dp(_relativePosition, _headingVectorPerpendicular)
+    local _rightDistance = CTLD_extAPI.vec.dp("ctld.getClockDirection", _relativePosition, _headingVectorPerpendicular)
 
     local _angle = math.atan2(_rightDistance, _forwardDistance) * 180 / math.pi
 
@@ -14411,14 +14409,14 @@ function ctld.getClockDirection(_heli, _crate)
 end
 
 function ctld.getCompassBearing(_ref, _unitPos)
-    _ref = mist.utils.makeVec3(_ref, 0)         -- turn it into Vec3 if it is not already.
-    _unitPos = mist.utils.makeVec3(_unitPos, 0) -- turn it into Vec3 if it is not already.
+    _ref = CTLD_extAPI.utils.makeVec3("ctld.getCompassBearing", _ref, 0)         -- turn it into Vec3 if it is not already.
+    _unitPos = CTLD_extAPI.utils.makeVec3("ctld.getCompassBearing", _unitPos, 0) -- turn it into Vec3 if it is not already.
 
     local _vec = { x = _unitPos.x - _ref.x, y = _unitPos.y - _ref.y, z = _unitPos.z - _ref.z }
 
-    local _dir = mist.utils.getDir(_vec, _ref)
+    local _dir = CTLD_extAPI.utils.getDir("ctld.getCompassBearing", _vec, _ref)
 
-    local _bearing = mist.utils.round(mist.utils.toDegree(_dir), 0)
+    local _bearing = CTLD_extAPI.utils.round("ctld.getCompassBearing", CTLD_extAPI.utils.toDegree(_dir), 0)
 
     return _bearing
 end
@@ -14500,9 +14498,9 @@ end
 function ctld.getFOBPositionString(_fob)
     local _lat, _lon = coord.LOtoLL(_fob:getPosition().p)
 
-    local _latLngStr = mist.tostringLL(_lat, _lon, 3, ctld.location_DMS)
+    local _latLngStr = CTLD_extAPI.tostringLL("ctld.getFOBPositionString", _lat, _lon, 3, ctld.location_DMS)
 
-    --     local _mgrsString = mist.tostringMGRS(coord.LLtoMGRS(coord.LOtoLL(_fob:getPosition().p)), 5)
+    --     local _mgrsString = CTLD_extAPI.tostringMGRS("ctld.getFOBPositionString", coord.LLtoMGRS(coord.LOtoLL(_fob:getPosition().p)), 5)
 
     local _message = _latLngStr
 
@@ -14614,7 +14612,7 @@ function ctld.findNearestAASystem(_heli, _aaSystem)
     for _groupName, _hawkDetails in pairs(ctld.completeAASystems) do
         local _hawkGroup = Group.getByName(_groupName)
 
-        --    env.info(_groupName..": "..mist.utils.tableShow(_hawkDetails))
+        --    env.info(_groupName..": "..CTLD_extAPI.utils.tableShow("ctld.findNearestAASystem", _hawkDetails))
         if _hawkGroup ~= nil and _hawkGroup:getCoalition() == _heli:getCoalition() and _hawkDetails[1].system.name == _aaSystem.name then
             local _units = _hawkGroup:getUnits()
 
@@ -14705,7 +14703,7 @@ function ctld.unpackCrates(_arguments)
                         _point = ctld.getPointInRearSector(_heli, ctld.getSecureDistanceFromUnit(_heli:getName()))
                     end
                     local _crateName = _crate.crateUnit:getName()
-                    local _crateHdg  = mist.getHeading(_crate.crateUnit, true)
+                    local _crateHdg  = CTLD_extAPI.getHeading("GLOBAL_SCOPE", _crate.crateUnit, true)
 
                     --remove crate
                     --    if ctld.slingLoad == false then
@@ -14897,7 +14895,7 @@ function ctld.dropSlingCrate(_args)
     else
         local _point = _heli:getPoint()
         local _side = _heli:getCoalition()
-        local _hdg = mist.getHeading(_heli, true)
+        local _hdg = CTLD_extAPI.getHeading("GLOBAL_SCOPE", _heli, true)
         local _heightDiff = ctld.heightDiff(_heli)
 
         if _heightDiff > 40.0 then
@@ -14906,7 +14904,7 @@ function ctld.dropSlingCrate(_args)
             ctld.displayMessageToGroup(_heli, ctld.i18n_translate("You were too high! The crate has been destroyed"), 10)
             return
         end
-        local _loadedCratesCopy = mist.utils.deepCopy(ctld.inTransitSlingLoadCrates[_unitName])
+        local _loadedCratesCopy = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", ctld.inTransitSlingLoadCrates[_unitName])
         ctld.logTrace("_loadedCratesCopy = %s", ctld.p(_loadedCratesCopy))
         for _, _crate in pairs(_loadedCratesCopy) do
             ctld.logTrace("_crate = %s", ctld.p(_crate))
@@ -14955,9 +14953,9 @@ function ctld.createRadioBeacon(_point, _coalition, _country, _name, _batteryTim
 
     local _lat, _lon = coord.LOtoLL(_point)
 
-    local _latLngStr = mist.tostringLL(_lat, _lon, 3, ctld.location_DMS)
+    local _latLngStr = CTLD_extAPI.tostringLL("GLOBAL_SCOPE", _lat, _lon, 3, ctld.location_DMS)
 
-    --local _mgrsString = mist.tostringMGRS(coord.LLtoMGRS(coord.LOtoLL(_point)), 5)
+    --local _mgrsString = CTLD_extAPI.tostringMGRS("GLOBAL_SCOPE", coord.LLtoMGRS(coord.LOtoLL(_point)), 5)
 
     local _freqsText = _name
 
@@ -15056,7 +15054,7 @@ function ctld.spawnRadioBeaconUnit(_point, _country, _name, _freqsText)
     }
 
     -- return coalition.addGroup(_country, Group.Category.GROUND, _radioGroup)
-    return Group.getByName(mist.dynAdd(_radioGroup).name)
+    return Group.getByName(CTLD_extAPI.dynAdd("ctld.spawnRadioBeaconUnit", _radioGroup).name)
 end
 
 function ctld.updateRadioBeacon(_beaconDetails)
@@ -15102,7 +15100,7 @@ function ctld.updateRadioBeacon(_beaconDetails)
 
     --fobs have unlimited battery life
     --        if _battery ~= -1 then
-    --                _text = _text.." "..mist.utils.round(_batLife).." seconds of battery"
+    --                _text = _text.." "..CTLD_extAPI.utils.round("GLOBAL_SCOPE", _batLife).." seconds of battery"
     --        end
 
     for _, _radio in pairs(_radioLoop) do
@@ -15299,7 +15297,7 @@ function ctld.rearmAASystem(_heli, _nearestCrate, _nearbyCrates, _aaSystemTempla
 
                         table.insert(_points, _units[x]:getPoint())
                         table.insert(_types, _units[x]:getTypeName())
-                        table.insert(_hdgs, mist.getHeading(_units[x], true))
+                        table.insert(_hdgs, CTLD_extAPI.getHeading("ctld.rearmAASystem", _units[x], true))
                     end
                 end
             end
@@ -15361,7 +15359,7 @@ function ctld.getAASystemDetails(_hawkGroup, _aaSystemTemplate)
                 name = _unit:getName(),
                 system = _aaSystemTemplate,
                 hdg =
-                    mist.getHeading(_unit, true)
+                    CTLD_extAPI.getHeading("ctld.getAASystemDetails", _unit, true)
             })
     end
 
@@ -15463,7 +15461,7 @@ function ctld.unpackAASystem(_heli, _nearestCrate, _nearbyCrates, _aaSystemTempl
                 end
                 table.insert(_systemParts[_name].crates, _nearbyCrate)
                 table.insert(_cratePositions[_name], crateUnit:getPoint())
-                table.insert(_crateHdg[_name], mist.getHeading(crateUnit, true))
+                table.insert(_crateHdg[_name], CTLD_extAPI.getHeading("GLOBAL_SCOPE", crateUnit, true))
             end
         end
     end
@@ -15641,7 +15639,7 @@ function ctld.countCompleteAASystems(_heli)
     for _groupName, _hawkDetails in pairs(ctld.completeAASystems) do
         local _hawkGroup = Group.getByName(_groupName)
 
-        --    env.info(_groupName..": "..mist.utils.tableShow(_hawkDetails))
+        --    env.info(_groupName..": "..CTLD_extAPI.utils.tableShow("ctld.countCompleteAASystems", _hawkDetails))
         if _hawkGroup ~= nil and _hawkGroup:getCoalition() == _heli:getCoalition() then
             local _units = _hawkGroup:getUnits()
 
@@ -15754,7 +15752,7 @@ function ctld.unpackMultiCrate(_heli, _nearestCrate, _nearbyCrates)
             _point = ctld.getPointInRearSector(_heli, ctld.getSecureDistanceFromUnit(_heli:getName()))
         end
 
-        local _crateHdg = mist.getHeading(_nearestCrate.crateUnit, true)
+        local _crateHdg = CTLD_extAPI.getHeading("GLOBAL_SCOPE", _nearestCrate.crateUnit, true)
 
         -- destroy crates
         for _, _crate in pairs(_nearbyMultiCrates) do
@@ -15952,7 +15950,7 @@ function ctld.spawnCrateGroup_old(_heli, _positions, _types, _hdgs)
     end
 
     _group.country = _heli:getCountry()
-    local _spawnedGroup = Group.getByName(mist.dynAdd(_group).name)
+    local _spawnedGroup = Group.getByName(CTLD_extAPI.dynAdd("GLOBAL_SCOPE", _group).name)
     return _spawnedGroup
 end ]] --#region
 
@@ -15981,7 +15979,7 @@ function ctld.spawnCrateGroup(_heli, _positions, _types, _hdgs)
     local _hdg = 120 * math.pi / 180 -- radians = 120 degrees
 
     --------------------------------------------------------------------------------------
-    if ctld.Scene.SceneModels[_types[1]] == nil then -- if DCS standard typeName
+    if ctld.scene.SceneModels[_types[1]] == nil then -- if DCS standard typeName
         local _spreadMin = 5
         local _spreadMax = 5
         local _spreadMult = 1
@@ -16004,10 +16002,10 @@ function ctld.spawnCrateGroup(_heli, _positions, _types, _hdgs)
         end
         _group.category = Group.Category.GROUND
         _group.country = _heli:getCountry()
-        local _spawnedGroup = Group.getByName(mist.dynAdd(_group).name)
+        local _spawnedGroup = Group.getByName(CTLD_extAPI.dynAdd("GLOBAL_SCOPE", _group).name)
         return _spawnedGroup
     else -- if scene crate requested
-        return ctld.Scene.playScene(_heli, ctld.Scene.SceneModels[_types[1]])
+        return ctld.scene.playScene(_heli, ctld.scene.SceneModels[_types[1]])
     end
 end
 
@@ -16058,7 +16056,7 @@ function ctld.spawnDroppedGroup(_point, _details, _spawnBehind, _maxSearch)
     _group.category = Group.Category.GROUND;
     _group.country = _details.country;
 
-    local _spawnedGroup = Group.getByName(mist.dynAdd(_group).name)
+    local _spawnedGroup = Group.getByName(CTLD_extAPI.dynAdd("GLOBAL_SCOPE", _group).name)
 
     --local _spawnedGroup = coalition.addGroup(_details.country, Group.Category.GROUND, _group)
 
@@ -16242,8 +16240,8 @@ function ctld.orderGroupToMoveToPoint(_leader, _destination)
     local _group = _leader:getGroup()
 
     local _path = {}
-    table.insert(_path, mist.ground.buildWP(_leader:getPoint(), 'Off Road', 50))
-    table.insert(_path, mist.ground.buildWP(_destination, 'Off Road', 50))
+    table.insert(_path, CTLD_extAPI.ground.buildWP("ctld.orderGroupToMoveToPoint", _leader:getPoint(), 'Off Road', 50))
+    table.insert(_path, CTLD_extAPI.ground.buildWP("ctld.orderGroupToMoveToPoint", _destination, 'Off Road', 50))
 
     local _mission = {
         id = 'Mission',
@@ -16798,7 +16796,7 @@ function ctld.addTransportF10MenuOptions(_unitName)
                     local _crateCommands = missionCommands.addSubMenuForGroup(_groupId,
                         ctld.i18n_translate("CTLD Commands"), _rootPath)
                     if ctld.vehicleCommandsPath[_unitName] == nil then
-                        ctld.vehicleCommandsPath[_unitName] = mist.utils.deepCopy(_crateCommands)
+                        ctld.vehicleCommandsPath[_unitName] = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", _crateCommands)
                     end
                     if ctld.hoverPickup == false or ctld.loadCrateFromMenu == true then
                         if ctld.loadCrateFromMenu then
@@ -16876,7 +16874,7 @@ function ctld.buildPaginatedMenu(_menuEntries) --[[ params table :
     local itemNbSubmenu   = 0
     for i, menu in ipairs(_menuEntries) do
         if #nextSubMenuPath ~= 0 then
-            menu.subMenuPath = mist.utils.deepCopy(nextSubMenuPath)
+            menu.subMenuPath = CTLD_extAPI.utils.deepCopy("ctld.buildPaginatedMenu", nextSubMenuPath)
             --menu.subMenuPath = nextSubMenuPath
         end
         -- add the submenu item
@@ -16886,14 +16884,14 @@ function ctld.buildPaginatedMenu(_menuEntries) --[[ params table :
                 menu.subMenuPath)
             itemNbSubmenu   = 1
         end
-        menu.menuArgsTable.subMenuPath      = mist.utils.deepCopy(menu.subMenuPath) -- copy the table to avoid overwriting the same table in the next loop
+        menu.menuArgsTable.subMenuPath      = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", menu.subMenuPath) -- copy the table to avoid overwriting the same table in the next loop
         menu.menuArgsTable.subMenuLineIndex = itemNbSubmenu
         ctld.logTrace("FG_ boucle[%s].groupId = %s", i, menu.groupId)
         ctld.logTrace("FG_ boucle[%s].menu.text = %s", i, menu.text)
         ctld.logTrace("FG_ boucle[%s].menu.subMenuPath = %s", i, menu.subMenuPath)
         ctld.logTrace("FG_ boucle[%s].menu.menuFunction = %s", i, menu.menuFunction)
         local r = missionCommands.addCommandForGroup(menu.groupId, menu.text, menu.subMenuPath, menu.menuFunction,
-            mist.utils.deepCopy(menu.menuArgsTable))
+            CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", menu.menuArgsTable))
         ctld.logTrace("FG_ boucle[%s].r = %s", i, r)
         ctld.logTrace("FG_ boucle[%s].menu.menuArgsTable =  %s", i, ctld.p(menu.menuArgsTable))
     end
@@ -16924,9 +16922,11 @@ function ctld.updateRepackMenu(_playerUnitName)
                 ctld.maximumDistanceRepackableUnitsSearch)
             if repackableVehicles then
                 --ctld.logTrace("FG_ ctld.vehicleCommandsPath[_playerUnitName] = %s", ctld.p(ctld.vehicleCommandsPath[_playerUnitName]))
-                local RepackPreviousMenu                    = mist.utils.deepCopy(ctld.vehicleCommandsPath
+                local RepackPreviousMenu                    = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE",
+                    ctld.vehicleCommandsPath
                     [_playerUnitName])
-                local RepackCommandsPath                    = mist.utils.deepCopy(ctld.vehicleCommandsPath
+                local RepackCommandsPath                    = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE",
+                    ctld.vehicleCommandsPath
                     [_playerUnitName])
                 local repackSubMenuText                     = ctld.i18n_translate("Repack Vehicles")
                 RepackCommandsPath[#RepackCommandsPath + 1] =
@@ -16948,7 +16948,7 @@ function ctld.updateRepackMenu(_playerUnitName)
                             groupId       = _groupId,
                             subMenuPath   = RepackMenuPath,
                             menuFunction  = ctld.repackVehicleRequest,
-                            menuArgsTable = mist.utils.deepCopy(_vehicle)
+                            menuArgsTable = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE", _vehicle)
                         })
                     end
                 end
@@ -16972,7 +16972,7 @@ function ctld.autoUpdateRepackMenu(p, t) -- auto update repack menus for each tr
                         local _unit = ctld.getTransportUnit(_unitName)
                         if _unit then
                             -- if transport unit landed => update repack menus
-                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and mist.vec.mag(_unit:getVelocity()) < 0.1)) then
+                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and CTLD_extAPI.vec.mag("ctld.autoUpdateRepackMenu", _unit:getVelocity()) < 0.1)) then
                                 local _unitTypename = _unit:getTypeName()
                                 local _groupId = ctld.getGroupId(_unit)
                                 if _groupId then
@@ -17117,7 +17117,8 @@ function ctld.addJTACRadioCommand(_side)
                                 --ctld.logTrace(string.format("JTAC - MENU - [%s] - jtacGroupSubMenuPath = %s", ctld.p(_jtacGroupName), ctld.p(ctld.jtacGroupSubMenuPath[_jtacGroupName])))
 
                                 --make a copy of the JTAC group submenu's path to insert the target's list on as many pages as required. The JTAC's group submenu path only leads to the first page
-                                local jtacTargetPagePath = mist.utils.deepCopy(ctld.jtacGroupSubMenuPath[_jtacGroupName])
+                                local jtacTargetPagePath = CTLD_extAPI.utils.deepCopy("GLOBAL_SCOPE",
+                                    ctld.jtacGroupSubMenuPath[_jtacGroupName])
 
                                 --counter to know when to add the next page submenu to fit all of the targets in the JTAC's group submenu. SMay not actually start at 0 due to static items being present on the first page
                                 local itemCounter = 0
@@ -17233,7 +17234,7 @@ function ctld.addJTACRadioCommand(_side)
 end
 
 function ctld.getGroupId(_unit)
-    local _unitDB = mist.DBs.unitsById[tonumber(_unit:getID())]
+    local _unitDB = CTLD_extAPI.DBs.unitsById[tonumber(_unit:getID())]
     if _unitDB ~= nil and _unitDB.groupId then
         return _unitDB.groupId
     end
@@ -17311,7 +17312,8 @@ ctld.jtacRadioData = {}
         By waiting a bit, the group gets populated before JTACAutoLase is called, hence avoiding a trip to cleanupJTAC.
 ]]
 function ctld.JTACStart(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
-    mist.scheduleFunction(ctld.JTACAutoLase, { _jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio },
+    CTLD_extAPI.scheduleFunction("ctld.JTACStart", ctld.JTACAutoLase,
+        { _jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio },
         timer.getTime() + 1)
 end
 
@@ -18567,14 +18569,16 @@ function ctld.getPositionString(_unit)
     end
 
     local _lat, _lon  = coord.LOtoLL(_unit:getPosition().p)
-    local _latLngStr  = mist.tostringLL(_lat, _lon, 3, ctld.location_DMS)
-    local _mgrsString = mist.tostringMGRS(coord.LLtoMGRS(coord.LOtoLL(_unit:getPosition().p)), 5)
-    local _TargetAlti = land.getHeight(mist.utils.makeVec2(_unit:getPoint()))
+    local _latLngStr  = CTLD_extAPI.tostringLL("GLOBAL_SCOPE", _lat, _lon, 3, ctld.location_DMS)
+    local _mgrsString = CTLD_extAPI.tostringMGRS("GLOBAL_SCOPE", coord.LLtoMGRS(coord.LOtoLL(_unit:getPosition().p)), 5)
+    local _TargetAlti = land.getHeight(CTLD_extAPI.utils.makeVec2("GLOBAL_SCOPE", _unit:getPoint()))
     return " @ " ..
         _latLngStr ..
         " - MGRS " ..
         _mgrsString ..
-        " - ALTI: " .. mist.utils.round(_TargetAlti, 0) .. " m / " .. mist.utils.round(_TargetAlti / 0.3048, 0) .. " ft"
+        " - ALTI: " ..
+        CTLD_extAPI.utils.round("GLOBAL_SCOPE", _TargetAlti, 0) ..
+        " m / " .. CTLD_extAPI.utils.round(_TargetAlti / 0.3048, 0) .. " ft"
 end
 
 --**********************************************************************
@@ -18637,7 +18641,8 @@ function ctld.StartOrbitGroup(_jtacUnitName, _unitTargetName, _alti, _speed)
             id     = 'Orbit',
             params = {
                 pattern = 'Circle',
-                point = mist.utils.makeVec2(mist.getAvgPos(mist.makeUnitTable({ _unitTargetName }))),
+                point = CTLD_extAPI.utils.makeVec2("ctld.StartOrbitGroup",
+                    CTLD_extAPI.getAvgPos(CTLD_extAPI.makeUnitTable({ _unitTargetName }))),
                 speed = _speed,
                 altitude = _alti
             }
@@ -18663,14 +18668,14 @@ end
 -- return the WayPoint number (on the JTAC route) the most near from the target
 function ctld.getNearestWP(_referenceUnitName)
     local WP = 0
-    local memoDist = nil                                     -- Lower distance checked
+    local memoDist = nil                                                                 -- Lower distance checked
     local refGroupName = Unit.getByName(_referenceUnitName):getGroup():getName()
-    local JTACRoute = mist.getGroupRoute(refGroupName, true) -- get the initial editor route of the current group
-    if Unit.getByName(_referenceUnitName) ~= nil then        --JTAC et unit must exist
+    local JTACRoute = CTLD_extAPI.getGroupRoute("ctld.getNearestWP", refGroupName, true) -- get the initial editor route of the current group
+    if Unit.getByName(_referenceUnitName) ~= nil then                                    --JTAC et unit must exist
         for i = 1, #JTACRoute do
             local ptWP  = { x = JTACRoute[i].x, y = JTACRoute[i].y }
-            local ptRef = mist.utils.makeVec2(Unit.getByName(_referenceUnitName):getPoint())
-            local dist  = mist.utils.get2DDist(ptRef, ptWP) -- distance between 2 points
+            local ptRef = CTLD_extAPI.utils.makeVec2("ctld.getNearestWP", Unit.getByName(_referenceUnitName):getPoint())
+            local dist  = CTLD_extAPI.utils.get2DDist("ctld.getNearestWP", ptRef, ptWP) -- distance between 2 points
             if memoDist == nil then
                 memoDist = dist
                 WP = i
@@ -18687,8 +18692,8 @@ end
 -- Modify the route deleting all the WP before "firstWP" param, for aligne the orbit on the nearest WP of the target
 function ctld.backToRoute(_jtacUnitName)
     local jtacGroupName = Unit.getByName(_jtacUnitName):getGroup():getName()
-    --local JTACRoute     = mist.getGroupRoute(jtacGroupName, true)   -- get the initial editor route of the current group
-    local JTACRoute     = mist.utils.deepCopy(mist.getGroupRoute(jtacGroupName, true)) -- get the initial editor route of the current group
+    --local JTACRoute     = CTLD_extAPI.getGroupRoute("ctld.backToRoute", jtacGroupName, true)   -- get the initial editor route of the current group
+    local JTACRoute     = CTLD_extAPI.utils.deepCopy("ctld.backToRoute", CTLD_extAPI.getGroupRoute(jtacGroupName, true)) -- get the initial editor route of the current group
     local newJTACRoute  = ctld.adjustRoute(JTACRoute, ctld.getNearestWP(_jtacUnitName))
 
     local Mission       = {}
@@ -18935,8 +18940,8 @@ function ctld.reconShowTargetsInLosOnF10Map(_playerUnit, _searchRadius, _markRad
             color = { 51 / 255, 51 / 255, 1, 0.2 } -- blue
         end
 
-        local t = mist.getUnitsLOS({ _playerUnit:getName() }, 180,
-            mist.makeUnitTable({ '[' .. enemyColor .. '][vehicle]' }),
+        local t = CTLD_extAPI.getUnitsLOS("GLOBAL_SCOPE", { _playerUnit:getName() }, 180,
+            CTLD_extAPI.makeUnitTable("GLOBAL_SCOPE", { '[' .. enemyColor .. '][vehicle]' }),
             180, _searchRadius)
 
         local MarkIds = {}
@@ -18956,7 +18961,7 @@ function ctld.reconShowTargetsInLosOnF10Map(_playerUnit, _searchRadius, _markRad
                 end
             end
         end
-        mist.DBs.humansByName[_playerUnit:getName()].losMarkIds =
+        CTLD_extAPI.DBs.humansByName[_playerUnit:getName()].losMarkIds =
             MarkIds -- store list of marksIds generated and showed on F10 map
         return TargetsInLOS
     else
@@ -18967,11 +18972,11 @@ end
 ---------------------------------------------------------
 function ctld.reconRemoveTargetsInLosOnF10Map(_playerUnit)
     local unitName = _playerUnit:getName()
-    if mist.DBs.humansByName[unitName].losMarkIds then
-        for i = 1, #mist.DBs.humansByName[unitName].losMarkIds do -- for each unit having los on enemies
-            trigger.action.removeMark(mist.DBs.humansByName[unitName].losMarkIds[i])
+    if CTLD_extAPI.DBs.humansByName[unitName].losMarkIds then
+        for i = 1, #CTLD_extAPI.DBs.humansByName[unitName].losMarkIds do -- for each unit having los on enemies
+            trigger.action.removeMark(CTLD_extAPI.DBs.humansByName[unitName].losMarkIds[i])
         end
-        mist.DBs.humansByName[unitName].losMarkIds = nil
+        CTLD_extAPI.DBs.humansByName[unitName].losMarkIds = nil
     end
 end
 
@@ -19362,8 +19367,8 @@ function ctld.eventHandler:onEvent(event)
 
     local function processHumanPlayer()
         ctld.logTrace("in the 'processHumanPlayer' function processHumanPlayer()- unitName = %s", ctld.p(unitName))
-        --ctld.logTrace("in the 'processHumanPlayer' function processHumanPlayer()- mist.DBs.humansByName[unitName] = %s", ctld.p(mist.DBs.humansByName[unitName]))
-        if mist.DBs.humansByName[unitName] then -- it's a human unit
+        --ctld.logTrace("in the 'processHumanPlayer' function processHumanPlayer()- CTLD_extAPI.DBs.humansByName[unitName] = %s", ctld.p(CTLD_extAPI.DBs.humansByName[unitName]))
+        if CTLD_extAPI.DBs.humansByName[unitName] then -- it's a human unit
             ctld.logDebug("caught event %s for human unit [%s]", ctld.p(eventName), ctld.p(unitName))
             local _unit = Unit.getByName(unitName)
             if _unit ~= nil then
@@ -19401,7 +19406,7 @@ function ctld.eventHandler:onEvent(event)
         end
     end
 
-    if not mist.DBs.humansByName[unitName] then
+    if not CTLD_extAPI.DBs.humansByName[unitName] then
         -- give a few milliseconds for MiST to handle the BIRTH event too
         ctld.logTrace("give MiST some time to handle the BIRTH event too")
         timer.scheduleFunction(function()
@@ -19533,290 +19538,6 @@ else
     ctld.initialize()
 end
 -- End : CTLD.lua 
--- ==================================================================================================== 
--- Start : CTLD_complt.lua 
--- Fichier: ctld_module.lua (Classes complètes et mises à jour)
-
--- 1. Définition du namespace global 'ctld'
-ctld = ctld or {}
-
--- ====================================================================================================
--- CLASSE ctld.Utils
--- ====================================================================================================
-
-local Utils = {}
-ctld.Utils = Utils
-if not ctld.Utils.marks then ctld.Utils.marks = {}; end
-
-function ctld.Utils.drawQuad(coalitionId, vec3Points1To4, message)
-    local coalitionId = coalitionId or 2
-    local markId = ctld.Utils.getNextUniqId()
-
-    -- Color
-    local tableColor = { 0, 0, 255, 0.4 }  --blue  by default
-    if coalitionId == 1 then
-        tableColor = { 1, 0, 0, 0.4 }      --red  % of (r,g,b,alpha)    red
-    elseif coalitionId == 2 then
-        tableColor = { 0, 0, 255, 0.4 }    --blue  % of (r,g,b,alpha)   blue
-    elseif coalitionId == 0 then
-        tableColor = { 2, 173, 33, 0.4 }   --green  % of (r,g,b,alpha)  neutral
-    elseif coalitionId == -1 then
-        tableColor = { 247, 179, 30, 0.4 } --orange  % of (r,g,b,alpha) All
-    end
-
-    local tableFillColor = { 0, 0, 255, 0.4 } --tableColor
-    local lineType = 1                        --solid
-    local message = message or ""
-    ctld.Utils.marks[markId] = message
-
-    --trigger.action.quadToAll(number coalition , number id , vec3 point1 , vec3 point2 , vec3 point3 , vec3 point4 , table color , table fillColor , number lineType , boolean readOnly, string message)
-    trigger.action.quadToAll(coalitionId, markId,
-        vec3Points1To4[1], vec3Points1To4[2], vec3Points1To4[3], vec3Points1To4[4],
-        tableColor, tableFillColor, lineType, true, message)
-end
-
---[[-example ------------------------------------------------------------
-local heliName = "h1-1"
-local triggerUnitObj = Unit.getByName(heliName)
-local vec3StartPoint = triggerUnitObj:getPosition().p
-local vec3EndPoint = {x = vec3StartPoint.x+1000,z=vec3StartPoint.z+1000,y=vec3StartPoint.y}
-
-
-ctld.Utils.drawQuad(coalitionId, vec3Points1To4, message)
-return mist.utils.tableShow(ctld.marks)
------------------------------------------------------------- ]] --
-
----------------------------------------------------------------------------------------------
--- Calculates the absolute coordinates (x, y, heading, altitude) of a target point
--- based on a reference point and a relative offset, respecting the DCS coordinate system
--- (X=North, Y=East) and magnetic declination.
----------------------------------------------------------------------------------------------
--- @param refX X coordinate (North) of the reference point.
--- @param refY Y coordinate (East) of the reference point.
--- @param refHeading True/Geographic Heading of the reference unit in degrees.
--- @param refAltitude Altitude of the reference unit.
--- @param offsetAngleInDegrees Angle of the offset relative to the reference heading (0 = directly ahead).
--- @param offsetDistance Distance of the offset.
--- @param offsetHeading True/Geographic Heading for the final point.
--- @param offsetAltitude Altitude difference to add to the reference altitude.
--- @param magneticDeclinationInDegrees Magnetic Declination (subtract from True Heading to get Magnetic Heading).
---
--- @return x Absolute X coordinate (North) of the target point.
--- @return y Absolute Y coordinate (East) of the target point.
--- @return magneticHeadingInDegrees Magnetic Heading of the target point in degrees.
--- @return altitude Absolute altitude of the target point.
----
-function Utils.getRelativeCoords(
-    refX, refY, refHeading, refAltitude,
-    offsetAngleInDegrees, offsetDistanceInMeters,
-    offsetHeadingInDegrees, offsetAltitudeInMeters,
-    magneticDeclinationInDegrees
-)
-    -------------------------------------------------------------------------
-    -- 1. Convert reference heading (radians → degrees)
-    --    refHeading is a DCS true heading in radians, clockwise, 0 = North.
-    -------------------------------------------------------------------------
-    local refHeadingDeg = math.deg(refHeading)
-
-    -------------------------------------------------------------------------
-    -- 2. Compute the world angle used to project the new position.
-    --    offsetAngleInDegrees is relative to the aircraft's heading.
-    -------------------------------------------------------------------------
-    local worldAngleDeg = refHeadingDeg + offsetAngleInDegrees
-
-    -- Convert to radians for math.sin/cos (DCS uses clockwise headings)
-    local worldAngleRad = math.rad(worldAngleDeg)
-
-    -------------------------------------------------------------------------
-    -- 3. Compute position deltas using DCS Cartesian coordinates:
-    --    X axis = South/North, positive to the North.
-    --    Y axis (vec3.z) = West/East, positive to the East.
-    -------------------------------------------------------------------------
-    local dx = math.cos(worldAngleRad) * offsetDistanceInMeters
-    local dy = math.sin(worldAngleRad) * offsetDistanceInMeters
-
-    local newX = refX + dx
-    local newY = refY + dy
-
-    -------------------------------------------------------------------------
-    -- 4. Compute the object's final magnetic heading.
-    --
-    --    refHeadingDeg            = reference TRUE heading
-    --    + offsetHeadingInDegrees = rotation relative to the reference
-    --    - magneticDeclination    = convert true → magnetic
-    -------------------------------------------------------------------------
-    local magneticHeadingDeg =
-        refHeadingDeg +
-        offsetHeadingInDegrees -
-        magneticDeclinationInDegrees
-
-    -- Normalize to 0–360°
-    magneticHeadingDeg = (magneticHeadingDeg % 360 + 360) % 360
-
-    -------------------------------------------------------------------------
-    -- 5. Compute altitude
-    -------------------------------------------------------------------------
-    local newAltitude = refAltitude + offsetAltitudeInMeters
-
-    return newX, newY, magneticHeadingDeg, newAltitude
-end
-
------------------------------------------------------------------------------------------------
--- Return a Vec2 point relative to  a reference point (position & heading DCS)
-function Utils.GetRelativeVec2Coords(refVec2Point, refHeadingInRadians, distanceFromRef, angleInDegreesFromRefHeading)
-    -- absolue Heading in radians
-    local absoluteHeadingInRadians = refHeadingInRadians + math.rad(angleInDegreesFromRefHeading)
-    -- in DCS : x = Nord (+), z = Est (+)
-    local dx = math.cos(absoluteHeadingInRadians) * distanceFromRef -- displacement North/South
-    local dy = math.sin(absoluteHeadingInRadians) * distanceFromRef -- displacement Est/West
-
-    local newCoords = {
-        x = refVec2Point.x + dx,
-        y = refVec2Point.y + dy,
-    }
-    return newCoords
-end
-
---------------------------------------------------------------------------------------------------------
---- @function ctld.Utils:getHeadingInRadians
----@param unitObject any
----@param rawHeading boolean (true=geographic/false=magnetic)
----@return integer       --- @--return "magneticHeading : "..tostring(math.deg(mist.getHeading(triggerUnitObj, false)))..", geographicHeading : "..tostring(math.deg(mist.getHeading(triggerUnitObj, true)))
-function Utils.getHeadingInRadians(unitObject, rawHeading) --rawHeading: boolean (true=geographic/false=magnetic)
-    if not unitObject then
-        if env and env.error then
-            env.error("CTLD.Utils:getHeadingInRadians: Invalid unit object provided.")
-        end
-        return 0
-    end
-    return mist.getHeading(unitObject, rawHeading or false) -- default to magnetic if not specified
-end
-
---------------------------------------------------------------------------------------------------------
---- @function ctld.Utils:rotateVec3
--- Calcule l'offset cartésien absolu en appliquant la rotation du cap de l'appareil.
--- (Conçu pour le format de données : relative = {x, y, z})
-function Utils.rotateVec3(relativeVec, headingDeg)
-    local x_rel = relativeVec.x
-    local z_rel = relativeVec.z
-    -- y_rel n'est pas utilisé dans le calcul de rotation, mais sera dans le retour
-    local y_rel = relativeVec.y or 0
-
-    -- Vérification des données (X et Z sont obligatoires)
-    if x_rel == nil or z_rel == nil then
-        local msg = "CTLD.Utils:rotateVec3: Missing X or Z component in relative position data."
-        if env and env.error then
-            env.error(msg)
-            -- Lève une erreur qui sera capturée par pcall (si appelé)
-            error(msg)
-        else
-            error(msg)
-        end
-    end
-
-    local headingRad = math.rad(headingDeg)
-    local cos_h = math.cos(headingRad)
-    local sin_h = math.sin(headingRad)
-
-    local x_rot = (z_rel * sin_h) + (x_rel * cos_h)
-    local z_rot = (z_rel * cos_h) - (x_rel * sin_h)
-
-    return { x = x_rot, y = y_rel, z = z_rot }
-end
-
---------------------------------------------------------------------------------------------------------
--- Additionne deux vecteurs de position (Vec3) de DCS.
-function Utils.addVec3(vec1, vec2)
-    return {
-        -- Utilise or 0 pour garantir qu'aucune addition ne donne 'nil'
-        x = (vec1.x or 0) + (vec2.x or 0),
-        y = (vec1.y or 0) + (vec2.y or 0),
-        z = (vec1.z or 0) + (vec2.z or 0),
-    }
-end
-
---------------------------------------------------------------------------------------------------------
-Utils.UniqIdCounter = 0 -- Compteur statique pour les ID uniques
---- @function ctld.Utils:getNextUniqId
--- Génère un ID unique incrémental, comme requis pour 'unitId' dans groupData.
-function Utils.getNextUniqId()
-    Utils.UniqIdCounter = Utils.UniqIdCounter + 1
-    return Utils.UniqIdCounter
-end
-
---------------------------------------------------------------------------------------------------------
---- @function ctld.Utils:normalizeHeading
--- Normalise un cap (heading) entre 0 et 360 degrés.
-function Utils.normalizeHeading(h)
-    local result = h % 360
-    if result < 0 then
-        result = result + 360
-    end
-    return result
-end
-
---------------------------------------------------------------------------------------------------------
---- @function ctld.Utils:polarToCartesian
--- Convertit une distance (rho), un angle (theta) et un cap de référence (headingDeg)
--- en coordonnées cartésiennes absolues (x, z) de la carte DCS.
--- @param distance number La distance au point de référence.
--- @param relativeAngle number L'angle relatif au point de référence (0 = devant, 90 = droite).
--- @param headingDeg number Le cap absolu de l'appareil (point de référence).
--- @return table L'offset cartésien absolu { x, y=0, z }.
-function Utils.polarToCartesian(distance, relativeAngle, headingDeg)
-    local absoluteAngle = headingDeg + relativeAngle
-    local angleRad = math.rad(absoluteAngle)
-
-    -- Correction du facteur distance (20m -> 10m)
-    local dist = (distance or 0) * 2
-
-    -- X (Nord/Sud, l'axe de référence du cap 0°) : Utilise COS
-    local x_rot = dist * math.cos(angleRad)
-
-    -- Z (Est/Ouest) : Utilise SIN. La trigonométrie standard sin(angle) augmente CCW.
-    -- Nous ne touchons pas au signe car la trigonométrie de DCS peut être non standard.
-    local z_rot = dist * math.sin(angleRad)
-
-    return { x = x_rot, y = 0, z = z_rot }
-end
-
---------------------------------------------------------------------------------------------------------
---Load table of maps and associated magnetic declinations to calculate the declination applicable to the mission
-Utils.mapsAnMagneticDeclin = {
-    ['Caucasus']         = { ['2015-2040'] = -6 },
-    ['Nevada']           = { ['2015-2040'] = -10 },
-    ['Normandy']         = { ['1940-1948'] = 11, ['2010-2040'] = 1 },
-    ['Persian Gulf']     = { ['2010-2040'] = -1 },
-    ['The Channel']      = { ['1940-1948'] = 11, ['2006-2040'] = 0 },
-    ['Syria']            = { ['2016-2040'] = -4 },
-    ['Marianas Islands'] = { ['2013-2040'] = 1 },
-    ['South Atlantic']   = { ['2015-2040'] = 0 },
-    ['Afghanistan']      = { ['2015-2040'] = 0 }
-}
---------------------------------------------------------------------------------------------------------
-function Utils.getMagneticDeclination()              -- returns the magnetic declination as a function of the mission date and map
-    local missionYear = tostring(mist.time.getDate().y)
-    for k, v in pairs(Utils.mapsAnMagneticDeclin) do -- map name of current mission found
-        if k == mist.DBs.missionData.theatre then
-            local mostRecentYearMemo = ''
-            local declinationMostRecentYear = 0
-            for k2, v2 in pairs(v) do
-                local startYear = string.sub(k2, 1, 4)
-                local endYear   = string.sub(k2, 6, 9)
-                if missionYear >= startYear and missionYear <= endYear then --annee trouvée
-                    return v2                                               -- return magnetic declination in degrees
-                else
-                    if endYear > mostRecentYearMemo then                    -- par defaut prendre declinaison de l'année la plus avancée
-                        declinationMostRecentYear = v2
-                        mostRecentYearMemo = endYear
-                    end
-                end
-            end
-            return declinationMostRecentYear -- return magnetic declination in degrees of most recent year found
-        end
-    end
-end
--- End : CTLD_complt.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_DCSWeaponsDb.lua 
 -- ======================================================================
@@ -21009,7 +20730,7 @@ ctld.objectsDescDb["Fuel_Truck"] = {
 
         return {
             groupType = "GROUND",
-            name = "Fuel_Truck_Grp",         -- groupName Prefixes},
+            name = "Fuel_Truck_Grp", -- groupName Prefixes},
             category = Unit.Category["GROUND_UNIT"],
             coalitionId = coalitionId,
             countryId = countryId,
@@ -21018,18 +20739,18 @@ ctld.objectsDescDb["Fuel_Truck"] = {
             visible = false,
             tasks = {},
             startTime = 0,
-            start_time = 0,         -- If 0 the group will spawn immediately
+            start_time = 0, -- If 0 the group will spawn immediately
             units = {
                 [1] = {
-                    type = unitType,                  -- DCS typeName
+                    type = unitType,          -- DCS typeName
                     category = Unit.Category["GROUND_UNIT"],
-                    name = "Fuel_Truck_Unit",         -- unitNamePrefix
+                    name = "Fuel_Truck_Unit", -- unitNamePrefix
                     transportable = { randomTransportable = false },
                     skill = "High",
                     playerCanDrive = false,
                     x = x,
-                    y = y,                                   -- vec3.z
-                    heading = headingInRadians or 0,         -- In Radians
+                    y = y,                           -- vec3.z
+                    heading = headingInRadians or 0, -- In Radians
                 }
             }
         }
@@ -21110,7 +20831,7 @@ function ctld.spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadia
         local groupData = ctld.objectsDescDb[objectKey].desc(coalitionId, countryId, x or 0, y or 0, headinInRadians or 0,
             altitudeInMeters or 0)
 
-        groupData.groupId = ctld.Utils.getNextUniqId()
+        groupData.groupId = ctld.utils.getNextUniqId()
         groupData.name = groupData.name .. '-' .. tostring(groupData.groupId)
 
         local success, obj = ""
@@ -21119,7 +20840,7 @@ function ctld.spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadia
         else -- non-STATIC
             if groupData.units then
                 for i, v in ipairs(groupData.units) do
-                    groupData.units[i].unitId = ctld.Utils.getNextUniqId()
+                    groupData.units[i].unitId = ctld.utils.getNextUniqId()
                     groupData.units[i].name = groupData.units[i].name .. '-' .. tostring(groupData.units[i].unitId)
                 end
             end
@@ -21169,94 +20890,94 @@ return mist.utils.tableShow(obj)
 -- ==================================================================================================== 
 -- Start : CTLD_Scene.lua 
 -- ====================================================================================================
--- CLASSE ctld.Scene
+-- CLASSE ctld.scene
 -- ====================================================================================================
 
-local Scene = {}
-ctld.Scene = Scene
+local scene = {}
+ctld.scene = scene
 
-Scene.__index = Scene
-Scene.Counter = 0
-Scene.SceneModels = {}
-Scene.Scenes = {}
+scene.__index = scene
+scene.Counter = 0
+scene.sceneModels = {}
+scene.scenes = {}
 
-function Scene.getNextSceneNumber()
-    Scene.Counter = Scene.Counter + 1
-    return Scene.Counter
+function scene.getNextsceneNumber()
+    scene.Counter = scene.Counter + 1
+    return scene.Counter
 end
 
-function Scene.getByName(name)
-    if Scene.Scenes[name] then
-        return Scene.Scenes[name]
+function scene.getByName(name)
+    if scene.scenes[name] then
+        return scene.scenes[name]
     end
     return nil
 end
 
-function Scene.getScenesList()
-    return Scene.Scenes
+function scene.getscenesList()
+    return scene.scenes
 end
 
---- @function Scene:playScene registerScenModel
--- register a scene model defined by sceneTable into Scene.SceneModels
+--- @function scene:playscene registerScenModel
+-- register a scene model defined by sceneTable into scene.sceneModels
 -- @param sceneTable complete scene datas (name, stepsDatas, etc.).
-function Scene.registerSceneModel(sceneTable)
-    if sceneTable.name and sceneTable.name ~= "" and Scene.SceneModels[sceneTable.name] == nil then
-        Scene.SceneModels[sceneTable.name] = sceneTable
+function scene.registersceneModel(sceneTable)
+    if sceneTable.name and sceneTable.name ~= "" and scene.sceneModels[sceneTable.name] == nil then
+        scene.sceneModels[sceneTable.name] = sceneTable
         return true
     else
         return false
     end
 end
 
---- @function Scene:playScene
+--- @function scene:playscene
 -- create a scene defined by sceneTable and add steps to scene sequencer
 -- @param triggerUnitObj  unit object who trigged the scene
 -- @param sceneTable complete scene datas (name, stepsDatas, etc.).
-function Scene.playScene(triggerUnitObj, sceneTable)
+function scene.playscene(triggerUnitObj, sceneTable)
     if triggerUnitObj == nil then
-        trigger.action.outText(ctld.i18n_translate("CTLD_Scene.lua/Scene.playScene - ERROR: Can't find triggerUnitObj"),
+        trigger.action.outText(ctld.i18n_translate("CTLD_scene.lua/scene.playscene - ERROR: Can't find triggerUnitObj"),
             10)
         return
     end
 
     local triggerUnitName = triggerUnitObj:getName()
     local heliPoint = triggerUnitObj:getPoint()
-    local heliHeadingInRadians = ctld.Utils.getHeadingInRadians(triggerUnitObj)
-    local scn = ctld.Scene:new(sceneTable.name, triggerUnitObj) --:createScene()
-    scn:addStepToScene(sceneTable.stepsDatas)
-    scn:executeScene(triggerUnitObj)
+    local heliHeadingInRadians = ctld.utils.getHeadingInRadians(triggerUnitObj)
+    local scn = ctld.scene:new(sceneTable.name, triggerUnitObj) --:createscene()
+    scn:addStepToscene(sceneTable.stepsDatas)
+    scn:executescene(triggerUnitObj)
     return scn
 end
 
-function Scene:new(name, triggerUnitObj)
-    local newScene = {}
-    setmetatable(newScene, Scene)
-    if name and name ~= "" and Scene.Scenes[name] == nil then
-        newScene.name = name
+function scene:new(name, triggerUnitObj)
+    local newscene = {}
+    setmetatable(newscene, scene)
+    if name and name ~= "" and scene.scenes[name] == nil then
+        newscene.name = name
     else
-        newScene.name = string.format("CTLD Scene #%d", Scene.getNextSceneNumber())
+        newscene.name = string.format("CTLD scene #%d", scene.getNextsceneNumber())
     end
-    newScene.steps = {}
-    newScene.isRunning = false
-    newScene.currentStepIndex = 1
-    newScene.basePosition = nil
-    newScene.baseHeading = 0 -- Nouveau champ pour le cap de l'appareil déclencheur
-    newScene.triggerUnitObj = triggerUnitObj
-    newScene.spawnedGroupObjects = {}
-    Scene.Scenes[name] = newScene
-    return newScene
+    newscene.steps = {}
+    newscene.isRunning = false
+    newscene.currentStepIndex = 1
+    newscene.basePosition = nil
+    newscene.baseHeading = 0 -- Nouveau champ pour le cap de l'appareil déclencheur
+    newscene.triggerUnitObj = triggerUnitObj
+    newscene.spawnedGroupObjects = {}
+    scene.scenes[name] = newscene
+    return newscene
 end
 
-function Scene:addSpwanedGroup(triggerUnitObj, spawnedGroupObjects)
+function scene:addSpwanedGroup(triggerUnitObj, spawnedGroupObjects)
     self.triggerUnitObj = triggerUnitObj
     self.spawnedGroupObjects[#self.spawnedGroupObjects + 1] = spawnedGroupObjects
     return true
 end
 
---- @function Scene:addStepToScene
+--- @function scene:addStepToscene
 -- Add steps to scene sequencer
 -- @param stepsTable  complete steps datas (groupData, type, polar, etc.).
-function Scene:addStepToScene(stepsTable)
+function scene:addStepToscene(stepsTable)
     if type(stepsTable) ~= 'table' then -- control
         return self
     end
@@ -21267,13 +20988,13 @@ function Scene:addStepToScene(stepsTable)
     return self
 end
 
---- @function Scene:executeScene
+--- @function scene:executescene
 -- start the scene execution
 -- @param triggerUnitObj unit object that trigger the scene
-function Scene:executeScene(triggerUnitObj)
+function scene:executescene(triggerUnitObj)
     self.triggerUnitObj = triggerUnitObj
     self.refVec3Point = triggerUnitObj:getPoint() -- vec3
-    self.refHeadingInRadians = ctld.Utils.getHeadingInRadians(triggerUnitObj)
+    self.refHeadingInRadians = ctld.utils.getHeadingInRadians(triggerUnitObj)
     self.isRunning = true
     self.currentStepIndex = 0
     self.timeProgressMarker = 0
@@ -21292,7 +21013,7 @@ function Scene:executeScene(triggerUnitObj)
 end
 
 --===================================================================================================
-function Scene:runNextStep()
+function scene:runNextStep()
     self.currentStepIndex = self.currentStepIndex + 1 -- next step to execute
 
     -- run current step
@@ -21305,11 +21026,11 @@ function Scene:runNextStep()
             local relativeAngle = step.polar.angle or 0
             local relativeHeadingInDegrees = step.relativeHeadingInDegrees or 0
             local relativeAltitudeInMeters = step.relativeAltitudeInMeters or 0
-            local magneticDeclinationInDegrees = ctld.Utils.getMagneticDeclination()
+            local magneticDeclinationInDegrees = ctld.utils.getMagneticDeclination()
             local coalitionId = self.triggerUnitObj:getCoalition()
             local countryId = self.triggerUnitObj:getCountry()
 
-            local x, y, magneticHeadingInDegrees, altitude = ctld.Utils.getRelativeCoords(self.refVec3Point.x,
+            local x, y, magneticHeadingInDegrees, altitude = ctld.utils.getRelativeCoords(self.refVec3Point.x,
                 self.refVec3Point.z,
                 refHeadingInRadians,
                 self.refVec3Point.y,
@@ -21319,20 +21040,20 @@ function Scene:runNextStep()
                 relativeAltitudeInMeters,
                 magneticDeclinationInDegrees)
 
-            --Scene:spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadians, altitudeInMeters)
+            --scene:spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadians, altitudeInMeters)
             local ok, success, spawnedObj = pcall(self.spwanObject, self, coalitionId, step.objectsDescDbKey, countryId,
                 x, y,
                 math.rad(magneticHeadingInDegrees), altitude)
             if not ok then
                 --env.info("Runtime error: " .. tostring(success)) -- success = message d’erreur
-                local errorMsg = string.format("ctld.Scene:runNextStep() ERROR: Failed to spawn step %d. Reason: %s",
+                local errorMsg = string.format("ctld.scene:runNextStep() ERROR: Failed to spawn step %d. Reason: %s",
                     self.currentStepIndex, step.objectsDescDbKey or "N/A", success)
                 trigger.action.outText(errorMsg, 20)
                 return nil
             elseif success then
-                -- ms("Scene:runNextStep().step.objectsDescDbKey.success ok ")
+                -- ms("scene:runNextStep().step.objectsDescDbKey.success ok ")
                 -- env.info("Object nb spawned: " .. tostring(#spawnedObj))
-                -- ms("Scene:runNextStep().step.objectsDescDbKey: spawnedObj = " .. mist.utils.tableShow(spawnedObj))
+                -- ms("scene:runNextStep().step.objectsDescDbKey: spawnedObj = " .. mist.utils.tableShow(spawnedObj))
                 if step.func then
                     -- Gère les fonctions personnalisées
                     local okFunc, successFunc, spawnedObjFunc = pcall(step.func, self.triggerUnitObj, spawnedObj, step)
@@ -21361,7 +21082,7 @@ function Scene:runNextStep()
         -- Gère les fonctions personnalisées
         local ok, success, spawnedObj = pcall(step.func, self.triggerUnitObj, nil, step)
         if not ok then
-            --ms("Scene:runNextStep().step.func: not ok ")
+            --ms("scene:runNextStep().step.func: not ok ")
             --env.info("Runtime error: " .. tostring(success)) -- success = message d’erreur
             local errorMsg = string.format("CTLD ERROR: Failed to execute function for step %d. Reason: %s",
                 self.currentStepIndex, success)
@@ -21397,14 +21118,14 @@ function Scene:runNextStep()
     end
 end
 
---- @function Scene:spawnObject
-function Scene:spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadians, altitudeInMeters)
+--- @function scene:spawnObject
+function scene:spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadians, altitudeInMeters)
     if objectKey and countryId and x and y then
         local groupData = ctld.objectsDescDb[objectKey].desc(coalitionId, countryId, x or 0, y or 0, headinInRadians or 0,
             altitudeInMeters or 0)
-        groupData.groupId = ctld.Utils.getNextUniqId()
+        groupData.groupId = ctld.utils.getNextUniqId()
         groupData.name = groupData.name .. '-' .. tostring(groupData.groupId)
-        --ms("Scene:spwanObject():groupData = " .. mist.utils.tableShow(groupData))
+        --ms("scene:spwanObject():groupData = " .. mist.utils.tableShow(groupData))
 
         local success, spawnedObj = ""
         if string.upper(groupData.groupType) == "STATIC" then
@@ -21412,7 +21133,7 @@ function Scene:spwanObject(coalitionId, objectKey, countryId, x, y, headinInRadi
         else -- non-STATIC
             if groupData.units then
                 for i, v in ipairs(groupData.units) do
-                    groupData.units[i].unitId = ctld.Utils.getNextUniqId()
+                    groupData.units[i].unitId = ctld.utils.getNextUniqId()
                     groupData.units[i].name = groupData.units[i].name .. '-' .. tostring(groupData.units[i].unitId)
                 end
             end
@@ -21439,19 +21160,19 @@ end
 --===================================================================================================
 if false then
     ---------------------------------------------------
-    --- Testing the FARP Deployment Scene
+    --- Testing the FARP Deployment scene
     --- ---------------------------------------------------
     if false then
         local heliName = "h1-1"
         local triggerUnitObj = Unit.getByName(heliName)
-        ctld.Scene.playScene(Unit.getByName(heliName), ctld.Scene.SceneModels["FARP Alpha"])
+        ctld.scene.playscene(Unit.getByName(heliName), ctld.scene.sceneModels["FARP Alpha"])
         return ctld.lmsg
     end
     if false then
         local heliName = "h1-1"
         local heliName = "h2-1"
         local triggerUnitObj = Unit.getByName(heliName)
-        ctld.Scene.playScene(Unit.getByName(heliName), ctld.Scene.SceneModels["FARP Alpha"])
+        ctld.scene.playscene(Unit.getByName(heliName), ctld.scene.sceneModels["FARP Alpha"])
         return ctld.lmsg
     else
         ---------------------------------------------------------------------------------
@@ -21677,7 +21398,7 @@ farpScene.stepsDatas = {
 }
 
 ctld.farpScene = farpScene
-ctld.Scene.registerSceneModel(ctld.farpScene) -- Register the scene model in the Scene class
+ctld.scene.registerSceneModel(ctld.farpScene) -- Register the scene model in the Scene class
 -- ====================================================================================================
 -- End : farpSceneDatas.lua 
 -- ==================================================================================================== 
@@ -21717,7 +21438,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
                                     distanceBetweenColumnsInMeters, distanceBetweenLinesInMeters)
     if triggerUnitObj then
         local triggerUnitPosition = triggerUnitObj:getPosition()
-        local triggerUnitHeadingInRadians = ctld.Utils.getHeadingInRadians(triggerUnitObj, true)
+        local triggerUnitHeadingInRadians = ctld.utils.getHeadingInRadians(triggerUnitObj, true)
         local MinesCoord = {}
         local nbMines = nbMinesColumns * nbMinesPerColumns
         local spwanedObjs = {}
@@ -21725,7 +21446,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
         if nbMines > 0 then
             local vec3Points1To4 = {} -- points for draw
             if nbMines == 1 then      --------- 1 Landmine coordinates
-                local newVec2Point = ctld.Utils.GetRelativeVec2Coords(
+                local newVec2Point = ctld.utils.GetRelativeVec2Coords(
                     { x = triggerUnitPosition.p.x, y = triggerUnitPosition.p.z }, triggerUnitHeadingInRadians,
                     distanceOf1stMineFromHeliInMeter, 0)
                 MinesCoord[1] = {}
@@ -21745,7 +21466,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
                 distanceBetweenLinesInMeters = distanceBetweenLinesInMeters or 12 --	en metres
 
                 -- get 1st point coord of each column
-                local Vec2CentralPoint       = ctld.Utils.GetRelativeVec2Coords(
+                local Vec2CentralPoint       = ctld.utils.GetRelativeVec2Coords(
                     { x = triggerUnitPosition.p.x, y = triggerUnitPosition.p.z }, triggerUnitHeadingInRadians,
                     distanceOf1stMineFromHeliInMeter, 0)
 
@@ -21753,17 +21474,17 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
                     for i = 1, nbMinesColumns do
                         MinesCoord[i] = {}
                         if i == 1 then
-                            MinesCoord[i][1] = ctld.Utils.GetRelativeVec2Coords(Vec2CentralPoint,
+                            MinesCoord[i][1] = ctld.utils.GetRelativeVec2Coords(Vec2CentralPoint,
                                 triggerUnitHeadingInRadians,
                                 (((nbMinesColumns - 1) / 2) * distanceBetweenColumnsInMeters) +
                                 (distanceBetweenColumnsInMeters / 2), 90)
                         else
-                            MinesCoord[i][1] = ctld.Utils.GetRelativeVec2Coords(MinesCoord[i - 1][1],
+                            MinesCoord[i][1] = ctld.utils.GetRelativeVec2Coords(MinesCoord[i - 1][1],
                                 triggerUnitHeadingInRadians, distanceBetweenColumnsInMeters, -90)
                         end
 
                         for line = 2, nbMinesPerColumns do
-                            MinesCoord[i][line] = ctld.Utils.GetRelativeVec2Coords(MinesCoord[i][line - 1],
+                            MinesCoord[i][line] = ctld.utils.GetRelativeVec2Coords(MinesCoord[i][line - 1],
                                 triggerUnitHeadingInRadians, distanceBetweenLinesInMeters, 0)
                         end
                     end
@@ -21771,16 +21492,16 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
                     for i = 1, nbMinesColumns do
                         MinesCoord[i] = {}
                         if i == 1 then
-                            MinesCoord[i][1] = ctld.Utils.GetRelativeVec2Coords(Vec2CentralPoint,
+                            MinesCoord[i][1] = ctld.utils.GetRelativeVec2Coords(Vec2CentralPoint,
                                 triggerUnitHeadingInRadians,
                                 (((nbMinesColumns - 1) / 2) * distanceBetweenColumnsInMeters), 90)
                         else
-                            MinesCoord[i][1] = ctld.Utils.GetRelativeVec2Coords(MinesCoord[i - 1][1],
+                            MinesCoord[i][1] = ctld.utils.GetRelativeVec2Coords(MinesCoord[i - 1][1],
                                 triggerUnitHeadingInRadians, distanceBetweenColumnsInMeters, -90)
                         end
 
                         for line = 2, nbMinesPerColumns do
-                            MinesCoord[i][line] = ctld.Utils.GetRelativeVec2Coords(MinesCoord[i][line - 1],
+                            MinesCoord[i][line] = ctld.utils.GetRelativeVec2Coords(MinesCoord[i][line - 1],
                                 triggerUnitHeadingInRadians, distanceBetweenLinesInMeters, 0)
                         end
                     end
@@ -21839,7 +21560,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
                         x        = MinesCoord[j][i].x,
                         y        = MinesCoord[j][i].y,
                         type     = "Landmine",
-                        name     = "Landmine-" .. ctld.Utils.getNextUniqId(),
+                        name     = "Landmine-" .. ctld.utils.getNextUniqId(),
                         dead     = false,
                         heading  = 0
                     }
@@ -21849,7 +21570,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
             end
 
             -------- draw rectangle around minefield on F10 map -----------------------------
-            ctld.Utils.drawQuad(coalitionId, vec3Points1To4, spwanedObjs[#spwanedObjs].name)
+            ctld.utils.drawQuad(coalitionId, vec3Points1To4, spwanedObjs[#spwanedObjs].name)
             return true, spwanedObjs
         end
     end
@@ -21857,7 +21578,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
 end
 
 ctld.mineFieldScene = mineFieldScene
-ctld.Scene.registerSceneModel(ctld.mineFieldScene) -- Register the scene model in the Scene class
+ctld.scene.registerSceneModel(ctld.mineFieldScene) -- Register the scene model in the Scene class
 -- ====================================================================================================
 
 --[[ ---- TEST -----------------------------------------------------
@@ -21866,9 +21587,133 @@ ctld.Scene.registerSceneModel(ctld.mineFieldScene) -- Register the scene model i
 if true then
     local heliName = "h1-1"
     local triggerUnitObj = Unit.getByName(heliName)
-    --ctld.Scene.playScene(Unit.getByName(heliName), ctld.farpScene)
-    ctld.Scene.playScene(Unit.getByName(heliName), ctld.mineFieldScene)
+    --ctld.scene.playScene(Unit.getByName(heliName), ctld.farpScene)
+    ctld.scene.playScene(Unit.getByName(heliName), ctld.mineFieldScene)
     return ctld.lmsg
 end
 ----------------------------------------------------------------- ]] --
 -- End : mineFieldSceneDatas.lua 
+-- ==================================================================================================== 
+-- Start : yaml.lua 
+-- yaml.lua v0.1
+
+local yaml = {}
+
+-- Helper function to convert value types
+local function convert_value(value)
+    if value == "true" then
+        return true
+    elseif value == "false" then
+        return false
+    elseif tonumber(value) then
+        return tonumber(value)
+    else
+        return value
+    end
+end
+
+-- Recursive function to parse YAML content
+local function parse_yaml(lines, indent_level, start_index)
+    local data = {}
+    local i = start_index or 1
+
+    while i <= #lines do
+        local line = lines[i]
+
+        -- Skip comments and empty lines
+        if line:match("^#") or line:match("^%s*$") then
+            i = i + 1
+        else
+            -- Determine the current line's indentation level
+            local indent = line:match("^(%s*)")
+            local current_indent_level = #indent / 2
+
+            if current_indent_level < indent_level then
+                -- End of current indentation level, return to previous level
+                return data, i
+            end
+
+            -- Handle sequence items
+            if line:match("^%s*-%s*(.*)%s*$") then
+                local item = line:match("^%s*-%s*(.*)%s*$")
+                local sub_data = {}
+
+                -- Check if the item itself is a key-value pair
+                local sub_key, sub_value = item:match("^%s*([^:]+)%s*:%s*(.*)%s*$")
+                if sub_key then
+                    sub_value = convert_value(sub_value)
+                    sub_data[sub_key] = sub_value
+
+                    -- Parse nested items
+                    local nested_data, next_i = parse_yaml(lines, current_indent_level + 1, i + 1)
+                    if next_i > i then
+                        for k, v in pairs(nested_data) do
+                            sub_data[k] = v
+                        end
+                        i = next_i
+                    else
+                        i = i + 1
+                    end
+                    table.insert(data, sub_data)
+                else
+                    item = convert_value(item)
+
+                    -- Parse nested items
+                    local nested_data, next_i = parse_yaml(lines, current_indent_level + 1, i + 1)
+                    if next_i > i then
+                        table.insert(data, nested_data)
+                        i = next_i
+                    else
+                        table.insert(data, item)
+                        i = i + 1
+                    end
+                end
+            else
+                -- Handle key-value pairs
+                local key, value = line:match("^%s*([^:]+)%s*:%s*(.*)%s*$")
+                if key then
+                    value = convert_value(value)
+
+                    if value == "" then
+                        -- If the value is empty, it might be a nested table or sequence
+                        local sub_data, next_i = parse_yaml(lines, current_indent_level + 1, i + 1)
+                        data[key] = sub_data
+                        i = next_i
+                    else
+                        data[key] = value
+                        i = i + 1
+                    end
+                else
+                    i = i + 1
+                end
+            end
+        end
+    end
+
+    return data, i
+end
+
+-- Function to parse the entire YAML file
+function yaml.parse(file_path)
+    local file, err = io.open(file_path, "r")
+    if not file then
+        return nil, "File not found: " .. err
+    end
+
+    local yaml_str = file:read("*all")
+    file:close()
+
+    -- Split the file content into lines
+    local lines = {}
+    for line in yaml_str:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    -- Parse the YAML content starting from the top level
+    local data, _ = parse_yaml(lines, 0, 1)
+
+    return data
+end
+
+return yaml
+-- End : yaml.lua 

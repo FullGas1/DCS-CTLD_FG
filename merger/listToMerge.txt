@@ -7,3 +7,4 @@ dcsObjectsDescDb.lua
 CTLD_Scene.lua
 farpSceneDatas.lua
 mineFieldSceneDatas.lua
+yaml.lua
