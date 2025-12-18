@@ -2,30 +2,32 @@ scenes:
   farpScene:
     name: "FARP Alpha"
     steps:
-      number: 1          # FARP Principal (STATIC)
-        polar:
-	      distance: 100
-		  angle: 0
+      # FARP Principal (STATIC)
+      - polar:
+          distance: 100
+          angle: 0
         delayAfterPreviousStep: 0
         relativeHeadingInDegrees: 180
         relativeAltitudeInMeters: 0
         objectsDescDbKey: "SINGLE_HELIPAD"         # key for ctld.objectsDescDb table
-        func: function(triggerUnitObj, spwanedObject, stepDatas) -- spwanedObject is the object that was just spawned in this step ( here the FARP helipad)
+        func: |
+          function(triggerUnitObj, spwanedObject, stepDatas) -- spwanedObject is the object that was just spawned in this step ( here the FARP helipad)
              if ctld.scenes and ctld.scenes.farpScene and ctld.scenes.farpScene.steps[1] and ctld.scenes.farpScene.steps[2].func then
-				ctld.scenes.funcs.farpSceneStep1(triggerUnitObj, spwanedObject, stepDatas) -- call func
-			 end
-	  number: 2          # FARP Principal (STATIC)
-        polar:
-	      distance: 130
-		  angle: 5
+                 ctld.scenes.funcs.farpSceneStep1(triggerUnitObj, spwanedObject, stepDatas) -- call func
+             end
+     # FARP Principal (STATIC)
+      - polar:
+          distance: 130
+          angle: 5
         delayAfterPreviousStep: 0
         relativeHeadingInDegrees: 90
         relativeAltitudeInMeters: 0
         objectsDescDbKey: "FARP_Tent"         # key for ctld.objectsDescDb table
-        func: function(triggerUnitObj, spwanedObject, stepDatas) -- spwanedObject is the object that was just spawned in this step ( here the FARP helipad)
+        func: |
+          function(triggerUnitObj, spwanedObject, stepDatas) -- spwanedObject is the object that was just spawned in this step ( here the FARP helipad)
              if ctld.scenes and ctld.scenes.farpScene and ctld.scenes.farpScene.steps[2] and ctld.scenes.farpScene.steps[2].func then
-				ctld.scenes.funcs.farpSceneStep2(triggerUnitObj, spwanedObject, stepDatas) -- call func
-			 end
+                ctld.scenes.funcs.farpSceneStep2(triggerUnitObj, spwanedObject, stepDatas) -- call func
+             end
 
 #-- si ..step:x:func: null => script func a générer pour chaque step lors du register de la scene ---------------------------
 #function(triggerUnitObj, spwanedObject, stepDatas) -- spwanedObject is the object that was just spawned in this step ( here the FARP helipad)
