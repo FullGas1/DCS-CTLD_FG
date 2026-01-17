@@ -12,6 +12,7 @@ if ctld.lastMarkId == nil then
     ctld.lastMarkId = 0
 end
 
+--[[
 -- ***************** RECON CONFIGURATION *****************
 ctld.reconF10Menu                   = true                         -- enables F10 RECON menu
 ctld.reconMenuName                  = ctld.i18n_translate("RECON") --name of the CTLD JTAC radio menu
@@ -19,7 +20,8 @@ ctld.reconRadioAdded                = {}                           --stores the 
 ctld.reconLosSearchRadius           = 2000                         -- search radius in meters
 ctld.reconLosMarkRadius             = 100                          -- mark radius dimension in meters
 ctld.reconAutoRefreshLosTargetMarks = false                        -- if true recon LOS marks are automaticaly refreshed on F10 map
-ctld.reconLastScheduleIdAutoRefresh = 0
+ctld.reconLastScheduleIdAutoRefresh = 0                           -- stores the last schedule id for auto refresh
+]] --
 
 ---- F10 RECON Menus ------------------------------------------------------------------
 function ctld.addReconRadioCommand(_side) -- _side = 1 or 2 (red    or blue)

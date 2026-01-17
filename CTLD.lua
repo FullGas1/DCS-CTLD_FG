@@ -1,4 +1,6 @@
- 
+---@meta
+---@diagnostic disable
+
 -- ==================================================================================================== 
 -- Start : CTLD_i18n.lua 
 --[[
@@ -1264,7 +1266,7 @@ ctld.i18n["ko"]["ENABLE "] = "활성화 "
 ctld.i18n["ko"]["REQUEST "] = "요청 "
 ctld.i18n["ko"]["Reset TGT Selection"] = "TGT 선택 초기화"
 
---========================================================================================================================
+----------------------------------------------------------------------------------------------------------------
 --- Translates a string (text) with parameters (parameters) to the language defined in ctld.i18n_lang
 ---@param text string The text to translate, with the parameters as %1, %2, etc. (all strings!!!!)
 ---@param ... any (list) The parameters to replace in the text, in order (all paremeters will be converted to string)
@@ -1303,7 +1305,44 @@ function ctld.i18n_translate(text, ...)
     return _text
 end
 
---========================================================================================================================
+----------------------------------------------------------------------------------------------------------------
+-- checks the completeness of the dictionaries
+--- @param language string
+--- @param verbose boolean
+--- @return boolean
+function ctld.i18n_check(language, verbose)
+    local english = ctld.i18n["en"]
+    local tocheck = ctld.i18n[language]
+    if not tocheck then
+        ctld.logError(string.format("CTLD.i18n_check: Language %s not found", language))
+        return false
+    end
+    local englishVersion = english.translation_version
+    local tocheckVersion = tocheck.translation_version
+    if englishVersion ~= tocheckVersion then
+        ctld.logError(string.format("CTLD.i18n_check: Language version mismatch: EN has version %s, %s has version %s",
+            englishVersion, language, tocheckVersion))
+    end
+    --ctld.logTrace(string.format("english = %s", ctld.p(english)))
+    for textRef, textEnglish in pairs(english) do
+        if textRef ~= "translation_version" then
+            local textTocheck = tocheck[textRef]
+            if not textTocheck then
+                ctld.logError(string.format("CTLD.i18n_check: NOT FOUND: checking %s text [%s]", language, textRef))
+            elseif textTocheck == textEnglish then
+                ctld.logWarning(string.format("CTLD.i18n_check:         SAME: checking %s text [%s] as in EN", language,
+                    textRef))
+            elseif verbose then
+                ctld.logInfo(string.format("CTLD.i18n_check:             OK: checking %s text [%s]", language, textRef))
+            end
+        end
+    end
+end
+
+--example of usage:
+--ctld.i18n_check("fr")  -- checks if "fr" dictionary contains all "en" messges
+-- ----------------------------------------------------------------------------------------------------------------
+
 -- End : CTLD_i18n.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_config.lua 
@@ -2205,7 +2244,7 @@ function CTLDConfig:load()
     else
         env.info("CTLDConfig: No YAML config data found in ctld.yamlConfigDatas")
     end
-    trigger.action.outText("pass...1", 10)
+
     -- Temporary: Loading old ctld settings variables for backward compatibility
     if ctld ~= nil then
         for k, v in pairs(CTLDConfig.getAllSettings()) do
@@ -2359,6 +2398,7 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- ALEX - Avec "." car méthode de classe
 ]] --
+
 -- End : CTLD_config.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_utils.lua 
@@ -3954,6 +3994,7 @@ function ctld.utils.basicSerialize(caller, var)
         end
     end
 end
+
 -- End : CTLD_utils.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_menus.lua 
@@ -4131,13 +4172,13 @@ function ctld.addTransportF10MenuOptions(_unitName)
                     local _smokeMenu = missionCommands.addSubMenuForGroup(_groupId,
                         ctld.i18n_translate("Smoke Markers"), _rootPath)
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Red Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Red })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.RED })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Blue Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Blue })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.BLUE })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Orange Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Orange })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.ORANGE })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Green Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Green })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.GREEN })
                 end
 
                 if ctld.enabledRadioBeaconDrop then
@@ -4534,6 +4575,7 @@ function ctld.addJTACRadioCommand(_side)
         end
     end
 end
+
 -- End : CTLD_menus.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_beacon.lua 
@@ -4831,6 +4873,7 @@ function ctld.removeRadioBeacon(_args)
         ctld.displayMessageToGroup(_heli, ctld.i18n_translate("You need to land before remove a Radio Beacon"), 20)
     end
 end
+
 -- End : CTLD_beacon.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_jtac.lua 
@@ -6256,22 +6299,26 @@ function ctld.getNearestWP(_referenceUnitName)
     local memoDist = nil                                                                  -- Lower distance checked
     local refGroupName = Unit.getByName(_referenceUnitName):getGroup():getName()
     local JTACRoute = ctld.utils.getGroupRoute("ctld.getNearestWP()", refGroupName, true) -- get the initial editor route of the current group
-    if Unit.getByName(_referenceUnitName) ~= nil then                                     --JTAC et unit must exist
-        for i = 1, #JTACRoute do
-            local ptWP  = { x = JTACRoute[i].x, y = JTACRoute[i].y }
-            local ptRef = ctld.utils.makeVec2FromVec3OrVec2("ctld.getNearestWP()",
-                Unit.getByName(_referenceUnitName):getPoint())
-            local dist  = ctld.utils.get2DDist("ctld.getNearestWP()", ptRef, ptWP) -- distance between 2 points
-            if memoDist == nil then
-                memoDist = dist
-                WP = i
-            elseif dist < memoDist then
-                memoDist = dist
-                WP = i
+    if JTACRoute then
+        if Unit.getByName(_referenceUnitName) ~= nil then                                 --JTAC et unit must exist
+            for i = 1, #JTACRoute do
+                local ptWP  = { x = JTACRoute[i].x, y = JTACRoute[i].y }
+                local ptRef = ctld.utils.makeVec2FromVec3OrVec2("ctld.getNearestWP()",
+                    Unit.getByName(_referenceUnitName):getPoint())
+                local dist  = ctld.utils.get2DDist("ctld.getNearestWP()", ptRef, ptWP) -- distance between 2 points
+                if memoDist == nil then
+                    memoDist = dist
+                    WP = i
+                elseif dist < memoDist then
+                    memoDist = dist
+                    WP = i
+                end
             end
         end
+        return WP
+    else
+        return 0
     end
-    return WP
 end
 
 ----------------------------------------------------------------------------
@@ -6393,6 +6440,7 @@ function ctld.isFlyingJtac(_jtacUnitName)
     end
     return false
 end
+
 -- End : CTLD_jtac.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_recon.lua 
@@ -6610,6 +6658,7 @@ end
 --- test ------------------------------------------------------
 --local unitName = "uh2-1"                    --"uh1-1"    --"uh2-1"
 --ctld.reconShowTargetsInLosOnF10Map(Unit.getByName(unitName),2000,200)
+
 -- End : CTLD_recon.lua 
 -- ==================================================================================================== 
 -- Start : CTLD_core.lua 
@@ -9176,7 +9225,7 @@ function ctld.getClockDirection(_heli, _crate)
     local _playerPosition = _heli:getPosition().p -- get position of helicopter
     local _relativePosition = ctld.utils.subVec3("ctld.getClockDirection()", _position, _playerPosition)
 
-    local _playerHeading = ctld.utils.getHeadingInRadians("ctld.getClockDirection()", _heli) -- the rest of the code determines the 'o'clock' bearing of the missile relative to the helicopter
+    local _playerHeading = ctld.utils.getHeadingInRadians("ctld.getClockDirection()", _heli, false) -- the rest of the code determines the 'o'clock' bearing of the missile relative to the helicopter
 
     local _headingVector = { x = math.cos(_playerHeading), y = 0, z = math.sin(_playerHeading) }
 
@@ -11459,38 +11508,6 @@ function ctld.eventHandler:onEvent(event)
     end
 end
 
-function ctld.i18n_check(language, verbose)
-    local english = ctld.i18n["en"]
-    local tocheck = ctld.i18n[language]
-    if not tocheck then
-        ctld.logError(string.format("CTLD.i18n_check: Language %s not found", language))
-        return false
-    end
-    local englishVersion = english.translation_version
-    local tocheckVersion = tocheck.translation_version
-    if englishVersion ~= tocheckVersion then
-        ctld.logError(string.format("CTLD.i18n_check: Language version mismatch: EN has version %s, %s has version %s",
-            englishVersion, language, tocheckVersion))
-    end
-    --ctld.logTrace(string.format("english = %s", ctld.p(english)))
-    for textRef, textEnglish in pairs(english) do
-        if textRef ~= "translation_version" then
-            local textTocheck = tocheck[textRef]
-            if not textTocheck then
-                ctld.logError(string.format("CTLD.i18n_check: NOT FOUND: checking %s text [%s]", language, textRef))
-            elseif textTocheck == textEnglish then
-                ctld.logWarning(string.format("CTLD.i18n_check:         SAME: checking %s text [%s] as in EN", language,
-                    textRef))
-            elseif verbose then
-                ctld.logInfo(string.format("CTLD.i18n_check:             OK: checking %s text [%s]", language, textRef))
-            end
-        end
-    end
-end
-
--- example of usage:
---ctld.i18n_check("fr")
-
 --- Enable/Disable error boxes displayed on screen.
 env.setErrorMessageBoxEnabled(false)
 
@@ -11501,4 +11518,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+
 -- End : CTLD_core.lua 

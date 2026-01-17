@@ -52,8 +52,8 @@ end
 ctld.dontInitialize = false -- if true, ctld.initialize() will not run; instead, you'll have to run it from your own code - it's useful when you want to override some functions/parameters before the initialization takes place
 
 if not ctld.dontInitialize then
-    ctld.myConfig = CTLDConfig.get()             -- Get the singleton instance
-    local success, report = ctld.myConfig:load() -- Load the data from your specific path
+    ctld.Config = CTLDConfig.get()             -- Get the singleton instance
+    local success, report = ctld.Config:load() -- Load the data from your specific path
     if success then
         --trigger.action.outText(report, 10)  -- Display the config report if loading was successful
         ctld.logTrace("%s", ctld.p(report)) -- Display the config report if loading was successful
@@ -4787,51 +4787,48 @@ function ctld.eventHandler:onEvent(event)
         ctld.logDebug("unitName = [%s]", ctld.p(unitName))
         local unit = Unit.getByName(unitName)
         if unit and unit.getPlayerName then
-            if Unit.getByName(unitName):getPlayerName() ~= nil then -- it's a human player
+            if unit:getPlayerName() ~= nil then -- it's a human player
                 --ctld.logTrace("calling the 'processHumanPlayer' function immediately")
                 ctld.logTrace("in the 'processHumanPlayer' function processHumanPlayer()- unitName = %s",
                     ctld.p(unitName))
                 ctld.logDebug("caught event %s for human unit [%s]", ctld.p(eventName), ctld.p(unitName))
-                local _unit = Unit.getByName(unitName)
-                if _unit ~= nil then
-                    local _groupId = _unit:getGroup():getID()
-                    ctld.logTrace("_unit = %s", ctld.p(_unit))
+                local _groupId = unit:getGroup():getID()
+                ctld.logTrace("unit = %s", ctld.p(unit))
 
-                    local playerTypeName = _unit:getTypeName()
-                    ctld.logTrace("playerTypeName = %s", ctld.p(playerTypeName))
+                local playerTypeName = unit:getTypeName()
+                ctld.logTrace("playerTypeName = %s", ctld.p(playerTypeName))
 
-                    -- update ctld.DB.unitsWithPlayer
-                    ctld.unitsWithPlayer[unitName] = {}
-                    ctld.unitsWithPlayer[unitName].desc = ctld.utils.deepCopy("ctld.eventHandler:onEvent()",
-                        _unit:getDesc())
-                    ctld.unitsWithPlayer[unitName].typeName = playerTypeName
-                    ctld.unitsWithPlayer[unitName].groupId = _groupId
-                    ctld.unitsWithPlayer[unitName].coalition = _unit:getCoalition()
-                    ctld.unitsWithPlayer[unitName].unit = _unit
-                    ctld.unitsWithPlayer[unitName].playerName = _unit:getPlayerName()
-                    ctld.unitsWithPlayer[unitName].F10Menu = {}
+                -- update ctld.DB.unitsWithPlayer
+                ctld.unitsWithPlayer[unitName] = {}
+                ctld.unitsWithPlayer[unitName].desc = ctld.utils.deepCopy("ctld.eventHandler:onEvent()",
+                    unit:getDesc())
+                ctld.unitsWithPlayer[unitName].typeName = playerTypeName
+                ctld.unitsWithPlayer[unitName].groupId = _groupId
+                ctld.unitsWithPlayer[unitName].coalition = unit:getCoalition()
+                ctld.unitsWithPlayer[unitName].unit = unit
+                ctld.unitsWithPlayer[unitName].playerName = unit:getPlayerName()
+                ctld.unitsWithPlayer[unitName].F10Menu = {}
 
-                    -- Allow units to CTLD by aircraft type and not by pilot name
-                    if ctld.addPlayerAircraftByType then
-                        for _, aircraftType in pairs(ctld.aircraftTypeTable) do
-                            if aircraftType == playerTypeName then
-                                ctld.logTrace("adding by aircraft type, unitName = %s", ctld.p(unitName))
-                                if ctld.utils.isValueInIpairTable("ctld.eventHandler:onEvent()", ctld.transportPilotNames, unitName) == false then
-                                    table.insert(ctld.transportPilotNames, unitName) -- add transport unit to the list
-                                end
-                                if ctld.addedTo[tostring(_groupId)] == nil then      -- only if menu not already set up
-                                    ctld.addTransportF10MenuOptions(unitName)        -- add transport radio menu
-                                    break
-                                end
+                -- Allow units to CTLD by aircraft type and not by pilot name
+                if ctld.addPlayerAircraftByType then
+                    for _, aircraftType in pairs(ctld.aircraftTypeTable) do
+                        if aircraftType == playerTypeName then
+                            ctld.logTrace("adding by aircraft type, unitName = %s", ctld.p(unitName))
+                            if ctld.utils.isValueInIpairTable("ctld.eventHandler:onEvent()", ctld.transportPilotNames, unitName) == false then
+                                table.insert(ctld.transportPilotNames, unitName) -- add transport unit to the list
                             end
-                        end
-                    else
-                        for _, _unitName in pairs(ctld.transportPilotNames) do
-                            if _unitName == unitName then
-                                ctld.logTrace("adding by transportPilotNames, unitName = %s", ctld.p(unitName))
-                                ctld.addTransportF10MenuOptions(unitName) -- add transport radio menu
+                            if ctld.addedTo[tostring(_groupId)] == nil then      -- only if menu not already set up
+                                ctld.addTransportF10MenuOptions(unitName)        -- add transport radio menu
                                 break
                             end
+                        end
+                    end
+                else
+                    for _, _unitName in pairs(ctld.transportPilotNames) do
+                        if _unitName == unitName then
+                            ctld.logTrace("adding by transportPilotNames, unitName = %s", ctld.p(unitName))
+                            ctld.addTransportF10MenuOptions(unitName) -- add transport radio menu
+                            break
                         end
                     end
                 end

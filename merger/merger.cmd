@@ -23,7 +23,12 @@ if not exist "%LIST%" (
     exit /b
 )
 
-echo. > "%OUT%"
+@REM --- MODIFICATION ICI : Création du fichier avec les balises d'exclusion pour VS Code ---
+(
+    echo ---@meta
+    echo ---@diagnostic disable
+    echo.
+) > "%OUT%"
 
 for /f "usebackq delims=" %%F in ("%LIST%") do (
     set "FILE=%SOURCE_DIR%\%%F"
@@ -33,12 +38,10 @@ for /f "usebackq delims=" %%F in ("%LIST%") do (
         echo -- ==================================================================================================== >> "%OUT%"
         echo -- Start : %%F >> "%OUT%"
         type "!FILE!" >> "%OUT%"
-        @REM echo.>>"%OUT%"
+        echo.>>"%OUT%"
         echo -- End : %%F >> "%OUT%"
-        @REM  echo -- ==================================================================================================== >> "%OUT%"
-        @REM echo.>>"%OUT%"
     )
 )
 
-echo Fichier fusionne genere : "%OUT%"
+echo Fichier fusionne genere : "%OUT%" avec balises d'exclusion VS Code.
 pause

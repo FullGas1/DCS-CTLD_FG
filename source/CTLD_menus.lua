@@ -172,13 +172,13 @@ function ctld.addTransportF10MenuOptions(_unitName)
                     local _smokeMenu = missionCommands.addSubMenuForGroup(_groupId,
                         ctld.i18n_translate("Smoke Markers"), _rootPath)
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Red Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Red })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.RED })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Blue Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Blue })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.BLUE })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Orange Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Orange })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.ORANGE })
                     missionCommands.addCommandForGroup(_groupId, ctld.i18n_translate("Drop Green Smoke"), _smokeMenu,
-                        ctld.dropSmoke, { _unitName, trigger.smokeColor.Green })
+                        ctld.dropSmoke, { _unitName, trigger.smokeColor.GREEN })
                 end
 
                 if ctld.enabledRadioBeaconDrop then
@@ -206,12 +206,13 @@ function ctld.addTransportF10MenuOptions(_unitName)
 end
 
 --******************************************************************************************************
+-- Build paginated menu from _menuEntries table
 function ctld.buildPaginatedMenu(_menuEntries) --[[ params table :
-                                                    { text        = command name menu
-                                                    groupId       = playerUnit groupId,
-                                                    subMenuPath   = complet MenuPath clicked,
-                                                    menuFunction  = function name to run on clicked menu,
-                                                    menuArgsTable = table with arguments for the function to run,
+                                                    {   text        = command name menu
+                                                        groupId       = playerUnit groupId,
+                                                        subMenuPath   = complet MenuPath clicked,
+                                                        menuFunction  = function name to run on clicked menu,
+                                                        menuArgsTable = table with arguments for the function to run,
                                                     }]]
     local nextSubMenuPath = {}
     local itemNbSubmenu   = 0
