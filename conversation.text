@@ -1,0 +1,72 @@
+nos échanges se font en francais, mais tous les livrables (commentaires inclus) se font en anglais. Employer un style direct technique sans assertions dans nos échanges.
+
+je souhaite pouvoir recevoir un fichier de synthèse à jour de toutes nos positions validée sous forme d'une cahier des spécifications qui devra être enrichi à chauqe nouvelle session de travail.
+Inclure au début de ce cdc le contexte et les consignes décrivant nos règles d'échange pour ne pas avoir à les reformuler à chaque fois
+
+format makdown en francais durant tous les échanges. Il sera traduit une fois validé définitivement. A archiver dans le projet repo Git
+
+
+71 x 5
+Compris. Structure confirmée :
+
+Format : Markdown français
+Localisation : dans le repo Git (à la racine)
+Traduction : EN une fois validé définitivement
+Avant de créer le fichier : avez-vous d'autres points de planification à couvrir, ou je peux procéder à sa création avec le contenu initial ?
+
+définition du projet à mener: Convertir en iso-fonctionnel l'application LUA CTLD (pour DCS) en une version orientée objet (classes à définir). Les fichiers de départ sont stockés dans le dossier "source" du projet ouvert dans vscode.
+Quelle démarche proposes-tu pour réaliser ce reingeneiring et mener le l'analyse de façon progressive et maîtrisée ?
+
+Sauf contre indication technique à expliquer, certaines class ont déjà été traitées en mode OO. Il s'agit de "CTLD_config.lua", "CTLD_i18n.lua", "CTLD_loader.lua", "CTLD_userConfig.lua".
+Si cela ne risque pas de destabiliser l'analyse peut-on débuter l'analyse par la spécification de la class CTLD_MENU qui a déjà fait l'objet d'une analyse isolée, et dont je peux ajouter le source à ceux déjà présents dans le dossier "source" (sachant que ce code a vocation à remplacer "CTLD_menus.lua")
+
+contexte: utiliser l'API dcs officielle sans proposer des appels non répertoriés dans https://wiki.hoggitworld.com/view/Simulator_Scripting_Engine_Documentation
+
+fichier CTLD_menu.lua ajouté dans dossier "source", ainsi que 3 fichiers de doc techniques relatif à ce fichier ajouté dans dossier "documentation". Prendre en compte ces informations pour compléter le cdc
+
+pour l'instant ne pas s'occuperr de l'évolution de test-mission.miz.
+Envisager la gestion des menus, de façon à ce que la construction de chaque bloc de menu relatif à un bloc fonctionnel, soit définit dans la class correspondant au bloc fonctionnel.
+En 1ere approche les blocs fonctionnels à isoler des scripts ctld initiaux sont :
+. configuration de ctld : initialisation du singleton contenant les paramètres de l'appli avec prise en compte (surcharge possible) par des valeurs définies par l'utilisateur
+. gestion des unitPlayers: via eventHandler()
+. gestion des Troops et pickupZones
+. gestion des crates (templates, load, unload, pack, repack) et logisticZones
+. jtac
+. radio Beacon
+Compléter si nécessaire le cdc aveec ces précisions + me dire si l'analyse actuelle isole d'autres blocs fonctionnels que je n'aurais pas listés?
+
+dans la demarche globale, je souhaite que les fichiers qui seront générés par toi soient enregistrés dans le dossier "source_futur", de même les fichiers de documentation et spécification seront à stocker dans le dossier "documentation"
+Par ailleurs, la classe CTLD_config.lua défini tous les paramètres de l'application, et fournit une methode permettant à toutes les classes d'accéder aux parametres. Cependant la forme de base d'accès me semble trop lourde (ex: config:getSetting("maximumDistanceLogistic")), imagine un moyen de pouvoir raccourcir l'appel permettant de récupérer un paramètre d'application. Par exemple en définissant un function accessible à toutes les classes ayant un no très court (ex: gs("nom du param) avec gs signifiant getSetting)
+
+utilliser ctld.gs()
+forcer local groups = gs("loadableGroups"); local g = groups[1]
+Lors migration, vieux code appelle config:getSetting(); ne pas garder les deux approches seulement ctld.gs()
+Les fichiers existants dans "source" ne doivent pas être modifiés. Les nouveaux fichiers seront générés et stockés dans "source_futur"
+Précision : CTLD_Loader sert uniquement aux phases de debugging pour pouvoir charger l'ensemble des scripts dans le bon ordre via un trigger de l'editeur de mission de dcs world. Ce fichier ne doit pas contenir autre chose que des instruction de chargement dynamique défini ci-dessus.
+Les fichiers présents dans "source" pour être publiés, sont au préalable fusionné (grace à un script poweshell) dans un seul fichier nommé CTLD.lua stocké à la racine du repo. C'est ce seul fichier (CTLD.lua) qui sera utiisé par les utilisateurs.
+Dans la version OO, ce sont les fichiers présents dans "source_futur" qui seront fucionnés dans le bon ordre pour produire le futur CTLD.lua .
+Ce mode de productioin de la version utilisateur doit aussi être décrit dans le cdc
+
+creer un dossier merger_futur sur le modèle du dossier "merger" existant, qui sera dédié à la fusion de la version OO de CTLD.lua
+L'ordre de fusion pour le dossier "source" est défini par le contenu du fichier listToMerge.txt. Peut-etre faudra t il l'adapter selon la modularité des scripts de classes dans la version OO. Dans l'idéal, pour faciliter la maintenance de la version OO, il faut tenter de répartir chaque classes dans un fichier distinct. l'ordre de fusion devra garantir le bon fonctionnement de CTLD.lua.
+Un CTLD_loader.lua doit être implémenté dans "source_futur" et adapté à la version OO pour faciliter les tests dynamiques dans DCS world
+
+intégrer dans la description de la class Troop la description du mécanisme de description, développement et gestion du contenu des type de squad (combinaison de & à N nombre d'unité de chaque type). Ces templates sont définis par config.self.settings["loadableGroups"]
+De même pour les crates, dont la structure est définies par config.self.settings["spawnableCrates"]
+
+recalculer le loadableGroups[i].weight si la structure du groupe a été modifiée, car ce poids sera ajouté au poids de l'appareil qui va le prendre à son bord. Cela conditionne donc le réalisme de la simulation de vol.
+Le crate.weight est beaucoup plus critique, car au delà de permettre de gérer le poids à l'embarquement, il est surtout le seul moyen pour CTLd de reconnaitre la nature du contenu d'une caisse présente dans le simulateur. C'est parceque la crate x présente sur le terrain pèse 1021 kg, que CTLD saura qu'elle contient un objet DCS de tel typeName, du fait que c'est ce typeName qui est associé à ce poids dans la table config.self.settings["spawnableCrates"]
+De ce fait 2 caisses contenant des objets différents doivent nécessairement avoir 2 poids différents. De même on ne peut avoir 2 caisses différentes ayant le même poid. Enfin, les poids donnés aux template de crates sont gérés de sorte que des familles se déssinent avec poid en kilo = famille de types, décimale du poids représente un type précis de cette famille
+
+Le loadableGroups[i] soont chargés au chargement de CTLD et ne sont plus modifiés ensuite. Le calcul du poids d'un template peu donc n'être fait qu'1 fois au chargement de CTLD.
+
+ctld.internalCargoLimits définit le nombre maximum de crate que peut charger un typeName d'appareil donné (en key)
+Je ne comprend pas ta notion de weight mapping. Une crate qui est "both sides" n'a qu'un weight, la seule spécificité sera que lorsque le contenu (typeName) de la crate sera déballé (fct unpack), l'objet DCS spawné sera rattaché à la coalition à laquelle appartient l'appreil qui l'unpack
+Insérer dans un chapitre "Template Development Guide" précisant les règles de définition des template Troops et Crates. Le principe de modification des template par défaut est porté par le fichier "CTLD_userConfig.lua" qui permet via une syntaxe .yaml, de surcharger les définitions par défaut données dans "CTLD_config.lua". Lors du chargement de "CTLD_userConfig.lua", les éventuelles doublons de crate.weight doivent être signalés comme des erreurs afin que l'utilisateur corrige "CTLD_userConfig.lua"
+
+
+
+
+
+
+
