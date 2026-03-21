@@ -1700,3 +1700,19 @@ function ctld.utils.getCrateWavePositions(unit, n, safeDistance, spacing)
         distance  = safeDistance,
     }
 end
+
+-- ====================================================================================================
+-- SECTION: Unit geometry helper
+-- ====================================================================================================
+
+-- Returns the safe spawn distance from a unit's centre (half bounding-box length along X axis).
+-- Used to prevent spawned objects from colliding with the requesting aircraft.
+-- @param unitName  string  DCS unit name
+-- @return number (metres) or nil if unit not found / no bounding box
+function ctld.utils.getSecureDistanceFromUnit(unitName)
+    local unit = Unit.getByName(unitName)
+    if not unit then return nil end
+    local ok, box = pcall(function() return unit:getDesc().box end)
+    if not ok or not box then return nil end
+    return math.max(math.abs(box.max.x), math.abs(box.min.x))
+end

@@ -10,6 +10,8 @@
 1. [Configuration](#1-configuration)
 2. [Translations & Localisation](#2-translations--localisation)
 3. [Scene Deployment](#3-scene-deployment)
+4. [Zone Setup](#4-zone-setup)
+5. [Troop Transport](#5-troop-transport)
 
 ---
 
@@ -445,4 +447,134 @@ CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log 
 > **Requirement: desanitized DCS.** File I/O (`io.open`) is blocked on standard sanitized DCS installations. Keep `ctld.debug: false` (the default) on those machines — CTLD will log to the standard DCS log only and will not crash.
 
 ---
+
+## 5. Troop Transport
+
+### Overview
+
+CTLD transports infantry teams between pickup zones (PKZ) and combat areas. The full cycle is:
+
+```
+PKZ (load) → aircraft → combat area (fast-rope / drop)
+                      → EXZ (extraction zone, flag count only)
+                      → PKZ (return to base, restores pool)
+```
+
+Troops are **never** physically on board the aircraft as DCS units — they are held in memory until deployed.
+
+---
+
+### F10 menu — "Troop Transport"
+
+The menu appears automatically for all transport-capable aircraft inside or near a PKZ zone.
+
+```
+Troop Transport
+  ├── Unload / Extract Troops     ← context-sensitive (see below)
+  ├── Load Standard Group
+  ├── Load Anti Air
+  ├── ...
+  ├── [Next page]                 ← appears if more than 9 templates
+  └── Check Cargo
+```
+
+**"Unload / Extract Troops" behaviour (priority order):**
+
+| Condition | Action |
+|---|---|
+| On ground + friendly dropped group nearby + no troops onboard | Extract group from combat |
+| Has troops onboard + inside a PKZ zone | Return troops to base (restores zone pool) |
+| Has troops onboard + not in PKZ | Fast-rope (if conditions met) or drop into combat / EXZ |
+
+---
+
+### Configuring loadable groups
+
+Define the infantry templates available to players in `CTLD_userConfig.lua`:
+
+```lua
+ctld.loadableGroups = {
+    { name = "Standard Group",  inf = 6, mg = 2, at = 2 },
+    { name = "Anti Air",        inf = 2, aa = 3 },
+    { name = "Anti Tank",       inf = 2, at = 6 },
+    { name = "Mortar Squad",    mortar = 6 },
+    { name = "JTAC Group",      inf = 4, jtac = 1 },
+    { name = "Single JTAC",     jtac = 1 },
+    -- side = 1 → RED only, side = 2 → BLUE only, omit for both
+    { name = "BLUE Stingers",   inf = 2, aa = 4, side = 2 },
+}
+```
+
+**Role keys:**
+
+| Key | Unit type (BLUE / RED) | Equipment weight |
+|---|---|---|
+| `inf` | Soldier M4 GRG / Infantry AK | +5 kg |
+| `mg` | Soldier M249 / Paratrooper AKS-74 | +10 kg |
+| `at` | Paratrooper RPG-16 (both sides) | +7.6 kg |
+| `aa` | Soldier stinger / SA-18 Igla manpad | +18 kg |
+| `mortar` | 2B11 mortar (both sides) | +26 kg |
+| `jtac` | Same model as `inf`, name tagged "JTAC" | +15+5 kg |
+
+> A template with `jtac > 0` automatically triggers JTAC lasing upon deployment (laser code attributed by CTLDJtacManager).
+
+---
+
+### Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `numberOfTroops` | `10` | Max troops per transport (applies to all aircraft unless overridden per type) |
+| `enableFastRopeInsertion` | `true` | Allow fast-rope deployment (altitude + speed conditions required) |
+| `fastRopeMaximumHeight` | `18.28` | Max AGL height (m) for fast-rope (≈ 60 ft) |
+| `spawnDistanceInCircle` | `10` | Extra distance (m) added to aircraft safe-distance for the troop formation circle radius |
+| `maxExtractDistance` | `125` | Max radius (m) to search for extractable friendly groups |
+| `nbLimitSpawnedTroops` | `{0, 0}` | `{red, blue}` — max simultaneous troops in the field per coalition. `0` = unlimited |
+
+**Per-aircraft type capacity override** (optional):
+
+```lua
+ctld.transportLimitByType = {
+    ["UH-1H"]       = 8,
+    ["CH-47D"]      = 30,
+    ["Mi-8MT"]      = 12,
+}
+```
+
+If a type is not listed, `numberOfTroops` applies.
+
+---
+
+### Troop formation at drop point
+
+When troops are deployed, CTLD spawns the DCS group in a **circle** centred on the drop point. The radius is:
+
+```
+circleRadius = aircraft bounding-box half-length + ctld.gs("spawnDistanceInCircle")
+```
+
+This ensures infantry never spawns inside or under the aircraft. Larger aircraft (CH-47, C-130) automatically produce a larger circle. Units are evenly distributed around the circumference and all face the same heading as the deploying aircraft.
+
+---
+
+### Fast-rope conditions
+
+Fast-rope deploys troops while the aircraft is still airborne. Conditions:
+
+- `enableFastRopeInsertion = true`
+- AGL altitude ≤ `fastRopeMaximumHeight + 3 m`
+- Ground speed < 2.2 m/s (≈ 8 km/h)
+
+If conditions are not met while airborne, CTLD refuses deployment and shows an error message. Land the aircraft to drop troops unconditionally.
+
+---
+
+### Extract zones (EXZ)
+
+When troops are deployed inside an EXZ zone, **no DCS group is spawned**. Instead, the troop count is added to the zone's DCS flag. Use this to score evacuations or trigger mission phases.
+
+See [§4.6 EXZ](#46-exz--extract-zone) for zone naming and flag conventions.
+
+---
+
 *— End of current content — further chapters to be added progressively —*

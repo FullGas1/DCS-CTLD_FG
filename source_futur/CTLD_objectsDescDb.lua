@@ -319,6 +319,12 @@ function CTLDObjectsDescDb.spawnObject(objectKey, coalitionId, countryId, x, z, 
         local cosH      = math.cos(headingRad)
         local sinH      = math.sin(headingRad)
 
+        -- Circle formation: offsets computed dynamically from overrides.circleRadius.
+        -- Linear formation: offsets come from uDesc.dx / uDesc.dz (static per descriptor).
+        local useCircle  = desc.formation and desc.formation.type == "circle"
+        local circleR    = (overrides and overrides.circleRadius) or 10
+        local unitCount  = #desc.units
+
         local units = {}
         for i, uDesc in ipairs(desc.units) do
             local uid      = ctld.utils.getNextUniqId()
@@ -326,9 +332,18 @@ function CTLDObjectsDescDb.spawnObject(objectKey, coalitionId, countryId, x, z, 
             local uType    = type(uDesc.unitType) == "function"
                              and uDesc.unitType(coalitionId)
                              or  uDesc.unitType
-            -- Rotate intra-group offset by heading
-            local ux = x + (uDesc.dx or 0) * cosH - (uDesc.dz or 0) * sinH
-            local uz = z + (uDesc.dx or 0) * sinH + (uDesc.dz or 0) * cosH
+            -- Compute intra-group offset (circle or static dx/dz), then rotate by heading
+            local dx, dz
+            if useCircle then
+                local angle = (i - 1) * (2 * math.pi / unitCount)
+                dx = circleR * math.cos(angle)
+                dz = circleR * math.sin(angle)
+            else
+                dx = uDesc.dx or 0
+                dz = uDesc.dz or 0
+            end
+            local ux = x + dx * cosH - dz * sinH
+            local uz = z + dx * sinH + dz * cosH
 
             local unit = {
                 name           = uName,
