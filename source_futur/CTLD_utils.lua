@@ -1596,3 +1596,107 @@ function ctld.utils.basicSerialize(caller, var)
         end
     end
 end
+
+-- ====================================================================================================
+-- SECTION: Shared file logger (EVO-12)
+-- Shared across all CTLD modules. ctld.utils.initLog() must be called once during CTLD init.
+-- On sanitized DCS (io unavailable) the pcall guard silently falls back to env.info only.
+-- Keep ctld.debug=false on standard sanitized DCS installations.
+-- ====================================================================================================
+
+local _logFile = nil  -- module-local file handle
+
+-- Opens CTLD.log for writing if ctld.debug==true. Safe on sanitized DCS.
+function ctld.utils.initLog()
+    if ctld.gs("debug") ~= true then return end
+    if _logFile ~= nil then return end
+    local path     = ctld.gs("ctldLogPath") or ""
+    local filePath = path .. "CTLD.log"
+    local ok, _    = pcall(function()
+        local f, err = io.open(filePath, "w")
+        if f then
+            _logFile = f
+            _logFile:write(string.format("[CTLD] Log started : %s\n", os.date("%Y-%m-%d %H:%M:%S")))
+            _logFile:flush()
+        else
+            env.info(string.format("[CTLD][WARN] Cannot open log file '%s': %s", filePath, tostring(err)))
+        end
+    end)
+    if not ok then
+        env.info("[CTLD][WARN] File logging unavailable (sanitized DCS). Set ctld.debug=false to suppress.")
+    end
+end
+
+-- Logs a formatted message to env.info and to CTLD.log when debug file is open.
+-- @param level  string  "INFO", "WARN", "ERROR", "TRACE"
+-- @param fmt    string  format string (string.format style)
+-- @param ...           format arguments
+function ctld.utils.log(level, fmt, ...)
+    local ok, msg = pcall(string.format, "[CTLD][" .. level .. "] " .. fmt, ...)
+    if not ok then msg = "[CTLD][" .. level .. "] (log format error)" end
+    env.info(msg)
+    if _logFile then
+        pcall(function()
+            _logFile:write(msg .. "\n")
+            _logFile:flush()
+        end)
+    end
+end
+
+-- Flushes and closes CTLD.log.
+function ctld.utils.closeLog()
+    if _logFile then
+        pcall(function()
+            _logFile:flush()
+            _logFile:close()
+        end)
+        _logFile = nil
+    end
+end
+
+-- ====================================================================================================
+-- SECTION: Crate wave positioning (EVO-09)
+-- Computes N spawn positions along a single random axis (full 360° relative to unit heading).
+-- Used by CTLDCrateManager (pack and virtual unload) to avoid crate overlap within a wave.
+--
+-- @param unit         DCS Unit object (requesting aircraft)
+-- @param n            Number of crates in the wave
+-- @param safeDistance Distance to first crate in meters (varies by aircraft size)
+-- @param spacing      Inter-crate spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @return table { positions = {{x,z}, ...}, clock = "1".."12", distance = safeDistance }
+--
+-- Clock convention: 0° ahead = 12 o'clock, 90° right = 3 o'clock, 180° behind = 6 o'clock.
+-- ====================================================================================================
+
+function ctld.utils.getCrateWavePositions(unit, n, safeDistance, spacing)
+    n        = n or 1
+    spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
+
+    local unitPos = unit:getPoint()
+    local unitHdg = ctld.utils.getHeadingInRadians("getCrateWavePositions", unit, true)
+
+    -- Single random axis for the whole wave: full 360° relative to unit heading
+    local axisOffsetDeg = ctld.utils.RandomReal("getCrateWavePositions", 0, 360)
+
+    local positions = {}
+    for i = 1, n do
+        local dist = safeDistance + (i - 1) * spacing
+        local pt   = ctld.utils.GetRelativeVec2Coords(
+            { x = unitPos.x, y = unitPos.z },
+            unitHdg,
+            dist,
+            axisOffsetDeg
+        )
+        positions[i] = { x = pt.x, z = pt.y }
+    end
+
+    -- Clock bearing: axisOffsetDeg (0=12h, 30=1h, ..., 330=11h)
+    local clockNum = math.floor(axisOffsetDeg / 30 + 0.5) % 12
+    if clockNum == 0 then clockNum = 12 end
+
+    return {
+        positions = positions,
+        clock     = tostring(clockNum),
+        distance  = safeDistance,
+    }
+end

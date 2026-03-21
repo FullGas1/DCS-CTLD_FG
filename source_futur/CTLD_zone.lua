@@ -32,44 +32,9 @@
 -- Module-level logging (available before any instance)
 -- ============================================================
 
-local _logFile = nil
-
-local function _ctldOpenLogFile()
-    -- File logging requires ctld.debug=true AND a desanitized DCS environment.
-    -- On standard (sanitized) DCS installations io is not available:
-    -- keep ctld.debug=false on those machines to avoid this code path entirely.
-    if ctld.gs("debug") ~= true then return end
-    if _logFile ~= nil then return end
-
-    local path     = ctld.gs("ctldLogPath") or ""
-    local filePath = path .. "CTLD.log"
-
-    local ok, _ = pcall(function()
-        local f, err = io.open(filePath, "w")
-        if f then
-            _logFile = f
-            _logFile:write(string.format("[CTLD] Log started : %s\n", os.date("%Y-%m-%d %H:%M:%S")))
-            _logFile:flush()
-        else
-            env.info(string.format("[CTLD][WARN] Cannot open log file '%s': %s", filePath, tostring(err)))
-        end
-    end)
-
-    if not ok then
-        -- io not available (sanitized DCS) — fall back to DCS log only
-        env.info("[CTLD][WARN] File logging unavailable (sanitized DCS). Set ctld.debug=false to suppress this warning.")
-    end
-end
-
-local function _ctldLog(level, fmt, ...)
-    local ok, msg = pcall(string.format, "[CTLD][" .. level .. "] " .. fmt, ...)
-    if not ok then msg = "[CTLD][" .. level .. "] (log format error)" end
-    env.info(msg)
-    if ctld.gs("debug") == true and _logFile then
-        _logFile:write(msg .. "\n")
-        _logFile:flush()
-    end
-end
+-- Logger: delegated to ctld.utils (shared across all CTLD modules).
+-- ctld.utils.initLog() is called once in CTLDZoneManager:init().
+local _ctldLog = ctld.utils.log
 
 -- ============================================================
 -- CtldZone
@@ -621,7 +586,7 @@ end
 -- ============================================================
 
 function CTLDZoneManager:init()
-    _ctldOpenLogFile()
+    ctld.utils.initLog()
     self:validateZoneNames()
     self:discoverZones()
     self:_loadLegacyZones()
