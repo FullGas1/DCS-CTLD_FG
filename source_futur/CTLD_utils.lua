@@ -1655,28 +1655,30 @@ function ctld.utils.closeLog()
 end
 
 -- ====================================================================================================
--- SECTION: Crate wave positioning (EVO-09)
--- Computes N spawn positions along a single random axis (full 360° relative to unit heading).
--- Used by CTLDCrateManager (pack and virtual unload) to avoid crate overlap within a wave.
+-- SECTION: Spawn positions on a random axis (used by CTLDCrateManager and CTLDSceneManager)
+-- Computes N absolute world positions along a single random axis (full 360° relative to unit heading).
+-- Used for:
+--   - CTLDCrateManager: pack and virtual unload (crate wave dispersion)
+--   - CTLDSceneManager: step.axis positioning (random-axis object placement within a scene)
 --
--- @param unit         DCS Unit object (requesting aircraft)
--- @param n            Number of crates in the wave
--- @param safeDistance Distance to first crate in meters (varies by aircraft size)
--- @param spacing      Inter-crate spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param unit         DCS Unit object (requesting aircraft / scene trigger unit)
+-- @param n            Number of positions to compute
+-- @param safeDistance Distance to first position in meters (varies by aircraft size)
+-- @param spacing      Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
 -- @return table { positions = {{x,z}, ...}, clock = "1".."12", distance = safeDistance }
 --
 -- Clock convention: 0° ahead = 12 o'clock, 90° right = 3 o'clock, 180° behind = 6 o'clock.
 -- ====================================================================================================
 
-function ctld.utils.getCrateWavePositions(unit, n, safeDistance, spacing)
+function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing)
     n        = n or 1
     spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
 
     local unitPos = unit:getPoint()
-    local unitHdg = ctld.utils.getHeadingInRadians("getCrateWavePositions", unit, true)
+    local unitHdg = ctld.utils.getHeadingInRadians("getSpawnObjectPositions", unit, true)
 
     -- Single random axis for the whole wave: full 360° relative to unit heading
-    local axisOffsetDeg = ctld.utils.RandomReal("getCrateWavePositions", 0, 360)
+    local axisOffsetDeg = ctld.utils.RandomReal("getSpawnObjectPositions", 0, 360)
 
     local positions = {}
     for i = 1, n do

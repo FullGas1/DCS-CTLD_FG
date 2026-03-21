@@ -246,26 +246,63 @@ Overrides are applied at startup on top of the built-in dictionaries. You can ov
 A **Scene** is a sequenced, time-delayed deployment of multiple DCS objects (statics and/or ground groups) triggered automatically when a player unpacks a designated crate. It allows mission makers to simulate realistic deployments — a FARP materializing piece by piece, a minefield being laid out — without any scripting beyond declaring the scene model.
 
 ### How it works
-A scene is defined as an ordered list of **steps**. Each step specifies:
-- `objectsDescDbKey` — the DCS object to spawn (key into the built-in objects database)
-- `polar` — position relative to the deploying helicopter: `{ distance (m), angle (°) }`
-- `relativeHeadingInDegrees` — heading of the spawned object
-- `delayAfterPreviousStep` — seconds to wait after the previous step
-- `func` *(optional)* — a Lua callback executed after the object spawns (e.g. stock a FARP warehouse)
+A scene is defined as an ordered list of **steps**.  Each step is one of three types:
 
-All positioning is computed automatically by CTLD relative to the helicopter's position and heading at the moment of unpacking. Coalition (BLUE/RED) is resolved automatically for coalition-aware objects (vehicles, infantry).
+#### Polar step — deterministic position
+Object is spawned at a fixed distance and angle relative to the helicopter's position and heading (snapshot taken at unpack time).
+
+| Field | Type | Description |
+|---|---|---|
+| `objectsDescDbKey` | string | Key of the object to spawn (see table below) |
+| `polar` | table | `{ distance=N, angle=N }` — distance in metres, angle in degrees relative to aircraft heading |
+| `relativeHeadingInDegrees` | number | Heading of the spawned object relative to aircraft heading |
+| `relativeAltitudeInMeters` | number | Altitude offset from helicopter altitude |
+| `delayAfterPreviousStep` | number | Seconds to wait after this step before triggering the next |
+| `func` | function *(optional)* | Callback `function(unit, spawnedObj, step)` executed after spawn |
+
+#### Axis step — random-axis position
+Object(s) are spawned along a randomly chosen axis radiating from the helicopter.  Useful when the mission maker wants placement that looks natural without hard-coding a bearing.
+
+| Field | Type | Description |
+|---|---|---|
+| `objectsDescDbKey` | string | Key of the object to spawn |
+| `axis` | table | `{ count=N, safeDistance=N, spacing=N }` — number of objects, distance to first object (m), spacing between objects (m) |
+| `delayAfterPreviousStep` | number | Seconds to wait before next step |
+| `func` | function *(optional)* | Callback `function(unit, spawnedObj, step)` — `spawnedObj` is the last object spawned |
+
+#### Func-only step — no spawn
+No object is spawned; only the callback runs.  Use for completion messages, warehouse stocking, zone registration, etc.
+
+| Field | Type | Description |
+|---|---|---|
+| `delayAfterPreviousStep` | number | Seconds to wait before next step |
+| `func` | function | Callback `function(unit, spawnedObj, step)` — `spawnedObj` is always `nil` |
+
+All positioning is computed automatically relative to the helicopter's position and heading at the moment of unpacking. Coalition (BLUE/RED) is resolved automatically for coalition-aware objects (vehicles, infantry).
 
 ### What you need to do as a mission maker
 
-**Step 1** — Declare your scene model in a mission script loaded before CTLD:
+**Step 1** — Declare your scene model in a mission script loaded after CTLD:
 ```lua
 local myScene = {
-    name = "My FARP",
-    stepsDatas = {
-        { objectsDescDbKey = "SINGLE_HELIPAD", polar = { distance=100, angle=0   }, relativeHeadingInDegrees=180, delayAfterPreviousStep=0 },
-        { objectsDescDbKey = "FARP_Tent",      polar = { distance=130, angle=5   }, relativeHeadingInDegrees=90,  delayAfterPreviousStep=3 },
-        { objectsDescDbKey = "Fuel_Truck",     polar = { distance=110, angle=350 }, relativeHeadingInDegrees=0,   delayAfterPreviousStep=5 },
-    }
+    name  = "My FARP",
+    steps = {
+        -- polar step: helipad 100 m ahead, facing south relative to helicopter
+        { objectsDescDbKey = "SINGLE_HELIPAD", polar = { distance=100, angle=0   },
+          relativeHeadingInDegrees=180, relativeAltitudeInMeters=0, delayAfterPreviousStep=0 },
+        -- polar step: tent 130 m ahead-right, 3 s after helipad
+        { objectsDescDbKey = "FARP_Tent",      polar = { distance=130, angle=5   },
+          relativeHeadingInDegrees=90,  relativeAltitudeInMeters=0, delayAfterPreviousStep=3 },
+        -- axis step: scatter 3 ammo crates randomly around the helicopter
+        { objectsDescDbKey = "ammo_cargo", axis = { count=3, safeDistance=30, spacing=8 },
+          delayAfterPreviousStep=5 },
+        -- func-only step: print completion message
+        { delayAfterPreviousStep=0,
+          func = function(unit, spawnedObj, step)
+              trigger.action.outText("FARP ready at " .. unit:getName(), 10)
+              return true
+          end },
+    },
 }
 CTLDSceneManager.getInstance():registerSceneModel(myScene)
 ```
