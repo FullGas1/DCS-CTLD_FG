@@ -473,41 +473,98 @@ classDiagram
 
 ### 4.6 CtldZone / CTLDZoneManager
 
-**Responsabilité** : `CtldZone` représente une zone logistique DCS (pickup, drop, FARP). `CTLDZoneManager` charge les zones depuis la config et fournit les requêtes de zones.
+**Responsabilité** : `CtldZone` représente une zone DCS (pickup, dropoff, waypoint, extract, logistic). `CTLDZoneManager` découvre les zones à l'init par parsing des noms DCS et fournit les requêtes de zones.
+
+> **Décision EVO-09** : les pickupZones gèrent **uniquement les troupes**. Le chargement de véhicules depuis une pickupZone est supprimé (voir EVO-09 en section 7).
+> **Décision EVO-10** : les zones sont déclarées par **convention de nommage DCS** (voir ci-dessous), sans scripting mission maker. Compatibilité descendante conservée pour les missions sans nommage structuré.
 
 **Fichier cible** : `source_futur/CTLD_zone.lua`
 **Statut** : 🆕 À créer
+
+---
+
+#### Convention de nommage des zones (EVO-10)
+
+Le séparateur de champs est `_`. **Aucun champ ne peut contenir `_`** (règle à documenter dans le missionmaker guide).
+
+| Préfixe | Type | Schéma de nommage |
+|---|---|---|
+| `PKZ` | pickupZone (troupes) | `PKZ_name_smoke_limit_active_side` |
+| `DOZ` | dropOffZone | `DOZ_name_smoke_side` |
+| `WPZ` | wpZone (waypoint) | `WPZ_name_smoke_active_side` |
+| `EXZ` | extractZone | `EXZ_name_smoke` |
+| `LGZ` | logisticZone | `LGZ_name_side` |
+
+**Valeurs des paramètres :**
+- `smoke` : `-1`(aucune) `0`(green) `1`(red) `2`(white) `3`(orange) `4`(blue)
+- `limit` : entier ≥ 1, ou `-1` (illimité)
+- `active` : `1`(active) `0`(inactive)
+- `side` : `0`(both) `1`(red) `2`(blue)
+
+**Flag EXZ — génération automatique :**
+Le flag DCS associé à une extractZone est construit automatiquement : `string.upper(name) .. "_FLG"`
+Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
+
+**Contrainte d'unicité :** deux zones du même préfixe ne peuvent pas avoir le même `name`.
+
+**Zones polygonales :** détectées par présence de `verticies` dans `env.mission.triggers.zones`.
+- Circulaire → `isInZone(point)` : `distance(point, center) ≤ radius`
+- Polygonale → `isInZone(point)` : ray casting sur `verticies`
+
+**Compatibilité descendante :** les zones dont le nom ne correspond à aucun préfixe sont ignorées par `discoverZones()`. Le chargement depuis `ctld.pickupZones = { ... }` reste actif en fallback.
+
+---
+
+#### Validation au démarrage
+
+`CTLDZoneManager:validateZoneNames()` — appelée avant `discoverZones()`, produit un rapport via `trigger.action.outText` et `env.info` :
+
+| Contrôle | Exemple d'erreur |
+|---|---|
+| Nombre de champs correct | `PKZ_base1_blue` → manque `limit`, `active`, `side` |
+| Types valides | `limit` non numérique |
+| Valeurs dans l'énuméré | `side=9` invalide |
+| Unicité des `name` par préfixe | `EXZ_recup1` défini deux fois → conflit flag `RECUP1_FLG` |
+
+---
 
 **Propriétés CtldZone** :
 
 | Propriété | Type | Description |
 |---|---|---|
-| `name` | `string` | Nom DCS du trigger zone |
-| `coalition` | `number` | Coalition propriétaire |
-| `point` | `vec3` | Centre de la zone |
-| `radius` | `number` | Rayon en mètres |
-| `zoneType` | `string` | `"pickup"`, `"drop"`, `"farp"`, `"logistics"` |
+| `zoneName` | `string` | Paramètre `name` extrait du nom DCS |
+| `dcsName` | `string` | Nom DCS complet de la trigger zone |
+| `coalition` | `number` | Coalition (`side`) |
+| `center` | `vec3` | Centre de la zone |
+| `radius` | `number` | Rayon (zones circulaires) |
+| `verticies` | `table\|nil` | Sommets (zones polygonales) |
+| `zoneType` | `string` | `"pickup"` `"drop"` `"waypoint"` `"extract"` `"logistic"` |
 | `active` | `bool` | Zone active ou désactivée |
+| `smoke` | `number` | Couleur fumée (-1 = aucune) |
+| `limit` | `number` | Limite de groupes (PKZ uniquement, -1 = illimité) |
+| `flagName` | `string\|nil` | Flag DCS auto (EXZ uniquement) = `NAME_FLG` |
 
 **Méthodes CtldZone** :
 
 | Signature | Description |
 |---|---|
 | `CtldZone:new(data)` | Constructeur |
-| `CtldZone:isInZone(point)` | Retourne true si le point est dans le rayon |
-| `CtldZone:getPoint()` | Retourne vec3 centre |
-| `CtldZone:activate()` / `CtldZone:deactivate()` | Active/désactive la zone |
+| `CtldZone:isInZone(point)` | Circulaire ou ray casting polygonal selon type |
+| `CtldZone:getCenter()` | Retourne vec3 centre |
+| `CtldZone:activate()` / `CtldZone:deactivate()` | Active/désactive |
 
 **Méthodes CTLDZoneManager** :
 
 | Signature | Description |
 |---|---|
 | `CTLDZoneManager.getInstance()` | Singleton |
-| `CTLDZoneManager:loadZonesFromConfig()` | Charge les zones depuis `ctld.gs("logisticUnits")` |
-| `CTLDZoneManager:getZonesForCoalition(coalition)` | Retourne les zones de la coalition |
-| `CTLDZoneManager:getZoneByName(name)` | Retourne une zone par nom |
-| `CTLDZoneManager:getNearestZone(point, coalition, type)` | Zone la plus proche du point |
-| `CTLDZoneManager:isUnitInZone(unitName)` | Retourne la zone où se trouve l'unité, ou nil |
+| `CTLDZoneManager:validateZoneNames()` | Rapport d'erreurs de nommage au démarrage |
+| `CTLDZoneManager:discoverZones()` | Scan `env.mission.triggers.zones` + parsing + instanciation |
+| `CTLDZoneManager:getZonesForCoalition(coalition, type)` | Zones filtrées par coalition et type |
+| `CTLDZoneManager:getZoneByName(name, type)` | Zone par `zoneName` et type |
+| `CTLDZoneManager:getNearestZone(point, coalition, type)` | Zone la plus proche |
+| `CTLDZoneManager:isUnitInZone(unitName, type)` | Retourne la zone où se trouve l'unité, ou nil |
+| `CTLDZoneManager:updateZoneCounter(zoneName, diff)` | Incrémente/décrémente le compteur PKZ |
 
 **Dépendances** : CTLDConfig, CTLDUtils
 
@@ -1032,6 +1089,48 @@ CTLD_userConfig.lua
 | EVO-06 | Remplacement `mist.dynAddStatic()` → `CTLDUtils.dynAddStatic()` | CTLDUtils, mineFieldSceneDatas |
 | EVO-07 | Spawn des systèmes AA via scènes DCS dédiées (6 scènes) | CTLDAASystemManager, CTLDSceneManager |
 | EVO-08 | Dispatch unpack() : priorité scène → AA system → classique | CTLDCrateManager |
+| EVO-09 | Suppression du chargement virtuel de véhicules depuis pickupZone — voir détail ci-dessous | CTLDZoneManager, CTLDVehicleManager |
+| EVO-10 | Convention de nommage DCS pour déclaration des zones sans scripting — voir section 4.6 | CTLDZoneManager |
+| EVO-11a | logisticZone : suppression de l'objet statique DCS comme ancre — remplacé par trigger zone LGZ | CTLDZoneManager |
+| EVO-11b | logisticZone : suppression de l'interdiction d'unpack en zone logistique — unpack autorisé partout ; `farEnoughFromLogisticZone` supprimé | CTLDZoneManager, CTLDCrateManager |
+
+### EVO-09 — Refonte du transport de véhicules (décision 2026-03-21)
+
+#### Contexte
+
+Le chargement virtuel de véhicules depuis une pickupZone (`ctld.vehiclesForTransportBLUE/RED`, `ctld.generateVehiclesForTransport`, branche `_troops=false` de `ctld.loadTroopsFromZone`) était un contournement historique : à l'époque, DCS ne disposait pas de système natif de load/unload, et CTLD n'avait pas la fonction pack. Ces deux mécanismes existent désormais.
+
+#### Décision
+
+- Les **pickupZones** sont réservées aux **troupes uniquement**.
+- Les véhicules sont **pré-positionnés sur la carte** par le mission maker (unités DCS normales). C'est ce qui est posé sur la carte qui est disponible — contrôle du nombre par réalisme.
+- Les variables `ctld.vehiclesForTransportBLUE`, `ctld.vehiclesForTransportRED`, `ctld.vehicleTransportEnabled` et la fonction `ctld.generateVehiclesForTransport` sont **supprimées** dans la nouvelle architecture.
+
+#### Workflows de transport véhicule
+
+**Workflow A — Chargement direct** *(appareils dynamicCargoCapable, ex. C-130)*
+
+```
+Véhicule posé sur carte
+  → Load DCS natif    (objet entier embarqué, poids mis à jour)
+  → Unload DCS natif  (objet déposé à destination)
+```
+
+**Workflow B — Pack/unpack** *(véhicule trop lourd ou encombrant pour chargement direct)*
+
+```
+Véhicule posé sur carte
+  → Pack              (objet détruit, N caisses spawnées)
+  → Load              (natif DCS  OU  menu CTLD — choix pilote)
+  → Unload            (natif DCS  OU  menu CTLD — choix pilote)
+  → Unpack            (caisses détruites, objet véhicule respawné)
+```
+
+> Note : le fractionnement en N caisses permet la coopération multi-appareils (chaque appareil transporte une partie des caisses).
+
+#### Impact sur CTLDVehicleManager
+
+`CTLDVehicleManager` gère exclusivement le workflow Pack/unpack (Workflow B). Le Workflow A est géré nativement par DCS sans intervention CTLD.
 
 ---
 

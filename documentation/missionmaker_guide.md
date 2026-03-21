@@ -289,4 +289,158 @@ ctld.spawnableCrates["My Deployments"] = {
 | `FOB` | Forward Operating Base: outpost structure + watchtower, deployed from FOB crates |
 
 ---
+
+## 4. Zone Setup
+
+CTLD zones are declared directly in the **DCS Mission Editor** by naming your trigger zones with a structured convention. No scripting is required.
+
+### 4.1 Naming convention
+
+The zone name encodes its type and all parameters, separated by `_`.
+
+> **Rule:** The `_` character is the field separator. It is **forbidden** inside any field value (zone name, flag name, etc.).
+
+```
+TYPE_name_param1_param2_..._paramN
+```
+
+CTLD reads all trigger zone names at mission start, parses those that match a known prefix, and registers them automatically.
+
+### 4.2 Zone types and schemas
+
+| Prefix | Zone type | Schema |
+|---|---|---|
+| `PKZ` | Pickup zone (troops) | `PKZ_name_smoke_limit_active_side` |
+| `DOZ` | Drop-off zone | `DOZ_name_smoke_side` |
+| `WPZ` | Waypoint zone | `WPZ_name_smoke_active_side` |
+| `EXZ` | Extract zone | `EXZ_name_smoke` |
+| `LGZ` | Logistic zone | `LGZ_name_side` |
+
+**Parameter values:**
+
+| Parameter | Values |
+|---|---|
+| `smoke` | `-1` none · `0` green · `1` red · `2` white · `3` orange · `4` blue |
+| `limit` | `-1` unlimited · or any integer ≥ 1 |
+| `active` | `1` active · `0` inactive at start |
+| `side` | `0` both · `1` red · `2` blue |
+
+> **Uniqueness:** two zones of the same prefix cannot share the same `name`. CTLD will report a conflict at startup.
+
+---
+
+### 4.3 PKZ — Pickup zone (troops only)
+
+Players must land inside a pickup zone to load troops into their aircraft. The zone has a group limit: once depleted, no more troops can be loaded from it until groups are returned (unload inside the zone) or the counter is reset by a mission trigger.
+
+**Schema:** `PKZ_name_smoke_limit_active_side`
+
+| Example name | Meaning |
+|---|---|
+| `PKZ_base1_0_-1_1_2` | Pickup zone "base1", green smoke, unlimited, active, blue only |
+| `PKZ_fob2_-1_5_1_0` | Pickup zone "fob2", no smoke, max 5 groups, active, both sides |
+| `PKZ_staging_1_10_0_1` | Pickup zone "staging", red smoke, max 10 groups, **inactive at start**, red only |
+
+> An inactive zone (`active=0`) can be activated at runtime via a DCS trigger calling:
+> ```lua
+> CTLDZoneManager.getInstance():setZoneActive("staging", "pickup", true)
+> ```
+
+---
+
+### 4.4 DOZ — Drop-off zone
+
+Marks a designated drop-off area. Triggers automatic troop unload for AI transport aircraft that land inside. Human players see a smoke signal marking the zone.
+
+**Schema:** `DOZ_name_smoke_side`
+
+| Example name | Meaning |
+|---|---|
+| `DOZ_objective1_0_2` | Drop-off "objective1", green smoke, blue only |
+| `DOZ_frontline_-1_0` | Drop-off "frontline", no smoke, both sides |
+
+---
+
+### 4.5 WPZ — Waypoint zone
+
+When troops are deployed (fast-rope or unload) at a point that falls **inside** an active waypoint zone, they automatically march toward the **centre** of the zone instead of searching for the nearest enemy. Use this to direct freshly deployed troops toward a tactical objective.
+
+**Schema:** `WPZ_name_smoke_active_side`
+
+| Example name | Meaning |
+|---|---|
+| `WPZ_hill47_3_1_2` | Waypoint zone "hill47", orange smoke, active, blue only |
+| `WPZ_bridge_-1_0_0` | Waypoint zone "bridge", no smoke, inactive at start, both sides |
+
+> Activate or deactivate a waypoint zone at runtime to redirect troops during a mission phase:
+> ```lua
+> CTLDZoneManager.getInstance():setZoneActive("bridge", "waypoint", true)
+> ```
+
+---
+
+### 4.6 EXZ — Extract zone
+
+An extract zone silently **counts** the troops dropped inside it and stores the total in a DCS flag, instead of spawning them into combat. Use this as a mission scoring or phase-trigger mechanism.
+
+**Schema:** `EXZ_name_smoke`
+
+**Flag name:** automatically generated as `NAME_FLG` (uppercased).
+
+| Example name | DCS flag created | Meaning |
+|---|---|---|
+| `EXZ_recup1_-1` | `RECUP1_FLG` | Extract zone "recup1", no smoke. Flag counts evacuated troops. |
+| `EXZ_cas2_0` | `CAS2_FLG` | Extract zone "cas2", green smoke. |
+
+> In the Mission Editor, use a **ONCE** condition trigger: `Flag RECUP1_FLG >= 20` to fire an action when 20 troops have been evacuated.
+
+> The flag starts at 0 when the mission loads. Each troop dropped in the zone increments it by 1.
+
+---
+
+### 4.7 LGZ — Logistic zone
+
+Defines a logistics base. Players must be inside a logistic zone to spawn crates from the F10 menu. Logistic zone resources are **unlimited** (only rate-limited: one crate every 40 seconds per player). The zone radius is set directly in the DCS trigger zone editor.
+
+**Schema:** `LGZ_name_side`
+
+| Example name | Meaning |
+|---|---|
+| `LGZ_depot1_2` | Logistic zone "depot1", blue only |
+| `LGZ_farp_main_0` | Logistic zone "farp_main"… **INVALID** — `_` is forbidden inside `name`. Use `LGZ_farpmain_0` instead. |
+
+> **FOBs** deployed during the mission automatically register as logistic zones — no configuration needed.
+
+---
+
+### 4.8 Startup validation report
+
+At mission start, CTLD checks all trigger zone names and produces a **single merged report** if any issues are found. The report appears as an in-game message (visible in the Mission Editor when running a test) and is written to the DCS log.
+
+Example report:
+```
+[CTLD] Zone name validation report — 2 issue(s):
+  ERROR PKZ_base1_blue_X_1_2          expected 6 fields (prefix_name_smoke_limit_active_side), got 6
+  ERROR EXZ_recup1_-1                 duplicate name 'recup1' for prefix EXZ (flag conflict: RECUP1_FLG)
+```
+
+Fix the names in the Mission Editor and re-run. No scripting needed.
+
+---
+
+### 4.9 Debug log (developers / mission testers)
+
+Enable the dedicated CTLD log file to isolate CTLD messages from the DCS standard log:
+
+```lua
+-- CTLD_userConfig.lua
+ctld.yamlConfigDatas = [[
+  ctld.debug: true
+  ctld.ctldLogPath: "C:\\Users\\aling\\github\\FullGas1\\DCS-CTLD_FG\\"
+]]
+```
+
+CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log is unaffected.
+
+---
 *— End of current content — further chapters to be added progressively —*
