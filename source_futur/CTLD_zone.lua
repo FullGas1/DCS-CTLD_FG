@@ -35,10 +35,16 @@
 local _logFile = nil
 
 local function _ctldOpenLogFile()
-    if ctld.gs("debug") == true and _logFile == nil then
-        local path = ctld.gs("ctldLogPath") or ""
-        -- path is expected to end with a path separator
-        local filePath = path .. "CTLD.log"
+    -- File logging requires ctld.debug=true AND a desanitized DCS environment.
+    -- On standard (sanitized) DCS installations io is not available:
+    -- keep ctld.debug=false on those machines to avoid this code path entirely.
+    if ctld.gs("debug") ~= true then return end
+    if _logFile ~= nil then return end
+
+    local path     = ctld.gs("ctldLogPath") or ""
+    local filePath = path .. "CTLD.log"
+
+    local ok, _ = pcall(function()
         local f, err = io.open(filePath, "w")
         if f then
             _logFile = f
@@ -47,6 +53,11 @@ local function _ctldOpenLogFile()
         else
             env.info(string.format("[CTLD][WARN] Cannot open log file '%s': %s", filePath, tostring(err)))
         end
+    end)
+
+    if not ok then
+        -- io not available (sanitized DCS) — fall back to DCS log only
+        env.info("[CTLD][WARN] File logging unavailable (sanitized DCS). Set ctld.debug=false to suppress this warning.")
     end
 end
 

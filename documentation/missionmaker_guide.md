@@ -442,5 +442,7 @@ ctld.yamlConfigDatas = [[
 
 CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log is unaffected.
 
+> **Requirement: desanitized DCS.** File I/O (`io.open`) is blocked on standard sanitized DCS installations. Keep `ctld.debug: false` (the default) on those machines — CTLD will log to the standard DCS log only and will not crash.
+
 ---
 *— End of current content — further chapters to be added progressively —*
