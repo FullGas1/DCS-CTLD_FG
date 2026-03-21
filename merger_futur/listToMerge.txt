@@ -1,0 +1,36 @@
+-- Core foundations (no business state)
+CTLD_config.lua
+CTLD_i18n.lua
+CTLD_i18n_en.lua
+CTLD_i18n_fr.lua
+CTLD_i18n_es.lua
+CTLD_i18n_ko.lua
+CTLD_utils.lua
+CTLD_menu.lua
+CTLD_objectsDescDb.lua
+-- Business domain managers
+CTLD_scene.lua
+CTLD_zone.lua
+CTLD_troop.lua
+CTLD_crate.lua
+CTLD_vehicle.lua
+CTLD_fob.lua
+CTLD_aasystem.lua
+CTLD_beacon.lua
+CTLD_recon.lua
+CTLD_jtac.lua
+CTLD_player.lua
+-- Orchestrator
+CTLD_core.lua
+-- Scene data (after CTLDSceneManager registry is ready)
+scenes/CTLD_farpSceneDatas.lua
+scenes/CTLD_fobSceneDatas.lua
+scenes/CTLD_mineFieldSceneDatas.lua
+scenes/CTLD_aaHawkSceneDatas.lua
+scenes/CTLD_aaPatriotSceneDatas.lua
+scenes/CTLD_aaNasamSceneDatas.lua
+scenes/CTLD_aaBukSceneDatas.lua
+scenes/CTLD_aaKubSceneDatas.lua
+scenes/CTLD_aas300SceneDatas.lua
+-- User configuration (always last)
+CTLD_userConfig.lua
