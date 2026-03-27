@@ -54,7 +54,7 @@ This script is a rewrite of some of the functionality of the original Complete C
   * [Simulated Sling Loading](#simulated-sling-loading)
   * [Real Sling Loading](#real-sling-loading)
 * [Crate Unpacking](#crate-unpacking)
-* [Crate Repacking](#crate-repacking)
+* [Crate Packing](#crate-packing)
 * [Forward Operating Base (FOB) Construction](#forward-operating-base-fob-construction)
 * [Radio Beacon Deployment](#radio-beacon-deployment)
   * [A10\-C UHF ADF Radio Setup](#a10-c-uhf-adf-radio-setup)
@@ -1030,13 +1030,13 @@ Rearming:
 
 You can also repair a partially destroyed HAWK / BUK or KUB system by dropping a repair crate next to it and unpacking. A repair crate will also re-arm the system.
 
-## Crate Repacking
+## Crate Packing
 
-The F10 menu allows you to repack units having associated crate types in the "ctld.spawnableCrates" table.
+The F10 menu allows you to pack units having associated crate types in the "ctld.spawnableCrates" table.
 
-Simply land near the unit you wish to repack and select it from the list presented by the "CTLD//Vehicle/FOB transport...//Repack Vehicles" menu.
+Simply land near the unit you wish to pack and select it from the list presented by the "CTLD//Vehicle/FOB transport...//Pack Vehicles" menu.
 
-The defined radius of vehicles detection is specified by the parameter `ctld.maximumDistanceRepackableUnitsSearch` (default 200 meters).
+The defined radius of vehicles detection is specified by the parameter `ctld.maximumDistancePackableUnitsSearch` (default 200 meters).
  
 *WARNING*: Due to technical reasons related to the refresh time of the F10 menus, there may be inconsistencies between the type of vehicles requested and those provided. It is recommended to wait 5 to 10 seconds without moving after landing and opening the F10 menu for a packaging order.
 

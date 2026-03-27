@@ -37,8 +37,8 @@ function CTLDConfig:load()
     self.settings["enableSmokeDrop"]                      = true                                          -- if false, helis and c-130 will not be able to drop smoke
     self.settings["maxExtractDistance"]                   = 125                                           -- max distance from vehicle to troops to allow a group extraction
     self.settings["maximumDistanceLogistic"]              = 200                                           -- max distance from vehicle to logistics to allow a loading or spawning operation
-    self.settings["enableRepackingVehicles"]              = true                                          -- if true, vehicles can be repacked into crates
-    self.settings["maximumDistanceRepackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search force repackable units in meters
+    self.settings["enablePackingVehicles"]                = true                                          -- if true, vehicles can be packed into crates
+    self.settings["maximumDistancePackableUnitsSearch"]   = 200                                           -- max distance from transportUnit to search force packable units in meters
     self.settings["maximumSearchDistance"]                = 4000                                          -- max distance for troops to search for enemy
     self.settings["maximumMoveDistance"]                  = 2000                                          -- max distance for troops to move from drop point if no enemy is nearby
     self.settings["minimumDeployDistance"]                = 1000                                          -- minimum distance from a friendly pickup zone where you can deploy a crate
@@ -54,7 +54,6 @@ function CTLDConfig:load()
         ["M1045 HMMWV TOW"] = 3220,
         ["M1043 HMMWV Armament"] = 2500
     }
-
 
     self.settings["spawnRPGWithCoalition"]          = true  --spawns a friendly RPG unit with Coalition forces
     self.settings["spawnStinger"]                   = false -- spawns a stinger / igla soldier with a group of 6 or more soldiers!

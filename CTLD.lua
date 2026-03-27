@@ -301,7 +301,7 @@ ctld.i18n["en"]["Crates: Vehicle / FOB / Drone"] = ""
 ctld.i18n["en"]["Unload Vehicles"] = ""
 ctld.i18n["en"]["Load / Extract Vehicles"] = ""
 ctld.i18n["en"]["Load / Unload FOB Crate"] = ""
-ctld.i18n["en"]["Repack Vehicles"] = ""
+ctld.i18n["en"]["Pack Vehicles"] = ""
 ctld.i18n["en"]["CTLD Commands"] = ""
 ctld.i18n["en"]["CTLD"] = ""
 ctld.i18n["en"]["Check Cargo"] = ""
@@ -629,7 +629,7 @@ ctld.i18n["fr"]["Crates: Vehicle / FOB / Drone"] = "Caisses Vehicule / FOB / Dro
 ctld.i18n["fr"]["Unload Vehicles"] = "Décharger Vehicles"
 ctld.i18n["fr"]["Load / Extract Vehicles"] = "Chargt / Déchargt Vehicules"
 ctld.i18n["fr"]["Load / Unload FOB Crate"] = "Chargt / Déchargt Caisse FOB"
-ctld.i18n["fr"]["Repack Vehicles"] = "Ré-emballer véhicules"
+ctld.i18n["fr"]["Pack Vehicles"] = "Ré-emballer véhicules"
 ctld.i18n["fr"]["CTLD Commands"] = "Commandes CTLD"
 ctld.i18n["fr"]["CTLD"] = "CTLD"
 ctld.i18n["fr"]["Check Cargo"] = "Vérif° chargement"
@@ -972,7 +972,7 @@ ctld.i18n["es"]["Vehicle / FOB Crates / Drone"] = "Cajas de Vehículo / FOB / Dr
 ctld.i18n["es"]["Unload Vehicles"] = "Descargar vehículos"
 ctld.i18n["es"]["Load / Extract Vehicles"] = "Cargar/Extraer vehículos"
 ctld.i18n["es"]["Load / Unload FOB Crate"] = "Cargar/Descargar caja FOB"
-ctld.i18n["es"]["Repack Vehicles"] = "Reenvolver vehículos"
+ctld.i18n["es"]["Pack Vehicles"] = "Reenvolver vehículos"
 ctld.i18n["es"]["CTLD Commands"] = "Comandos CTLD"
 ctld.i18n["es"]["CTLD"] = "CTLD"
 ctld.i18n["es"]["Check Cargo"] = "Verificar carga"
@@ -1384,8 +1384,8 @@ function CTLDConfig:load()
     self.settings["enableSmokeDrop"]                      = true                                          -- if false, helis and c-130 will not be able to drop smoke
     self.settings["maxExtractDistance"]                   = 125                                           -- max distance from vehicle to troops to allow a group extraction
     self.settings["maximumDistanceLogistic"]              = 200                                           -- max distance from vehicle to logistics to allow a loading or spawning operation
-    self.settings["enableRepackingVehicles"]              = true                                          -- if true, vehicles can be repacked into crates
-    self.settings["maximumDistanceRepackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search force repackable units in meters
+    self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
+    self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search force packable units in meters
     self.settings["maximumSearchDistance"]                = 4000                                          -- max distance for troops to search for enemy
     self.settings["maximumMoveDistance"]                  = 2000                                          -- max distance for troops to move from drop point if no enemy is nearby
     self.settings["minimumDeployDistance"]                = 1000                                          -- minimum distance from a friendly pickup zone where you can deploy a crate
@@ -4163,8 +4163,8 @@ function ctld.addTransportF10MenuOptions(_unitName)
                             ctld.listFOBS, { _unitName })
                     end
 
-                    if ctld.enableRepackingVehicles == true then
-                        ctld.updateRepackMenu(_unitName) -- add repack menu
+                    if ctld.enablePackingVehicles == true then
+                        ctld.updatePackMenu(_unitName) -- add pack menu
                     end
                 end
 
@@ -4243,7 +4243,7 @@ end
 
 --******************************************************************************************************
 -- return true if  _typeUnitDesc already exist in _MenuEntriesTable
--- ex:  ctld.isUnitInrepackableVehicles(repackableTable, "Humvee - TOW")
+-- ex:  ctld.isUnitInpackableVehicles(packableTable, "Humvee - TOW")
 function ctld.isUnitInMenuEntriesTable(_MenuEntriesTable, _typeUnitDesc)
     for i = 1, #_MenuEntriesTable do
         if _MenuEntriesTable[i].menuArgsTable.desc == _typeUnitDesc then
@@ -4254,44 +4254,44 @@ function ctld.isUnitInMenuEntriesTable(_MenuEntriesTable, _typeUnitDesc)
 end
 
 --******************************************************************************************************
-function ctld.updateRepackMenu(_playerUnitName)
+function ctld.updatePackMenu(_playerUnitName)
     local playerUnit = ctld.getTransportUnit(_playerUnitName)
     if playerUnit then
-        local _groupId = ctld.utils.getGroupId("ctld.updateRepackMenu()", playerUnit)
+        local _groupId = ctld.utils.getGroupId("ctld.updatePackMenu()", playerUnit)
         if _groupId == nil then
             return
         end
-        if ctld.enableRepackingVehicles then
-            local repackableVehicles = ctld.getUnitsInRepackRadius(_playerUnitName,
-                ctld.maximumDistanceRepackableUnitsSearch)
-            if repackableVehicles then
+        if ctld.enablePackingVehicles then
+            local packableVehicles = ctld.getUnitsInPackRadius(_playerUnitName,
+                ctld.maximumDistancePackableUnitsSearch)
+            if packableVehicles then
                 --ctld.logTrace("FG_ ctld.vehicleCommandsPath[_playerUnitName] = %s", ctld.p(ctld.vehicleCommandsPath[_playerUnitName]))
-                local RepackPreviousMenu                    = ctld.utils.deepCopy("ctld.updateRepackMenu()",
+                local PackPreviousMenu                    = ctld.utils.deepCopy("ctld.updatePackMenu()",
                     ctld.vehicleCommandsPath
                     [_playerUnitName])
-                local RepackCommandsPath                    = ctld.utils.deepCopy("ctld.updateRepackMenu()",
+                local PackCommandsPath                    = ctld.utils.deepCopy("ctld.updatePackMenu()",
                     ctld.vehicleCommandsPath
                     [_playerUnitName])
-                local repackSubMenuText                     = ctld.i18n_translate("Repack Vehicles")
-                RepackCommandsPath[#RepackCommandsPath + 1] =
-                    repackSubMenuText                                            -- add the submenu name to get the complet repack path
-                --ctld.logTrace("FG_ RepackCommandsPath = %s", ctld.p(RepackCommandsPath))
-                missionCommands.removeItemForGroup(_groupId, RepackCommandsPath) -- remove existing "Repack Vehicles" menu
-                --ctld.logTrace("FG_ RepackCommandsPath = %s", ctld.p(RepackCommandsPath))
-                --ctld.logTrace("FG_ repackableVehicles = %s", ctld.p(repackableVehicles))
-                --ctld.logTrace("FG_ repackSubMenuText  = %s", ctld.p(repackSubMenuText))
-                --ctld.logTrace("FG_ RepackPreviousMenu = %s", ctld.p(RepackPreviousMenu))
-                local RepackMenuPath = missionCommands.addSubMenuForGroup(_groupId, repackSubMenuText, RepackPreviousMenu)
+                local packSubMenuText                     = ctld.i18n_translate("Pack Vehicles")
+                PackCommandsPath[#PackCommandsPath + 1] =
+                    packSubMenuText                                            -- add the submenu name to get the complet pack path
+                --ctld.logTrace("FG_ PackCommandsPath = %s", ctld.p(PackCommandsPath))
+                missionCommands.removeItemForGroup(_groupId, PackCommandsPath) -- remove existing "Pack Vehicles" menu
+                --ctld.logTrace("FG_ PackCommandsPath = %s", ctld.p(PackCommandsPath))
+                --ctld.logTrace("FG_ packableVehicles = %s", ctld.p(packableVehicles))
+                --ctld.logTrace("FG_ packSubMenuText  = %s", ctld.p(packSubMenuText))
+                --ctld.logTrace("FG_ PackPreviousMenu = %s", ctld.p(PackPreviousMenu))
+                local PackMenuPath = missionCommands.addSubMenuForGroup(_groupId, packSubMenuText, PackPreviousMenu)
                 local menuEntries = {}
-                for i, _vehicle in ipairs(repackableVehicles) do
+                for i, _vehicle in ipairs(packableVehicles) do
                     if ctld.isUnitInMenuEntriesTable(menuEntries, _vehicle.desc) == false then
                         _vehicle.playerUnitName = _playerUnitName
                         table.insert(menuEntries, {
-                            text          = ctld.i18n_translate("repack ") .. _vehicle.unit,
+                            text          = ctld.i18n_translate("pack ") .. _vehicle.unit,
                             groupId       = _groupId,
-                            subMenuPath   = RepackMenuPath,
-                            menuFunction  = ctld.repackVehicleRequest,
-                            menuArgsTable = ctld.utils.deepCopy("ctld.updateRepackMenu()", _vehicle)
+                            subMenuPath   = PackMenuPath,
+                            menuFunction  = ctld.packVehicleRequest,
+                            menuArgsTable = ctld.utils.deepCopy("ctld.updatePackMenu()", _vehicle)
                         })
                     end
                 end
@@ -4303,31 +4303,31 @@ function ctld.updateRepackMenu(_playerUnitName)
 end
 
 --******************************************************************************************************
-function ctld.autoUpdateRepackMenu(p, t) -- auto update repack menus for each transport unit
+function ctld.autoUpdatePackMenu(p, t) -- auto update pack menus for each transport unit
     if t == nil then t = timer.getTime() end
     if p.reschedule == nil then p.reschedule = false end
-    ctld.logTrace("FG_ ctld.autoUpdateRepackMenu.p.reschedule = %s", p.reschedule)
-    if ctld.enableRepackingVehicles then
+    ctld.logTrace("FG_ ctld.autoUpdatePackMenu.p.reschedule = %s", p.reschedule)
+    if ctld.enablePackingVehicles then
         for _, _unitName in pairs(ctld.transportPilotNames) do
             if ctld.vehicleCommandsPath[_unitName] ~= nil then
                 local status, error = pcall(
                     function()
                         local _unit = ctld.getTransportUnit(_unitName)
                         if _unit then
-                            -- if transport unit landed => update repack menus
-                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and ctld.utils.vec3Mag("ctld.autoUpdateRepackMenu()", _unit:getVelocity()) < 0.1)) then
+                            -- if transport unit landed => update pack menus
+                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and ctld.utils.vec3Mag("ctld.autoUpdatePackMenu()", _unit:getVelocity()) < 0.1)) then
                                 local _unitTypename = _unit:getTypeName()
-                                local _groupId = ctld.utils.getGroupId("ctld.autoUpdateRepackMenu()", _unit)
+                                local _groupId = ctld.utils.getGroupId("ctld.autoUpdatePackMenu()", _unit)
                                 if _groupId then
-                                    if ctld.addedTo[tostring(_groupId)] ~= nil then -- if groupMenu on loaded => add RepackMenus
-                                        ctld.updateRepackMenu(_unitName)
+                                    if ctld.addedTo[tostring(_groupId)] ~= nil then -- if groupMenu on loaded => add PackMenus
+                                        ctld.updatePackMenu(_unitName)
                                     end
                                 end
                             end
                         end
                     end)
                 if (not status) then
-                    env.error(string.format("Error in ctld.autoUpdateRepackMenu : %s", error), false)
+                    env.error(string.format("Error in ctld.autoUpdatePackMenu : %s", error), false)
                 end
             end
         end
@@ -7421,11 +7421,11 @@ function ctld.getSecureDistanceFromUnit(_unitName) -- return a distance between 
 end
 
 -- ***************************************************************
---               Repack vehicules crates functions
+--               Pack vehicules crates functions
 -- ***************************************************************
-ctld.repackRequestsStack = {}                 -- table to store the repack request
+ctld.packRequestsStack = {}                 -- table to store the pack request
 ctld.inAirMemorisation   = {}                 -- last helico state of InAir()
-function ctld.updateRepackMenuOnlanding(p, t) -- update helo repack menu when a helo landing is detected
+function ctld.updatePackMenuOnlanding(p, t) -- update helo pack menu when a helo landing is detected
     if t == nil then t = timer.getTime() + 1; end
     if ctld.transportPilotNames then
         for _, _unitName in pairs(ctld.transportPilotNames) do
@@ -7433,8 +7433,8 @@ function ctld.updateRepackMenuOnlanding(p, t) -- update helo repack menu when a 
                 if ctld.inAirMemorisation[_unitName] == nil then ctld.inAirMemorisation[_unitName] = false end -- init InAir() state
                 local _heli = Unit.getByName(_unitName)
                 if ctld.inAir(_heli) == false then
-                    if ctld.inAirMemorisation[_unitName] == true then -- if transition from inAir to Landed => updateRepackMenu
-                        ctld.updateRepackMenu(_unitName)
+                    if ctld.inAirMemorisation[_unitName] == true then -- if transition from inAir to Landed => updatePackMenu
+                        ctld.updatePackMenu(_unitName)
                     end
                     ctld.inAirMemorisation[_unitName] = false
                 else
@@ -7447,9 +7447,9 @@ function ctld.updateRepackMenuOnlanding(p, t) -- update helo repack menu when a 
 end
 
 -- ***************************************************************
-function ctld.getUnitsInRepackRadius(_PlayerTransportUnitName, _radius)
+function ctld.getUnitsInPackRadius(_PlayerTransportUnitName, _radius)
     if _radius == nil then
-        _radius = ctld.maximumDistanceRepackableUnitsSearch
+        _radius = ctld.maximumDistancePackableUnitsSearch
     end
 
     local unit = ctld.getTransportUnit(_PlayerTransportUnitName)
@@ -7459,16 +7459,16 @@ function ctld.getUnitsInRepackRadius(_PlayerTransportUnitName, _radius)
 
     local unitsNamesList  = ctld.getNearbyUnits(unit:getPoint(), _radius, unit:getCoalition())
 
-    local repackableUnits = {}
+    local packableUnits = {}
     for i = 1, #unitsNamesList do
         local unitObject     = Unit.getByName(unitsNamesList[i])
-        local repackableUnit = ctld.isRepackableUnit(unitsNamesList[i])
-        if repackableUnit then
-            repackableUnit["repackableUnitGroupID"] = unitObject:getGroup():getID()
-            table.insert(repackableUnits, ctld.utils.deepCopy("ctld.getUnitsInRepackRadius()", repackableUnit))
+        local packableUnit = ctld.isPackableUnit(unitsNamesList[i])
+        if packableUnit then
+            packableUnit["packableUnitGroupID"] = unitObject:getGroup():getID()
+            table.insert(packableUnits, ctld.utils.deepCopy("ctld.getUnitsInPackRadius()", packableUnit))
         end
     end
-    return repackableUnits
+    return packableUnits
 end
 
 -- ***************************************************************
@@ -7503,17 +7503,17 @@ function ctld.getNearbyUnits(_point, _radius, _coalition)
 end
 
 -- ***************************************************************
-function ctld.isRepackableUnit(_unitName)
+function ctld.isPackableUnit(_unitName)
     local unitObject = Unit.getByName(_unitName)
     local unitType   = unitObject:getTypeName()
     for k, v in pairs(ctld.spawnableCrates) do
         for i = 1, #ctld.spawnableCrates[k] do
             if _unitName then
                 if ctld.spawnableCrates[k][i].unit == unitType then
-                    local repackableUnit = ctld.utils.deepCopy("ctld.isRepackableUnit", ctld.spawnableCrates[k]
+                    local packableUnit = ctld.utils.deepCopy("ctld.isPackableUnit", ctld.spawnableCrates[k]
                         [i])
-                    repackableUnit["repackableUnitName"] = _unitName
-                    return repackableUnit
+                    packableUnit["packableUnitName"] = _unitName
+                    return packableUnit
                 end
             end
         end
@@ -7536,42 +7536,42 @@ function ctld.getCrateDesc(_crateWeight)
 end
 
 -- ***************************************************************
-function ctld.repackVehicleRequest(_params) -- update rrs table 'repackRequestsStack' with the request
-    --ctld.logTrace("FG_    ctld.repackVehicleRequest._params = " .. ctld.p(_params))
-    ctld.repackRequestsStack[#ctld.repackRequestsStack + 1] = _params
+function ctld.packVehicleRequest(_params) -- update rrs table 'packRequestsStack' with the request
+    --ctld.logTrace("FG_    ctld.packVehicleRequest._params = " .. ctld.p(_params))
+    ctld.packRequestsStack[#ctld.packRequestsStack + 1] = _params
 end
 
 -- ***************************************************************
-function ctld.repackVehicle(_params, t) -- scan rrs table 'repackRequestsStack' to process each request
-    --ctld.logTrace("FG_ XXXXXXXXXXXXXXXXXXXXXXXXXXX ctld.repackVehicle.ctld.repackRequestsStack XXXXXXXXXXXXXXXXXXXXXXXXXXX")
+function ctld.packVehicle(_params, t) -- scan rrs table 'packRequestsStack' to process each request
+    --ctld.logTrace("FG_ XXXXXXXXXXXXXXXXXXXXXXXXXXX ctld.packVehicle.ctld.packRequestsStack XXXXXXXXXXXXXXXXXXXXXXXXXXX")
     if t == nil then
         t = timer.getTime()
     end
-    if #ctld.repackRequestsStack ~= 0 then
-        ctld.logTrace("FG_    ctld.repackVehicle.ctld.repackRequestsStack = %s", ctld.p(ctld.repackRequestsStack))
+    if #ctld.packRequestsStack ~= 0 then
+        ctld.logTrace("FG_    ctld.packVehicle.ctld.packRequestsStack = %s", ctld.p(ctld.packRequestsStack))
     end
-    for ii, v in ipairs(ctld.repackRequestsStack) do
-        ctld.logTrace("FG_    ctld.repackVehicle.v[%s] = %s", ii, ctld.p(v))
-        local repackableUnitName = v.repackableUnitName
-        local repackableUnit     = Unit.getByName(repackableUnitName)
+    for ii, v in ipairs(ctld.packRequestsStack) do
+        ctld.logTrace("FG_    ctld.packVehicle.v[%s] = %s", ii, ctld.p(v))
+        local packableUnitName = v.packableUnitName
+        local packableUnit     = Unit.getByName(packableUnitName)
         local crateWeight        = v.weight
         local playerUnitName     = v.playerUnitName
-        if repackableUnit then
-            if repackableUnit:isExist() then
+        if packableUnit then
+            if packableUnit:isExist() then
                 local PlayerTransportUnit = Unit.getByName(playerUnitName)
                 local playerCoa           = PlayerTransportUnit:getCoalition()
                 local refCountry          = PlayerTransportUnit:getCountry()
                 -- calculate the heading of the spawns to be carried out
-                local playerHeading       = ctld.utils.getHeadingInRadians("ctld.repackVehicle()", PlayerTransportUnit)
+                local playerHeading       = ctld.utils.getHeadingInRadians("ctld.packVehicle()", PlayerTransportUnit)
                 local playerPoint         = PlayerTransportUnit:getPoint()
                 local offset              = 5
-                local randomHeading       = ctld.utils.RandomReal("ctld.repackVehicle()", playerHeading - math.pi / 4,
+                local randomHeading       = ctld.utils.RandomReal("ctld.packVehicle()", playerHeading - math.pi / 4,
                     playerHeading + math.pi / 4)
                 if ctld.unitDynamicCargoCapable(PlayerTransportUnit) ~= false then
-                    randomHeading = ctld.utils.RandomReal("ctld.repackVehicle()", playerHeading + math.pi - math.pi / 4,
+                    randomHeading = ctld.utils.RandomReal("ctld.packVehicle()", playerHeading + math.pi - math.pi / 4,
                         playerHeading + math.pi + math.pi / 4)
                 end
-                repackableUnit:destroy() -- destroy repacked unit
+                packableUnit:destroy() -- destroy packed unit
                 for i = 1, v.cratesRequired or 1 do
                     -- see to spawn the crate at random position heading the transport unit
                     local _unitId        = ctld.getNextUnitId()
@@ -7589,14 +7589,14 @@ function ctld.repackVehicle(_params, t) -- scan rrs table 'repackRequestsStack' 
                     end
                 end
             end
-            timer.scheduleFunction(ctld.autoUpdateRepackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in repack menu
+            timer.scheduleFunction(ctld.autoUpdatePackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in pack menu
         end
-        ctld.repackRequestsStack[ii] = nil                                                                 -- remove the processed request from the stacking table
+        ctld.packRequestsStack[ii] = nil                                                                 -- remove the processed request from the stacking table
     end
 
 
 
-    if ctld.enableRepackingVehicles == true then
+    if ctld.enablePackingVehicles == true then
         return t + 3 -- reschedule the function in 3 seconds
     else
         return nil   --stop scheduling
@@ -9568,7 +9568,7 @@ function ctld.unpackCrates(_arguments)
                     trigger.action.outTextForCoalition(_heli:getCoalition(),
                         ctld.i18n_translate("%1 successfully deployed %2 to the field", ctld.getPlayerNameOrType(_heli),
                             _crate.details.desc), 10)
-                    timer.scheduleFunction(ctld.autoUpdateRepackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in repack menu
+                    timer.scheduleFunction(ctld.autoUpdatePackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in pack menu
                     if ctld.isJTACUnitType(_crate.details.unit) and ctld.JTAC_dropEnabled then
                         local _code = table.remove(ctld.jtacGeneratedLaserCodes, 1)
                         --put to the end
@@ -10285,7 +10285,7 @@ function ctld.unpackMultiCrate(_heli, _nearestCrate, _nearbyCrates)
         if _spawnedGroup == nil then
             ctld.logError("ctld.unpackMultiCrate group was not spawned - skipping setGrpROE")
         else
-            timer.scheduleFunction(ctld.autoUpdateRepackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in repack menu
+            timer.scheduleFunction(ctld.autoUpdatePackMenu, { reschedule = false }, timer.getTime() + 1) -- for add unpacked unit in pack menu
             ctld.setGrpROE(_spawnedGroup)
             ctld.processCallback({ unit = _heli, crate = _nearestCrate, spawnedGroup = _spawnedGroup, action = "unpack" })
             trigger.action.outTextForCoalition(_heli:getCoalition(),
@@ -11342,9 +11342,9 @@ function ctld.initialize()
         if ctld.enableCrates == true and ctld.hoverPickup == true then
             timer.scheduleFunction(ctld.checkHoverStatus, nil, timer.getTime() + 1)
         end
-        if ctld.enableRepackingVehicles == true then
-            timer.scheduleFunction(ctld.updateRepackMenuOnlanding, nil, timer.getTime() + 1) -- update helo repack menu when a helo landing is detected
-            timer.scheduleFunction(ctld.repackVehicle, nil, timer.getTime() + 1)
+        if ctld.enablePackingVehicles == true then
+            timer.scheduleFunction(ctld.updatePackMenuOnlanding, nil, timer.getTime() + 1) -- update helo pack menu when a helo landing is detected
+            timer.scheduleFunction(ctld.packVehicle, nil, timer.getTime() + 1)
         end
         if ctld.enableAutoOrbitingFlyingJtacOnTarget then
             timer.scheduleFunction(ctld.TreatOrbitJTAC, {}, timer.getTime() + 3)

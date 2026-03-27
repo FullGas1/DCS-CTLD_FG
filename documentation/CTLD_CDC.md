@@ -31,7 +31,7 @@ Migrer CTLD vers une architecture orientée objet (OOP) en Lua 5.1, dans les con
 - **Isofonctionnel** : reproduire exactement toutes les fonctionnalités existantes
 - **Modularité** : chaque domaine fonctionnel dans une classe dédiée
 - **Maintenabilité** : CTLDCore < 500 lignes, chaque classe < 800 lignes
-- **Nouvelles features** : Scenes/FOB via CTLDSceneManager, menu Unpack dynamique, renommage repack→pack
+- **Nouvelles features** : Scenes/FOB via CTLDSceneManager, menu Unpack dynamique, renommage pack→pack
 - **Build reproductible** : fusion des modules `source_futur/` → `CTLD.lua`
 
 ### 1.3 Périmètre
@@ -335,7 +335,7 @@ classDiagram
 - Managers : `CTLDXxxManager` (tout en majuscules jusqu'au X)
 - Méthodes : camelCase
 - Constantes : UPPER_SNAKE_CASE
-- Le terme **"repack" est banni** — utiliser "pack" partout (méthodes, config, menus, commentaires)
+- Le terme **"pack" est banni** — utiliser "pack" partout (méthodes, config, menus, commentaires)
 
 ---
 
@@ -356,12 +356,12 @@ classDiagram
 | `CTLDConfig:getSetting(key)` | Retourne la valeur du paramètre `key` |
 | `ctld.gs(key)` | Raccourci global |
 
-**Paramètres renommés (repack → pack)** :
+**Paramètres renommés (pack → pack)** :
 
 | Ancien nom | Nouveau nom |
 |---|---|
-| `enableRepackingVehicles` | `enablePackingVehicles` |
-| `maximumDistanceRepackableUnitsSearch` | `maximumDistancePackableUnitsSearch` |
+| `enablePackingVehicles` | `enablePackingVehicles` |
+| `maximumDistancePackableUnitsSearch` | `maximumDistancePackableUnitsSearch` |
 
 **Dépendances** : aucune
 
@@ -676,7 +676,7 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 | `CTLDVehicleManager:loadUnloadFOBCrate(unitName)` | Charge/dépose une caisse FOB |
 | `CTLDVehicleManager:buildMenu(player, parentMenu)` | Construit "Vehicle/FOB Transport" + sous-menu "Pack Vehicles" [PAG: 10/p] |
 
-> Config renommée : `enablePackingVehicles` (ex-`enableRepackingVehicles`), `maximumDistancePackableUnitsSearch` (ex-`maximumDistanceRepackableUnitsSearch`).
+> Config renommée : `enablePackingVehicles` (ex-`enablePackingVehicles`), `maximumDistancePackableUnitsSearch` (ex-`maximumDistancePackableUnitsSearch`).
 
 **Dépendances** : CTLDZoneManager, CTLDUtils, CTLDConfig, MenuManager
 
@@ -1082,7 +1082,7 @@ CTLD_userConfig.lua
 | Réf | Description | Classe cible |
 |---|---|---|
 | EVO-01 | Menu "Unpack Any Crate" → sous-menu dynamique contextuel [PAG: 10/p] | CTLDCrateManager |
-| EVO-02 | Renommage repack → pack (config, menus, méthodes) | CTLDConfig, CTLDVehicleManager |
+| EVO-02 | Renommage pack → pack (config, menus, méthodes) | CTLDConfig, CTLDVehicleManager |
 | EVO-03 | FOB déployé via scène DCS | CTLDFOBManager |
 | EVO-04 | Nouveaux descripteurs : FOB_Outpost, FOB_Watchtower | CTLDObjectsDescDb |
 | EVO-05 | API mission maker `registerSceneModel()` documentée | documentation/missionmaker_guide.md |

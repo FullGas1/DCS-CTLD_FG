@@ -1,6 +1,6 @@
-# repack → pack mapping
+# pack → pack mapping
 
-All occurrences of `repack` (any case) found in `source/` and `old/`.
+All occurrences of `pack` (any case) found in `source/` and `old/`.
 This table is the reference to apply when writing `source_futur/` files.
 **Never modify `source/` or `old/`.**
 
@@ -10,8 +10,8 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Old name (source/) | New name (source_futur/) | Class | Notes |
 |---|---|---|---|
-| `enableRepackingVehicles` | `enablePackingVehicles` | CTLDConfig | Boolean setting |
-| `maximumDistanceRepackableUnitsSearch` | `maximumDistancePackableUnitsSearch` | CTLDConfig | Distance in meters |
+| `enablePackingVehicles` | `enablePackingVehicles` | CTLDConfig | Boolean setting |
+| `maximumDistancePackableUnitsSearch` | `maximumDistancePackableUnitsSearch` | CTLDConfig | Distance in meters |
 
 ---
 
@@ -19,7 +19,7 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Old name (source/) | New name (source_futur/) | Class | Notes |
 |---|---|---|---|
-| `ctld.repackRequestsStack` | `CTLDVehicleManager._packRequestsStack` | CTLDVehicleManager | Moved to manager as private attribute |
+| `ctld.packRequestsStack` | `CTLDVehicleManager._packRequestsStack` | CTLDVehicleManager | Moved to manager as private attribute |
 
 ---
 
@@ -27,13 +27,13 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Old name (source/ or old/) | New name (source_futur/) | Class | Notes |
 |---|---|---|---|
-| `ctld.isRepackableUnit()` | `CTLDVehicleManager:isPackableUnit()` | CTLDVehicleManager | Returns packable unit descriptor or nil |
-| `ctld.getUnitsInRepackRadius()` | `CTLDVehicleManager:getUnitsInPackRadius()` | CTLDVehicleManager | Scans nearby units |
-| `ctld.repackVehicleRequest()` | `CTLDVehicleManager:packVehicleRequest()` | CTLDVehicleManager | Pushes to _packRequestsStack |
-| `ctld.repackVehicle()` | `CTLDVehicleManager:packVehicle()` | CTLDVehicleManager | Processes _packRequestsStack |
-| `ctld.updateRepackMenu()` | `CTLDVehicleManager:buildPackMenu()` | CTLDVehicleManager | Follows buildMenu(player, parentMenu) pattern |
-| `ctld.updateRepackMenuOnlanding()` | `CTLDVehicleManager:updatePackMenuOnLanding()` | CTLDVehicleManager | Called by DCS land event handler in CTLDCore |
-| `ctld.autoUpdateRepackMenu()` | `CTLDVehicleManager:autoUpdatePackMenu()` | CTLDVehicleManager | Scheduled via timer, scans all transport units |
+| `ctld.isPackableUnit()` | `CTLDVehicleManager:isPackableUnit()` | CTLDVehicleManager | Returns packable unit descriptor or nil |
+| `ctld.getUnitsInPackRadius()` | `CTLDVehicleManager:getUnitsInPackRadius()` | CTLDVehicleManager | Scans nearby units |
+| `ctld.packVehicleRequest()` | `CTLDVehicleManager:packVehicleRequest()` | CTLDVehicleManager | Pushes to _packRequestsStack |
+| `ctld.packVehicle()` | `CTLDVehicleManager:packVehicle()` | CTLDVehicleManager | Processes _packRequestsStack |
+| `ctld.updatePackMenu()` | `CTLDVehicleManager:buildPackMenu()` | CTLDVehicleManager | Follows buildMenu(player, parentMenu) pattern |
+| `ctld.updatePackMenuOnlanding()` | `CTLDVehicleManager:updatePackMenuOnLanding()` | CTLDVehicleManager | Called by DCS land event handler in CTLDCore |
+| `ctld.autoUpdatePackMenu()` | `CTLDVehicleManager:autoUpdatePackMenu()` | CTLDVehicleManager | Scheduled via timer, scans all transport units |
 
 ---
 
@@ -41,16 +41,16 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Old name (source/ or old/) | New name (source_futur/) | Context |
 |---|---|---|
-| `repackableUnits` | `packableUnits` | Result table of getUnitsInPackRadius() |
-| `repackableUnit` | `packableUnit` | Single unit descriptor |
-| `repackableUnitName` | `packableUnitName` | Unit name string |
-| `repackableUnit["repackableUnitGroupID"]` | `packableUnit.groupId` | Field in CtldVehicle or descriptor table |
-| `repackableUnit["repackableUnitName"]` | `packableUnit.unitName` | Field in CtldVehicle or descriptor table |
-| `RepackPreviousMenu` | `packPreviousMenu` | Menu builder local |
-| `RepackCommandsPath` | `packCommandsPath` | Menu builder local |
-| `RepackMenuPath` | `packMenuPath` | Menu builder local |
-| `repackSubMenuText` | `packSubMenuText` | Menu builder local |
-| `repackableVehicles` | `packableVehicles` | Menu builder local |
+| `packableUnits` | `packableUnits` | Result table of getUnitsInPackRadius() |
+| `packableUnit` | `packableUnit` | Single unit descriptor |
+| `packableUnitName` | `packableUnitName` | Unit name string |
+| `packableUnit["packableUnitGroupID"]` | `packableUnit.groupId` | Field in CtldVehicle or descriptor table |
+| `packableUnit["packableUnitName"]` | `packableUnit.unitName` | Field in CtldVehicle or descriptor table |
+| `PackPreviousMenu` | `packPreviousMenu` | Menu builder local |
+| `PackCommandsPath` | `packCommandsPath` | Menu builder local |
+| `PackMenuPath` | `packMenuPath` | Menu builder local |
+| `packSubMenuText` | `packSubMenuText` | Menu builder local |
+| `packableVehicles` | `packableVehicles` | Menu builder local |
 
 ---
 
@@ -58,8 +58,8 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Old key (source/) | New key (source_futur/) | Notes |
 |---|---|---|
-| `"Repack Vehicles"` | `"Pack Vehicles"` | Submenu title — all languages |
-| `"repack "` | `"pack "` | Prefix for per-vehicle menu entries (e.g. "pack Humvee") |
+| `"Pack Vehicles"` | `"Pack Vehicles"` | Submenu title — all languages |
+| `"pack "` | `"pack "` | Prefix for per-vehicle menu entries (e.g. "pack Humvee") |
 
 ### Translations to update
 
@@ -80,12 +80,12 @@ This table is the reference to apply when writing `source_futur/` files.
 
 | Location | Old comment | New comment |
 |---|---|---|
-| `CTLD_core.lua:760` | `-- Repack vehicules crates functions` | `-- Pack vehicles crates functions` |
+| `CTLD_core.lua:760` | `-- Pack vehicules crates functions` | `-- Pack vehicles crates functions` |
 
 ---
 
 ## Usage rules
 
 - Apply this mapping mechanically when writing each `source_futur/` file.
-- Never use any `repack*` symbol in `source_futur/` — grep before committing.
+- Never use any `pack*` symbol in `source_futur/` — grep before committing.
 - For FR/ES i18n translations marked **à définir**, ask the user before writing.

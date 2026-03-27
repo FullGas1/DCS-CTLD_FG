@@ -163,8 +163,8 @@ function ctld.addTransportF10MenuOptions(_unitName)
                             ctld.listFOBS, { _unitName })
                     end
 
-                    if ctld.enableRepackingVehicles == true then
-                        ctld.updateRepackMenu(_unitName) -- add repack menu
+                    if ctld.enablePackingVehicles == true then
+                        ctld.updatePackMenu(_unitName) -- add pack menu
                     end
                 end
 
@@ -244,7 +244,7 @@ end
 
 --******************************************************************************************************
 -- return true if  _typeUnitDesc already exist in _MenuEntriesTable
--- ex:  ctld.isUnitInrepackableVehicles(repackableTable, "Humvee - TOW")
+-- ex:  ctld.isUnitInpackableVehicles(packableTable, "Humvee - TOW")
 function ctld.isUnitInMenuEntriesTable(_MenuEntriesTable, _typeUnitDesc)
     for i = 1, #_MenuEntriesTable do
         if _MenuEntriesTable[i].menuArgsTable.desc == _typeUnitDesc then
@@ -255,44 +255,44 @@ function ctld.isUnitInMenuEntriesTable(_MenuEntriesTable, _typeUnitDesc)
 end
 
 --******************************************************************************************************
-function ctld.updateRepackMenu(_playerUnitName)
+function ctld.updatePackMenu(_playerUnitName)
     local playerUnit = ctld.getTransportUnit(_playerUnitName)
     if playerUnit then
-        local _groupId = ctld.utils.getGroupId("ctld.updateRepackMenu()", playerUnit)
+        local _groupId = ctld.utils.getGroupId("ctld.updatePackMenu()", playerUnit)
         if _groupId == nil then
             return
         end
-        if ctld.enableRepackingVehicles then
-            local repackableVehicles = ctld.getUnitsInRepackRadius(_playerUnitName,
-                ctld.maximumDistanceRepackableUnitsSearch)
-            if repackableVehicles then
+        if ctld.enablePackingVehicles then
+            local packableVehicles = ctld.getUnitsInPackRadius(_playerUnitName,
+                ctld.maximumDistancePackableUnitsSearch)
+            if packableVehicles then
                 --ctld.logTrace("FG_ ctld.vehicleCommandsPath[_playerUnitName] = %s", ctld.p(ctld.vehicleCommandsPath[_playerUnitName]))
-                local RepackPreviousMenu                    = ctld.utils.deepCopy("ctld.updateRepackMenu()",
+                local PackPreviousMenu                    = ctld.utils.deepCopy("ctld.updatePackMenu()",
                     ctld.vehicleCommandsPath
                     [_playerUnitName])
-                local RepackCommandsPath                    = ctld.utils.deepCopy("ctld.updateRepackMenu()",
+                local PackCommandsPath                    = ctld.utils.deepCopy("ctld.updatePackMenu()",
                     ctld.vehicleCommandsPath
                     [_playerUnitName])
-                local repackSubMenuText                     = ctld.i18n_translate("Repack Vehicles")
-                RepackCommandsPath[#RepackCommandsPath + 1] =
-                    repackSubMenuText                                            -- add the submenu name to get the complet repack path
-                --ctld.logTrace("FG_ RepackCommandsPath = %s", ctld.p(RepackCommandsPath))
-                missionCommands.removeItemForGroup(_groupId, RepackCommandsPath) -- remove existing "Repack Vehicles" menu
-                --ctld.logTrace("FG_ RepackCommandsPath = %s", ctld.p(RepackCommandsPath))
-                --ctld.logTrace("FG_ repackableVehicles = %s", ctld.p(repackableVehicles))
-                --ctld.logTrace("FG_ repackSubMenuText  = %s", ctld.p(repackSubMenuText))
-                --ctld.logTrace("FG_ RepackPreviousMenu = %s", ctld.p(RepackPreviousMenu))
-                local RepackMenuPath = missionCommands.addSubMenuForGroup(_groupId, repackSubMenuText, RepackPreviousMenu)
+                local packSubMenuText                     = ctld.i18n_translate("Pack Vehicles")
+                PackCommandsPath[#PackCommandsPath + 1] =
+                    packSubMenuText                                            -- add the submenu name to get the complet pack path
+                --ctld.logTrace("FG_ PackCommandsPath = %s", ctld.p(PackCommandsPath))
+                missionCommands.removeItemForGroup(_groupId, PackCommandsPath) -- remove existing "Pack Vehicles" menu
+                --ctld.logTrace("FG_ PackCommandsPath = %s", ctld.p(PackCommandsPath))
+                --ctld.logTrace("FG_ packableVehicles = %s", ctld.p(packableVehicles))
+                --ctld.logTrace("FG_ packSubMenuText  = %s", ctld.p(packSubMenuText))
+                --ctld.logTrace("FG_ PackPreviousMenu = %s", ctld.p(PackPreviousMenu))
+                local PackMenuPath = missionCommands.addSubMenuForGroup(_groupId, packSubMenuText, PackPreviousMenu)
                 local menuEntries = {}
-                for i, _vehicle in ipairs(repackableVehicles) do
+                for i, _vehicle in ipairs(packableVehicles) do
                     if ctld.isUnitInMenuEntriesTable(menuEntries, _vehicle.desc) == false then
                         _vehicle.playerUnitName = _playerUnitName
                         table.insert(menuEntries, {
-                            text          = ctld.i18n_translate("repack ") .. _vehicle.unit,
+                            text          = ctld.i18n_translate("pack ") .. _vehicle.unit,
                             groupId       = _groupId,
-                            subMenuPath   = RepackMenuPath,
-                            menuFunction  = ctld.repackVehicleRequest,
-                            menuArgsTable = ctld.utils.deepCopy("ctld.updateRepackMenu()", _vehicle)
+                            subMenuPath   = PackMenuPath,
+                            menuFunction  = ctld.packVehicleRequest,
+                            menuArgsTable = ctld.utils.deepCopy("ctld.updatePackMenu()", _vehicle)
                         })
                     end
                 end
@@ -304,31 +304,31 @@ function ctld.updateRepackMenu(_playerUnitName)
 end
 
 --******************************************************************************************************
-function ctld.autoUpdateRepackMenu(p, t) -- auto update repack menus for each transport unit
+function ctld.autoUpdatePackMenu(p, t) -- auto update pack menus for each transport unit
     if t == nil then t = timer.getTime() end
     if p.reschedule == nil then p.reschedule = false end
-    ctld.logTrace("FG_ ctld.autoUpdateRepackMenu.p.reschedule = %s", p.reschedule)
-    if ctld.enableRepackingVehicles then
+    ctld.logTrace("FG_ ctld.autoUpdatePackMenu.p.reschedule = %s", p.reschedule)
+    if ctld.enablePackingVehicles then
         for _, _unitName in pairs(ctld.transportPilotNames) do
             if ctld.vehicleCommandsPath[_unitName] ~= nil then
                 local status, error = pcall(
                     function()
                         local _unit = ctld.getTransportUnit(_unitName)
                         if _unit then
-                            -- if transport unit landed => update repack menus
-                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and ctld.utils.vec3Mag("ctld.autoUpdateRepackMenu()", _unit:getVelocity()) < 0.1)) then
+                            -- if transport unit landed => update pack menus
+                            if (ctld.inAir(_unit) == false or (ctld.heightDiff(_unit) <= 0.1 + 3.0 and ctld.utils.vec3Mag("ctld.autoUpdatePackMenu()", _unit:getVelocity()) < 0.1)) then
                                 local _unitTypename = _unit:getTypeName()
-                                local _groupId = ctld.utils.getGroupId("ctld.autoUpdateRepackMenu()", _unit)
+                                local _groupId = ctld.utils.getGroupId("ctld.autoUpdatePackMenu()", _unit)
                                 if _groupId then
-                                    if ctld.addedTo[tostring(_groupId)] ~= nil then -- if groupMenu on loaded => add RepackMenus
-                                        ctld.updateRepackMenu(_unitName)
+                                    if ctld.addedTo[tostring(_groupId)] ~= nil then -- if groupMenu on loaded => add PackMenus
+                                        ctld.updatePackMenu(_unitName)
                                     end
                                 end
                             end
                         end
                     end)
                 if (not status) then
-                    env.error(string.format("Error in ctld.autoUpdateRepackMenu : %s", error), false)
+                    env.error(string.format("Error in ctld.autoUpdatePackMenu : %s", error), false)
                 end
             end
         end

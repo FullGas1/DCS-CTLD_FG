@@ -33,7 +33,7 @@ with no blind spots. Breaking this rule causes keys to be silently missing from 
   It does NOT block usage — the fallback chain handles missing keys gracefully.
 - History (EN):
   - `"1.6"` — original source version
-  - `"1.7"` — added "Pack Vehicles" key (repack → pack rename)
+  - `"1.7"` — added "Pack Vehicles" key (pack → pack rename)
 
 ## Dict file responsibilities
 

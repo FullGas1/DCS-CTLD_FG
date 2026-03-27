@@ -24,7 +24,7 @@
 - Les nouvelles classes OOP vont exclusivement dans `source_futur/`.
 - Seul `ctld.gs("param")` est autorisé pour accéder aux paramètres de config (jamais `config:getSetting()`).
 - Utiliser uniquement l'API DCS officielle documentée sur https://wiki.hoggitworld.com/view/Simulator_Scripting_Engine_Documentation
-- Le terme "repack" est banni : utiliser "pack" partout (méthodes, config, menus).
+- Le terme "pack" est banni : utiliser "pack" partout (méthodes, config, menus).
 
 ## Fin de chaque réponse
 
