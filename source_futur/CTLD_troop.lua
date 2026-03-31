@@ -2,7 +2,7 @@
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
 --
--- Dependencies: CTLDConfig (ctld.gs), CTLDUtils, CTLDObjectsDescDb, CTLDZoneManager
+-- Dependencies: CTLDConfig (ctld.gs), CTLDUtils, CTLDObjectRegistry, CTLDZoneManager
 -- DCS API: coalition.addGroup, Group, Unit, land, trigger.action, missionCommands
 --
 -- TroopGroup lifecycle states:
@@ -29,7 +29,7 @@ CTLDTroopGroup.STATE = {
 
 --- Constructor.
 -- @param data table:
---   templateKey  (string|nil)  CTLDObjectsDescDb key (nil for extracted groups without template)
+--   templateKey  (string|nil)  CTLDObjectRegistry key (nil for extracted groups without template)
 --   templateName (string)      display name
 --   unitTotal    (number)      total unit count
 --   weight       (number)      total cargo weight (kg)
@@ -131,14 +131,14 @@ function CTLDTroopManager:init()
 end
 
 -- ============================================================
--- Template registration → CTLDObjectsDescDb entries
+-- Template registration → CTLDObjectRegistry entries
 -- ============================================================
 
 local function _sanitizeKey(name)
     return (name:gsub("[^%w]", "_"))
 end
 
--- Generates one GROUND descriptor per loadable template and inserts it into CTLDObjectsDescDb._db.
+-- Generates one GROUND descriptor per loadable template and inserts it into CTLDObjectRegistry._db.
 -- Sets tmpl.total (total unit count) and tmpl._dbKey on each template entry.
 function CTLDTroopManager:_registerTemplates()
     local templates = ctld.gs("loadableGroups") or {}
@@ -179,7 +179,7 @@ function CTLDTroopManager:_registerTemplates()
         local key     = "troop_" .. idx .. "_" .. _sanitizeKey(tmpl.name)
         tmpl._dbKey   = key
 
-        CTLDObjectsDescDb._db[key] = {
+        CTLDObjectRegistry._db[key] = {
             groupType  = "GROUND",
             namePrefix = "TroopGrp_" .. _sanitizeKey(tmpl.name),
             task       = "Ground Nothing",
@@ -364,7 +364,7 @@ function CTLDTroopManager:deploy(unit)
         local safeR   = ctld.utils.getSecureDistanceFromUnit(unitName) or 10
         local circleR = safeR + (ctld.gs("spawnDistanceInCircle") or 10)
 
-        local dcsGroup = CTLDObjectsDescDb.spawnObject(
+        local dcsGroup = CTLDObjectRegistry.spawnObject(
             group.templateKey,
             group.coalitionId,
             group.countryId,

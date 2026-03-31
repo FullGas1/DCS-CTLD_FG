@@ -5,9 +5,9 @@
 --
 -- Step types (fields in each step table):
 --   polar  : { polar={distance, angle}, relativeHeadingInDegrees, relativeAltitudeInMeters,
---              objectsDescDbKey [, func] }
+--              registryKey [, func] }
 --              Deterministic position relative to the trigger unit's snapshot position.
---   axis   : { axis={count, safeDistance, spacing}, objectsDescDbKey [, func] }
+--   axis   : { axis={count, safeDistance, spacing}, registryKey [, func] }
 --              Random single axis around the unit; N objects spread along it.
 --   func   : { func=function(unit, spawnedObj, step) ... end }
 --              No spawn; only executes the function.
@@ -16,7 +16,7 @@
 -- the engine waits that many seconds before starting step N+1.  The same field
 -- is also used before step 1 (initial delay from mission start / scene trigger).
 --
--- Dependencies: CTLDUtils, CTLDObjectsDescDb
+-- Dependencies: CTLDUtils, CTLDObjectRegistry
 -- DCS API: timer.getTime, timer.scheduleFunction, Unit.*, Airbase.*,
 --          trigger.action.outText
 -- ====================================================================================================
@@ -87,8 +87,8 @@ function CtldScene:_runNextStep()
     -- -----------------------------------------------------------------------
     -- Spawn phase (skipped for func-only steps)
     -- -----------------------------------------------------------------------
-    if step.objectsDescDbKey then
-        local desc = CTLDObjectsDescDb.get(step.objectsDescDbKey)
+    if step.registryKey then
+        local desc = CTLDObjectRegistry.get(step.registryKey)
 
         -- Auto-inject circleRadius when the descriptor uses circle formation.
         local overrides = {}
@@ -107,8 +107,8 @@ function CtldScene:_runNextStep()
                 step.relativeAltitudeInMeters or 0,
                 self._magDecDeg
             )
-            spawnedObj = CTLDObjectsDescDb.spawnObject(
-                step.objectsDescDbKey, coalitionId, countryId,
+            spawnedObj = CTLDObjectRegistry.spawnObject(
+                step.registryKey, coalitionId, countryId,
                 spawnX, spawnEast, math.rad(spawnHdgDeg), overrides
             )
             if spawnedObj then
@@ -124,8 +124,8 @@ function CtldScene:_runNextStep()
             local spacing  = step.axis.spacing or (ctld.gs("crateSpacing") or 5)
             local result   = ctld.utils.getSpawnObjectPositions(self._unit, count, safeDist, spacing)
             for _, pos in ipairs(result.positions) do
-                local obj = CTLDObjectsDescDb.spawnObject(
-                    step.objectsDescDbKey, coalitionId, countryId,
+                local obj = CTLDObjectRegistry.spawnObject(
+                    step.registryKey, coalitionId, countryId,
                     pos.x, pos.z, 0, overrides
                 )
                 if obj then
@@ -258,7 +258,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 0,
             relativeHeadingInDegrees = 180,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "SINGLE_HELIPAD",
+            registryKey         = "SINGLE_HELIPAD",
             func = function(unit, spawnedObj, step)
                 if not spawnedObj then return false end
                 local ab = Airbase.getByName(spawnedObj:getName())
@@ -279,7 +279,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 90,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "FARP_Tent",
+            registryKey         = "FARP_Tent",
         },
 
         -- Step 3: Ammo storage (STATIC)
@@ -288,7 +288,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "FARP_Ammo_Storage",
+            registryKey         = "FARP_Ammo_Storage",
         },
 
         -- Step 4a: Fuel truck (GROUND)
@@ -297,7 +297,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 5,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "Fuel_Truck",
+            registryKey         = "Fuel_Truck",
         },
 
         -- Step 4b: Repair truck (GROUND)
@@ -306,7 +306,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 5,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "repare_Truck",
+            registryKey         = "repare_Truck",
         },
 
         -- Step 5: Security guard group (GROUND)
@@ -315,7 +315,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 0,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "FARP_Security_Guard",
+            registryKey         = "FARP_Security_Guard",
         },
 
         -- Step 6a: Barrels (STATIC)
@@ -324,7 +324,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "barrels_cargo",
+            registryKey         = "barrels_cargo",
         },
 
         -- Step 6b1: Cargo box (STATIC)
@@ -333,7 +333,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "Cargo06",
+            registryKey         = "Cargo06",
         },
 
         -- Step 6b2: Ammo cargo (STATIC)
@@ -342,7 +342,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "ammo_cargo",
+            registryKey         = "ammo_cargo",
         },
 
         -- Step 6c: Ammo cargo 2 (STATIC)
@@ -351,7 +351,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 5,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "ammo_cargo",
+            registryKey         = "ammo_cargo",
         },
 
         -- Step 6d: Carrier shooter static (STATIC)
@@ -360,7 +360,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 220,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "us carrier shooter",
+            registryKey         = "us carrier shooter",
         },
 
         -- Step 6e: Light panel (STATIC)
@@ -369,7 +369,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 220,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "NF-2_LightOn",
+            registryKey         = "NF-2_LightOn",
         },
 
         -- Step 6f: Windsock (STATIC)
@@ -378,7 +378,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 220,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "Windsock",
+            registryKey         = "Windsock",
         },
 
         -- Step 7: Completion message (func-only)
@@ -409,7 +409,7 @@ CTLDSceneManager._FOB_SCENE = {
             delayAfterPreviousStep   = 0,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "FOB_container",
+            registryKey         = "FOB_container",
         },
 
         -- Step 2: Watchtower (STATIC)
@@ -418,7 +418,7 @@ CTLDSceneManager._FOB_SCENE = {
             delayAfterPreviousStep   = 3,
             relativeHeadingInDegrees = 0,
             relativeAltitudeInMeters = 0,
-            objectsDescDbKey         = "FOB_watchtower",
+            registryKey         = "FOB_watchtower",
         },
 
         -- Step 3: Register FOB as logistic zone (func-only)

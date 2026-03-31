@@ -1,9 +1,21 @@
 ---@diagnostic disable
--- CTLD_objectsDescDb.lua
--- Database of spawnable DCS object descriptors + spawnObject() function.
+-- CTLD_objectRegistry.lua
+-- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
 --
--- Each entry in CTLDObjectsDescDb._db contains only fields that are specific
--- to the object type and cannot be computed at call time. Standard fields
+-- SCOPE RULE:
+--   This registry is NOT a general catalog of all DCS typeNames.
+--   It contains only objects that require descriptor enrichment beyond a plain typeName:
+--     - STATIC objects with mandatory DCS params  (FARP frequency, helipad callsign, shape_name...)
+--     - GROUND groups with multi-unit formation   (guard infantry, circle/linear layouts)
+--     - Any object referenced by scene steps      (registryKey field in scene step tables)
+--   Standard crate contents (single DCS unit spawned at unpack) bypass this registry
+--   and call coalition.addStaticObject / coalition.addGroup directly with the typeName.
+--
+-- Dynamic registration:
+--   Managers may insert entries at INIT time (e.g. CTLDTroopManager._registerTemplates).
+--   All entries — static and dynamic — share the same _db table and spawnObject() path.
+--
+-- Each entry contains only fields specific to the object type; standard fields
 -- (name, groupId, unitId, x, z, heading, start_time, transportable, skill)
 -- are injected automatically by spawnObject().
 --
@@ -17,13 +29,13 @@
 -- DCS API: coalition.addStaticObject, coalition.addGroup
 -- ====================================================================================================
 
-CTLDObjectsDescDb = {}
+CTLDObjectRegistry = {}
 
 -- ====================================================================================================
 -- Internal DB
 -- ====================================================================================================
 
-CTLDObjectsDescDb._db = {
+CTLDObjectRegistry._db = {
 
     -- ------------------------------------------------------------------
     -- HELIPORTS
@@ -249,13 +261,13 @@ CTLDObjectsDescDb._db = {
 -- ====================================================================================================
 
 -- Returns a descriptor from the DB, or nil if not found.
-function CTLDObjectsDescDb.get(objectKey)
-    return CTLDObjectsDescDb._db[objectKey]
+function CTLDObjectRegistry.get(objectKey)
+    return CTLDObjectRegistry._db[objectKey]
 end
 
 -- Spawns a DCS object described by objectKey at absolute world position (x, z).
 --
--- @param objectKey   string    Key in CTLDObjectsDescDb._db
+-- @param objectKey   string    Key in CTLDObjectRegistry._db
 -- @param coalitionId number    coalition.side.BLUE or coalition.side.RED
 -- @param countryId   number    DCS country id
 -- @param x           number    World X coordinate (North axis)
@@ -267,8 +279,8 @@ end
 --
 -- For GROUND groups, units[i].dx/dz/dh offsets in the descriptor are rotated
 -- by headingRad and added to (x, z) to compute each unit's absolute position.
-function CTLDObjectsDescDb.spawnObject(objectKey, coalitionId, countryId, x, z, headingRad, overrides)
-    local desc = CTLDObjectsDescDb._db[objectKey]
+function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z, headingRad, overrides)
+    local desc = CTLDObjectRegistry._db[objectKey]
     if not desc then
         ctld.utils.log("WARN", "spawnObject: unknown objectKey '%s'", tostring(objectKey))
         return nil

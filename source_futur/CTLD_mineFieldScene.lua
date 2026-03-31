@@ -3,14 +3,14 @@
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
 --
 -- Changes vs. original:
---   - mist.dynAddStatic()        → CTLDObjectsDescDb.spawnObject("Landmine", ...)
+--   - mist.dynAddStatic()        → CTLDObjectRegistry.spawnObject("Landmine", ...)
 --   - coalitionId undefined bug  → triggerUnitObj:getCoalition()
 --   - _spawnedGroup global leak  → local variable
 --   - Dead variable lineOffsetInMeters removed (was set but never read)
 --   - func step signature updated to (triggerUnitObj, spawnedObj, step)
 --   - Registration: CTLDSceneManager.getInstance():registerSceneModel(...)
 --
--- Dependencies: CTLDUtils, CTLDObjectsDescDb, CTLDSceneManager
+-- Dependencies: CTLDUtils, CTLDObjectRegistry, CTLDSceneManager
 -- DCS API: trigger.action.outText
 -- ====================================================================================================
 
@@ -154,13 +154,13 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
     end
 
     -- ----------------------------------------------------------------
-    -- Spawn mines via CTLDObjectsDescDb
+    -- Spawn mines via CTLDObjectRegistry
     -- MinesCoord[col][row]: .x = world North, .y = world East (vec2)
     -- ----------------------------------------------------------------
     local lastSpawned = nil
     for j = 1, #MinesCoord do
         for i = 1, #MinesCoord[j] do
-            local spawnedGroup = CTLDObjectsDescDb.spawnObject(
+            local spawnedGroup = CTLDObjectRegistry.spawnObject(
                 "Landmine", coalitionId, countryId,
                 MinesCoord[j][i].x, MinesCoord[j][i].y,
                 0, nil
