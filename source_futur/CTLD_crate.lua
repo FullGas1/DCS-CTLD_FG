@@ -146,6 +146,17 @@ function CTLDCrate:isLoaded()
     return self.state == CTLDCrate.STATE.LOADED
 end
 
+--- Returns true if this crate can be unpacked.
+-- A crate loaded at least once (hasMoved=true) satisfies forceCrateToBeMoved,
+-- regardless of how far the transport has physically travelled.
+-- @param forceCrateToBeMoved boolean  value from ctld.gs("forceCrateToBeMoved")
+function CTLDCrate:canUnpack(forceCrateToBeMoved)
+    if not self:isOnGround()  then return false end
+    if not self.canBeUnpacked then return false end
+    if forceCrateToBeMoved and not self.hasMoved then return false end
+    return true
+end
+
 -- ============================================================
 -- CTLDCrateManager  (singleton)
 -- ============================================================
@@ -357,6 +368,78 @@ function CTLDCrateManager:findDescriptorByTypeName(typeName)
         end
     end
     return nil
+end
+
+--- Check if enough crates of the same type are assembled nearby to unpack.
+-- Searches for crates with the same descriptor.unit within radius, including crate itself.
+-- @param crate   CTLDCrate  reference crate
+-- @param radius  number     search radius in metres (default 100)
+-- @return boolean, table    ready flag + list of assembled crates (length == cratesRequired)
+function CTLDCrateManager:checkAssemblyReady(crate, radius)
+    radius = radius or 100
+    local required = (crate.descriptor and crate.descriptor.cratesRequired) or 1
+    if required <= 1 then
+        return true, { crate }
+    end
+
+    local assembled = {}
+    for _, c in pairs(self.crates) do
+        if c:isOnGround()
+            and c.descriptor
+            and c.descriptor.unit == crate.descriptor.unit
+            and ctld.utils.getDistance(crate.position, c.position) <= radius
+        then
+            table.insert(assembled, c)
+            if #assembled == required then
+                return true, assembled
+            end
+        end
+    end
+    return false, assembled
+end
+
+--- Drop a crate from a transport in flight.
+-- Below maxDropHeight → crate lands safely.
+-- Above maxDropHeight → crate is destroyed (impact damage).
+-- Publishes OnCrateUnloaded (method="drop") on safe landing,
+-- or OnCrateDestroyed (reason="drop_impact") on destruction.
+-- @param crateName     string
+-- @param altitudeAGL   number  metres above ground level at drop time
+function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
+    local crate = self.crates[crateName]
+    if not crate then return end
+    if not crate:isLoaded() then
+        _log("CTLDCrateManager:dropCrate - crate not loaded: " .. tostring(crateName), "WARNING")
+        return
+    end
+
+    local maxDropHeight = ctld.gs("maxDropHeight") or 7.5
+
+    if altitudeAGL <= maxDropHeight then
+        -- Safe drop: crate lands at current position
+        local pos = crate.position
+        crate:land(pos)
+        self:_publish("OnCrateUnloaded", {
+            crate           = crate,
+            crateName       = crateName,
+            position        = pos,
+            coalition       = crate.coalition,
+            method          = "drop",
+            timestamp       = timer.getAbsTime(),
+        })
+    else
+        -- Too high: crate destroyed on impact
+        _log("CTLDCrateManager:dropCrate - destroyed on impact (alt=" .. tostring(altitudeAGL) .. "m): " .. crateName, "INFO")
+        self:_publish("OnCrateDestroyed", {
+            crate     = crate,
+            crateName = crateName,
+            coalition = crate.coalition,
+            reason    = "drop_impact",
+            timestamp = timer.getAbsTime(),
+        })
+        crate:destroy()
+        self:_unregister(crateName)
+    end
 end
 
 --- Cleanup: destroy all tracked crates.
