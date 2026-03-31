@@ -145,6 +145,20 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `JTAC_allowStandbyMode` | `true` | Allow toggling lasing on/off |
 | `JTAC_allow9Line` | `true` | Allow 9-line requests |
 
+##### Pre-placed JTAC groups (auto-detection)
+
+CTLD automatically detects JTAC groups placed in the mission editor at startup. A group is recognised as a JTAC if **either** condition is met:
+
+1. **Group name contains `jtac`** (case-insensitive) — use this for infantry JTAC groups.
+   Examples: `jtac_blue_1`, `JTAC_Red_Forward`, `blue_jtac_drone`
+
+2. **At least one unit in the group has a type listed in `jtacUnitTypes`** (config) — use this for vehicle or drone JTACs.
+   Default types: `SKP`, `Hummer`, `MQ`, `RQ`
+
+> **Naming rule**: if your JTAC group does not use a recognised JTAC unit type (e.g. an infantry squad acting as JTAC), you **must** include `jtac` in the group name, otherwise CTLD will not detect it.
+
+Late-activation JTAC groups are supported: CTLD registers them automatically when they activate during the mission.
+
 #### RECON
 
 | Parameter | Default | Description |

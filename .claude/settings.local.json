@@ -6,7 +6,8 @@
       "Bash(wc -l source/*.lua)",
       "Bash(git push:*)",
       "Bash(grep -n \"loadableGroups\" source/CTLD_*.lua)",
-      "Bash(grep -l \"OnCrate\\\\|OnTroops\\\\|OnVehicle\\\\|OnJTAC\\\\|OnBeacon\\\\|OnRecon\\\\|OnZone\\\\|OnFOB\" *.md)"
+      "Bash(grep -l \"OnCrate\\\\|OnTroops\\\\|OnVehicle\\\\|OnJTAC\\\\|OnBeacon\\\\|OnRecon\\\\|OnZone\\\\|OnFOB\" *.md)",
+      "Read(//c/Users/Moi/.claude/**)"
     ]
   }
 }
