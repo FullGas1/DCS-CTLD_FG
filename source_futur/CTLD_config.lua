@@ -25,189 +25,20 @@ function CTLDConfig:load()
     -- ****************************************************************
     -- ******************** DEFAULT CONFIGURATION AREA ****************
     -- ****************************************************************
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [1] SYSTEM — Global switches and display options
+    -- ═══════════════════════════════════════════════════════════
     self.settings["CTLD_ctldStatusF10"]                   = true  -- enables F10 CTLD Status menus
     self.settings["staticBugWorkaround"]                  = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                      = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
     self.settings["addPlayerAircraftByType"]              = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
-    self.settings["hoverPickup"]                          = true  --    if set to false you can load crates with the F10 menu instead of hovering... Only if not using real crates!
-    self.settings["loadCrateFromMenu"]                    = true  -- if set to true, you can load crates with the F10 menu OR hovering, in case of using choppers and planes for example.
-    self.settings["enableCrates"]                         = true  -- if false, Helis will not be able to spawn or unpack crates so will be normal CTTS
-    self.settings["enableAllCrates"]                      = true  -- if false, the "all crates" menu items will not be displayed
-    self.settings["slingLoad"]                            = false -- if false, crates can be used WITHOUT slingloading, by hovering above the crate, simulating slingloading but not the weight...
-    -- There are some bug with Sling-loading that can cause crashes, if these occur set slingLoad to false
-    -- to use the other method.
-    -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
-    self.settings["enableSmokeDrop"]                      = true                                          -- if false, helis and c-130 will not be able to drop smoke
-    self.settings["maxExtractDistance"]                   = 125                                           -- max distance from vehicle to troops to allow a group extraction
-    self.settings["maximumDistanceLogistic"]              = 200                                           -- max distance from vehicle to logistics to allow a loading or spawning operation
-    self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
-    self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search for packable units in meters
-    self.settings["maximumSearchDistance"]                = 4000                                          -- max distance for troops to search for enemy
-    self.settings["maximumMoveDistance"]                  = 2000                                          -- max distance for troops to move from drop point if no enemy is nearby
-    self.settings["minimumDeployDistance"]                = 1000                                          -- minimum distance from a friendly pickup zone where you can deploy a crate
-    self.settings["numberOfTroops"]                       = 10                                            -- default number of troops to load on a transport heli or C-130
-    -- also works as maximum size of group that'll fit into a helicopter unless overridden
-    self.settings["enableFastRopeInsertion"]              = true                                          -- allows you to drop troops by fast rope
-    self.settings["fastRopeMaximumHeight"]                = 18.28                                         -- in meters which is 60 ft max fast rope (not rappell) safe height
-    self.settings["vehiclesForTransportRED"]              = { "BRDM-2", "BTR_D" }                         -- vehicles to load onto Il-76 - Alternatives {"Strela-1 9P31","BMP-1"}
-    self.settings["vehiclesForTransportBLUE"]             = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } -- vehicles to load onto c130 - Alternatives {"M1128 Stryker MGS","M1097 Avenger"}
-    self.settings["vehiclesWeight"]                       = {
-        ["BRDM-2"] = 7000,
-        ["BTR_D"] = 8000,
-        ["M1045 HMMWV TOW"] = 3220,
-        ["M1043 HMMWV Armament"] = 2500
-    }
+    self.settings["location_DMS"]                         = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
 
+    -- ═══════════════════════════════════════════════════════════
+    -- [2] TRANSPORTS — Aircraft types and pilot names
+    -- ═══════════════════════════════════════════════════════════
 
-    self.settings["spawnRPGWithCoalition"]          = true  --spawns a friendly RPG unit with Coalition forces
-    self.settings["spawnStinger"]                   = false -- spawns a stinger / igla soldier with a group of 6 or more soldiers!
-    self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
-    -- In future i'd like it to be a FARP but so far that seems impossible...
-    -- You can also enable troop Pickup at FOBS
-    self.settings["cratesRequiredForFOB"]           = 3 -- The amount of crates required to build a FOB. Once built, helis can spawn crates at this outpost to be carried and deployed in another area.
-    -- The large crates can only be loaded and dropped by large aircraft, like the C-130 and listed in ctld.vehicleTransportEnabled
-    -- Small FOB crates can be moved by helicopter. The FOB will require ctld.cratesRequiredForFOB larges crates and small crates are 1/3 of a large fob crate
-    -- To build the FOB entirely out of small crates you will need ctld.cratesRequiredForFOB * 3
-
-    self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
-    self.settings["buildTimeFOB"]                   = 120      --time in seconds for the FOB to be built
-    self.settings["crateWaitTime"]                  = 40       -- time in seconds to wait before you can spawn another crate
-    self.settings["forceCrateToBeMoved"]            = true     -- a crate must be picked up at least once and moved before it can be unpacked. Helps to reduce crate spam
-    self.settings["radioSound"]                     =
-    "beacon.ogg"                                               -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
-    self.settings["radioSoundFC3"]                  =
-    "beaconsilent.ogg"                                         -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
-    self.settings["deployedBeaconBattery"]          = 30       -- the battery on deployed beacons will last for this number minutes before needing to be re-deployed
-    self.settings["enabledRadioBeaconDrop"]         = true     -- if its set to false then beacons cannot be dropped by units
-    self.settings["allowRandomAiTeamPickups"]       = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
-    -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
-    self.settings["nbLimitSpawnedTroops"]           = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
-    self.settings["InfantryInGameCount"]            = { 0, 0 } -- {redCoaInfantryCount, blueCoaInfantryCount}
-
-    -- Simulated Sling load configuration
-    self.settings["minimumHoverHeight"]             = 7.5  -- Lowest allowable height for crate hover
-    self.settings["maximumHoverHeight"]             = 12.0 -- Highest allowable height for crate hover
-    self.settings["maxDistanceFromCrate"]           = 5.5  -- Maximum distance from from crate for hover
-    self.settings["hoverTime"]                      = 10   -- Time to hold hover above a crate for loading in seconds
-
-    -- end of Simulated Sling load configuration
-
-    -- ***************** AA SYSTEM CONFIG *****************
-    self.settings["aaLaunchers"]                    = 3 -- controls how many launchers to add to the AA systems when its spawned if no amount is specified in the template.
-    -- Sets a limit on the number of active AA systems that can be built for RED.
-    -- A system is counted as Active if its fully functional and has all parts
-    -- If a system is partially destroyed, it no longer counts towards the total
-    -- When this limit is hit, a player will still be able to get crates for an AA system, just unable
-    -- to unpack them
-
-    self.settings["AASystemLimitRED"]               = 20 -- Red side limit
-    self.settings["AASystemLimitBLUE"]              = 20 -- Blue side limit
-
-    -- Allows players to create systems using as many crates as they like
-    -- Example : an amount X of patriot launcher crates allows for Y launchers to be deployed, if a player brings 2*X+Z crates (Z being lower then X), then deploys the patriot site, 2*Y launchers will be in the group and Z launcher crate will be left over
-
-    self.settings["AASystemCrateStacking"]          = false
-    --END AA SYSTEM CONFIG ------------------------------------
-
-    -- ***************** JTAC CONFIGURATION *****************
-    self.settings["JTAC_LIMIT_RED"]                 = 10    -- max number of JTAC Crates for the RED Side
-    self.settings["JTAC_LIMIT_BLUE"]                = 10    -- max number of JTAC Crates for the BLUE Side
-    self.settings["JTAC_dropEnabled"]               = true  -- allow JTAC Crate spawn from F10 menu
-    self.settings["JTAC_maxDistance"]               = 10000 -- How far a JTAC can "see" in meters (with Line of Sight)
-    self.settings["JTAC_smokeOn_RED"]               = false -- enables marking of target with smoke for RED forces
-    self.settings["JTAC_smokeOn_BLUE"]              = false -- enables marking of target with smoke for BLUE forces
-    self.settings["JTAC_smokeColour_RED"]           = 4     -- RED side smoke colour -- Green = 0 , Red = 1, White = 2, Orange = 3, Blue = 4
-    self.settings["JTAC_smokeColour_BLUE"]          = 1     -- BLUE side smoke colour -- Green = 0 , Red = 1, White = 2, Orange = 3, Blue = 4
-    self.settings["JTAC_smokeMarginOfError"]        = 50    -- error that the JTAC is allowed to make when popping a smoke (in meters)
-    self.settings["JTAC_smokeOffset_x"]             = 0.0   -- distance in the X direction from target to smoke (meters)
-    self.settings["JTAC_smokeOffset_y"]             = 2.0   -- distance in the Y direction from target to smoke (meters)
-    self.settings["JTAC_smokeOffset_z"]             = 0.0   -- distance in the z direction from target to smoke (meters)
-    self.settings["JTAC_jtacStatusF10"]             = true  -- enables F10 JTAC Status menu
-    self.settings["JTAC_location"]                  = true  -- shows location of target in JTAC message
-    self.settings["location_DMS"]                   = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
-    self.settings["JTAC_lock"]                      =
-    "all"                                                   -- "vehicle" OR "troop" OR "all" forces JTAC to only lock vehicles or troops or all ground units
-    self.settings["JTAC_allowStandbyMode"]          = true  -- if true, allow players to toggle lasing on/off
-    self.settings["JTAC_laseSpotCorrections"]       = true  -- if true, each JTAC will have a special option (toggle on/off) available in it's menu to attempt to lead the target, taking into account current wind conditions and the speed of the target (particularily useful against moving heavy armor)
-    self.settings["JTAC_allowSmokeRequest"]         = true  -- if true, allow players to request a smoke on target (temporary)
-    self.settings["JTAC_allow9Line"]                = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
-
-    -- ***************** RECON CONFIGURATION *****************
-    self.settings["reconF10Menu"]                   = true                         -- enables F10 RECON menu
-    self.settings["reconMenuName"]                  = ctld.tr("RECON") --name of the CTLD JTAC radio menu
-    self.settings["reconRadioAdded"]                = {}                           --stores the groups that have had the radio menu added
-    self.settings["reconLosSearchRadius"]           = 2000                         -- search radius in meters
-    self.settings["reconLosMarkRadius"]             = 100                          -- mark radius dimension in meters
-    self.settings["reconAutoRefreshLosTargetMarks"] = false                        -- if true recon LOS marks are automaticaly refreshed on F10 map
-    self.settings["reconLastScheduleIdAutoRefresh"] = 0                            -- last schedule ID for auto refresh
-
-    -- ***************** Pickup, dropoff and waypoint zones *****************
-
-    -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
-    -- Use any of the predefined names or set your own ones
-    -- You can add number as a third option to limit the number of soldier or vehicle groups that can be loaded from a zone.
-    -- Dropping back a group at a limited zone will add one more to the limit
-    -- If a zone isn't ACTIVE then you can't pickup from that zone until the zone is activated by ctld.activatePickupZone
-    -- using the Mission editor
-    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name
-    -- Side - Controls which side can load/unload troops at the zone
-    -- Flag Number - Optional last field. If set the current number of groups remaining can be obtained from the flag value
-    --pickupZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", flag number (optional) }
-    self.settings["pickupZones"]                    = {
-        { "pickzone1",   "blue", -1, "yes", 0 },
-        { "pickzone2",   "red",  -1, "yes", 0 },
-        { "pickzone3",   "none", -1, "yes", 0 },
-        { "pickzone4",   "none", -1, "yes", 0 },
-        { "pickzone5",   "none", -1, "yes", 0 },
-        { "pickzone6",   "none", -1, "yes", 0 },
-        { "pickzone7",   "none", -1, "yes", 0 },
-        { "pickzone8",   "none", -1, "yes", 0 },
-        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups of soldiers or vehicles, only red can pick up
-        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups of soldiers or vehicles, only blue can pick up
-
-        { "pickzone11",  "blue", 20, "no",  2 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
-        { "pickzone12",  "red",  20, "no",  1 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
-        { "pickzone13",  "none", -1, "yes", 0 },
-        { "pickzone14",  "none", -1, "yes", 0 },
-        { "pickzone15",  "none", -1, "yes", 0 },
-        { "pickzone16",  "none", -1, "yes", 0 },
-        { "pickzone17",  "none", -1, "yes", 0 },
-        { "pickzone18",  "none", -1, "yes", 0 },
-        { "pickzone19",  "none", 5,  "yes", 0 },
-        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- optional extra flag number to store the current number of groups available in
-
-        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- instead of a Zone Name you can also use the UNIT NAME of a ship
-    }
-
-    -- dropOffZones = {"name","smoke colour",0,side 1 = Red or 2 = Blue or 0 = Both sides}
-    self.settings["dropOffZones"]                   = {
-        { "dropzone1",  "green",  2 },
-        { "dropzone2",  "blue",   2 },
-        { "dropzone3",  "orange", 2 },
-        { "dropzone4",  "none",   2 },
-        { "dropzone5",  "none",   1 },
-        { "dropzone6",  "none",   1 },
-        { "dropzone7",  "none",   1 },
-        { "dropzone8",  "none",   1 },
-        { "dropzone9",  "none",   1 },
-        { "dropzone10", "none",   1 },
-    }
-
-    --wpZones = { "Zone name", "smoke color",    "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", }
-    self.settings["wpZones"]                        = {
-        { "wpzone1",  "green",  "yes", 2 },
-        { "wpzone2",  "blue",   "yes", 2 },
-        { "wpzone3",  "orange", "yes", 2 },
-        { "wpzone4",  "none",   "yes", 2 },
-        { "wpzone5",  "none",   "yes", 2 },
-        { "wpzone6",  "none",   "yes", 1 },
-        { "wpzone7",  "none",   "yes", 1 },
-        { "wpzone8",  "none",   "yes", 1 },
-        { "wpzone9",  "none",   "yes", 1 },
-        { "wpzone10", "none",   "no",  0 }, -- Both sides as its set to 0
-    }
-
-    -- ******************** Transports names **********************
     -- If ctld.addPlayerAircraftByType = True, comment or uncomment lines to allow aircraft's type carry CTLD
     self.settings["aircraftTypeTable"]              = {
         --%%%%% MODS %%%%%
@@ -383,6 +214,209 @@ function CTLDConfig:load()
         "transport24",
         "transport25",
     }
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [3] CRATES — Crate spawning, hover pickup, sling load, timers
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["enableCrates"]                         = true  -- if false, Helis will not be able to spawn or unpack crates so will be normal CTTS
+    self.settings["enableAllCrates"]                      = true  -- if false, the "all crates" menu items will not be displayed
+    self.settings["hoverPickup"]                          = true  --    if set to false you can load crates with the F10 menu instead of hovering... Only if not using real crates!
+    self.settings["loadCrateFromMenu"]                    = true  -- if set to true, you can load crates with the F10 menu OR hovering, in case of using choppers and planes for example.
+    self.settings["slingLoad"]                            = false -- if false, crates can be used WITHOUT slingloading, by hovering above the crate, simulating slingloading but not the weight...
+    -- There are some bug with Sling-loading that can cause crashes, if these occur set slingLoad to false
+    -- to use the other method.
+    -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
+    self.settings["enableSmokeDrop"]                      = true                                          -- if false, helis and c-130 will not be able to drop smoke
+    self.settings["crateWaitTime"]                  = 40       -- time in seconds to wait before you can spawn another crate
+    self.settings["forceCrateToBeMoved"]            = true     -- a crate must be picked up at least once and moved before it can be unpacked. Helps to reduce crate spam
+    self.settings["minimumDeployDistance"]                = 1000                                          -- minimum distance from a friendly pickup zone where you can deploy a crate
+    self.settings["maximumDistanceLogistic"]              = 200                                           -- max distance from vehicle to logistics to allow a loading or spawning operation
+
+    -- Simulated Sling load configuration
+    self.settings["minimumHoverHeight"]             = 7.5  -- Lowest allowable height for crate hover
+    self.settings["maximumHoverHeight"]             = 12.0 -- Highest allowable height for crate hover
+    self.settings["maxDistanceFromCrate"]           = 5.5  -- Maximum distance from from crate for hover
+    self.settings["hoverTime"]                      = 10   -- Time to hold hover above a crate for loading in seconds
+    -- end of Simulated Sling load configuration
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [4] TROOPS — Infantry loading, fast rope, extraction limits
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["numberOfTroops"]                       = 10                                            -- default number of troops to load on a transport heli or C-130
+    -- also works as maximum size of group that'll fit into a helicopter unless overridden
+    self.settings["enableFastRopeInsertion"]              = true                                          -- allows you to drop troops by fast rope
+    self.settings["fastRopeMaximumHeight"]                = 18.28                                         -- in meters which is 60 ft max fast rope (not rappell) safe height
+    self.settings["spawnRPGWithCoalition"]          = true  --spawns a friendly RPG unit with Coalition forces
+    self.settings["spawnStinger"]                   = false -- spawns a stinger / igla soldier with a group of 6 or more soldiers!
+    self.settings["allowRandomAiTeamPickups"]       = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
+    -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
+    self.settings["nbLimitSpawnedTroops"]           = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
+    self.settings["InfantryInGameCount"]            = { 0, 0 } -- {redCoaInfantryCount, blueCoaInfantryCount}
+    self.settings["maxExtractDistance"]                   = 125                                           -- max distance from vehicle to troops to allow a group extraction
+    self.settings["maximumSearchDistance"]                = 4000                                          -- max distance for troops to search for enemy
+    self.settings["maximumMoveDistance"]                  = 2000                                          -- max distance for troops to move from drop point if no enemy is nearby
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [5] VEHICLES — Packable vehicles and transport configuration
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
+    self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search for packable units in meters
+    self.settings["vehiclesForTransportRED"]              = { "BRDM-2", "BTR_D" }                         -- vehicles to load onto Il-76 - Alternatives {"Strela-1 9P31","BMP-1"}
+    self.settings["vehiclesForTransportBLUE"]             = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } -- vehicles to load onto c130 - Alternatives {"M1128 Stryker MGS","M1097 Avenger"}
+    self.settings["vehiclesWeight"]                       = {
+        ["BRDM-2"] = 7000,
+        ["BTR_D"] = 8000,
+        ["M1045 HMMWV TOW"] = 3220,
+        ["M1043 HMMWV Armament"] = 2500
+    }
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [6] FOB — Forward Operating Base building and configuration
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
+    -- In future i'd like it to be a FARP but so far that seems impossible...
+    -- You can also enable troop Pickup at FOBS
+    self.settings["cratesRequiredForFOB"]           = 3 -- The amount of crates required to build a FOB. Once built, helis can spawn crates at this outpost to be carried and deployed in another area.
+    -- The large crates can only be loaded and dropped by large aircraft, like the C-130 and listed in ctld.vehicleTransportEnabled
+    -- Small FOB crates can be moved by helicopter. The FOB will require ctld.cratesRequiredForFOB larges crates and small crates are 1/3 of a large fob crate
+    -- To build the FOB entirely out of small crates you will need ctld.cratesRequiredForFOB * 3
+    self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
+    self.settings["buildTimeFOB"]                   = 120      --time in seconds for the FOB to be built
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [7] BEACONS — Radio beacon drop, sounds and battery life
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["enabledRadioBeaconDrop"]         = true     -- if its set to false then beacons cannot be dropped by units
+    self.settings["radioSound"]                     =
+    "beacon.ogg"                                               -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
+    self.settings["radioSoundFC3"]                  =
+    "beaconsilent.ogg"                                         -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
+    self.settings["deployedBeaconBattery"]          = 30       -- the battery on deployed beacons will last for this number minutes before needing to be re-deployed
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [8] AA — Anti-Aircraft system limits and crate stacking
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["aaLaunchers"]                    = 3 -- controls how many launchers to add to the AA systems when its spawned if no amount is specified in the template.
+    -- Sets a limit on the number of active AA systems that can be built for RED.
+    -- A system is counted as Active if its fully functional and has all parts
+    -- If a system is partially destroyed, it no longer counts towards the total
+    -- When this limit is hit, a player will still be able to get crates for an AA system, just unable
+    -- to unpack them
+    self.settings["AASystemLimitRED"]               = 20 -- Red side limit
+    self.settings["AASystemLimitBLUE"]              = 20 -- Blue side limit
+
+    -- Allows players to create systems using as many crates as they like
+    -- Example : an amount X of patriot launcher crates allows for Y launchers to be deployed, if a player brings 2*X+Z crates (Z being lower then X), then deploys the patriot site, 2*Y launchers will be in the group and Z launcher crate will be left over
+    self.settings["AASystemCrateStacking"]          = false
+    --END AA SYSTEM CONFIG ------------------------------------
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [9] JTAC — JTAC crate limits, smoke, lasing and 9-Line
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["JTAC_LIMIT_RED"]                 = 10    -- max number of JTAC Crates for the RED Side
+    self.settings["JTAC_LIMIT_BLUE"]                = 10    -- max number of JTAC Crates for the BLUE Side
+    self.settings["JTAC_dropEnabled"]               = true  -- allow JTAC Crate spawn from F10 menu
+    self.settings["JTAC_maxDistance"]               = 10000 -- How far a JTAC can "see" in meters (with Line of Sight)
+    self.settings["JTAC_smokeOn_RED"]               = false -- enables marking of target with smoke for RED forces
+    self.settings["JTAC_smokeOn_BLUE"]              = false -- enables marking of target with smoke for BLUE forces
+    self.settings["JTAC_smokeColour_RED"]           = 4     -- RED side smoke colour -- Green = 0 , Red = 1, White = 2, Orange = 3, Blue = 4
+    self.settings["JTAC_smokeColour_BLUE"]          = 1     -- BLUE side smoke colour -- Green = 0 , Red = 1, White = 2, Orange = 3, Blue = 4
+    self.settings["JTAC_smokeMarginOfError"]        = 50    -- error that the JTAC is allowed to make when popping a smoke (in meters)
+    self.settings["JTAC_smokeOffset_x"]             = 0.0   -- distance in the X direction from target to smoke (meters)
+    self.settings["JTAC_smokeOffset_y"]             = 2.0   -- distance in the Y direction from target to smoke (meters)
+    self.settings["JTAC_smokeOffset_z"]             = 0.0   -- distance in the z direction from target to smoke (meters)
+    self.settings["JTAC_jtacStatusF10"]             = true  -- enables F10 JTAC Status menu
+    self.settings["JTAC_location"]                  = true  -- shows location of target in JTAC message
+    self.settings["location_DMS"]                   = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
+    self.settings["JTAC_lock"]                      =
+    "all"                                                   -- "vehicle" OR "troop" OR "all" forces JTAC to only lock vehicles or troops or all ground units
+    self.settings["JTAC_allowStandbyMode"]          = true  -- if true, allow players to toggle lasing on/off
+    self.settings["JTAC_laseSpotCorrections"]       = true  -- if true, each JTAC will have a special option (toggle on/off) available in it's menu to attempt to lead the target, taking into account current wind conditions and the speed of the target (particularily useful against moving heavy armor)
+    self.settings["JTAC_allowSmokeRequest"]         = true  -- if true, allow players to request a smoke on target (temporary)
+    self.settings["JTAC_allow9Line"]                = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [10] RECON — Recon menu, LOS search, auto-refresh
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["reconF10Menu"]                   = true                         -- enables F10 RECON menu
+    self.settings["reconMenuName"]                  = ctld.tr("RECON") --name of the CTLD JTAC radio menu
+    self.settings["reconRadioAdded"]                = {}                           --stores the groups that have had the radio menu added
+    self.settings["reconLosSearchRadius"]           = 2000                         -- search radius in meters
+    self.settings["reconLosMarkRadius"]             = 100                          -- mark radius dimension in meters
+    self.settings["reconAutoRefreshLosTargetMarks"] = false                        -- if true recon LOS marks are automaticaly refreshed on F10 map
+    self.settings["reconLastScheduleIdAutoRefresh"] = 0                            -- last schedule ID for auto refresh
+
+    -- ═══════════════════════════════════════════════════════════
+    -- [11] ZONES — Pickup, drop-off and waypoint zones
+    -- ═══════════════════════════════════════════════════════════
+
+    -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
+    -- Use any of the predefined names or set your own ones
+    -- You can add number as a third option to limit the number of soldier or vehicle groups that can be loaded from a zone.
+    -- Dropping back a group at a limited zone will add one more to the limit
+    -- If a zone isn't ACTIVE then you can't pickup from that zone until the zone is activated by ctld.activatePickupZone
+    -- using the Mission editor
+    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name
+    -- Side - Controls which side can load/unload troops at the zone
+    -- Flag Number - Optional last field. If set the current number of groups remaining can be obtained from the flag value
+    --pickupZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", flag number (optional) }
+    self.settings["pickupZones"]                    = {
+        { "pickzone1",   "blue", -1, "yes", 0 },
+        { "pickzone2",   "red",  -1, "yes", 0 },
+        { "pickzone3",   "none", -1, "yes", 0 },
+        { "pickzone4",   "none", -1, "yes", 0 },
+        { "pickzone5",   "none", -1, "yes", 0 },
+        { "pickzone6",   "none", -1, "yes", 0 },
+        { "pickzone7",   "none", -1, "yes", 0 },
+        { "pickzone8",   "none", -1, "yes", 0 },
+        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups of soldiers or vehicles, only red can pick up
+        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups of soldiers or vehicles, only blue can pick up
+
+        { "pickzone11",  "blue", 20, "no",  2 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
+        { "pickzone12",  "red",  20, "no",  1 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
+        { "pickzone13",  "none", -1, "yes", 0 },
+        { "pickzone14",  "none", -1, "yes", 0 },
+        { "pickzone15",  "none", -1, "yes", 0 },
+        { "pickzone16",  "none", -1, "yes", 0 },
+        { "pickzone17",  "none", -1, "yes", 0 },
+        { "pickzone18",  "none", -1, "yes", 0 },
+        { "pickzone19",  "none", 5,  "yes", 0 },
+        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- optional extra flag number to store the current number of groups available in
+
+        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- instead of a Zone Name you can also use the UNIT NAME of a ship
+    }
+
+    -- dropOffZones = {"name","smoke colour",0,side 1 = Red or 2 = Blue or 0 = Both sides}
+    self.settings["dropOffZones"]                   = {
+        { "dropzone1",  "green",  2 },
+        { "dropzone2",  "blue",   2 },
+        { "dropzone3",  "orange", 2 },
+        { "dropzone4",  "none",   2 },
+        { "dropzone5",  "none",   1 },
+        { "dropzone6",  "none",   1 },
+        { "dropzone7",  "none",   1 },
+        { "dropzone8",  "none",   1 },
+        { "dropzone9",  "none",   1 },
+        { "dropzone10", "none",   1 },
+    }
+
+    --wpZones = { "Zone name", "smoke color",    "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", }
+    self.settings["wpZones"]                        = {
+        { "wpzone1",  "green",  "yes", 2 },
+        { "wpzone2",  "blue",   "yes", 2 },
+        { "wpzone3",  "orange", "yes", 2 },
+        { "wpzone4",  "none",   "yes", 2 },
+        { "wpzone5",  "none",   "yes", 2 },
+        { "wpzone6",  "none",   "yes", 1 },
+        { "wpzone7",  "none",   "yes", 1 },
+        { "wpzone8",  "none",   "yes", 1 },
+        { "wpzone9",  "none",   "yes", 1 },
+        { "wpzone10", "none",   "no",  0 }, -- Both sides as its set to 0
+    }
+
+    -- ═══════════════════════════════════════════════════════════
+    -- MISC — Extractable groups, logistics, unit limits and crate templates
+    -- ═══════════════════════════════════════════════════════════
 
     -- *************** Optional Extractable GROUPS *****************
 

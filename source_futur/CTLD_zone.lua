@@ -1,6 +1,6 @@
 -- ============================================================
 -- CTLD_zone.lua
--- CtldZone entity + CTLDZoneManager singleton
+-- CTLDTroopZone entity + CTLDZoneManager singleton
 --
 -- Dependencies : CTLDConfig (ctld.gs), CTLDUtils
 --
@@ -37,18 +37,18 @@
 local _ctldLog = ctld.utils.log
 
 -- ============================================================
--- CtldZone
+-- CTLDTroopZone
 -- ============================================================
 
-CtldZone = {}
-CtldZone.__index = CtldZone
+CTLDTroopZone = {}
+CTLDTroopZone.__index = CTLDTroopZone
 
 --- Constructor.
 -- @param data table with fields:
 --   dcsName, zoneName, zoneType, coalition, center (vec3),
 --   radius, verticies (nil=circular), active, smoke, limit, flagName
-function CtldZone:new(data)
-    local o = setmetatable({}, CtldZone)
+function CTLDTroopZone:new(data)
+    local o = setmetatable({}, CTLDTroopZone)
     o.dcsName   = data.dcsName
     o.zoneName  = data.zoneName
     o.zoneType  = data.zoneType   -- "pickup"|"drop"|"waypoint"|"extract"|"logistic"
@@ -66,16 +66,16 @@ end
 --- Returns true if point is inside the zone.
 -- Circular : distance <= radius.
 -- Polygonal : Jordan ray-casting on verticies.
-function CtldZone:isInZone(point)
+function CTLDTroopZone:isInZone(point)
     if self.verticies and #self.verticies >= 3 then
-        return CtldZone._raycast(point, self.verticies)
+        return CTLDTroopZone._raycast(point, self.verticies)
     end
     return CTLDUtils.getDistance(point, self.center) <= self.radius
 end
 
 --- Ray-casting (Jordan curve theorem) for polygonal zones.
 -- verticies[i].x / .y are mission-file coordinates (mission Y = world Z).
-function CtldZone._raycast(point, verts)
+function CTLDTroopZone._raycast(point, verts)
     local px, pz = point.x, point.z
     local inside = false
     local n = #verts
@@ -94,15 +94,15 @@ function CtldZone._raycast(point, verts)
     return inside
 end
 
-function CtldZone:getCenter()
+function CTLDTroopZone:getCenter()
     return self.center
 end
 
-function CtldZone:activate()
+function CTLDTroopZone:activate()
     self.active = true
 end
 
-function CtldZone:deactivate()
+function CTLDTroopZone:deactivate()
     self.active = false
 end
 
@@ -318,7 +318,7 @@ function CTLDZoneManager:discoverZones()
                                   and (string.upper(parsed.name) .. "_FLG")
                                   or nil
 
-                local zone = CtldZone:new({
+                local zone = CTLDTroopZone:new({
                     dcsName   = name,
                     zoneName  = parsed.name,
                     zoneType  = zoneType,
@@ -370,7 +370,7 @@ function CTLDZoneManager:_loadLegacyZones()
     for _, zd in pairs(pickupZones) do
         local trigZone = trigger.misc.getZone(zd[1])
         if trigZone and not self._zones["pickup"][zd[1]] then
-            local zone = CtldZone:new({
+            local zone = CTLDTroopZone:new({
                 dcsName   = zd[1], zoneName  = zd[1], zoneType  = "pickup",
                 coalition = zd[5] or 0,
                 center    = { x=trigZone.point.x, y=trigZone.point.y, z=trigZone.point.z },
@@ -388,7 +388,7 @@ function CTLDZoneManager:_loadLegacyZones()
     for _, zd in pairs(dropOffZones) do
         local trigZone = trigger.misc.getZone(zd[1])
         if trigZone and not self._zones["drop"][zd[1]] then
-            local zone = CtldZone:new({
+            local zone = CTLDTroopZone:new({
                 dcsName=zd[1], zoneName=zd[1], zoneType="drop",
                 coalition=zd[3] or 0,
                 center={x=trigZone.point.x, y=trigZone.point.y, z=trigZone.point.z},
@@ -405,7 +405,7 @@ function CTLDZoneManager:_loadLegacyZones()
     for _, zd in pairs(wpZones) do
         local trigZone = trigger.misc.getZone(zd[1])
         if trigZone and not self._zones["waypoint"][zd[1]] then
-            local zone = CtldZone:new({
+            local zone = CTLDTroopZone:new({
                 dcsName=zd[1], zoneName=zd[1], zoneType="waypoint",
                 coalition=zd[4] or 0,
                 center={x=trigZone.point.x, y=trigZone.point.y, z=trigZone.point.z},
@@ -425,7 +425,7 @@ function CTLDZoneManager:_loadLegacyZones()
         if not self._zones["logistic"][unitName] then
             local obj = StaticObject.getByName(unitName) or Unit.getByName(unitName)
             if obj then
-                local zone = CtldZone:new({
+                local zone = CTLDTroopZone:new({
                     dcsName=unitName, zoneName=unitName, zoneType="logistic",
                     coalition=obj:getCoalition(),
                     center=obj:getPoint(),
@@ -465,7 +465,7 @@ end
 
 --- Called when a FOB is deployed. Registers it as a logistic zone.
 function CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalition)
-    local zone = CtldZone:new({
+    local zone = CTLDTroopZone:new({
         dcsName   = fobName,
         zoneName  = fobName,
         zoneType  = "logistic",

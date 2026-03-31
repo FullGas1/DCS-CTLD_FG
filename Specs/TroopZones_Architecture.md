@@ -11,7 +11,7 @@ Unified TroopZone architecture replacing separate PickupZones and ExtractZones s
 ## Naming Convention
 
 ```
-TRZ_zoneName_[R|B|N]_[maxStock]_[flag]_[target]
+TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
 ```
 
 ### Components
@@ -21,9 +21,9 @@ TRZ_zoneName_[R|B|N]_[maxStock]_[flag]_[target]
 | 1 | `TRZ_` | Prefix | ✅ Yes | Zone type identifier |
 | 2 | `zoneName` | Alphanumeric | ✅ Yes | Zone identifier (no underscores, use CamelCase or hyphens) |
 | 3 | `R\|B\|N` | Coalition | ❌ Optional | **R**=RED, **B**=BLUE, **N**=NEUTRAL |
-| 4 | `maxStock` | Number | ❌ Optional | Troop pickup stock (0=infinite) |
+| 4 | `pickMaxStock` | Number | ❌ Optional | Troop pickup stock (0=infinite) |
 | 5 | `flag` | String | ❌ Optional | DCS flag name for mission objective |
-| 6 | `target` | Number | ❌ Optional | Soldiers required for objective completion |
+| 6 | `dropMaxTarget` | Number | ❌ Optional | Soldiers required for objective completion |
 
 ### Parsing Rules
 
@@ -33,8 +33,8 @@ TRZ_zoneName_[R|B|N]_[maxStock]_[flag]_[target]
 
 ## Examples
 
-| Zone Name | Zone Type | Stock | Objective | Target | Description |
-|-----------|-----------|-------|-----------|--------|-------------|
+| Zone Name | Zone Type | pickMaxStock | Objective | dropMaxTarget | Description |
+|-----------|-----------|--------------|-----------|---------------|-------------|
 | `TRZ_Base_B_50` | Pickup | 50 | - | - | BLUE pickup zone with 50 troops |
 | `TRZ_Airfield_N_0` | Pickup | ∞ | - | - | NEUTRAL infinite pickup |
 | `TRZ_Exfil_B_objRescue_100` | Extract | - | objRescue | 100 | BLUE extract zone, 100 soldiers for win |
@@ -140,8 +140,8 @@ CTLDTroopZone = {
     coalition = coalition.side.BLUE,  -- 0=NEUTRAL, 1=RED, 2=BLUE
 
     -- Stock management (pickup)
-    troopStockMax = 30,         -- nil = no pickup
-    troopStockCurrent = 30,     -- Decrements on load, 0 = infinite
+    pickMaxStock = 30,         -- nil = no pickup
+    pickCurrentStock = 30,     -- Decrements on load, 0 = infinite
 
     -- Mission objective (extract)
     objectiveFlag = "objSecure",      -- nil = no objective
@@ -166,8 +166,8 @@ CTLDTroopZone = {
 ```lua
 -- Check if zone allows troop loading
 function CTLDTroopZone:canLoadTroops()
-    return self.troopStockMax == 0 or
-           (self.troopStockCurrent and self.troopStockCurrent > 0)
+    return self.pickMaxStock == 0 or
+           (self.pickCurrentStock and self.pickCurrentStock > 0)
 end
 
 -- Check if zone has mission objective
@@ -177,15 +177,15 @@ end
 
 -- Check if zone is RTB destination
 function CTLDTroopZone:isRTBDestination()
-    return self.troopStockMax ~= nil
+    return self.pickMaxStock ~= nil
 end
 
 -- Decrement stock on load
 function CTLDTroopZone:decrementStock(count)
-    if self.troopStockMax == 0 then return end  -- Infinite
-    if not self.troopStockCurrent then return end
+    if self.pickMaxStock == 0 then return end  -- Infinite
+    if not self.pickCurrentStock then return end
 
-    self.troopStockCurrent = math.max(0, self.troopStockCurrent - count)
+    self.pickCurrentStock = math.max(0, self.pickCurrentStock - count)
 end
 
 -- Increment objective flag
@@ -214,8 +214,8 @@ function CTLDZoneManager:scanMissionTroopZones()
                     zoneName = parsed.zoneName,
                     coalition = parsed.coalition,
 
-                    troopStockMax = parsed.maxStock,
-                    troopStockCurrent = parsed.maxStock,
+                    pickMaxStock = parsed.maxStock,
+                    pickCurrentStock = parsed.maxStock,
 
                     objectiveFlag = parsed.objectiveFlag,
                     objectiveTarget = parsed.objectiveTarget,
@@ -276,7 +276,7 @@ EventDispatcher:publish("OnTroopsDeployed", {
     },
 
     position = {x, y, z},
-    timestamp = timer.getTime()
+    timestamp = timer.getAbsTime()
 })
 ```
 
@@ -318,7 +318,7 @@ EventDispatcher:publish("OnTroopsDeployed", {
 
 ## Validation
 
-- ✅ Convention `TRZ_zoneName_[R|B|N]_[maxStock]_[flag]_[target]`
+- ✅ Convention `TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]`
 - ✅ Coalition abbreviation (R/B/N)
 - ✅ Strict order: number before flag = stock, number after = target
 - ✅ Flag incrementation: +N soldiers (verified in existing code)
