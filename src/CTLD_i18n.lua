@@ -1,6 +1,6 @@
 --[[
     CTLD — Internationalization class (CTLDi18n)
-    source_futur version — logic only, no dictionary data.
+    src version — logic only, no dictionary data.
 
     Dictionary files (loaded after this file):
         CTLD_i18n_en.lua  — English reference (keys and EN text)
@@ -9,10 +9,10 @@
         CTLD_i18n_ko.lua  — Korean
 
     To add a new language: create CTLD_i18n_XX.lua following the EN template,
-    add it to merger_futur/listToMerge.txt, and regenerate the loader.
+    add it to merger_V2/listToMerge.txt, and regenerate the loader.
 
     Translators: edit only the CTLD_i18n_XX.lua files. Never edit this file.
-    Run merger_futur/generate_i18n_dicts.ps1 after any ctld.tr() change in scripts.
+    Run merger_V2/generate_i18n_dicts.ps1 after any ctld.tr() change in scripts.
 ]]
 
 if not ctld then ctld = {} end

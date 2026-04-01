@@ -201,7 +201,7 @@ CTLD ships with four built-in dictionaries:
 
 ### Selecting a language
 
-Open `source_futur/CTLD_i18n.lua` and uncomment the desired language line:
+Open `src/CTLD_i18n.lua` and uncomment the desired language line:
 
 ```lua
 ctld.i18n_lang = "en"
@@ -246,11 +246,11 @@ Overrides are applied at startup on top of the built-in dictionaries. You can ov
 
 ### Adding a new language
 
-1. Create `source_futur/CTLD_i18n_XX.lua` following the English file as a template.
-2. Add `CTLD_i18n_XX.lua` to `merger_futur/listToMerge.txt` (after the other dict files).
-3. Rerun `merger_futur/generate_loader.cmd` to update the dev loader.
+1. Create `src/CTLD_i18n_XX.lua` following the English file as a template.
+2. Add `CTLD_i18n_XX.lua` to `merger_V2/listToMerge.txt` (after the other dict files).
+3. Rerun `merger_V2/generate_loader.cmd` to update the dev loader.
 4. Activate the new language in `CTLD_i18n.lua`.
-5. Run `merger_futur/generate_i18n_dicts.ps1` to check for missing keys.
+5. Run `merger_V2/generate_i18n_dicts.ps1` to check for missing keys.
 
 ---
 

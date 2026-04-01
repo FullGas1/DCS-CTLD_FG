@@ -1,4 +1,4 @@
-# Generate CTLD_loader.lua from merger_futur/listToMerge.txt
+# Generate CTLD_loader.lua from merger_V2/listToMerge.txt
 # Source of truth: listToMerge.txt
 # Output: CTLD_loader.lua at repo root
 
@@ -16,15 +16,15 @@ $lines = [System.Collections.Generic.List[string]]::new()
 
 $lines.Add("---@diagnostic disable")
 $lines.Add("-- CTLD Dev Loader")
-$lines.Add("-- Auto-generated from merger_futur/listToMerge.txt - DO NOT EDIT MANUALLY")
-$lines.Add("-- Regenerate with: merger_futur/generate_loader.cmd")
+$lines.Add("-- Auto-generated from merger_V2/listToMerge.txt - DO NOT EDIT MANUALLY")
+$lines.Add("-- Regenerate with: merger_V2/generate_loader.cmd")
 $lines.Add("--")
 $lines.Add("-- HOW TO USE:")
-$lines.Add("--   1. Set CTLD_SOURCE_PATH to the absolute path of your source_futur/ directory.")
+$lines.Add("--   1. Set CTLD_SOURCE_PATH to the absolute path of your src/ directory.")
 $lines.Add("--   2. Use forward slashes. End with a trailing slash.")
 $lines.Add("--   3. In your DCS mission trigger: dofile('absolute/path/to/CTLD_loader.lua')")
 $lines.Add("")
-$lines.Add("local CTLD_SOURCE_PATH = ""C:/replace/with/your/absolute/path/to/source_futur/""  -- CONFIGURE THIS")
+$lines.Add("local CTLD_SOURCE_PATH = ""C:/replace/with/your/absolute/path/to/src/""  -- CONFIGURE THIS")
 $lines.Add("")
 
 foreach ($rawLine in Get-Content $listFile -Encoding UTF8) {

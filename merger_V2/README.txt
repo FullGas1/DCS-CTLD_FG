@@ -4,11 +4,11 @@ How to run the merge (PowerShell)
 2> In PowerShell, enter: ./merger.cmd
    Confirm execution if prompted.
 
-The merger reads listToMerge.txt, merges all source files from ../source_futur/
+The merger reads listToMerge.txt, merges all source files from ../src/
 and generates CTLD_futur.lua in the parent (repo root) folder.
 
 Notes:
 - Lines starting with "--" in listToMerge.txt are comments and are skipped.
 - Subdirectory paths (e.g. scenes/CTLD_fobSceneDatas.lua) are resolved
-  relative to ../source_futur/.
+  relative to ../src/.
 - CTLD_futur.lua is the development output. At final release it replaces CTLD.lua.

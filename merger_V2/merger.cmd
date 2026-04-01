@@ -1,19 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
 
-@REM Merges all files listed in "listToMerge.txt" from ../source_futur into ../CTLD_futur.lua
+@REM Merges all files listed in "listToMerge.txt" from ../src into ../CTLD_futur.lua
 @REM Lines starting with "--" are treated as comments and skipped.
-@REM Subdirectory paths (e.g. scenes/foo.lua) are resolved relative to source_futur.
+@REM Subdirectory paths (e.g. scenes/foo.lua) are resolved relative to src.
 @REM --------------------------------------------------------------------
 
-@REM Script directory (merger_futur/)
+@REM Script directory (merger_V2/)
 set "MERGER_DIR=%~dp0"
 
 @REM Parent directory (repo root)
 for %%A in ("%MERGER_DIR%..") do set "PARENT_DIR=%%~fA"
 
-@REM Source directory (sibling of merger_futur)
-set "SOURCE_DIR=%PARENT_DIR%\source_futur"
+@REM Source directory (sibling of merger_V2)
+set "SOURCE_DIR=%PARENT_DIR%\src"
 
 @REM List file and output file
 set "LIST=%MERGER_DIR%listToMerge.txt"
@@ -41,7 +41,7 @@ for /f "usebackq delims=" %%F in ("%LIST%") do (
     ) else (
         set "FILE=%SOURCE_DIR%\%%F"
         if not exist "!FILE!" (
-            echo [WARNING] File not found in source_futur: %%F
+            echo [WARNING] File not found in src: %%F
         ) else (
             echo -- ==================================================================================================== >> "%OUT%"
             echo -- Start : %%F >> "%OUT%"

@@ -32,7 +32,7 @@ Migrer CTLD vers une architecture orientée objet (OOP) en Lua 5.1, dans les con
 - **Modularité** : chaque domaine fonctionnel dans une classe dédiée
 - **Maintenabilité** : CTLDCore < 500 lignes, chaque classe < 800 lignes
 - **Nouvelles features** : Scenes/FOB via CTLDSceneManager, menu Unpack dynamique, renommage pack→pack
-- **Build reproductible** : fusion des modules `source_futur/` → `CTLD.lua`
+- **Build reproductible** : fusion des modules `src/` → `CTLD.lua`
 
 ### 1.3 Périmètre
 
@@ -343,9 +343,9 @@ classDiagram
 
 ### 4.1 CTLDConfig
 
-**Responsabilité** : Singleton fournissant l'accès centralisé à tous les paramètres de configuration. Déjà implémenté en OOP dans `source/CTLD_config.lua` — copier dans `source_futur/` sans modification.
+**Responsabilité** : Singleton fournissant l'accès centralisé à tous les paramètres de configuration. Déjà implémenté en OOP dans `source/CTLD_config.lua` — copier dans `src/` sans modification.
 
-**Fichier cible** : `source_futur/CTLD_config.lua`
+**Fichier cible** : `src/CTLD_config.lua`
 **Statut** : ✅ Existant — copie simple
 
 **Méthodes publiques** :
@@ -371,7 +371,7 @@ classDiagram
 
 **Responsabilité** : Singleton gérant les traductions de toutes les chaînes affichées dans les menus et messages F10.
 
-**Fichier cible** : `source_futur/CTLD_i18n.lua`
+**Fichier cible** : `src/CTLD_i18n.lua`
 **Statut** : 🔄 Migration depuis namespace procédural `ctld.i18n`
 
 **Propriétés** :
@@ -398,7 +398,7 @@ classDiagram
 
 **Responsabilité** : Module statique regroupant les fonctions utilitaires géométriques, de spawn, d'identifiants uniques et de dessin F10. Fonctions accessibles via `CTLDUtils.xxx()`.
 
-**Fichier cible** : `source_futur/CTLD_utils.lua`
+**Fichier cible** : `src/CTLD_utils.lua`
 **Statut** : 🔄 Migration depuis namespace procédural `ctld.utils`
 
 **Méthodes publiques** :
@@ -425,7 +425,7 @@ classDiagram
 
 **Responsabilité** : Gestion des menus F10 DCS. `Menu` représente un nœud de menu. `MenuManager` est le singleton gérant le cycle de vie des menus par groupe.
 
-**Fichier cible** : `source_futur/CTLD_menu.lua`
+**Fichier cible** : `src/CTLD_menu.lua`
 **Statut** : ✅ Existant — copie simple depuis `source/CTLD_menu.lua`
 
 **Méthodes MenuManager** :
@@ -446,7 +446,7 @@ classDiagram
 
 **Responsabilité** : Registre singleton des descripteurs d'objets DCS utilisés par CTLDSceneManager. Chaque descripteur est une fonction retournant un `groupData` complet pour `coalition.addStaticObject()` ou `coalition.addGroup()`.
 
-**Fichier cible** : `source_futur/CTLD_objectsDescDb.lua`
+**Fichier cible** : `src/CTLD_objectsDescDb.lua`
 **Statut** : 🔄 Migration + enrichissement depuis `source_scene_ini/dcsObjectsDescDb.lua`
 
 **Entrées actuelles (15)** : `FARP`, `SINGLE_HELIPAD`, `Farp_FG_Petit_Helipad`, `FARP_Tent`, `FARP_Ammo_Storage`, `Fuel_Truck`, `repare_Truck`, `FARP_Security_Guard`, `barrels_cargo`, `ammo_cargo`, `Cargo06`, `NF-2_LightOn`, `Windsock`, `Tower Crane`, `us carrier shooter`
@@ -478,7 +478,7 @@ classDiagram
 > **Décision EVO-09** : les pickupZones gèrent **uniquement les troupes**. Le chargement de véhicules depuis une pickupZone est supprimé (voir EVO-09 en section 7).
 > **Décision EVO-10** : les zones sont déclarées par **convention de nommage DCS** (voir ci-dessous), sans scripting mission maker. Compatibilité descendante conservée pour les missions sans nommage structuré.
 
-**Fichier cible** : `source_futur/CTLD_zone.lua`
+**Fichier cible** : `src/CTLD_zone.lua`
 **Statut** : 🆕 À créer
 
 ---
@@ -574,7 +574,7 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 
 **Responsabilité** : Gestion du transport de troupes. `CtldTroop` représente un groupe de troupes. `CTLDTroopManager` orchestre chargement, déchargement, extraction et construit le bloc de menu "Troop Transport".
 
-**Fichier cible** : `source_futur/CTLD_troop.lua`
+**Fichier cible** : `src/CTLD_troop.lua`
 **Statut** : 🆕 À créer (migration depuis `source/CTLD_core.lua`)
 
 **Propriétés CtldTroop** :
@@ -607,7 +607,7 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 
 **Responsabilité** : Gestion du cycle de vie des caisses logistiques (spawn, chargement sling, dépose, déballage). L'unpack applique une logique de dispatch par priorité : scène DCS, système AA, ou spawn classique.
 
-**Fichier cible** : `source_futur/CTLD_crate.lua`
+**Fichier cible** : `src/CTLD_crate.lua`
 **Statut** : 🆕 À créer (migration depuis `source/CTLD_core.lua`)
 
 **Propriétés CtldCrate** :
@@ -650,7 +650,7 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 
 **Responsabilité** : Gestion du transport de véhicules et de la fonctionnalité pack (empaquetage d'un véhicule en caisse transportable). Contrainte `unitCanCarryVehicles` obligatoire pour afficher le bloc de menu.
 
-**Fichier cible** : `source_futur/CTLD_vehicle.lua`
+**Fichier cible** : `src/CTLD_vehicle.lua`
 **Statut** : 🆕 À créer (migration depuis `source/CTLD_core.lua`)
 
 **Propriétés CtldVehicle** :
@@ -686,10 +686,10 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 
 **Responsabilité** : Singleton gérant le cycle de vie des FOBs. La construction physique est déléguée à `CTLDSceneManager` via la scène `"FOB"`. Gère la détection des caisses FOB, le déclenchement du déploiement et l'enregistrement dans les unités logistiques.
 
-**Fichier cible** : `source_futur/CTLD_fob.lua`
+**Fichier cible** : `src/CTLD_fob.lua`
 **Statut** : 🆕 À créer (migration + refactoring depuis `source/CTLD_core.lua`)
 
-**Modèle de scène FOB** (défini dans `source_futur/scenes/CTLD_fobSceneDatas.lua`) :
+**Modèle de scène FOB** (défini dans `src/scenes/CTLD_fobSceneDatas.lua`) :
 
 | Étape | Clé objectsDescDb | Offset polaire | Notes |
 |---|---|---|---|
@@ -724,7 +724,7 @@ périmètre   = 750 m
 
 **Responsabilité** : `CtldScene` représente l'exécution en cours d'une scène (instance d'un modèle). `CTLDSceneManager` est le singleton registre des modèles et point d'entrée pour déclencher une scène.
 
-**Fichier cible** : `source_futur/CTLD_scene.lua`
+**Fichier cible** : `src/CTLD_scene.lua`
 **Statut** : 🔄 Migration + correction depuis `source_scene_ini/CTLD_scene.lua`
 
 **Corrections à apporter** :
@@ -773,7 +773,7 @@ périmètre   = 750 m
 
 **Responsabilité** : Gestion des balises radio (TACAN/ADF) déposées par les joueurs ou créées automatiquement lors du spawn d'un FOB.
 
-**Fichier cible** : `source_futur/CTLD_beacon.lua`
+**Fichier cible** : `src/CTLD_beacon.lua`
 **Statut** : 🔄 Migration depuis `source/CTLD_beacon.lua`
 
 **Propriétés CtldBeacon** :
@@ -808,7 +808,7 @@ périmètre   = 750 m
 
 **Responsabilité** : Singleton gérant la fonctionnalité RECON — affichage des cibles ennemies en ligne de visée (LOS) sur la carte F10, avec option auto-refresh.
 
-**Fichier cible** : `source_futur/CTLD_recon.lua`
+**Fichier cible** : `src/CTLD_recon.lua`
 **Statut** : 🔄 Migration depuis `source/CTLD_recon.lua`
 
 **Méthodes publiques** :
@@ -830,7 +830,7 @@ périmètre   = 750 m
 
 **Responsabilité** : Gestion des JTAC — désignation laser de cibles, options spéciales, menu de sélection de cibles. Polling toutes les 10 secondes pour mise à jour des menus.
 
-**Fichier cible** : `source_futur/CTLD_jtac.lua`
+**Fichier cible** : `src/CTLD_jtac.lua`
 **Statut** : 🔄 Migration depuis `source/CTLD_jtac.lua`
 
 **Propriétés CtldJtac** :
@@ -863,7 +863,7 @@ périmètre   = 750 m
 
 **Responsabilité** : Orchestration principale côté joueur. `CtldPlayer` représente l'état d'un joueur en jeu. `CTLDPlayerManager` détecte les entrées/sorties d'unité, détermine les capacités de l'appareil et délègue la construction des menus.
 
-**Fichier cible** : `source_futur/CTLD_player.lua`
+**Fichier cible** : `src/CTLD_player.lua`
 **Statut** : 🆕 À créer (extraction depuis `source/CTLD_core.lua`)
 
 **Propriétés CtldPlayer** :
@@ -915,7 +915,7 @@ buildMenu(player)
 
 **Responsabilité** : Point d'entrée unique. Initialise tous les singletons dans l'ordre correct, enregistre les handlers d'événements DCS, démarre les boucles de polling. Taille cible : **< 500 lignes**.
 
-**Fichier cible** : `source_futur/CTLD_core.lua`
+**Fichier cible** : `src/CTLD_core.lua`
 **Statut** : 🆕 À créer
 
 **Méthodes publiques** :
@@ -959,7 +959,7 @@ init()
 
 **Responsabilité** : Singleton gérant les systèmes AA multi-caisses (HAWK, Patriot, NASAMS, BUK, KUB, S-300). Le déploiement physique de chaque système est délégué à `CTLDSceneManager` via une scène dédiée par type de système. CTLDAASystemManager gère le registre runtime des systèmes assemblés, la logique de réarmement/réparation et les limites de coalition.
 
-**Fichier cible** : `source_futur/CTLD_aasystem.lua`
+**Fichier cible** : `src/CTLD_aasystem.lua`
 **Statut** : 🆕 À créer (migration depuis `source/CTLD_core.lua`)
 
 **Principe d'intégration dans le flux unpack** : les caisses AA apparaissent dans le menu "Crates: Vehicle/FOB/Drone" comme n'importe quelle caisse. Quand `CTLDCrateManager:unpackCrate()` est appelé, si la caisse est reconnue par `CTLDAASystemManager:getSystemForCrate()`, le traitement est délégué à `CTLDAASystemManager:tryAssemble()` (ou tryRearm/tryRepair selon le contexte). Aucune commande de menu dédiée n'est créée.
@@ -1036,7 +1036,7 @@ Récapitulatif des paginations :
 
 ## 6. Système de build
 
-**Répertoire** : `merger_futur/`
+**Répertoire** : `merger_V2/`
 
 | Fichier | Rôle |
 |---|---|
@@ -1046,32 +1046,32 @@ Récapitulatif des paginations :
 
 **Ordre de fusion (`listToMerge.txt`)** :
 ```
-source_futur/CTLD_config.lua
-source_futur/CTLD_i18n.lua
-source_futur/CTLD_utils.lua
-source_futur/CTLD_menu.lua
-source_futur/CTLD_objectsDescDb.lua
-source_futur/CTLD_scene.lua
-source_futur/CTLD_zone.lua
-source_futur/CTLD_troop.lua
-source_futur/CTLD_crate.lua
-source_futur/CTLD_vehicle.lua
-source_futur/CTLD_fob.lua
-source_futur/CTLD_aasystem.lua
-source_futur/CTLD_beacon.lua
-source_futur/CTLD_recon.lua
-source_futur/CTLD_jtac.lua
-source_futur/CTLD_player.lua
-source_futur/CTLD_core.lua
-source_futur/scenes/CTLD_farpSceneDatas.lua
-source_futur/scenes/CTLD_fobSceneDatas.lua
-source_futur/scenes/CTLD_mineFieldSceneDatas.lua
-source_futur/scenes/CTLD_aaHawkSceneDatas.lua
-source_futur/scenes/CTLD_aaPatriotSceneDatas.lua
-source_futur/scenes/CTLD_aaNasamSceneDatas.lua
-source_futur/scenes/CTLD_aaBukSceneDatas.lua
-source_futur/scenes/CTLD_aaKubSceneDatas.lua
-source_futur/scenes/CTLD_aas300SceneDatas.lua
+src/CTLD_config.lua
+src/CTLD_i18n.lua
+src/CTLD_utils.lua
+src/CTLD_menu.lua
+src/CTLD_objectsDescDb.lua
+src/CTLD_scene.lua
+src/CTLD_zone.lua
+src/CTLD_troop.lua
+src/CTLD_crate.lua
+src/CTLD_vehicle.lua
+src/CTLD_fob.lua
+src/CTLD_aasystem.lua
+src/CTLD_beacon.lua
+src/CTLD_recon.lua
+src/CTLD_jtac.lua
+src/CTLD_player.lua
+src/CTLD_core.lua
+src/scenes/CTLD_farpSceneDatas.lua
+src/scenes/CTLD_fobSceneDatas.lua
+src/scenes/CTLD_mineFieldSceneDatas.lua
+src/scenes/CTLD_aaHawkSceneDatas.lua
+src/scenes/CTLD_aaPatriotSceneDatas.lua
+src/scenes/CTLD_aaNasamSceneDatas.lua
+src/scenes/CTLD_aaBukSceneDatas.lua
+src/scenes/CTLD_aaKubSceneDatas.lua
+src/scenes/CTLD_aas300SceneDatas.lua
 CTLD_userConfig.lua
 ```
 

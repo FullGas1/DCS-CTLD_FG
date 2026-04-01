@@ -70,10 +70,10 @@ Overrides are applied at startup by `CTLDi18n:_init()`.
 
 ```powershell
 # Audit only (no file changes)
-.\merger_futur\generate_i18n_dicts.ps1
+.\merger_V2\generate_i18n_dicts.ps1
 
 # Apply changes (add missing keys, mark stales, bump version)
-.\merger_futur\generate_i18n_dicts.ps1 -Apply
+.\merger_V2\generate_i18n_dicts.ps1 -Apply
 ```
 
 Run after any `ctld.tr()` addition or removal in source scripts.

@@ -1,5 +1,5 @@
 -- CTLDConfig Singleton Class
--- source_futur version — do not edit source/ original
+-- src version — do not edit source/ original
 ctld = ctld or {}
 
 CTLDConfig = {}
@@ -1071,7 +1071,7 @@ local config = CTLDConfig.get() -- get the singleton instance
 
 -- Global shortcut for config access.
 -- Usage: ctld.gs("paramName")  instead of  CTLDConfig.get():getSetting("paramName")
--- This is the ONLY authorised form to read config parameters throughout source_futur/.
+-- This is the ONLY authorised form to read config parameters throughout src/.
 function ctld.gs(key)
     return CTLDConfig.get():getSetting(key)
 end

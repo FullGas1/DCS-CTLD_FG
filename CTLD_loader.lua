@@ -1,14 +1,14 @@
 ---@diagnostic disable
 -- CTLD Dev Loader
--- Auto-generated from merger_futur/listToMerge.txt - DO NOT EDIT MANUALLY
--- Regenerate with: merger_futur/generate_loader.cmd
+-- Auto-generated from merger_V2/listToMerge.txt - DO NOT EDIT MANUALLY
+-- Regenerate with: merger_V2/generate_loader.cmd
 --
 -- HOW TO USE:
---   1. Set CTLD_SOURCE_PATH to the absolute path of your source_futur/ directory.
+--   1. Set CTLD_SOURCE_PATH to the absolute path of your src/ directory.
 --   2. Use forward slashes. End with a trailing slash.
 --   3. In your DCS mission trigger: dofile('absolute/path/to/CTLD_loader.lua')
 
-local CTLD_SOURCE_PATH = "C:/replace/with/your/absolute/path/to/source_futur/"  -- CONFIGURE THIS
+local CTLD_SOURCE_PATH = "C:/replace/with/your/absolute/path/to/src/"  -- CONFIGURE THIS
 
 -- Core foundations (no business state)
 dofile(CTLD_SOURCE_PATH .. "CTLD_config.lua")

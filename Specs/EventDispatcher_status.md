@@ -35,7 +35,7 @@
 - ✅ Gestion erreurs (checks `type(callback) == "function"`)
 - ✅ Pattern Observer pur
 
-**Statut** : 🟢 **Prêt pour implémentation dans source_futur/**
+**Statut** : 🟢 **Prêt pour implémentation dans src/**
 
 ---
 
@@ -282,7 +282,7 @@ grep -n "world.event" source/CTLD_core.lua >> Specs/dcs_events_inventory.txt
 
 ### Phase Implémentation (APRÈS validation)
 
-**5. Implémentation EventDispatcher** (source_futur/)
+**5. Implémentation EventDispatcher** (src/)
 - Copier spec CTLD_Events.md → code
 - Tests unitaires
 - Intégration DCSEventHandler

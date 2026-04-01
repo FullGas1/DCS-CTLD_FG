@@ -1,5 +1,5 @@
 # generate_i18n_dicts.ps1
-# Scans all source_futur/*.lua files for ctld.tr() calls and synchronises the
+# Scans all src/*.lua files for ctld.tr() calls and synchronises the
 # 4 dictionary files (CTLD_i18n_en/fr/es/ko.lua).
 #
 # Rule: ctld.tr() keys are ALWAYS complete string literals.
@@ -22,9 +22,9 @@
 #   STALE keys    -> line prefixed with "-- STALE:" (not deleted — confirm manually)
 #   version bump  -> each modified dict gets its own version incremented
 #
-# Usage (from repo root or from merger_futur/):
-#   .\merger_futur\generate_i18n_dicts.ps1           # dry-run
-#   .\merger_futur\generate_i18n_dicts.ps1 -Apply    # apply
+# Usage (from repo root or from merger_V2/):
+#   .\merger_V2\generate_i18n_dicts.ps1           # dry-run
+#   .\merger_V2\generate_i18n_dicts.ps1 -Apply    # apply
 
 param(
     [switch]$Apply,
@@ -35,7 +35,7 @@ param(
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot  = Split-Path -Parent $scriptDir
 
-if ($SourceDir -eq "") { $SourceDir = Join-Path $repoRoot "source_futur" }
+if ($SourceDir -eq "") { $SourceDir = Join-Path $repoRoot "src" }
 if ($DictDir   -eq "") { $DictDir   = $SourceDir }
 
 $DictFiles = [ordered]@{
