@@ -1,77 +1,141 @@
 # DCS-CTLD Modernization Plan
 
-> Status: **Draft**
-> Branch: `next` (git flow, `main` stays stable)
-> Target: CTLD v2.0
+> **This is the single source of truth for all ongoing work.**
+> Status: **In Progress** | Branch: `feature_modularisation_and_Config` → target `master` | Target: CTLD v2.0
 
 ---
 
 ## Vision
 
 Rewrite CTLD as a modern, modular, and testable Lua project while
-temporarily preserving backward compatibility with existing missions.
-The deliverable remains a single `.lua` file produced by an automated build.
+preserving backward compatibility with existing missions.
+Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 ---
 
 ## Architectural decisions
 
-Key decisions made during the planning phase, for reference.
-
 | # | Topic | Decision |
 | - | ----- | -------- |
-| 1 | Module split | Separate source files in `src/`, concatenated into a single `dist/CTLD.lua` by a build script (CI) |
-| 2 | OOP level | Full OOP Lua 5.1 with metatables and classes — ready to break backward compat when needed |
-| 3 | MIST dependency | Middleware layer (`src/mist_compat/`): CTLD never calls `mist.*` directly. Long-term goal: eliminate MIST entirely |
-| 4 | API breaking changes | Short/medium term: legacy wrappers with deprecation warnings. Long term (v3): legacy API removed |
-| 5 | Lua environment | Lua 5.1 DCS sandbox, desanitized server assumed (`io`, `os`, `lfs` accessible) |
-| 6 | Testing | Both: busted + DCS/MIST mocks in CI, and in-game test missions for integration |
-| 7 | Documentation | 3 audiences (player, mission maker, developer). Markdown in `docs/`, auto-published to GitHub Pages via MkDocs |
-| 8 | i18n | Included in plan: audit missing keys, CI lint for version drift, cleanup empty translations |
-| 9 | Priorities | 1-Cleanup, 2-OOP, 3-MIST middleware, 4-Legacy compat, 5-Tests, 6-CI, 7-i18n, 8-Docs |
-| 10 | Branching | `next` branch for v2, git flow. `main` stays stable. Feature branches: `feature/<phase>-<description>` |
+| 1 | Module split | `src/` files concatenated → `CTLD_futur.lua` by `merger_V2/merge_CTLD.ps1`. Order: `merger_V2/listToMerge.txt` |
+| 2 | OOP | Full OOP Lua 5.1 metatables. Micro-framework: `src/lib/class.lua` (to create — P1) |
+| 3 | MIST | ✅ **Done** — all `mist.*` calls replaced by `ctld.utils.*`. No active `mist.*` call in `src/` |
+| 4 | Legacy API | Short term: wrappers in `src/compat/legacy_api.lua` (Phase 4). Long term v3: removed |
+| 5 | Lua env | Lua 5.1 DCS sandbox, desanitized server (`io`, `os`, `lfs` accessible) |
+| 6 | Testing | busted + DCS/MIST mocks in CI + in-game test missions |
+| 7 | Docs | 3 audiences: player, mission maker, developer. `documentation/` in-repo, MkDocs future |
+| 8 | i18n | ✅ **Done** — `src/CTLD_i18n*.lua` (EN/FR/ES/KO), `ctld.tr()` at all sites, generator `merger_V2/generate_i18n_dicts.ps1` |
+| 9 | Branching | Feature branches `feature/<description>`. `master` stays stable |
+| 10 | Events | 38 CTLD events fully specified (8 modules). EventDispatcher publish/subscribe in Phase 2 (CTLDCore) |
+| 11 | Scenes | One scene = one file in `src/scenes/`. Auto-register via `CTLDSceneManager.getInstance():registerSceneModel(...)` |
+| 12 | Registry | `CTLDObjectRegistry` scope: spawn descriptors + scenes only |
+| 13 | Core bridge | `CTLDDCSEventBridge` single DCS event handler. `CTLDPlayerTracker` without MIST |
+| 14 | Review | For every implemented file: analyse → propose improvements → validate → fix before moving on |
 
 ---
 
-## Guiding principles
+## Progress overview
 
-- **OOP Lua 5.1**: metatables, classes, state encapsulation.
-- **Separate modules** in development, single file in delivery.
-- **Zero direct MIST dependency**: all MIST usage goes through a middleware layer.
-- **Automated testing**: pure logic tested outside DCS, integration tested in-game.
-- **Auto-generated documentation**: from the repo to GitHub Pages.
-- **Transitional legacy compatibility**: deprecated wrappers with warnings, removed in v3.
+| Phase | Description | Status |
+| ----- | ----------- | ------ |
+| **0** | Specification & Architecture | ✅ 100% |
+| **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
+| **2** | Module split + OOP (`src/`) | 🟡 ~30% |
+| **3** | MIST middleware | ✅ Done |
+| **4** | Legacy API compatibility | ⚪ After Phase 2 |
+| **5** | Unit tests (busted) | ⚪ After Phase 2 |
+| **6** | CI infrastructure | 🟡 Build script done |
+| **7** | i18n cleanup + tooling | ✅ Done |
+| **8** | Documentation | 🟡 Partial |
 
 ---
 
-## Phases
+## PRIORITY ORDER — Next steps
 
-### Phase 1 — Dead code cleanup
+```text
+🔴 P1  src/lib/class.lua + refactor 5 existing files       [BLOCKING — OOP prerequisite]
+🟠 C1  src/CTLD_core.lua (EventBridge + PlayerTracker + StateManager + Coalition)
+🟡 M1  src/CTLD_zone.lua
+🟡 M2  src/CTLD_beacon.lua
+🟡 M3  src/CTLD_recon.lua
+🟡 M4  src/CTLD_fob.lua
+🟡 M5  src/CTLD_vehicle.lua
+🟡 M6  src/CTLD_aasystem.lua
+🟡 M7  src/CTLD_player.lua
+⚪  Q1  src/compat/legacy_api.lua      [after Phase 2 complete]
+⚪  Q2  tests/ busted                  [after Phase 2 complete]
+⚪  Q3  GitHub Actions CI              [after tests]
+⚪  Q4  source/ dead code cleanup      [non-blocking, before v2 release]
+⚪  Q5  documentation complete         [ongoing]
+```
 
-**Goal**: Start from a clean, noise-free baseline.
+---
+
+## Phase 0 — Specification & Architecture ✅ COMPLETE
+
+### 0.1 — CTLD Events (38 events — 100%)
+
+| Module | Events | Spec file |
+| ------ | ------ | --------- |
+| Crates | 6 | `Specs/project_ctld_events_crates_spec.md` |
+| Troops | 6 | `Specs/project_ctld_events_troops_spec.md` |
+| JTAC | 9 | `Specs/project_ctld_events_jtac_spec.md` |
+| Beacons | 5 | `Specs/project_ctld_events_beacons_spec.md` |
+| Recon | 4 | `Specs/project_ctld_events_recon_spec.md` |
+| Zones + Vehicles + FOB | 6 | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| Core Init | 1 (OnMMCrateDetected) | to specify |
+| **Total** | **38** | |
+
+### 0.2 — Features
+
+| ID | Feature | Status |
+| -- | ------- | ------ |
+| A | Virtual parachute drop (crates + troops + vehicles) | ⚪ To specify |
+| B | Virtual slingload | ✅ Integrated in crates spec |
+| C | MM crate detection at startup (INIT-B + OnMMCrateDetected) | ⚪ To specify |
+| D | Custom LoadableGroups API for mission makers | ⚪ Spec validated, to implement |
+
+### 0.3 — Architecture validated
+
+- `CTLDObjectRegistry` scope rule: spawn descriptors + scenes only
+- `CTLDCrateAssemblyManager`: AA system assembly manager name retained
+- `CTLDDCSEventBridge`: single DCS event handler — spec in `Specs/project_dcs_event_bridge_spec.md`
+- `CTLDPlayerTracker`: player tracking without MIST — spec in `Specs/project_ctld_player_tracker_spec.md`
+- INIT-A: AI transport detection — spec in `Specs/project_ctld_init_a_spec.md`
+- INIT-B: MM crate detection — spec in `Specs/project_ctld_init_b_spec.md`
+- INIT-C: MM JTAC detection — spec in `Specs/project_ctld_init_c_spec.md`
+- Init order: EventBridge → PlayerTracker → CoreManager (INIT-A/B/C) → other managers
+
+### 0.4 — Build infrastructure ✅
+
+- `merger_V2/merge_CTLD.ps1`: concatenates `src/` → `CTLD_futur.lua`
+- `merger_V2/listToMerge.txt`: canonical load order
+- `merger_V2/generate_loader.ps1`: generates `CTLD_loader.lua` for dev
+- `merger_V2/generate_i18n_dicts.ps1`: syncs i18n keys across languages
+
+---
+
+## Phase 1 — Dead code cleanup (`source/`) ⚪ NON-BLOCKING
+
+**When**: Before v2 release. Not blocking implementation.
 
 | Task | Detail |
 | ---- | ------ |
-| 1.1 | Remove the 18+ identified commented-out code blocks |
-| 1.2 | Remove unused functions (`ctld.tools.getRelativeBearing`, etc.) |
-| 1.3 | Remove state variables that are never read |
-| 1.4 | Clean up obsolete `--TODO`/`--FIXME` markers |
-| 1.5 | Validate with existing test missions that nothing breaks |
-
-**Deliverable**: A lighter CTLD.lua, functionally identical.
+| 1.1 | Remove 18+ commented-out code blocks (see `AS-IS-ANALYSIS.md` §12) |
+| 1.2 | Remove unused functions: `ctld.tools.getRelativeBearing`, `ctld.tools.isValueInIpairTable` |
+| 1.3 | Remove state variables never read |
+| 1.4 | Clean `--TODO`/`--FIXME`/debug markers |
+| 1.5 | Validate: `test-mission.miz`, `test-dev-dynamic.miz` |
 
 ---
 
-### Phase 2 — Module split + OOP
+## Phase 2 — Module split + OOP (`src/`) 🟡 IN PROGRESS
 
-**Goal**: Transform the procedural monolith into a modular, object-oriented architecture.
+### 2.0 — OOP micro-framework ⚪ NEXT (P1 — BLOCKING)
 
-#### 2.1 — Lua 5.1 class system
-
-Define a micro class framework based on metatables:
+Create `src/lib/class.lua`:
 
 ```lua
--- src/lib/class.lua
 local function class(base)
     local cls = {}
     cls.__index = cls
@@ -85,271 +149,171 @@ local function class(base)
 end
 ```
 
-#### 2.2 — Module layout
+Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTLD_jtac.lua`, `CTLD_sceneManager.lua`, `CTLD_objectRegistry.lua`.
 
-Target structure for the `src/` directory:
+### 2.1 — Implemented files ✅
 
-```text
-src/
-├── lib/
-│   ├── class.lua              -- OOP micro-framework
-│   ├── utils.lua              -- Utilities (deepCopy, formatText, logging)
-│   └── vec.lua                -- Vector math (2D/3D distance, bearing)
-├── core/
-│   ├── config.lua             -- User configuration (USER CONFIGURATION)
-│   ├── state.lua              -- State manager (replaces 34 global tables)
-│   ├── coalition.lua          -- Coalition class (eliminates RED/BLUE duplication)
-│   ├── i18n.lua               -- i18n system
-│   └── events.lua             -- Event handler + callback system
-├── transport/
-│   ├── transport.lua          -- Transport class (heli/plane)
-│   ├── troops.lua             -- Troop management (load/unload/extract)
-│   └── vehicles.lua           -- Vehicle management
-├── logistics/
-│   ├── crate.lua              -- Crate class
-│   ├── crate_manager.lua      -- Spawning, hover, sling load, unpack
-│   ├── fob.lua                -- FOB construction and management
-│   └── beacon.lua             -- Radio beacons
-├── jtac/
-│   ├── jtac_controller.lua    -- JTACController class
-│   ├── targeting.lua          -- Target acquisition, LOS, priorities
-│   ├── lasing.lua             -- Laser/IR point, spot corrections
-│   └── menu.lua               -- F10 JTAC menus
-├── ui/
-│   ├── f10_menu.lua           -- F10 menu construction
-│   ├── messages.lua           -- Player messages (displayMessageToGroup)
-│   └── smoke.lua              -- Smoke markers
-├── recon/
-│   └── recon.lua              -- Target recognition on F10 map
-├── ai/
-│   └── ai_transport.lua       -- AI auto-load/unload logic
-├── compat/
-│   └── legacy_api.lua         -- Deprecated ctld.* wrappers
-├── mist_compat/
-│   └── mist_middleware.lua    -- MIST middleware (see Phase 3)
-└── ctld.lua                   -- Entry point, initialization, orchestration
-```
+| File | Classes | Date |
+| ---- | ------- | ---- |
+| `src/CTLD_config.lua` | CTLDConfig (singleton) | 2026-03-31 |
+| `src/CTLD_objectRegistry.lua` | CTLDObjectRegistry | 2026-03-31 |
+| `src/CTLD_crate.lua` | CTLDCrate, CTLDCrateManager | 2026-03-31 |
+| `src/CTLD_troop.lua` | CTLDTroopGroup, CTLDTroopManager | 2026-03-31 |
+| `src/CTLD_jtac.lua` | CTLDJTAC, CTLDJTACDetector, CTLDJTACMessage, CTLDJTACManager | 2026-04-01 |
+| `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene | 2026-03-28 |
+| `src/scenes/CTLD_farpScene.lua` | farpScene | 2026-04-01 |
+| `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-01 |
+| `src/scenes/CTLD_aaHawkScene.lua` | aaHawkScene | 2026-04-01 |
+| `src/scenes/CTLD_aaPatriotScene.lua` | aaPatriotScene | 2026-04-01 |
+| `src/scenes/CTLD_aaNasamScene.lua` | aaNasamScene | 2026-04-01 |
+| `src/scenes/CTLD_aaBukScene.lua` | aaBukScene | 2026-04-01 |
+| `src/scenes/CTLD_aaKubScene.lua` | aaKubScene | 2026-04-01 |
+| `src/scenes/CTLD_aaS300Scene.lua` | aaS300Scene | 2026-04-01 |
 
-#### 2.3 — Core classes
+### 2.2 — Remaining files (priority order)
 
-| Class | Responsibility | Replaces |
-| ----- | -------------- | -------- |
-| `Coalition` | Encapsulates side (1/2) and per-coalition state | `ctld.spawnedCratesRED/BLUE`, `ctld.droppedTroopsRED/BLUE`, etc. (34 tables → 2 instances) |
-| `Transport` | State of a transport helicopter/plane | `ctld.inTransitTroops[name]`, `ctld.hoverStatus[name]` |
-| `Crate` | Represents a logistics crate | Entries from `ctld.spawnableCrates`, `ctld.crateLookupTable` |
-| `CrateManager` | Spawn, pickup, drop, unpack crates | `ctld.spawnCrate`, `ctld.unpackCrates`, `ctld.checkHoverStatus` |
-| `FOB` | A built Forward Operating Base | `ctld.builtFOBS[name]` |
-| `JTACController` | An active JTAC with its lasing state | `ctld.jtacUnits`, `ctld.jtacCurrentTargets`, `ctld.jtacSelectedTarget` |
-| `Beacon` | A deployed radio beacon | `ctld.deployedRadioBeacons[name]` |
-| `StateManager` | Central registry of all active objects | Replaces 34 global tables |
-| `Config` | Typed user configuration | Current USER CONFIGURATION section |
+| # | File | Classes | Status | Spec |
+| - | ---- | ------- | ------ | ---- |
+| P1 | `src/lib/class.lua` | — (OOP framework) | ⚪ **NEXT** | — |
+| C1 | `src/CTLD_core.lua` | CTLDCoreManager, CTLDDCSEventBridge, CTLDPlayerTracker, EventDispatcher, CTLDStateManager, CTLDCoalition | ⚪ | `Specs/project_dcs_event_bridge_spec.md` |
+| M1 | `src/CTLD_zone.lua` | CTLDLogisticZone, CTLDZoneManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ⚪ | `Specs/project_ctld_events_beacons_spec.md` |
+| M3 | `src/CTLD_recon.lua` | CTLDReconScanner, CTLDReconManager | ⚪ | `Specs/project_ctld_events_recon_spec.md` |
+| M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
+| M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |
 
-#### 2.4 — Eliminating RED/BLUE duplication
+### 2.3 — CTLDCoalition (inside CTLDCore — C1)
 
-Before (50+ branches):
+Eliminates the 50+ `if coalition == 1 then … RED … else … BLUE` branches.
 
 ```lua
-if _heli:getCoalition() == 1 then
-    _extract = ctld.findNearestGroup(_heli, ctld.droppedTroopsRED)
-else
-    _extract = ctld.findNearestGroup(_heli, ctld.droppedTroopsBLUE)
-end
+-- Before: if _heli:getCoalition() == 1 then list = ctld.droppedTroopsRED else list = ctld.droppedTroopsBLUE end
+-- After:  local list = stateManager:getCoalition(heli:getCoalition()):getDroppedTroops()
 ```
 
-After:
+### 2.4 — CTLDStateManager (inside CTLDCore — C1)
 
-```lua
-local side = stateManager:getCoalition(heli:getCoalition())
-local extract = side:findNearestDroppedTroop(heli)
-```
+Central registry replacing 34 global coalition-duplicated tables.
+
+### 2.5 — Features implementation
+
+| Feature | Depends on | Status |
+| ------- | ---------- | ------ |
+| B — Virtual slingload | CTLDCrateManager | ✅ Spec integrated |
+| D — Custom LoadableGroups API | CTLDTroopManager (already implemented) | ⚪ To implement |
+| C — MM crate detection | CTLDCoreManager INIT-B | ⚪ To specify fully |
+| A — Virtual parachute (crates + troops + vehicles) | All managers | ⚪ To specify |
 
 ---
 
-### Phase 3 — MIST middleware
+## Phase 3 — MIST middleware ✅ COMPLETE
 
-**Goal**: Isolate MIST behind a facade. CTLD never references `mist.*` directly.
-
-| Task | Detail |
-| ---- | ------ |
-| 3.1 | Inventory the 91 MIST calls and categorize them (trivial / medium / complex) |
-| 3.2 | Create `src/mist_compat/mist_middleware.lua` exposing a clean API |
-| 3.3 | Rewrite trivial functions: `deepCopy`, `get2DDist`, `round`, `makeVec2/3` |
-| 3.4 | Wrap medium functions: `getHeading`, `vec.*`, `tostringLL/MGRS` |
-| 3.5 | Delegate complex functions to MIST: `dynAdd`, `dynAddStatic`, `getUnitsLOS` |
-| 3.6 | Replace all `mist.*` calls in modules with middleware calls |
-| 3.7 | (Long term) Rewrite complex functions to eliminate MIST entirely |
-
-**Deliverable**: CTLD works with or without MIST (graceful degradation when MIST is absent, eventually).
+All `mist.*` API calls replaced by `ctld.utils.*` in `src/`.
+Remaining "mist" occurrences in source are string literals in log messages only.
 
 ---
 
-### Phase 4 — Legacy API compatibility layer
-
-**Goal**: Existing missions continue to work without modification.
+## Phase 4 — Legacy API compatibility ⚪ AFTER PHASE 2
 
 | Task | Detail |
 | ---- | ------ |
-| 4.1 | List all public `ctld.*` functions documented in the README |
-| 4.2 | Create `src/compat/legacy_api.lua` with wrappers that call the new API |
-| 4.3 | Each wrapper logs a deprecated warning with the new API name |
-| 4.4 | Document old → new migration in `docs/migration-v2.md` |
-| 4.5 | Announce the policy: legacy maintained in v2, removed in v3 |
-
-Example:
+| 4.1 | List all public `ctld.*` functions used in DO SCRIPT triggers (README reference) |
+| 4.2 | Create `src/compat/legacy_api.lua` with wrappers |
+| 4.3 | Each wrapper logs deprecation warning with new API name |
+| 4.4 | `documentation/migration-v2.md`: old → new migration guide |
 
 ```lua
--- legacy_api.lua
+-- Example wrapper pattern:
 function ctld.spawnCrateAtZone(_side, _weight, _zone)
-    ctld.logWarning("DEPRECATED: ctld.spawnCrateAtZone() -> use CrateManager:spawnAtZone()")
-    local side = (_side == "red") and 1 or 2
-    return ctld.crateManager:spawnAtZone(side, _weight, _zone)
+    ctld.logWarning("DEPRECATED: use CTLDCrateManager:spawnAtZone()")
+    return CTLDCrateManager.getInstance():spawnAtZone(_side, _weight, _zone)
 end
 ```
 
 ---
 
-### Phase 5 — Unit tests
-
-**Goal**: Coverage of pure logic outside DCS + in-game smoke tests.
-
-#### 5.1 — Framework and mocks
+## Phase 5 — Unit tests ⚪ AFTER PHASE 2
 
 | Task | Detail |
 | ---- | ------ |
-| 5.1.1 | Set up busted (Lua 5.1) + luarocks in the repo |
-| 5.1.2 | Create `test/mocks/dcs_env.lua`: stubs for `trigger`, `Unit`, `Group`, `coalition`, `land`, `timer`, `missionCommands`, `coord`, `world`, `env` |
-| 5.1.3 | Create `test/mocks/mist_env.lua`: stubs for MIST functions used |
-| 5.1.4 | Configure busted to load mocks before tests |
-
-#### 5.2 — Unit tests (outside DCS)
-
-| Module | Priority tests |
-| ------ | -------------- |
-| `lib/class.lua` | Inheritance, instantiation, override |
-| `lib/vec.lua` | 2D/3D distance, bearing, clock direction |
-| `lib/utils.lua` | deepCopy, formatText |
-| `core/coalition.lua` | Per-coalition state management, lookup |
-| `core/i18n.lua` | Translation, fallback, parameters |
-| `core/config.lua` | Default values, override |
-| `logistics/crate.lua` | Weight uniqueness, lookup |
-| `compat/legacy_api.lua` | Wrappers call the correct new API |
-
-#### 5.3 — In-game tests
-
-| Task | Detail |
-| ---- | ------ |
-| 5.3.1 | Create an automated test mission (DO SCRIPT running a test suite) |
-| 5.3.2 | Write results to a file via `io.open` (desanitized server) |
-| 5.3.3 | Validate: troop load/unload, crate spawn/unpack, JTAC lasing, FOB build, beacons |
+| 5.1 | Set up busted (Lua 5.1) + luarocks |
+| 5.2 | `test/mocks/dcs_env.lua`: stubs for `trigger`, `Unit`, `Group`, `coalition`, `land`, `timer`, `world`, `env` |
+| 5.3 | Unit tests: `src/lib/class.lua`, `src/CTLD_utils.lua`, `src/CTLD_config.lua`, `src/compat/legacy_api.lua` |
+| 5.4 | In-game test mission: troop/crate/JTAC/FOB/beacon flows |
 
 ---
 
-### Phase 6 — CI infrastructure
+## Phase 6 — CI infrastructure 🟡 PARTIAL
 
-**Goal**: Automate build, tests, and release.
-
-| Task | Detail |
-| ---- | ------ |
-| 6.1 | **Build script**: Lua (or Python/Bash) script that concatenates `src/**/*.lua` → `dist/CTLD.lua` in the correct order |
-| 6.2 | **GitHub Actions — Tests**: install Lua 5.1 + luarocks + busted, run `busted test/` |
-| 6.3 | **GitHub Actions — Build**: generate `dist/CTLD.lua` and `dist/CTLD-i18n.lua` |
-| 6.4 | **GitHub Actions — Release**: on tag, publish the `.lua` artifact as a GitHub release |
-| 6.5 | **GitHub Actions — Docs**: MkDocs build + deploy to GitHub Pages |
-| 6.6 | **i18n lint**: CI script comparing keys across languages and checking `translation_version` |
+| Task | Status | Detail |
+| ---- | ------ | ------ |
+| 6.1 | ✅ Done | `merger_V2/merge_CTLD.ps1` → `CTLD_futur.lua` |
+| 6.2 | ⚪ | GitHub Actions — run busted tests |
+| 6.3 | ⚪ | GitHub Actions — build `CTLD_futur.lua` on push |
+| 6.4 | ⚪ | GitHub Actions — release artifact on tag |
+| 6.5 | ⚪ | GitHub Actions — MkDocs deploy to GitHub Pages |
+| 6.6 | ✅ Done | i18n lint: `merger_V2/generate_i18n_dicts.ps1` |
 
 ---
 
-### Phase 7 — i18n cleanup + tooling
+## Phase 7 — i18n ✅ COMPLETE
 
-**Goal**: Reliable i18n with automatic drift detection.
+| File | Content |
+| ---- | ------- |
+| `src/CTLD_i18n.lua` | Runtime engine: `ctld.tr()`, language selection, fallback EN |
+| `src/CTLD_i18n_en.lua` | English reference keys (authoritative) |
+| `src/CTLD_i18n_fr.lua` | French translations |
+| `src/CTLD_i18n_es.lua` | Spanish translations |
+| `src/CTLD_i18n_ko.lua` | Korean translations |
+| `merger_V2/generate_i18n_dicts.ps1` | Key sync — detects drift between languages |
 
-| Task | Detail |
-| ---- | ------ |
-| 7.1 | Full audit: list EN vs FR vs ES vs KO keys, identify missing ones |
-| 7.2 | Fill empty FR keys (crate/equipment names) |
-| 7.3 | Update KO (1.1 → 1.6+) or mark it as `incomplete` |
-| 7.4 | CI lint script for i18n (see 6.6) |
-| 7.5 | Document the process of adding a language in `docs/contributing/i18n.md` |
-| 7.6 | Consider extracting i18n into per-language files (`i18n/fr.lua`, `i18n/ko.lua`) |
-
----
-
-### Phase 8 — Documentation
-
-**Goal**: 3 guides for 3 audiences, auto-published.
-
-#### 8.1 — `docs/` structure
-
-```text
-docs/
-├── index.md                    -- Landing page
-├── user-guide/
-│   ├── getting-started.md      -- For the player: F10 menus, in-game workflow
-│   ├── troops.md               -- Troop loading/unloading
-│   ├── crates.md               -- Crate system
-│   ├── jtac.md                 -- Using JTACs
-│   ├── fob.md                  -- FOB construction
-│   └── beacons.md              -- Radio beacons
-├── mission-maker/
-│   ├── setup.md                -- Mission installation
-│   ├── configuration.md        -- All configurable options
-│   ├── api-reference.md        -- Public API (DO SCRIPT)
-│   ├── zones.md                -- Pickup/dropoff/waypoint zones
-│   ├── jtac-setup.md           -- Advanced JTAC configuration
-│   └── examples.md             -- Mission examples
-├── developer/
-│   ├── architecture.md         -- Module, class, and flow diagrams
-│   ├── contributing.md         -- How to contribute
-│   ├── building.md             -- Build script, CI
-│   ├── testing.md              -- Running tests
-│   ├── i18n.md                 -- Adding/maintaining a translation
-│   └── migration-v2.md         -- v1 → v2 migration guide
-└── mkdocs.yml                  -- MkDocs configuration
-```
-
-#### 8.2 — Publishing
-
-- MkDocs Material theme
-- GitHub Actions: build + deploy to `gh-pages` on every push to `next`
-- Slimmed-down README.md: links to the full documentation site
+Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propagated by generator.
 
 ---
 
-## Indicative timeline
+## Phase 8 — Documentation 🟡 PARTIAL
 
-| Phase | Dependencies | Complexity |
-| ----- | ------------ | ---------- |
-| 1 — Dead code cleanup | None | Low |
-| 2 — Modules + OOP | Phase 1 | **High** |
-| 3 — MIST middleware | Phase 2 | Medium |
-| 4 — Legacy compat | Phase 2 | Medium |
-| 5 — Tests | Phases 2-3 | Medium |
-| 6 — CI | Phases 2, 5 | Medium |
-| 7 — i18n | Phase 2 | Low |
-| 8 — Documentation | Phases 2-4 | Medium |
+| Audience | File | Status |
+| -------- | ---- | ------ |
+| Mission maker | `documentation/missionmaker_guide.md` | 🟡 Started |
+| Developer (CDC) | `documentation/CTLD_CDC.md` | 🟡 Substantial |
+| Developer (menus) | `documentation/CTLD_Menu_Architecture.html` | ✅ Done |
+| MkDocs / GitHub Pages | — | ⚪ To set up |
 
-> Phases 3 and 4 can be worked on in parallel.
-> Phase 6 can start as early as Phase 2 (build script) and grow incrementally.
+Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), player guide, migration-v2.md, MkDocs setup.
+
+---
+
+## Module completion status
+
+| Module | Events | Impl file | Spec | Status |
+| ------ | ------ | --------- | ---- | ------ |
+| Crates | 6 ✅ | `src/CTLD_crate.lua` ✅ | ✅ | ✅ Done |
+| Troops | 6 ✅ | `src/CTLD_troop.lua` ✅ | ✅ | ✅ Done |
+| JTAC | 9 ✅ | `src/CTLD_jtac.lua` ✅ | ✅ | ✅ Done |
+| Beacons | 5 ✅ | `src/CTLD_beacon.lua` | ✅ | ⚪ Impl pending |
+| Recon | 4 ✅ | `src/CTLD_recon.lua` | ✅ | ⚪ Impl pending |
+| Zones | 2 ✅ | `src/CTLD_zone.lua` | ✅ | ⚪ Impl pending |
+| Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` | ✅ | ⚪ Impl pending |
+| FOB | 3 ✅ | `src/CTLD_fob.lua` | ✅ | ⚪ Impl pending |
+| Core Init | 1 ⚪ | `src/CTLD_core.lua` | ✅ | ⚪ Impl pending |
+| Scenes | — | `src/scenes/` (9 files) ✅ | ✅ | ✅ Done |
+| i18n | — | `src/CTLD_i18n*.lua` ✅ | ✅ | ✅ Done |
+| Config | — | `src/CTLD_config.lua` ✅ | ✅ | ✅ Done |
 
 ---
 
 ## Branching strategy
 
-```text
-main (stable, v1.x)
-  └── next (v2 development)
-        ├── feature/phase1-cleanup
-        ├── feature/phase2-oop-core
-        ├── feature/phase2-oop-jtac
-        ├── feature/phase3-mist-middleware
-        ├── feature/phase4-legacy-compat
-        ├── feature/phase5-tests
-        └── ...
+```
+master (stable v1.x)
+  └── feature_modularisation_and_Config  (v2 in progress)
+        └── feature/<description>        (sub-features)
 ```
 
-- `main`: stable v1.x releases, urgent hotfixes only.
-- `next`: v2 integration, git flow (feature → next → release).
-- Tags: `v2.0-alpha.1`, `v2.0-beta.1`, `v2.0-rc.1`, `v2.0`.
+Tags: `v2.0-alpha.1`, `v2.0-beta.1`, `v2.0-rc.1`, `v2.0`
 
 ---
 
@@ -357,8 +321,7 @@ main (stable, v1.x)
 
 | Risk | Impact | Mitigation |
 | ---- | ------ | ---------- |
-| Gameplay regressions after OOP refactoring | High | Unit tests + systematic test missions |
-| DCS mock divergence from real API | Medium | In-game tests as complement, versioned mocks |
-| Incomplete MIST middleware | Medium | Progressive approach, MIST remains as fallback |
-| Mission maker resistance to API changes | Medium | Legacy layer + communication + migration guide |
-| Build script complexity (module ordering) | Low | Explicit dependencies, build tested in CI |
+| Gameplay regressions after OOP refactor | High | Review discipline (analyse → fix) + test missions |
+| CTLDCoalition/StateManager scope too large | Medium | Implement incrementally within CTLDCore session |
+| Legacy API coverage incomplete | Medium | README-driven: list all documented `ctld.*` functions |
+| Scene positions incorrect (AA systems) | Low | Initial estimates — validate in test mission, adjust |
