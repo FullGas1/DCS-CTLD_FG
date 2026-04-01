@@ -334,6 +334,8 @@ function CTLDConfig:load()
     self.settings["JTAC_laseSpotCorrections"]       = true  -- if true, each JTAC will have a special option (toggle on/off) available in it's menu to attempt to lead the target, taking into account current wind conditions and the speed of the target (particularily useful against moving heavy armor)
     self.settings["JTAC_allowSmokeRequest"]         = true  -- if true, allow players to request a smoke on target (temporary)
     self.settings["JTAC_allow9Line"]                = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
+    self.settings["JTAC_laseIntervalSeconds"]       = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
+    self.settings["JTAC_searchIntervalSeconds"]     = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
 
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh
