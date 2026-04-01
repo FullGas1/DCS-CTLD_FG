@@ -23,14 +23,14 @@ CTLD_player.lua
 -- Orchestrator
 CTLD_core.lua
 -- Scene data (after CTLDSceneManager registry is ready)
-scenes/CTLD_farpSceneDatas.lua
-scenes/CTLD_fobSceneDatas.lua
-scenes/CTLD_mineFieldSceneDatas.lua
-scenes/CTLD_aaHawkSceneDatas.lua
-scenes/CTLD_aaPatriotSceneDatas.lua
-scenes/CTLD_aaNasamSceneDatas.lua
-scenes/CTLD_aaBukSceneDatas.lua
-scenes/CTLD_aaKubSceneDatas.lua
-scenes/CTLD_aas300SceneDatas.lua
+scenes/CTLD_farpScene.lua
+scenes/CTLD_fobScene.lua
+scenes/CTLD_mineFieldScene.lua
+scenes/CTLD_aaHawkScene.lua
+scenes/CTLD_aaPatriotScene.lua
+scenes/CTLD_aaNasamScene.lua
+scenes/CTLD_aaBukScene.lua
+scenes/CTLD_aaKubScene.lua
+scenes/CTLD_aaS300Scene.lua
 -- User configuration (always last)
 CTLD_userConfig.lua
