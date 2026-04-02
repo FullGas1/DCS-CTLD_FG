@@ -55,7 +55,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ```text
 ✅ P1  src/lib/class.lua + refactor 4 files + relocate objectRegistry  [DONE]
 ✅ C1  src/CTLD_core.lua (EventDispatcher + CTLDDCSEventBridge + CTLDPlayerTracker + CTLDCoreManager)  [2026-04-02]
-🟡 M1  src/CTLD_zone.lua
+✅ M1  src/CTLD_zone.lua  [2026-04-02]
 🟡 M2  src/CTLD_beacon.lua
 🟡 M3  src/CTLD_recon.lua
 🟡 M4  src/CTLD_fob.lua
@@ -324,7 +324,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | JTAC | 9 ✅ | `src/CTLD_jtac.lua` ✅ | ✅ | ✅ Done |
 | Beacons | 5 ✅ | `src/CTLD_beacon.lua` | ✅ | ⚪ Impl pending |
 | Recon | 4 ✅ | `src/CTLD_recon.lua` | ✅ | ⚪ Impl pending |
-| Zones | 2 ✅ | `src/CTLD_zone.lua` | ✅ | ⚪ Impl pending |
+| Zones | 2 ✅ | `src/CTLD_zone.lua` ✅ | ✅ | ✅ Done |
 | Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` | ✅ | ⚪ Impl pending |
 | FOB | 3 ✅ | `src/CTLD_fob.lua` | ✅ | ⚪ Impl pending |
 | Core Init | 1 ⚪ | `src/CTLD_core.lua` | ✅ | ⚪ Impl pending |
