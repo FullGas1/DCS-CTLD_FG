@@ -265,6 +265,21 @@ function CTLDObjectRegistry.get(objectKey)
     return CTLDObjectRegistry._db[objectKey]
 end
 
+--- Reverse lookup: find the registry key and descriptor whose `type` field
+--- matches dcsTypeName (the DCS typeName of a static/cargo object).
+--- Used by CTLDCrateManager:registerMMCrate() for MM crate detection (INIT-B).
+--- @param dcsTypeName string   e.g. "ammo_cargo", "Cargo06"
+--- @return string|nil key, table|nil descriptor
+function CTLDObjectRegistry.findByDCSType(dcsTypeName)
+    if not dcsTypeName then return nil, nil end
+    for key, desc in pairs(CTLDObjectRegistry._db) do
+        if desc.type == dcsTypeName then
+            return key, desc
+        end
+    end
+    return nil, nil
+end
+
 -- Spawns a DCS object described by objectKey at absolute world position (x, z).
 --
 -- @param objectKey   string    Key in CTLDObjectRegistry._db

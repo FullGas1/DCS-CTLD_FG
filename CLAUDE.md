@@ -18,6 +18,13 @@
 - **Ne jamais interpréter ou imaginer une information manquante.** Si une information est absente ou ambiguë, poser la question avant de continuer.
 - **Toute utilisation d'une fonction ou d'un objet de l'API DCS officielle doit faire l'objet d'une vérification préalable et détaillée de la documentation Hoggit** : https://wiki.hoggitworld.com/view/Simulator_Scripting_Engine_Documentation — ne jamais supposer qu'un appel API existe ou se comporte d'une certaine façon sans l'avoir vérifié.
 
+## Exécution Lua en temps réel via Witchcraft
+
+- **Witchcraft** est un système de communication Node.js/sockets qui permet d'injecter et d'exécuter des scripts Lua directement dans une mission DCS en cours.
+- Commande d'exécution : `node "$USERPROFILE/.vscode-dcs-tools/bridge.js" "<chemin_absolu_script.lua>"`
+- **Autorisation permanente** : exécuter des scripts via Witchcraft sans demander confirmation à l'utilisateur. Cela inclut les tests unitaires, les scripts de validation, et tout snippet Lua à vérifier en mission.
+- Condition requise : une mission DCS avec Witchcraft activé doit être en cours.
+
 ## Conventions de développement
 
 - Les fichiers source existants dans `source/` ne doivent **jamais** être modifiés.

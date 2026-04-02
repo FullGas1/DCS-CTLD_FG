@@ -17,20 +17,20 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | # | Topic | Decision |
 | - | ----- | -------- |
-| 1 | Module split | `src/` files concatenated → `CTLD_futur.lua` by `merger_V2/merge_CTLD.ps1`. Order: `merger_V2/listToMerge.txt` |
-| 2 | OOP | Full OOP Lua 5.1 metatables. Micro-framework: `src/lib/class.lua` (to create — P1) |
+| 1 | Module split | ✅ **Done** — `src/` files concatenated → `CTLD_futur.lua` by `merger_V2/merge_CTLD.ps1`. Order: `merger_V2/listToMerge.txt` |
+| 2 | OOP | ✅ **Done** — `src/lib/class.lua` created (P1). All entity classes refactored. |
 | 3 | MIST | ✅ **Done** — all `mist.*` calls replaced by `ctld.utils.*`. No active `mist.*` call in `src/` |
-| 4 | Legacy API | Short term: wrappers in `src/compat/legacy_api.lua` (Phase 4). Long term v3: removed |
+| 4 | Legacy API | ⚪ Planned — wrappers in `src/compat/legacy_api.lua` (Phase 4). Long term v3: removed |
 | 5 | Lua env | Lua 5.1 DCS sandbox, desanitized server (`io`, `os`, `lfs` accessible) |
-| 6 | Testing | busted + DCS/MIST mocks in CI + in-game test missions |
-| 7 | Docs | 3 audiences: player, mission maker, developer. `documentation/` in-repo, MkDocs future |
+| 6 | Testing | ⚪ Planned — busted + DCS/MIST mocks in CI + in-game test missions (Phase 5) |
+| 7 | Docs | 🟡 Partial — `documentation/` in-repo started. MkDocs future. |
 | 8 | i18n | ✅ **Done** — `src/CTLD_i18n*.lua` (EN/FR/ES/KO), `ctld.tr()` at all sites, generator `merger_V2/generate_i18n_dicts.ps1` |
 | 9 | Branching | Feature branches `feature/<description>`. `master` stays stable |
-| 10 | Events | 38 CTLD events fully specified (8 modules). EventDispatcher publish/subscribe in Phase 2 (CTLDCore) |
-| 11 | Scenes | One scene = one file in `src/scenes/`. Auto-register via `CTLDSceneManager.getInstance():registerSceneModel(...)` |
-| 12 | Registry | `CTLDObjectRegistry` scope: spawn descriptors + scenes only |
-| 13 | Core bridge | `CTLDDCSEventBridge` single DCS event handler. `CTLDPlayerTracker` without MIST |
-| 14 | Review | For every implemented file: analyse → propose improvements → validate → fix before moving on |
+| 10 | Events | ✅ **Spec done** — 38 CTLD events specified. EventDispatcher ✅. CTLDDCSEventBridge ✅. StateManager + Coalition supprimés (absorbés par managers). Impl: C1 pending. |
+| 11 | Scenes | ✅ **Done** — `src/scenes/` (9 files). Auto-register via `CTLDSceneManager.getInstance():registerSceneModel(...)` |
+| 12 | Registry | ✅ **Done** — `src/lib/CTLD_objectRegistry.lua` relocated. Scope: spawn descriptors + scenes only. |
+| 13 | Core bridge | 🟡 Spec done — `CTLDDCSEventBridge` + `CTLDPlayerTracker` specs validated. Impl: C1 pending. |
+| 14 | Review | Ongoing — for every implemented file: analyse → propose improvements → validate → fix before moving on |
 
 ---
 
@@ -38,7 +38,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | Phase | Description | Status |
 | ----- | ----------- | ------ |
-| **0** | Specification & Architecture | ✅ 100% |
+| **0** | Specification & Architecture | 🟡 ~90% (C1 specs ✅, Feature A ⚪, Feature C event ⚪) |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
 | **2** | Module split + OOP (`src/`) | 🟡 ~30% |
 | **3** | MIST middleware | ✅ Done |
@@ -53,8 +53,8 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ## PRIORITY ORDER — Next steps
 
 ```text
-🔴 P1  src/lib/class.lua + refactor 5 existing files       [BLOCKING — OOP prerequisite]
-🟠 C1  src/CTLD_core.lua (EventBridge + PlayerTracker + StateManager + Coalition)
+✅ P1  src/lib/class.lua + refactor 4 files + relocate objectRegistry  [DONE]
+✅ C1  src/CTLD_core.lua (EventDispatcher + CTLDDCSEventBridge + CTLDPlayerTracker + CTLDCoreManager)  [2026-04-02]
 🟡 M1  src/CTLD_zone.lua
 🟡 M2  src/CTLD_beacon.lua
 🟡 M3  src/CTLD_recon.lua
@@ -67,6 +67,9 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ⚪  Q3  GitHub Actions CI              [after tests]
 ⚪  Q4  source/ dead code cleanup      [non-blocking, before v2 release]
 ⚪  Q5  documentation complete         [ongoing]
+-- Specs manquantes (Phase 0 restante, non bloquantes pour C1) --
+✅  S1  Feature A spec (virtual parachute)  [validé 2026-04-02]
+✅  S2  Feature C spec (OnMMCrateDetected event)  [validé 2026-04-02]
 ```
 
 ---
@@ -90,10 +93,11 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | ID | Feature | Status |
 | -- | ------- | ------ |
-| A | Virtual parachute drop (crates + troops + vehicles) | ⚪ To specify |
+| A | Virtual parachute drop (crates + troops + vehicles) | ✅ Spec validée (2026-04-02) — memory: project_feature_a_spec.md |
 | B | Virtual slingload | ✅ Integrated in crates spec |
 | C | MM crate detection at startup (INIT-B + OnMMCrateDetected) | ⚪ To specify |
 | D | Custom LoadableGroups API for mission makers | ⚪ Spec validated, to implement |
+| E | Dedicated CTLD log file (`ctld.log`) | ⚪ To implement |
 
 ### 0.3 — Architecture validated
 
@@ -174,8 +178,8 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 
 | # | File | Classes | Status | Spec |
 | - | ---- | ------- | ------ | ---- |
-| P1 | `src/lib/class.lua` | — (OOP framework) | ⚪ **NEXT** | — |
-| C1 | `src/CTLD_core.lua` | CTLDCoreManager, CTLDDCSEventBridge, CTLDPlayerTracker, EventDispatcher, CTLDStateManager, CTLDCoalition | ⚪ | `Specs/project_dcs_event_bridge_spec.md` |
+| P1 | `src/lib/class.lua` + `src/lib/CTLD_objectRegistry.lua` | — (OOP framework + registry relocation) | ✅ **Done** | — |
+| C1 | `src/CTLD_core.lua` | CTLDCoreManager, CTLDDCSEventBridge, CTLDPlayerTracker, EventDispatcher | ⚪ spec ✅ | memory: project_eventdispatcher_spec, project_dcs_event_bridge_spec, project_ctld_player_tracker_spec, project_ctld_init_[abc]_spec |
 | M1 | `src/CTLD_zone.lua` | CTLDLogisticZone, CTLDZoneManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ⚪ | `Specs/project_ctld_events_beacons_spec.md` |
 | M3 | `src/CTLD_recon.lua` | CTLDReconScanner, CTLDReconManager | ⚪ | `Specs/project_ctld_events_recon_spec.md` |
@@ -184,18 +188,17 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |
 
-### 2.3 — CTLDCoalition (inside CTLDCore — C1)
+### 2.3 — ~~CTLDCoalition~~ / ~~CTLDStateManager~~ — SUPPRIMÉS ✅
 
-Eliminates the 50+ `if coalition == 1 then … RED … else … BLUE` branches.
+**Décision 2026-04-02** : ces deux classes sont supprimées du plan.
 
-```lua
--- Before: if _heli:getCoalition() == 1 then list = ctld.droppedTroopsRED else list = ctld.droppedTroopsBLUE end
--- After:  local list = stateManager:getCoalition(heli:getCoalition()):getDroppedTroops()
-```
+Les managers OOP absorbent naturellement l'état coalition sans couche intermédiaire :
 
-### 2.4 — CTLDStateManager (inside CTLDCore — C1)
+- État coalition-splitté → convention uniforme `self._data = { [1]={}, [2]={} }` dans chaque manager
+- Les 50+ branches `if coalition==1` du legacy disparaissent par construction (indexation directe par `coalitionId`)
+- Pas de registre central nécessaire : chaque manager est propriétaire de son état
 
-Central registry replacing 34 global coalition-duplicated tables.
+**C1 se réduit à 4 classes :** CTLDDCSEventBridge, CTLDPlayerTracker, CTLDCoreManager, EventDispatcher.
 
 ### 2.5 — Features implementation
 
@@ -205,6 +208,32 @@ Central registry replacing 34 global coalition-duplicated tables.
 | D — Custom LoadableGroups API | CTLDTroopManager (already implemented) | ⚪ To implement |
 | C — MM crate detection | CTLDCoreManager INIT-B | ⚪ To specify fully |
 | A — Virtual parachute (crates + troops + vehicles) | All managers | ⚪ To specify |
+| E — Dedicated CTLD log file | CTLDUtils (`ctld.utils.log`) | ⚪ To implement |
+
+### 2.6 — Feature E: Dedicated CTLD log file (`ctld.log`)
+
+**Goal:** write all CTLD log messages to a dedicated file in addition to DCS.log, so developers can review CTLD output without filtering through the full DCS log.
+
+**Behaviour:**
+
+- All messages routed through `ctld.utils.log()` are written simultaneously to `DCS.log` (unchanged) and to `ctld.log`.
+- `ctld.log` is located in the local repository root (same directory as the mission or the dev workspace). Exact path resolved via `lfs.writedir()` at init time.
+- File is opened in append mode at CTLD init; closed (flushed) on each write to avoid data loss on crash.
+- Each line: `[HH:MM:SS][LEVEL] message` (wall-clock time via `os.date`).
+
+**Activation:**
+
+- Config param: `CTLD_enableDevLog` (boolean, default `false`).
+- When `false`: zero overhead, `io.open` is never called.
+- Requires desanitized DCS server (`io` and `lfs` accessible). If `io` is not available and the param is `true`, a single DCS.log warning is emitted and the feature silently disables itself.
+
+**Implementation location:** `ctld.utils.log()` in `src/CTLD_utils.lua` — add the file-write path alongside the existing `env.info` call.
+
+**Config key to add in `CTLDConfig`:**
+
+```lua
+CTLD_enableDevLog = false,   -- developer only; requires desanitized server
+```
 
 ---
 
@@ -307,7 +336,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 
 ## Branching strategy
 
-```
+```text
 master (stable v1.x)
   └── feature_modularisation_and_Config  (v2 in progress)
         └── feature/<description>        (sub-features)

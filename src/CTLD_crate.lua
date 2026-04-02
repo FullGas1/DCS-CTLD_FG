@@ -27,8 +27,7 @@ ctld = ctld or {}
 -- CTLDCrate  (entity)
 -- ============================================================
 
-CTLDCrate = {}
-CTLDCrate.__index = CTLDCrate
+CTLDCrate = class()
 
 CTLDCrate.STATE = {
     SPAWNED  = "spawned",
@@ -54,28 +53,26 @@ CTLDCrate.SPAWN_METHOD = {
 --   heading (number|nil)        radians, defaults to 0
 --   spawnedBy (string|nil)      player name if spawned via menu
 --   dcsStatic (StaticObject|nil)
-function CTLDCrate:new(data)
-    local o = setmetatable({}, CTLDCrate)
-    o.crateName    = data.crateName
-    o.descriptor   = data.descriptor
-    o.state        = CTLDCrate.STATE.SPAWNED
-    o.spawnMethod  = data.spawnMethod
-    o.spawnedBy    = data.spawnedBy or nil
-    o.spawnTime    = timer.getAbsTime()
-    o.position     = data.position
-    o.heading      = data.heading or 0
-    o.coalition    = data.coalition
-    o.loadedBy     = nil
-    o.loadTime     = nil
-    o.dcsStatic    = data.dcsStatic or nil
-    o.hasMoved     = false
-    o.canBeUnpacked = true
+function CTLDCrate:init(data)
+    self.crateName    = data.crateName
+    self.descriptor   = data.descriptor
+    self.state        = CTLDCrate.STATE.SPAWNED
+    self.spawnMethod  = data.spawnMethod
+    self.spawnedBy    = data.spawnedBy or nil
+    self.spawnTime    = timer.getAbsTime()
+    self.position     = data.position
+    self.heading      = data.heading or 0
+    self.coalition    = data.coalition
+    self.loadedBy     = nil
+    self.loadTime     = nil
+    self.dcsStatic    = data.dcsStatic or nil
+    self.hasMoved     = false
+    self.canBeUnpacked = true
     -- Feature A: virtual parachute (not implemented)
-    o.isParachuting          = false
-    o.parachuteStartAltitude = nil
-    o.estimatedLandingTime   = nil
-    o.timestamp              = timer.getAbsTime()
-    return o
+    self.isParachuting          = false
+    self.parachuteStartAltitude = nil
+    self.estimatedLandingTime   = nil
+    self.timestamp              = timer.getAbsTime()
 end
 
 --- Load the crate into a transport unit.
@@ -161,8 +158,7 @@ end
 -- CTLDCrateManager  (singleton)
 -- ============================================================
 
-CTLDCrateManager = {}
-CTLDCrateManager.__index = CTLDCrateManager
+CTLDCrateManager = class()
 
 local _cmInstance = nil
 
@@ -440,6 +436,19 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
         crate:destroy()
         self:_unregister(crateName)
     end
+end
+
+--- S_EVENT_BIRTH handler: register cargo statics that spawn via late activation.
+-- Registered in CTLDDCSEventBridge by CTLDCoreManager.
+function CTLDCrateManager:onBirth(event)
+    local obj = event.initiator
+    if not (obj and obj.isExist and obj:isExist()) then return end
+    if Object.getCategory(obj) ~= 6 then return end
+    local desc = obj:getDesc()
+    if not (desc and desc.attributes and desc.attributes.Cargos == true) then return end
+    local unitName = obj:getName()
+    if self:getCrateByName(unitName) then return end   -- already registered (CTLD-spawned)
+    self:registerMMCrate(obj, desc)
 end
 
 --- Cleanup: destroy all tracked crates.

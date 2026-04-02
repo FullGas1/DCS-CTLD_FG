@@ -32,8 +32,7 @@ ctld = ctld or {}
 -- CTLDJTAC  (entity)
 -- ============================================================
 
-CTLDJTAC = {}
-CTLDJTAC.__index = CTLDJTAC
+CTLDJTAC = class()
 
 CTLDJTAC.STATE = {
     IDLE       = "idle",
@@ -69,36 +68,33 @@ CTLDJTAC.LOCK_MODE = {
 --   smokeEnabled (boolean)  auto-smoke on target
 --   smokeColor   (number)   trigger.smokeColor.*
 --   lockMode     (string)   "all" | "vehicle" | "troop"
-function CTLDJTAC:new(data)
-    local o = setmetatable({}, CTLDJTAC)
-    o.groupName    = data.groupName
-    o.laserCode    = data.laserCode
-    o.isFlying     = data.isFlying    or false
-    o.isInfantry   = data.isInfantry  or false
-    o.coalitionId  = data.coalitionId
-    o.smokeEnabled = data.smokeEnabled or false
-    o.smokeColor   = data.smokeColor  or trigger.smokeColor.Red
-    o.lockMode     = data.lockMode    or "all"
-    o.state        = CTLDJTAC.STATE.IDLE
+function CTLDJTAC:init(data)
+    self.groupName    = data.groupName
+    self.laserCode    = data.laserCode
+    self.isFlying     = data.isFlying    or false
+    self.isInfantry   = data.isInfantry  or false
+    self.coalitionId  = data.coalitionId
+    self.smokeEnabled = data.smokeEnabled or false
+    self.smokeColor   = data.smokeColor  or trigger.smokeColor.Red
+    self.lockMode     = data.lockMode    or "all"
+    self.state        = CTLDJTAC.STATE.IDLE
 
-    o.radio = CTLDJTACDetector.calculateFMRadio(data.groupName, data.laserCode)
+    self.radio = CTLDJTACDetector.calculateFMRadio(data.groupName, data.laserCode)
 
-    o.currentTarget  = nil   -- { unitName, unitType, unitId, position, laseStartTime }
-    o.laserSpot      = nil
-    o.irSpot         = nil
+    self.currentTarget  = nil   -- { unitName, unitType, unitId, position, laseStartTime }
+    self.laserSpot      = nil
+    self.irSpot         = nil
 
     -- Flying JTACs only: route stored before first orbit task (used to restore on orbit stop)
-    o.initialRoute   = nil
-    o.orbitStartTime = nil
+    self.initialRoute   = nil
+    self.orbitStartTime = nil
 
     -- Target selection (1 = auto mode, string = manually selected unitName)
-    o.selectedTarget = 1
+    self.selectedTarget = 1
 
     -- Per-JTAC special options (toggled via F10 menu)
-    o.standbyMode         = false
-    o.laseSpotCorrections = false
-
-    return o
+    self.standbyMode         = false
+    self.laseSpotCorrections = false
 end
 
 --- Begin lasing a new target.
@@ -389,8 +385,7 @@ end
 -- CTLDJTACManager  (singleton)
 -- ============================================================
 
-CTLDJTACManager = {}
-CTLDJTACManager.__index = CTLDJTACManager
+CTLDJTACManager = class()
 CTLDJTACManager._instance = nil
 
 --- Return (or create) the singleton instance.
@@ -399,6 +394,7 @@ function CTLDJTACManager.get()
         local o          = setmetatable({}, CTLDJTACManager)
         o.jtacs          = {}
         o._laserPool     = {}
+        o._pendingJTACs  = {}
         o._orbitScheduleId = nil
         o:_initLaserPool()
         CTLDJTACManager._instance = o
@@ -915,9 +911,49 @@ function CTLDJTACManager:_freeLaserCode(code)
     end
 end
 
---- Publish an event via EventDispatcher (if available).
+--- Publish an event via EventDispatcher.
 function CTLDJTACManager:_publishEvent(eventName, payload)
-    if EventDispatcher then
-        EventDispatcher.publish(eventName, payload)
+    EventDispatcher.getInstance():publish(eventName, payload)
+end
+
+--- Register a pre-placed MM JTAC group (reuses spawnJTAC logic).
+-- Called by CTLDCoreManager:_initMMJTACs() for active groups,
+-- and by onBirth() for late-activation groups.
+-- @param group Group  DCS group object (must be active and exist)
+-- @return CTLDJTAC or nil
+function CTLDJTACManager:registerMMJTAC(group)
+    return self:spawnJTAC(group:getName(), nil, "mission_maker")
+end
+
+--- Mark a JTAC group as pending late activation.
+-- @param groupName string
+function CTLDJTACManager:markPendingJTAC(groupName)
+    self._pendingJTACs[groupName] = true
+end
+
+--- Return true if groupName is marked as pending.
+-- @param groupName string
+-- @return boolean
+function CTLDJTACManager:_isPendingJTAC(groupName)
+    return self._pendingJTACs[groupName] == true
+end
+
+--- Clear the pending flag for groupName.
+-- @param groupName string
+function CTLDJTACManager:_clearPendingJTAC(groupName)
+    self._pendingJTACs[groupName] = nil
+end
+
+--- S_EVENT_BIRTH handler: activate pending late-activation JTAC groups.
+-- Registered in CTLDDCSEventBridge by CTLDCoreManager.
+function CTLDJTACManager:onBirth(event)
+    local unit = event.initiator
+    if not unit then return end
+    local group = (unit.getGroup and unit:getGroup()) or nil
+    if not group then return end
+    local groupName = group:getName()
+    if self:_isPendingJTAC(groupName) then
+        self:registerMMJTAC(group)
+        self:_clearPendingJTAC(groupName)
     end
 end
