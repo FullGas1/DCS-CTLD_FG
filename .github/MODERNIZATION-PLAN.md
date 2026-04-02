@@ -56,7 +56,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ P1  src/lib/class.lua + refactor 4 files + relocate objectRegistry  [DONE]
 ✅ C1  src/CTLD_core.lua (EventDispatcher + CTLDDCSEventBridge + CTLDPlayerTracker + CTLDCoreManager)  [2026-04-02]
 ✅ M1  src/CTLD_zone.lua  [2026-04-02]
-🟡 M2  src/CTLD_beacon.lua
+✅ M2  src/CTLD_beacon.lua  [2026-04-02]
 🟡 M3  src/CTLD_recon.lua
 🟡 M4  src/CTLD_fob.lua
 🟡 M5  src/CTLD_vehicle.lua
