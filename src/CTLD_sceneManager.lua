@@ -25,8 +25,7 @@
 -- CtldScene
 -- ====================================================================================================
 
-CtldScene = {}
-CtldScene.__index = CtldScene
+CtldScene = class()
 
 local _sceneCounter = 0
 
@@ -34,8 +33,7 @@ local _sceneCounter = 0
 -- @param unit   DCS Unit object (trigger unit — position/heading snapshot is taken here)
 -- @param model  table { name=string, steps={...} }
 -- @return CtldScene
-function CtldScene.new(unit, model)
-    local self = setmetatable({}, CtldScene)
+function CtldScene:init(unit, model)
     _sceneCounter  = _sceneCounter + 1
     self._name     = string.format("%s#%d", model.name, _sceneCounter)
     self._unit     = unit
@@ -56,7 +54,6 @@ function CtldScene.new(unit, model)
     self._magDecDeg = math.deg(
         ctld.utils.getNorthCorrectionInRadians("CtldScene", { x = self._refX, y = self._refZ })
     )
-    return self
 end
 
 -- Schedules the first step.
@@ -167,8 +164,7 @@ end
 -- CTLDSceneManager
 -- ====================================================================================================
 
-CTLDSceneManager = {}
-CTLDSceneManager.__index = CTLDSceneManager
+CTLDSceneManager = class()
 
 local _smInstance = nil
 
@@ -220,7 +216,7 @@ function CTLDSceneManager:playScene(unit, modelName)
         ctld.utils.log("WARN", "CTLDSceneManager:playScene: unknown model '%s'", tostring(modelName))
         return nil
     end
-    local scene = CtldScene.new(unit, model)
+    local scene = CtldScene:new(unit, model)
     self._active[scene._name] = scene
     scene:_execute()
     ctld.utils.log("INFO", "CTLDSceneManager: started scene '%s' for unit '%s'",

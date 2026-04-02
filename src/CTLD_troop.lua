@@ -18,8 +18,7 @@ ctld = ctld or {}
 -- CTLDTroopGroup  (entity)
 -- ============================================================
 
-CTLDTroopGroup = {}
-CTLDTroopGroup.__index = CTLDTroopGroup
+CTLDTroopGroup = class()
 
 CTLDTroopGroup.STATE = {
     LOADED    = "loaded",
@@ -37,19 +36,17 @@ CTLDTroopGroup.STATE = {
 --   coalitionId  (number)      coalition.side.*
 --   countryId    (number)      DCS country id
 --   state        (string|nil)  CTLDTroopGroup.STATE.* — defaults to LOADED
-function CTLDTroopGroup:new(data)
-    local o = setmetatable({}, CTLDTroopGroup)
-    o.templateKey  = data.templateKey
-    o.templateName = data.templateName
-    o.unitTotal    = data.unitTotal
-    o.weight       = data.weight
-    o.hasJtac      = data.hasJtac or false
-    o.coalitionId  = data.coalitionId
-    o.countryId    = data.countryId
-    o.state        = data.state or CTLDTroopGroup.STATE.LOADED
-    o.dcsGroup     = nil
-    o.loadTime     = timer.getAbsTime()
-    return o
+function CTLDTroopGroup:init(data)
+    self.templateKey  = data.templateKey
+    self.templateName = data.templateName
+    self.unitTotal    = data.unitTotal
+    self.weight       = data.weight
+    self.hasJtac      = data.hasJtac or false
+    self.coalitionId  = data.coalitionId
+    self.countryId    = data.countryId
+    self.state        = data.state or CTLDTroopGroup.STATE.LOADED
+    self.dcsGroup     = nil
+    self.loadTime     = timer.getAbsTime()
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -75,8 +72,7 @@ end
 -- CTLDTroopManager  (singleton)
 -- ============================================================
 
-CTLDTroopManager = {}
-CTLDTroopManager.__index = CTLDTroopManager
+CTLDTroopManager = class()
 
 local _instance = nil
 
