@@ -26,10 +26,10 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | 7 | Docs | 🟡 Partial — `documentation/` in-repo started. MkDocs future. |
 | 8 | i18n | ✅ **Done** — `src/CTLD_i18n*.lua` (EN/FR/ES/KO), `ctld.tr()` at all sites, generator `merger_V2/generate_i18n_dicts.ps1` |
 | 9 | Branching | Feature branches `feature/<description>`. `master` stays stable |
-| 10 | Events | ✅ **Spec done** — 38 CTLD events specified. EventDispatcher ✅. CTLDDCSEventBridge ✅. StateManager + Coalition supprimés (absorbés par managers). Impl: C1 pending. |
+| 10 | Events | ✅ **Done** — 38 CTLD events specified. EventDispatcher ✅. CTLDDCSEventBridge ✅. StateManager + Coalition supprimés (absorbés par managers). C1 impl ✅ [2026-04-02]. |
 | 11 | Scenes | ✅ **Done** — `src/scenes/` (9 files). Auto-register via `CTLDSceneManager.getInstance():registerSceneModel(...)` |
 | 12 | Registry | ✅ **Done** — `src/lib/CTLD_objectRegistry.lua` relocated. Scope: spawn descriptors + scenes only. |
-| 13 | Core bridge | 🟡 Spec done — `CTLDDCSEventBridge` + `CTLDPlayerTracker` specs validated. Impl: C1 pending. |
+| 13 | Core bridge | ✅ **Done** — `CTLDDCSEventBridge` + `CTLDPlayerTracker` specs validated. C1 impl ✅ [2026-04-02]. |
 | 14 | Review | Ongoing — for every implemented file: analyse → propose improvements → validate → fix before moving on |
 
 ---
@@ -38,9 +38,9 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | Phase | Description | Status |
 | ----- | ----------- | ------ |
-| **0** | Specification & Architecture | 🟡 ~90% (C1 specs ✅, Feature A ⚪, Feature C event ⚪) |
+| **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~30% |
+| **2** | Module split + OOP (`src/`) | 🟡 ~55% (C1+M1–M4 done, M5–M7+features pending) |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -59,7 +59,6 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M2  src/CTLD_beacon.lua  [2026-04-02]
 ✅ M3  src/CTLD_recon.lua  [2026-04-02]
 ✅ M4  src/CTLD_fob.lua   [2026-04-03]
-🟡 M5  src/CTLD_vehicle.lua
 🟡 M5  src/CTLD_vehicle.lua
 🟡 M6  src/CTLD_aasystem.lua
 🟡 M7  src/CTLD_player.lua
@@ -81,13 +80,13 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | Module | Events | Spec file |
 | ------ | ------ | --------- |
-| Crates | 6 | `Specs/project_ctld_events_crates_spec.md` |
-| Troops | 6 | `Specs/project_ctld_events_troops_spec.md` |
-| JTAC | 9 | `Specs/project_ctld_events_jtac_spec.md` |
-| Beacons | 5 | `Specs/project_ctld_events_beacons_spec.md` |
-| Recon | 4 | `Specs/project_ctld_events_recon_spec.md` |
-| Zones + Vehicles + FOB | 6 | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
-| Core Init | 1 (OnMMCrateDetected) | to specify |
+| Crates | 6 ✅ | `Specs/project_ctld_events_crates_spec.md` |
+| Troops | 6 ✅ | `Specs/project_ctld_events_troops_spec.md` |
+| JTAC | 9 ✅ | `Specs/project_ctld_events_jtac_spec.md` |
+| Beacons | 5 ✅ | `Specs/project_ctld_events_beacons_spec.md` |
+| Recon | 4 ✅ | `Specs/project_ctld_events_recon_spec.md` |
+| Zones + Vehicles + FOB | 6 ✅ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| Core Init | 1 ✅ (OnMMCrateDetected) | covered by S2 — memory: project_feature_c_spec.md |
 | **Total** | **38** | |
 
 ### 0.2 — Features
@@ -96,9 +95,9 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | -- | ------- | ------ |
 | A | Virtual parachute drop (crates + troops + vehicles) | ✅ Spec validée (2026-04-02) — memory: project_feature_a_spec.md |
 | B | Virtual slingload | ✅ Integrated in crates spec |
-| C | MM crate detection at startup (INIT-B + OnMMCrateDetected) | ⚪ To specify |
-| D | Custom LoadableGroups API for mission makers | ⚪ Spec validated, to implement |
-| E | Dedicated CTLD log file (`ctld.log`) | ⚪ To implement |
+| C | MM crate detection at startup (INIT-B + OnMMCrateDetected) | ✅ Spec validée (2026-04-02) — memory: project_feature_c_spec.md |
+| D | Custom LoadableGroups API for mission makers | ✅ Spec validated — to implement |
+| E | Dedicated CTLD log file (`ctld.log`) | ⚪ To implement (spec in §2.6) |
 
 ### 0.3 — Architecture validated
 
@@ -136,7 +135,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 ## Phase 2 — Module split + OOP (`src/`) 🟡 IN PROGRESS
 
-### 2.0 — OOP micro-framework ⚪ NEXT (P1 — BLOCKING)
+### 2.0 — OOP micro-framework ✅ DONE (P1)
 
 Create `src/lib/class.lua`:
 
@@ -165,9 +164,14 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | `src/CTLD_crate.lua` | CTLDCrate, CTLDCrateManager | 2026-03-31 |
 | `src/CTLD_troop.lua` | CTLDTroopGroup, CTLDTroopManager | 2026-03-31 |
 | `src/CTLD_jtac.lua` | CTLDJTAC, CTLDJTACDetector, CTLDJTACMessage, CTLDJTACManager | 2026-04-01 |
+| `src/CTLD_core.lua` | EventDispatcher, CTLDDCSEventBridge, CTLDPlayerTracker, CTLDCoreManager | 2026-04-02 |
+| `src/CTLD_zone.lua` | CTLDTroopZone, CTLDLogisticZone, CTLDZoneManager | 2026-04-02 |
+| `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | 2026-04-02 |
+| `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | 2026-04-02 |
+| `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | 2026-04-03 |
 | `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene | 2026-03-28 |
 | `src/scenes/CTLD_farpScene.lua` | farpScene | 2026-04-01 |
-| `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-01 |
+| `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-03 (rewritten) |
 | `src/scenes/CTLD_aaHawkScene.lua` | aaHawkScene | 2026-04-01 |
 | `src/scenes/CTLD_aaPatriotScene.lua` | aaPatriotScene | 2026-04-01 |
 | `src/scenes/CTLD_aaNasamScene.lua` | aaNasamScene | 2026-04-01 |
@@ -180,10 +184,10 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | # | File | Classes | Status | Spec |
 | - | ---- | ------- | ------ | ---- |
 | P1 | `src/lib/class.lua` + `src/lib/CTLD_objectRegistry.lua` | — (OOP framework + registry relocation) | ✅ **Done** | — |
-| C1 | `src/CTLD_core.lua` | CTLDCoreManager, CTLDDCSEventBridge, CTLDPlayerTracker, EventDispatcher | ⚪ spec ✅ | memory: project_eventdispatcher_spec, project_dcs_event_bridge_spec, project_ctld_player_tracker_spec, project_ctld_init_[abc]_spec |
-| M1 | `src/CTLD_zone.lua` | CTLDLogisticZone, CTLDZoneManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
-| M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ⚪ | `Specs/project_ctld_events_beacons_spec.md` |
-| M3 | `src/CTLD_recon.lua` | CTLDReconScanner, CTLDReconManager | ⚪ | `Specs/project_ctld_events_recon_spec.md` |
+| C1 | `src/CTLD_core.lua` | CTLDCoreManager, CTLDDCSEventBridge, CTLDPlayerTracker, EventDispatcher | ✅ **Done** [2026-04-02] | — |
+| M1 | `src/CTLD_zone.lua` | CTLDTroopZone, CTLDLogisticZone, CTLDZoneManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_beacons_spec.md` |
+| M3 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_recon_spec.md` |
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ✅ **Done** | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
@@ -323,12 +327,12 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Crates | 6 ✅ | `src/CTLD_crate.lua` ✅ | ✅ | ✅ Done |
 | Troops | 6 ✅ | `src/CTLD_troop.lua` ✅ | ✅ | ✅ Done |
 | JTAC | 9 ✅ | `src/CTLD_jtac.lua` ✅ | ✅ | ✅ Done |
-| Beacons | 5 ✅ | `src/CTLD_beacon.lua` | ✅ | ⚪ Impl pending |
-| Recon | 4 ✅ | `src/CTLD_recon.lua` | ✅ | ⚪ Impl pending |
+| Beacons | 5 ✅ | `src/CTLD_beacon.lua` ✅ | ✅ | ✅ Done |
+| Recon | 4 ✅ | `src/CTLD_recon.lua` ✅ | ✅ | ✅ Done |
 | Zones | 2 ✅ | `src/CTLD_zone.lua` ✅ | ✅ | ✅ Done |
 | Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` | ✅ | ⚪ Impl pending |
-| FOB | 3 ✅ | `src/CTLD_fob.lua` | ✅ | ⚪ Impl pending |
-| Core Init | 1 ⚪ | `src/CTLD_core.lua` | ✅ | ⚪ Impl pending |
+| FOB | 3 ✅ | `src/CTLD_fob.lua` ✅ | ✅ | ✅ Done |
+| Core Init | 1 ✅ | `src/CTLD_core.lua` ✅ | ✅ | ✅ Done |
 | Scenes | — | `src/scenes/` (9 files) ✅ | ✅ | ✅ Done |
 | i18n | — | `src/CTLD_i18n*.lua` ✅ | ✅ | ✅ Done |
 | Config | — | `src/CTLD_config.lua` ✅ | ✅ | ✅ Done |
