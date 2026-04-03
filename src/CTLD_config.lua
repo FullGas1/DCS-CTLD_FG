@@ -281,7 +281,11 @@ function CTLDConfig:load()
     -- Small FOB crates can be moved by helicopter. The FOB will require ctld.cratesRequiredForFOB larges crates and small crates are 1/3 of a large fob crate
     -- To build the FOB entirely out of small crates you will need ctld.cratesRequiredForFOB * 3
     self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
-    self.settings["buildTimeFOB"]                   = 120      --time in seconds for the FOB to be built
+    self.settings["buildTimeFOB"]                   = 120      -- time in seconds for the FOB to be built
+    self.settings["fobMinDistanceFromZones"]        = 500      -- minimum distance (m) from existing logistic zones to deploy a FOB
+    self.settings["fobLogisticZoneRadius"]          = 150      -- radius (m) of the logistic zone created around a deployed FOB
+    self.settings["fobDestructionThreshold"]        = 0.5      -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
+    self.settings["fobTroopPickupRadius"]           = 150      -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
 
     -- ═══════════════════════════════════════════════════════════
     -- [7] BEACONS — Radio beacon drop, sounds and battery life

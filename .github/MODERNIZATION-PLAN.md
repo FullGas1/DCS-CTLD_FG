@@ -58,7 +58,8 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M1  src/CTLD_zone.lua  [2026-04-02]
 ✅ M2  src/CTLD_beacon.lua  [2026-04-02]
 ✅ M3  src/CTLD_recon.lua  [2026-04-02]
-🟡 M4  src/CTLD_fob.lua
+✅ M4  src/CTLD_fob.lua   [2026-04-03]
+🟡 M5  src/CTLD_vehicle.lua
 🟡 M5  src/CTLD_vehicle.lua
 🟡 M6  src/CTLD_aasystem.lua
 🟡 M7  src/CTLD_player.lua
@@ -183,7 +184,7 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | M1 | `src/CTLD_zone.lua` | CTLDLogisticZone, CTLDZoneManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ⚪ | `Specs/project_ctld_events_beacons_spec.md` |
 | M3 | `src/CTLD_recon.lua` | CTLDReconScanner, CTLDReconManager | ⚪ | `Specs/project_ctld_events_recon_spec.md` |
-| M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ✅ **Done** | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |

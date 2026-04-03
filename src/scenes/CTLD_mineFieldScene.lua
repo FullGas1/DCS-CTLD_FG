@@ -21,11 +21,11 @@ mineFieldScene.stepsDatas = {
     -- Step 1: deploy minefield (func-only — positions computed inside)
     {
         delayAfterPreviousStep = 0,
-        func = function(triggerUnitObj, spawnedObj, step)
-            local success, result = mineFieldScene.setLandMine(triggerUnitObj, 20, 5, 15, 6, 12)
+        func = function(ctx)
+            local success, result = mineFieldScene.setLandMine(ctx.unit, 20, 5, 15, 6, 12)
             if trigger and trigger.action and trigger.action.outText then
                 trigger.action.outText(
-                    ctld.tr("--- mineField Deployed by %1 ---", triggerUnitObj:getName()), 10)
+                    ctld.tr("--- mineField Deployed by %1 ---", ctx.unit:getName()), 10)
             end
             return success, result
         end,

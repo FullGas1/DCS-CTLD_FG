@@ -33,7 +33,11 @@ local _sceneCounter = 0
 -- @param unit   DCS Unit object (trigger unit — position/heading snapshot is taken here)
 -- @param model  table { name=string, steps={...} }
 -- @return CtldScene
-function CtldScene:init(unit, model)
+-- @param unit        DCS Unit — trigger unit; position/heading snapshot taken here
+-- @param model       table    — scene model (name + steps)
+-- @param params      table    — optional key/value bag passed to step funcs via ctx.scene._params
+-- @param onComplete  function — optional callback called with (scene) when last step finishes
+function CtldScene:init(unit, model, params, onComplete)
     _sceneCounter  = _sceneCounter + 1
     self._name     = string.format("%s#%d", model.name, _sceneCounter)
     self._unit     = unit
@@ -41,9 +45,16 @@ function CtldScene:init(unit, model)
     self._stepIndex   = 0
     self._timeMarker  = 0
     self._spawnedObjs = {}
+    self._params      = params     or {}
+    self._onComplete  = onComplete or nil
+
+    -- Cache coalition/country at init so steps work even if the unit leaves mid-scene.
+    self._coalitionId = unit:getCoalition()
+    self._countryId   = unit:getCountry()
 
     -- Snapshot reference position and heading at creation time.
     -- All step positions are computed relative to this snapshot (unit may have moved).
+    -- A prescript func may override _refX/_refZ/_refAlt via ctx.scene before the first spawn step.
     local pt        = unit:getPoint()
     self._refX      = pt.x          -- world North axis
     self._refZ      = pt.z          -- world East axis
@@ -77,8 +88,8 @@ function CtldScene:_runNextStep()
         return
     end
 
-    local coalitionId = self._unit:getCoalition()
-    local countryId   = self._unit:getCountry()
+    local coalitionId = self._coalitionId
+    local countryId   = self._countryId
     local spawnedObj  = nil
 
     -- -----------------------------------------------------------------------
@@ -134,10 +145,20 @@ function CtldScene:_runNextStep()
     end
 
     -- -----------------------------------------------------------------------
-    -- Optional func
+    -- Optional func — receives a named context table (ctx).
+    -- ctx.unit       : DCS Unit (trigger unit)
+    -- ctx.spawnedObj : last object spawned in this step (nil for func-only steps)
+    -- ctx.step       : current step table
+    -- ctx.scene      : this CtldScene instance (read/write _refX/_refZ/_refAlt, _params, etc.)
     -- -----------------------------------------------------------------------
     if step.func then
-        local ok, err = pcall(step.func, self._unit, spawnedObj, step)
+        local ctx = {
+            unit       = self._unit,
+            spawnedObj = spawnedObj,
+            step       = step,
+            scene      = self,
+        }
+        local ok, err = pcall(step.func, ctx)
         if not ok then
             ctld.utils.log("ERROR", "CtldScene '%s' step %d func error: %s",
                 self._name, self._stepIndex, tostring(err))
@@ -145,7 +166,7 @@ function CtldScene:_runNextStep()
     end
 
     -- -----------------------------------------------------------------------
-    -- Schedule next step (if any)
+    -- Schedule next step, or fire onComplete when the last step finishes.
     -- -----------------------------------------------------------------------
     if self._steps[self._stepIndex + 1] then
         self._timeMarker = self._timeMarker + (tonumber(step.delayAfterPreviousStep) or 0)
@@ -157,6 +178,13 @@ function CtldScene:_runNextStep()
         end
     else
         ctld.utils.log("INFO", "CtldScene '%s': completed (%d steps)", self._name, self._stepIndex)
+        if self._onComplete then
+            local ok, err = pcall(self._onComplete, self)
+            if not ok then
+                ctld.utils.log("ERROR", "CtldScene '%s' onComplete error: %s",
+                    self._name, tostring(err))
+            end
+        end
     end
 end
 
@@ -203,10 +231,12 @@ function CTLDSceneManager:registerSceneModel(model)
 end
 
 -- Starts a named scene triggered by a DCS unit.
--- @param unit       DCS Unit object
--- @param modelName  string  key in _models
+-- @param unit        DCS Unit object
+-- @param modelName   string    key in _models
+-- @param params      table     optional key/value bag forwarded to step funcs via ctx.scene._params
+-- @param onComplete  function  optional callback(scene) fired when the last step finishes
 -- @return CtldScene instance, or nil on error
-function CTLDSceneManager:playScene(unit, modelName)
+function CTLDSceneManager:playScene(unit, modelName, params, onComplete)
     if not unit or not unit:isExist() then
         ctld.utils.log("WARN", "CTLDSceneManager:playScene: unit is nil or dead")
         return nil
@@ -216,7 +246,7 @@ function CTLDSceneManager:playScene(unit, modelName)
         ctld.utils.log("WARN", "CTLDSceneManager:playScene: unknown model '%s'", tostring(modelName))
         return nil
     end
-    local scene = CtldScene:new(unit, model)
+    local scene = CtldScene:new(unit, model, params, onComplete)
     self._active[scene._name] = scene
     scene:_execute()
     ctld.utils.log("INFO", "CTLDSceneManager: started scene '%s' for unit '%s'",
@@ -235,7 +265,7 @@ end
 
 function CTLDSceneManager:_registerBuiltins()
     self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
-    self:registerSceneModel(CTLDSceneManager._FOB_SCENE)
+    -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
 
 -- ====================================================================================================
@@ -255,9 +285,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             relativeHeadingInDegrees = 180,
             relativeAltitudeInMeters = 0,
             registryKey         = "SINGLE_HELIPAD",
-            func = function(unit, spawnedObj, step)
-                if not spawnedObj then return false end
-                local ab = Airbase.getByName(spawnedObj:getName())
+            func = function(ctx)
+                if not ctx.spawnedObj then return false end
+                local ab = Airbase.getByName(ctx.spawnedObj:getName())
                 if ab then
                     local w = ab:getWarehouse()
                     w:addLiquid(0, 10000)   -- jet fuel
@@ -380,55 +410,12 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
         -- Step 7: Completion message (func-only)
         {
             delayAfterPreviousStep = 0,
-            func = function(unit, spawnedObj, step)
+            func = function(ctx)
                 trigger.action.outText(
-                    ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", unit:getName()), 10)
+                    ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
                 return true
             end,
         },
     },
 }
 
--- ====================================================================================================
--- Built-in scene: FOB
--- 2 object steps (container + watchtower) + 1 func registering the logistic zone.
--- CTLDFOBManager.onFOBBuilt is called when that manager is loaded; guarded otherwise.
--- ====================================================================================================
-
-CTLDSceneManager._FOB_SCENE = {
-    name  = "FOB",
-    steps = {
-
-        -- Step 1: FOB outpost container (STATIC)
-        {
-            polar                    = { distance = 10, angle = 0 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FOB_container",
-        },
-
-        -- Step 2: Watchtower (STATIC)
-        {
-            polar                    = { distance = 25, angle = 5 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FOB_watchtower",
-        },
-
-        -- Step 3: Register FOB as logistic zone (func-only)
-        {
-            delayAfterPreviousStep = 0,
-            func = function(unit, spawnedObj, step)
-                -- Forward to CTLDFOBManager once it is loaded.
-                if CTLDFOBManager then
-                    CTLDFOBManager.getInstance():onFOBBuilt(unit)
-                end
-                trigger.action.outText(
-                    ctld.tr("FOB deployed by %1", unit:getName()), 10)
-                return true
-            end,
-        },
-    },
-}
