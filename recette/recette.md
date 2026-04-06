@@ -32,24 +32,24 @@ La mission de test doit contenir :
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
-| U-01 | EventDispatcher — singleton | C1 | Vérifier que deux appels getInstance() retournent la même instance | ⬜ TODO | 2 min |
-| U-02 | EventDispatcher — subscribe + publish | C1 | Callback reçoit le bon payload après subscribe/publish | ⬜ TODO | 3 min |
-| U-03 | EventDispatcher — unsubscribe | C1 | Callback non appelé après unsubscribe | ⬜ TODO | 3 min |
-| U-04 | EventDispatcher — isolation erreur | C1 | Un callback qui throw n'empêche pas l'exécution des suivants | ⬜ TODO | 3 min |
-| U-05 | CTLDDCSEventBridge — singleton + register + route | C1 | Singleton unique, register enregistre, onEvent dispatche vers le bon handler | ⬜ TODO | 4 min |
-| U-06 | CTLDPlayerTracker — getPlayerByUnit / isPlayerUnit | C1 | Index byUnit : retrouver playerName depuis unitName | ⬜ TODO | 4 min |
-| U-07 | CTLDPlayerTracker — getUnitByPlayer / getAllPlayers | C1 | Index byPlayer : retrouver unitName + coalition depuis playerName | ⬜ TODO | 4 min |
-| U-08 | CTLDZoneManager._parseTRZ — formats valides | M1 | Parser TRZ : minimal, coalition, stock, flag, target | ⬜ TODO | 5 min |
-| U-09 | CTLDZoneManager._parseTRZ — formats invalides | M1 | Parser TRZ : erreurs retournées sur noms invalides | ⬜ TODO | 3 min |
-| U-10 | CTLDZoneManager._parseLGZ — formats valides et invalides | M1 | Parser LGZ : noms bien formés et malformés | ⬜ TODO | 3 min |
-| U-11 | CTLDTroopZone.isInZone — circulaire | M1 | Point dedans / dehors sur zone circulaire | ⬜ TODO | 3 min |
-| U-12 | CTLDTroopZone consumeStock / restoreStock | M1 | Stock limité + stock illimité (pickMaxStock==0) | ⬜ TODO | 4 min |
-| U-13 | CTLDLogisticZone isInZone + getCenter | M1 | Zone statique : point dedans / dehors + center constant | ⬜ TODO | 3 min |
-| U-14 | CTLDBeacon isBatteryAlive / batteryRemaining / freqText | M2 | Batterie infinie (-1), finie et expirée ; format texte fréquences | ⬜ TODO | 4 min |
-| U-15 | CTLDBeaconManager _buildFreqPools | M2 | Pools VHF/UHF/FM générées ; NDB skippés dans VHF ; UHF < 399 MHz | ⬜ TODO | 4 min |
-| U-16 | CTLDReconRenderer.createIcon — routing | M3 | Dispatch vers la bonne fonction de dessin selon layer.iconRenderer | ⬜ TODO | 4 min |
-| U-17 | CTLDReconManager._matchLayer — layer assignment | M3 | Unité avec attribut Infantry → layer infantry retourné | ⬜ TODO | 4 min |
-| U-18 | CTLDFOB isAlive / getIntegrityPercent | M4 | Seuils : 0 objet, 1/3 vivants, tous vivants | ⬜ TODO | 4 min |
+| U-01 | EventDispatcher — singleton | C1 | Vérifier que deux appels getInstance() retournent la même instance | ✅ PASS 3/3 | 2 min |
+| U-02 | EventDispatcher — subscribe + publish | C1 | Callback reçoit le bon payload après subscribe/publish | ✅ PASS 6/6 | 3 min |
+| U-03 | EventDispatcher — unsubscribe | C1 | Callback non appelé après unsubscribe | ✅ PASS 6/6 | 3 min |
+| U-04 | EventDispatcher — isolation erreur | C1 | Un callback qui throw n'empêche pas l'exécution des suivants | ✅ PASS 5/5 | 3 min |
+| U-05 | CTLDDCSEventBridge — singleton + register + route | C1 | Singleton unique, register enregistre, onEvent dispatche vers le bon handler | ✅ PASS 9/9 | 4 min |
+| U-06 | CTLDPlayerTracker — getPlayerByUnit / isPlayerUnit | C1 | Index byUnit : retrouver playerName depuis unitName | ✅ PASS 6/6 | 4 min |
+| U-07 | CTLDPlayerTracker — getUnitByPlayer / getAllPlayers | C1 | Index byPlayer : retrouver unitName + coalition depuis playerName | ✅ PASS 11/11 | 4 min |
+| U-08 | CTLDZoneManager._parseTRZ — formats valides | M1 | Parser TRZ : minimal, coalition, stock, flag, target | ✅ PASS 24/24 | 5 min |
+| U-09 | CTLDZoneManager._parseTRZ — formats invalides | M1 | Parser TRZ : erreurs retournées sur noms invalides | ✅ PASS 11/11 | 3 min |
+| U-10 | CTLDZoneManager._parseLGZ — formats valides et invalides | M1 | Parser LGZ : noms bien formés et malformés | ✅ PASS 14/14 | 3 min |
+| U-11 | CTLDTroopZone.isInZone — circulaire | M1 | Point dedans / dehors sur zone circulaire | ✅ PASS 7/7 | 3 min |
+| U-12 | CTLDTroopZone consumeStock / restoreStock | M1 | Stock limité + stock illimité (pickMaxStock==0) | ✅ PASS 15/15 | 4 min |
+| U-13 | CTLDLogisticZone isInZone + getCenter | M1 | Zone statique : point dedans / dehors + center constant | ✅ PASS 12/12 | 3 min |
+| U-14 | CTLDBeacon isBatteryAlive / batteryRemaining / freqText | M2 | Batterie infinie (-1), finie et expirée ; format texte fréquences | ✅ PASS 10/10 | 4 min |
+| U-15 | CTLDBeaconManager _buildFreqPools | M2 | Pools VHF/UHF/FM générées ; NDB skippés dans VHF ; UHF < 399 MHz | ✅ PASS 9/9 | 4 min |
+| U-16 | CTLDReconRenderer.createIcon — routing | M3 | Dispatch vers la bonne fonction de dessin selon layer.iconRenderer | ✅ PASS 14/14 | 4 min |
+| U-17 | CTLDReconManager._matchLayer — layer assignment | M3 | Unité avec attribut Infantry → layer infantry retourné | ✅ PASS 9/9 | 4 min |
+| U-18 | CTLDFOB isAlive / getIntegrityPercent | M4 | Seuils : 0 objet, 1/3 vivants, tous vivants | ✅ PASS 10/10 | 4 min |
 | U-19 | CTLDVehicle états (WAITING → LOADED → DELIVERED) | M5 | Transitions d'état — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
 | U-20 | CTLDVehicleSpawner singleton | M5 | getInstance() retourne la même instance — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
 | U-21 | _worldToLocal + bbox inclusion | M5 | Algo géométrique pur (point dans boîte 3D) — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
@@ -61,20 +61,20 @@ La mission de test doit contenir :
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
-| F-01 | CTLDCoreManager INIT-B — statics cargo MM | C1 | coalition.getStaticObjects → cargo détectés et loggés | ⬜ TODO | 5 min |
-| F-02 | CTLDCoreManager INIT-C — groupes JTAC MM | C1 | coalition.getGroups → groupe "jtac" détecté et loggé | ⬜ TODO | 5 min |
-| F-03 | CTLDZoneManager discovery TRZ | M1 | env.mission.triggers.zones → TRZ chargées dans _troopZones | ⬜ TODO | 5 min |
-| F-04 | CTLDZoneManager discovery LGZ | M1 | env.mission.triggers.zones → LGZ chargées dans _logisticZones | ⬜ TODO | 5 min |
-| F-05 | CTLDZoneManager onDead → suppression + event | M1 | Simulation S_EVENT_DEAD sur linked unit → zone retirée + OnLogisticZoneUpdated | ⬜ TODO | 6 min |
-| F-06 | CTLDBeaconManager dropBeacon | M2 | Unit spawné + fréquences assignées + OnBeaconDropped publié | ⬜ TODO | 6 min |
-| F-07 | CTLDBeaconManager removeClosestBeacon | M2 | Beacon le plus proche supprimé + OnBeaconRemoved publié | ⬜ TODO | 6 min |
-| F-08 | CTLDBeaconManager toggleLayer | M2 | Layer ON/OFF + OnBeaconLayerToggled publié avec bon newState | ⬜ TODO | 5 min |
-| F-09 | CTLDReconManager scan | M3 | Marks F10 créés + OnReconScan publié avec targets | ⬜ TODO | 7 min |
-| F-10 | CTLDReconManager hideScan | M3 | Marks supprimés + OnReconHideTargets publié | ⬜ TODO | 5 min |
-| F-11 | CTLDReconManager enableAutoRefresh / disable | M3 | OnReconAutoRefreshEnabled + OnReconAutoRefreshDisabled publiés | ⬜ TODO | 6 min |
-| F-12 | CTLDFOBManager unpackFOBCrates → scène + OnFOBDeployed | M4 | Scène jouée, FOB créé, OnFOBDeployed avec fobId | ⬜ TODO | 10 min |
-| F-13 | CTLDFOBManager onDead → intégrité + OnFOBDestroyed | M4 | Simulation destruction objet scène → OnFOBDestroyed si seuil atteint | ⬜ TODO | 7 min |
-| F-14 | CTLDFOBManager → CTLDZoneManager.registerFOBAsLogistic | M4 | FOB déployé → zone logistique créée dans ZoneManager | ⬜ TODO | 5 min |
+| F-01 | CTLDCoreManager INIT-B — statics cargo MM | C1 | coalition.getStaticObjects → cargo détectés et loggés | ✅ PASS 3/3 | 5 min |
+| F-02 | CTLDCoreManager INIT-C — groupes JTAC MM | C1 | coalition.getGroups → groupe "jtac" détecté et loggé | ✅ PASS 3/3 | 5 min |
+| F-03 | CTLDZoneManager discovery TRZ | M1 | env.mission.triggers.zones → TRZ chargées dans _troopZones | ✅ PASS 6/6 | 5 min |
+| F-04 | CTLDZoneManager discovery LGZ | M1 | env.mission.triggers.zones → LGZ chargées dans _logisticZones | ✅ PASS 6/6 | 5 min |
+| F-05 | CTLDZoneManager onDead → suppression + event | M1 | Simulation S_EVENT_DEAD sur linked unit → zone retirée + OnLogisticZoneUpdated | ✅ PASS 8/8 | 6 min |
+| F-06 | CTLDBeaconManager dropBeacon | M2 | Unit spawné + fréquences assignées + OnBeaconDropped publié | ✅ PASS 18/18 | 6 min |
+| F-07 | CTLDBeaconManager removeClosestBeacon | M2 | Beacon le plus proche supprimé + OnBeaconRemoved publié | ✅ PASS 10/10 | 6 min |
+| F-08 | CTLDBeaconManager toggleLayer | M2 | Layer ON/OFF + OnBeaconLayerToggled publié avec bon newState | ✅ PASS 14/14 | 5 min |
+| F-09 | CTLDReconManager scan | M3 | Marks F10 créés + OnReconScan publié avec targets | ✅ PASS 9/9 | 7 min |
+| F-10 | CTLDReconManager hideScan | M3 | Marks supprimés + OnReconHideTargets publié | ✅ PASS 8/8 | 5 min |
+| F-11 | CTLDReconManager enableAutoRefresh / disable | M3 | OnReconAutoRefreshEnabled + OnReconAutoRefreshDisabled publiés | ✅ PASS 20/20 | 6 min |
+| F-12 | CTLDFOBManager unpackFOBCrates → scène + OnFOBDeployed | M4 | Scène jouée, FOB créé, OnFOBDeployed avec fobId | ✅ PASS 17/17 | 10 min |
+| F-13 | CTLDFOBManager onDead → intégrité + OnFOBDestroyed | M4 | Simulation destruction objet scène → OnFOBDestroyed si seuil atteint | ✅ PASS 21/21 | 7 min |
+| F-14 | CTLDZoneManager registerFOBAsLogistic / unregisterLogistic | M4 | register → zone accessible + event ; unregister → zone retirée + event | ✅ PASS 20/20 | 5 min |
 | F-15 | CTLDVehicleSpawner spawnVehicleForTransport | M5 | OnVehicleSpawnedForTransport — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
 | F-16 | loadVehicle method=menu_ctld | M5 | Unit détruite + OnVehicleLoaded — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
 | F-17 | unloadVehicle method=menu_ctld | M5 | Unit respawn + OnVehicleUnloaded — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |

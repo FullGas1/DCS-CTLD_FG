@@ -18,6 +18,12 @@
 - **Ne jamais interpréter ou imaginer une information manquante.** Si une information est absente ou ambiguë, poser la question avant de continuer.
 - **Toute utilisation d'une fonction ou d'un objet de l'API DCS officielle doit faire l'objet d'une vérification préalable et détaillée de la documentation Hoggit** : https://wiki.hoggitworld.com/view/Simulator_Scripting_Engine_Documentation — ne jamais supposer qu'un appel API existe ou se comporte d'une certaine façon sans l'avoir vérifié.
 
+## Autorisation Bash permanente
+
+- **Toutes les commandes Bash** sur ce projet sont autorisées de façon permanente, sans demander confirmation à l'utilisateur.
+- Cela inclut : lecture, recherche, git, build, test, exécution de scripts, et toute commande nécessaire au travail en cours.
+- Ne jamais bloquer son travail en attendant une approbation Bash.
+
 ## Exécution Lua en temps réel via Witchcraft
 
 - **Witchcraft** est un système de communication Node.js/sockets qui permet d'injecter et d'exécuter des scripts Lua directement dans une mission DCS en cours.

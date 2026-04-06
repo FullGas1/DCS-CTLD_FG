@@ -17,6 +17,11 @@ local LOG_PATH = PROJECT .. "recette/"
 dofile(SRC .. "lib/class.lua")
 dofile(SRC .. "CTLD_config.lua")
 
+-- Stub ctld.tr before config:load() — CTLD_config.lua calls it at line 348
+-- Will be properly overridden once CTLD_i18n.lua is loaded below.
+ctld = ctld or {}
+ctld.tr = ctld.tr or function(key, default) return default or key end
+
 -- Apply test configuration before loading utils
 CTLDConfig.get():load()
 
@@ -25,12 +30,22 @@ ctld = ctld or {}
 ctld.debug    = true
 ctldLogPath   = LOG_PATH   -- global used by ctld.utils.initLog()
 
+-- Close any open log handle before reloading utils (prevents orphaned handle / file lock)
+if ctld and ctld.utils and ctld.utils.closeLog then
+    ctld.utils.closeLog()
+end
+-- Release any remaining orphaned file handles from previous test runs
+collectgarbage("collect")
 dofile(SRC .. "CTLD_utils.lua")
 dofile(SRC .. "CTLD_i18n.lua")
 dofile(SRC .. "CTLD_i18n_en.lua")
 
--- Re-apply log path in case CTLD_utils reinitialised it
-ctldLogPath = LOG_PATH
+-- Inject debug + log path into config settings (initLog reads them via ctld.gs)
+CTLDConfig.get().settings["debug"]       = true
+CTLDConfig.get().settings["ctldLogPath"] = LOG_PATH
+
+-- Open CTLD.log file handle
+ctld.utils.initLog()
 
 -- ============================================================
 -- 2. ctld.gs helper (required by all src modules)
@@ -139,11 +154,34 @@ function ctld_test.assertNotNil(v, desc)
     end
 end
 
---- Finish the test case. Logs summary and final OK/KO.
+--- Flush, close, read and return the full content of CTLD.log.
+-- Use this before any io.open(CTLD.log, "r") call in a test script to avoid
+-- the write-handle lock (Windows blocks concurrent "r" open while "w" is held).
+-- NOTE: after this call the log file handle is closed; remaining asserts still
+--       appear in env.info but NOT in CTLD.log.
+function ctld_test.readLog()
+    if ctld.utils and ctld.utils.closeLog then
+        ctld.utils.closeLog()
+    end
+    local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log", "r")
+    local content = f and f:read("*a") or ""
+    if f then f:close() end
+    -- Reopen in append mode so finish() and remaining asserts still go to file
+    if ctld.utils and ctld.utils.reopenLogAppend then
+        ctld.utils.reopenLogAppend()
+    end
+    return content
+end
+
+--- Finish the test case. Logs summary, final OK/KO, then closes the log file handle.
 function ctld_test.finish()
     local verdict = (ctld_test._failed == 0) and "OK" or "KO"
     _log(string.format("END    [%s] %s — %d/%d passed  →  %s",
         ctld_test._caseId, ctld_test._caseName,
         ctld_test._passed, ctld_test._total,
         verdict))
+    -- Flush and close the log file so the next test can purge and reopen it.
+    if ctld.utils and ctld.utils.closeLog then
+        ctld.utils.closeLog()
+    end
 end

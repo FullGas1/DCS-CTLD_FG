@@ -24,7 +24,7 @@ dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_recon.lua")
 ctld_test.start("F-09", "CTLDReconManager scan — marks F10 + OnReconScan")
 
 CTLDConfig.get().settings["reconEnabled"]      = true
-CTLDConfig.get().settings["reconMinAltitude"]  = 50
+CTLDConfig.get().settings["reconMinAltitude"]  = 0   -- 0 pour permettre le scan au sol (test env)
 CTLDConfig.get().settings["reconSearchRadius"] = 10000
 
 EventDispatcher._instance    = nil

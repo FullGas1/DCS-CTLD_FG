@@ -65,12 +65,7 @@ ctld_test.assert(ok, string.format("CTLDCoreManager.getInstance() ne crash pas [
 -- Vérifier dans le log DCS que INIT-B s'est terminé
 -- La ligne de log attendue : "CTLDCoreManager: INIT-B complete — N MM crate(s) detected"
 -- On ne peut pas lire DCS.log directement, mais on peut vérifier CTLD.log
-local logContent = ""
-local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log", "r")
-if f then
-    logContent = f:read("*a")
-    f:close()
-end
+local logContent = ctld_test.readLog()
 
 ctld_test.assert(logContent:find("INIT%-B complete") ~= nil,
     "CTLD.log contient 'INIT-B complete'")

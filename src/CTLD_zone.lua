@@ -80,7 +80,7 @@ function CTLDTroopZone:isInZone(point)
     if self.verticies and #self.verticies >= 3 then
         return CTLDTroopZone._raycast(point, self.verticies)
     end
-    return ctld.utils.getDistance(point, self.center) <= self.radius
+    return ctld.utils.getDistance("CTLDTroopZone:isInZone", point, self.center) <= self.radius
 end
 
 --- Jordan ray-casting for polygonal zones.
@@ -188,7 +188,7 @@ end
 
 --- True if point is inside the zone (circular only — logistic zones are always circular).
 function CTLDLogisticZone:isInZone(point)
-    return ctld.utils.getDistance(point, self:getCenter()) <= self.radius
+    return ctld.utils.getDistance("CTLDLogisticZone:isInZone", point, self:getCenter()) <= self.radius
 end
 
 function CTLDLogisticZone:activate()   self.active = true  end

@@ -57,9 +57,7 @@ end)
 ctld_test.assert(ok, string.format("CTLDCoreManager.getInstance() ne crash pas [%s]", tostring(err)))
 
 -- Vérifier CTLD.log
-local logContent = ""
-local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log", "r")
-if f then logContent = f:read("*a"); f:close() end
+local logContent = ctld_test.readLog()
 
 ctld_test.assert(logContent:find("INIT%-C complete") ~= nil,
     "CTLD.log contient 'INIT-C complete'")

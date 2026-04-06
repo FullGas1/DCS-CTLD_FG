@@ -1344,7 +1344,7 @@ function ctld.utils.dynAdd(caller, ng)
         newGroup.units[unitIndex].unitName = nil
     end
 
-    ctld.logTrace("ctld.utils.dynAdd().nexGroup =  %s", ctld.p(newGroup))
+    ctld.utils.log("TRACE", "ctld.utils.dynAdd newGroup=%s", tostring(newGroup.name))
     coalition.addGroup(country.id[newCountry], Unit.Category[newCat], newGroup)
 
     return newGroup
@@ -1607,9 +1607,14 @@ end
 local _logFile = nil  -- module-local file handle
 
 -- Opens CTLD.log for writing if ctld.debug==true. Safe on sanitized DCS.
+-- Always closes any existing handle before opening (allows test harness to reuse the file).
 function ctld.utils.initLog()
     if ctld.gs("debug") ~= true then return end
-    if _logFile ~= nil then return end
+    -- Close any previously open handle (prevents file lock accumulation across test reloads)
+    if _logFile ~= nil then
+        pcall(function() _logFile:flush(); _logFile:close() end)
+        _logFile = nil
+    end
     local path     = ctld.gs("ctldLogPath") or ""
     local filePath = path .. "CTLD.log"
     local ok, _    = pcall(function()
@@ -1641,6 +1646,18 @@ function ctld.utils.log(level, fmt, ...)
             _logFile:flush()
         end)
     end
+end
+
+-- Reopens CTLD.log in append mode (used after closeLog + read to resume logging).
+function ctld.utils.reopenLogAppend()
+    if _logFile ~= nil then return end   -- already open
+    if ctld.gs("debug") ~= true then return end
+    local path     = ctld.gs("ctldLogPath") or ""
+    local filePath = path .. "CTLD.log"
+    pcall(function()
+        local f = io.open(filePath, "a")
+        if f then _logFile = f end
+    end)
 end
 
 -- Flushes and closes CTLD.log.

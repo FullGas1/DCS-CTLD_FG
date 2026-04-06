@@ -33,9 +33,7 @@ local zm = CTLDZoneManager._instance
 ctld_test.assertNotNil(zm, "instance CTLDZoneManager non-nil")
 
 -- Vérifier CTLD.log
-local logContent = ""
-local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log", "r")
-if f then logContent = f:read("*a"); f:close() end
+local logContent = ctld_test.readLog()
 
 ctld_test.assert(logContent:find("CTLDZoneManager ready") ~= nil,
     "CTLD.log contient 'CTLDZoneManager ready'")
