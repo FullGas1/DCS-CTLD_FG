@@ -1,0 +1,107 @@
+# CTLD_FG — Plan de recette C1 + M1–M5
+
+## Modules couverts
+
+| Module | Fichier source | Classes |
+|--------|---------------|---------|
+| C1 | `src/CTLD_core.lua` | EventDispatcher, CTLDDCSEventBridge, CTLDPlayerTracker, CTLDCoreManager |
+| M1 | `src/CTLD_zone.lua` | CTLDTroopZone, CTLDLogisticZone, CTLDZoneManager |
+| M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager |
+| M3 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager |
+| M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager |
+| M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner — **PENDING IMPLEMENTATION** |
+
+## Environnement d'exécution
+
+- Scripts injectés via **Witchcraft** dans DCS en cours de mission.
+- Commande : `node "$USERPROFILE/.vscode-dcs-tools/bridge.js" "<chemin_absolu>/recette/<cas>/test.lua"`
+- Log dual : `env.info()` → DCS.log  +  `io.open()` → `recette/CTLD.log`
+- Chaque script de cas purge `CTLD.log` en début d'exécution.
+
+## Mission martyr — prérequis
+
+La mission de test doit contenir :
+- Au moins un appareil joueur BLUE (slot occupé ou coalition)
+- Zones DCS nommées : `TRZ_alpha_B_10`, `TRZ_beta_R_0_obj1_5`, `LGZ_base_B`
+- Un static objet de type cargo (pour F-01)
+- Un groupe nommé `jtac_test` ou contenant "jtac" (pour F-02, F-09 à F-11)
+
+---
+
+## Section U — Tests unitaires (U-01 à U-22)
+
+| N° | Nom | Module | Objectif | Statut | Temps estimé |
+|----|-----|--------|----------|--------|--------------|
+| U-01 | EventDispatcher — singleton | C1 | Vérifier que deux appels getInstance() retournent la même instance | ⬜ TODO | 2 min |
+| U-02 | EventDispatcher — subscribe + publish | C1 | Callback reçoit le bon payload après subscribe/publish | ⬜ TODO | 3 min |
+| U-03 | EventDispatcher — unsubscribe | C1 | Callback non appelé après unsubscribe | ⬜ TODO | 3 min |
+| U-04 | EventDispatcher — isolation erreur | C1 | Un callback qui throw n'empêche pas l'exécution des suivants | ⬜ TODO | 3 min |
+| U-05 | CTLDDCSEventBridge — singleton + register + route | C1 | Singleton unique, register enregistre, onEvent dispatche vers le bon handler | ⬜ TODO | 4 min |
+| U-06 | CTLDPlayerTracker — getPlayerByUnit / isPlayerUnit | C1 | Index byUnit : retrouver playerName depuis unitName | ⬜ TODO | 4 min |
+| U-07 | CTLDPlayerTracker — getUnitByPlayer / getAllPlayers | C1 | Index byPlayer : retrouver unitName + coalition depuis playerName | ⬜ TODO | 4 min |
+| U-08 | CTLDZoneManager._parseTRZ — formats valides | M1 | Parser TRZ : minimal, coalition, stock, flag, target | ⬜ TODO | 5 min |
+| U-09 | CTLDZoneManager._parseTRZ — formats invalides | M1 | Parser TRZ : erreurs retournées sur noms invalides | ⬜ TODO | 3 min |
+| U-10 | CTLDZoneManager._parseLGZ — formats valides et invalides | M1 | Parser LGZ : noms bien formés et malformés | ⬜ TODO | 3 min |
+| U-11 | CTLDTroopZone.isInZone — circulaire | M1 | Point dedans / dehors sur zone circulaire | ⬜ TODO | 3 min |
+| U-12 | CTLDTroopZone consumeStock / restoreStock | M1 | Stock limité + stock illimité (pickMaxStock==0) | ⬜ TODO | 4 min |
+| U-13 | CTLDLogisticZone isInZone + getCenter | M1 | Zone statique : point dedans / dehors + center constant | ⬜ TODO | 3 min |
+| U-14 | CTLDBeacon isBatteryAlive / batteryRemaining / freqText | M2 | Batterie infinie (-1), finie et expirée ; format texte fréquences | ⬜ TODO | 4 min |
+| U-15 | CTLDBeaconManager _buildFreqPools | M2 | Pools VHF/UHF/FM générées ; NDB skippés dans VHF ; UHF < 399 MHz | ⬜ TODO | 4 min |
+| U-16 | CTLDReconRenderer.createIcon — routing | M3 | Dispatch vers la bonne fonction de dessin selon layer.iconRenderer | ⬜ TODO | 4 min |
+| U-17 | CTLDReconManager._matchLayer — layer assignment | M3 | Unité avec attribut Infantry → layer infantry retourné | ⬜ TODO | 4 min |
+| U-18 | CTLDFOB isAlive / getIntegrityPercent | M4 | Seuils : 0 objet, 1/3 vivants, tous vivants | ⬜ TODO | 4 min |
+| U-19 | CTLDVehicle états (WAITING → LOADED → DELIVERED) | M5 | Transitions d'état — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| U-20 | CTLDVehicleSpawner singleton | M5 | getInstance() retourne la même instance — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| U-21 | _worldToLocal + bbox inclusion | M5 | Algo géométrique pur (point dans boîte 3D) — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| U-22 | getDesc().box sur C-130J-30 | M5 | API DCS : vérification existence desc.box — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+
+---
+
+## Section F — Tests fonctionnels (F-01 à F-20)
+
+| N° | Nom | Module | Objectif | Statut | Temps estimé |
+|----|-----|--------|----------|--------|--------------|
+| F-01 | CTLDCoreManager INIT-B — statics cargo MM | C1 | coalition.getStaticObjects → cargo détectés et loggés | ⬜ TODO | 5 min |
+| F-02 | CTLDCoreManager INIT-C — groupes JTAC MM | C1 | coalition.getGroups → groupe "jtac" détecté et loggé | ⬜ TODO | 5 min |
+| F-03 | CTLDZoneManager discovery TRZ | M1 | env.mission.triggers.zones → TRZ chargées dans _troopZones | ⬜ TODO | 5 min |
+| F-04 | CTLDZoneManager discovery LGZ | M1 | env.mission.triggers.zones → LGZ chargées dans _logisticZones | ⬜ TODO | 5 min |
+| F-05 | CTLDZoneManager onDead → suppression + event | M1 | Simulation S_EVENT_DEAD sur linked unit → zone retirée + OnLogisticZoneUpdated | ⬜ TODO | 6 min |
+| F-06 | CTLDBeaconManager dropBeacon | M2 | Unit spawné + fréquences assignées + OnBeaconDropped publié | ⬜ TODO | 6 min |
+| F-07 | CTLDBeaconManager removeClosestBeacon | M2 | Beacon le plus proche supprimé + OnBeaconRemoved publié | ⬜ TODO | 6 min |
+| F-08 | CTLDBeaconManager toggleLayer | M2 | Layer ON/OFF + OnBeaconLayerToggled publié avec bon newState | ⬜ TODO | 5 min |
+| F-09 | CTLDReconManager scan | M3 | Marks F10 créés + OnReconScan publié avec targets | ⬜ TODO | 7 min |
+| F-10 | CTLDReconManager hideScan | M3 | Marks supprimés + OnReconHideTargets publié | ⬜ TODO | 5 min |
+| F-11 | CTLDReconManager enableAutoRefresh / disable | M3 | OnReconAutoRefreshEnabled + OnReconAutoRefreshDisabled publiés | ⬜ TODO | 6 min |
+| F-12 | CTLDFOBManager unpackFOBCrates → scène + OnFOBDeployed | M4 | Scène jouée, FOB créé, OnFOBDeployed avec fobId | ⬜ TODO | 10 min |
+| F-13 | CTLDFOBManager onDead → intégrité + OnFOBDestroyed | M4 | Simulation destruction objet scène → OnFOBDestroyed si seuil atteint | ⬜ TODO | 7 min |
+| F-14 | CTLDFOBManager → CTLDZoneManager.registerFOBAsLogistic | M4 | FOB déployé → zone logistique créée dans ZoneManager | ⬜ TODO | 5 min |
+| F-15 | CTLDVehicleSpawner spawnVehicleForTransport | M5 | OnVehicleSpawnedForTransport — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| F-16 | loadVehicle method=menu_ctld | M5 | Unit détruite + OnVehicleLoaded — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| F-17 | unloadVehicle method=menu_ctld | M5 | Unit respawn + OnVehicleUnloaded — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| F-18 | load DCS natif C-130 bbox | M5 | Bbox inclusion détectée → OnVehicleLoaded — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| F-19 | unload C-130 au sol | M5 | Sortie bbox + inAir=false → OnVehicleUnloaded method=dcs_native — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+| F-20 | unload C-130 en vol | M5 | Sortie bbox + inAir=true → OnVehicleUnloaded method=parachute — **PENDING IMPLEMENTATION** | ⬜ PENDING | — |
+
+---
+
+## Statuts
+
+| Symbole | Signification |
+|---------|--------------|
+| ⬜ TODO | À exécuter |
+| 🔄 WIP | En cours |
+| ✅ PASS | Passé (tous asserts OK) |
+| ❌ FAIL | Échec (au moins un assert KO) |
+| ⬜ PENDING | Script non codé — en attente d'implémentation M5 |
+
+---
+
+## Résumé de couverture
+
+- **C1** : 7 unitaires + 2 fonctionnels = **9 cas**
+- **M1** : 6 unitaires + 3 fonctionnels = **9 cas**
+- **M2** : 2 unitaires + 3 fonctionnels = **5 cas**
+- **M3** : 2 unitaires + 3 fonctionnels = **5 cas**
+- **M4** : 1 unitaire  + 3 fonctionnels = **4 cas**
+- **M5** : 4 unitaires + 6 fonctionnels = **10 cas (pending)**
+- **Total** : **42 cas** dont 10 pending

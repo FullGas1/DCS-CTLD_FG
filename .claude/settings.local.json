@@ -12,10 +12,14 @@
       "Bash(sed -i 's/CTLDObjectsDescDb/CTLDObjectRegistry/g; s/CTLD_objectsDescDb\\\\.lua/CTLD_objectRegistry.lua/' c:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/source_futur/CTLD_troop.lua)",
       "Bash(powershell -Command \"Get-Date -Format ''HH:mm''\")",
       "Bash(curl -s \"https://api.github.com/repos/ciribob/DCS-CTLD/contents/.github?ref=feat-use-ai-to-enhance-ctld\")",
-      "Bash(grep -n ^ctld.[a-zA-Z] c:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/source/CTLD_core.lua)"
+      "Bash(grep -n ^ctld.[a-zA-Z] c:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/source/CTLD_core.lua)",
+      "Bash(for d:*)",
+      "Bash(do mkdir:*)",
+      "Bash(done)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\Moi\\Documents\\GitHub\\DCS-CTLD_FG\\source_futur"
+      "c:\\Users\\Moi\\Documents\\GitHub\\DCS-CTLD_FG\\source_futur",
+      "c:\\Users\\Moi\\Documents\\GitHub\\DCS-CTLD_FG"
     ]
   }
 }
