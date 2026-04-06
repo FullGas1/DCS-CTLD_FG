@@ -1735,3 +1735,13 @@ function ctld.utils.getSecureDistanceFromUnit(unitName)
     if not ok or not box then return nil end
     return math.max(math.abs(box.max.x), math.abs(box.min.x))
 end
+
+--- Returns true if a unit is more than 2 m above ground level.
+-- @param unit DCS Unit
+-- @return boolean
+function ctld.utils.inAir(unit)
+    if not unit or not unit.getPoint then return false end
+    local pt   = unit:getPoint()
+    local gndH = land.getHeight({ x = pt.x, y = pt.z })
+    return (pt.y - gndH) > 2.0
+end
