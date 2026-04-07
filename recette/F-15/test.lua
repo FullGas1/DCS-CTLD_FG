@@ -17,6 +17,7 @@
 do local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log","w") if f then f:close() end end
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/setup.lua")
+ctld_test.cleanup()
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_core.lua")
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_vehicle.lua")
@@ -31,16 +32,8 @@ local ok = pcall(function() CTLDVehicleSpawner.getInstance() end)
 ctld_test.assert(ok, "CTLDVehicleSpawner init OK")
 local vs = CTLDVehicleSpawner._instance
 
--- Récupérer un transport BLUE
-local transport = nil
-local blueUnits = coalition.getPlayers(coalition.side.BLUE) or {}
-if #blueUnits > 0 then transport = blueUnits[1] end
-
-if not transport then
-    ctld_test.assert(false, "ECHEC SETUP : aucun transport BLUE dans la mission")
-    ctld_test.finish()
-    return
-end
+local transport = ctld_test.getTransport()
+if not transport then ctld_test.finish() return end
 
 -- Capturer OnVehicleSpawnedForTransport
 local spawnedPayload = nil

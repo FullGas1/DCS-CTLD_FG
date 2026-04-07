@@ -47,6 +47,12 @@ CTLDConfig.get().settings["ctldLogPath"] = LOG_PATH
 -- Open CTLD.log file handle
 ctld.utils.initLog()
 
+-- ctld.logInfo / logWarning / logError — used by CTLD_menu.lua and other src modules.
+-- Route through ctld.utils.log so all output lands in CTLD.log.
+ctld.logInfo    = ctld.logInfo    or function(fmt, ...) ctld.utils.log("INFO",    fmt, ...) end
+ctld.logWarning = ctld.logWarning or function(fmt, ...) ctld.utils.log("WARNING", fmt, ...) end
+ctld.logError   = ctld.logError   or function(fmt, ...) ctld.utils.log("ERROR",   fmt, ...) end
+
 -- ============================================================
 -- 2. ctld.gs helper (required by all src modules)
 -- ============================================================
@@ -171,6 +177,39 @@ function ctld_test.readLog()
         ctld.utils.reopenLogAppend()
     end
     return content
+end
+
+--- Destroy all CTLD-spawned ground groups left over from previous test runs.
+-- Must be called at the start of every functional test, after dofile("setup.lua")
+-- and before dofile of any src module.
+-- Targets groups whose name contains "CTLD_AA_" or "CTLD_VEH_" (naming conventions
+-- used by CTLDCrateAssemblyManager and CTLDVehicleSpawner).
+function ctld_test.cleanup()
+    local destroyed = 0
+    for _, side in ipairs({ coalition.side.BLUE, coalition.side.RED }) do
+        local groups = coalition.getGroups(side, Group.Category.GROUND) or {}
+        for _, grp in ipairs(groups) do
+            local name = grp:getName()
+            if name:find("CTLD_AA_", 1, true) or name:find("CTLD_VEH_", 1, true) then
+                grp:destroy()
+                destroyed = destroyed + 1
+            end
+        end
+    end
+    if destroyed > 0 then
+        env.info(string.format("[CTLD_TEST] cleanup: destroyed %d leftover CTLD group(s)", destroyed))
+    end
+end
+
+--- Return the first BLUE player unit, or nil.
+-- On failure, logs a FAIL assert (counted in current test) and returns nil.
+-- Caller must guard: if not transport then ctld_test.finish() return end
+-- @return DCS Unit or nil
+function ctld_test.getTransport()
+    local units = coalition.getPlayers(coalition.side.BLUE) or {}
+    if #units > 0 then return units[1] end
+    ctld_test.assert(false, "ECHEC SETUP: aucun transport BLUE dans la mission")
+    return nil
 end
 
 --- Finish the test case. Logs summary, final OK/KO, then closes the log file handle.

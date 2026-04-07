@@ -15,6 +15,7 @@
 do local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log","w") if f then f:close() end end
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/setup.lua")
+ctld_test.cleanup()
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_core.lua")
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_vehicle.lua")
@@ -28,16 +29,8 @@ CTLDDCSEventBridge._instance = nil
 CTLDVehicleSpawner.getInstance()
 local vs = CTLDVehicleSpawner._instance
 
--- Récupérer un transport BLUE
-local transport = nil
-local blueUnits = coalition.getPlayers(coalition.side.BLUE) or {}
-if #blueUnits > 0 then transport = blueUnits[1] end
-
-if not transport then
-    ctld_test.assert(false, "ECHEC SETUP : aucun transport BLUE dans la mission")
-    ctld_test.finish()
-    return
-end
+local transport = ctld_test.getTransport()
+if not transport then ctld_test.finish() return end
 
 local vehicleType = "M1045 HMMWV TOW"
 
@@ -79,7 +72,7 @@ if unloadedPayload then
         "payload.vehicleId correct")
     ctld_test.assertEqual(unloadedPayload.vehicleType, vehicleType,
         "payload.vehicleType correct")
-    ctld_test.assertNotNil(unloadedPayload.transport, "payload.transport non-nil")
+    ctld_test.assertNotNil(unloadedPayload.transportUnitObject, "payload.transportUnitObject non-nil")
     ctld_test.assertEqual(unloadedPayload.method, "menu_ctld",
         "payload.method == 'menu_ctld'")
     ctld_test.assertEqual(unloadedPayload.player, "TestPlayer",

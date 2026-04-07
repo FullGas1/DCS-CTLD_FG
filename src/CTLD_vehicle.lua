@@ -303,16 +303,17 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     vehicle:setState(CTLDVehicle.STATE.LOADED)
 
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
-        vehicleId         = vehicle.id,
-        vehicle           = nil,    -- unit no longer exists in DCS
-        vehicleType       = vehicle.vehicleType,
-        transport         = transport,
-        player            = player,
-        method            = method,
-        spawnMethod       = "request_vehicle",
-        position          = unitPos,
-        transportPosition = transport:getPoint(),
-        timestamp         = timer.getAbsTime(),
+        vehicleId            = vehicle.id,
+        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
+        dcsUnitObject        = nil,              -- DCS unit no longer exists in world
+        vehicleType          = vehicle.vehicleType,
+        transportUnitObject  = transport,        -- DCS Unit carrying the vehicle
+        player               = player,
+        method               = method,
+        spawnMethod          = "request_vehicle",
+        position             = unitPos,
+        transportPosition    = transport:getPoint(),
+        timestamp            = timer.getAbsTime(),
     })
 
     ctld.utils.log("INFO", string.format(
@@ -383,15 +384,16 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
-        vehicleId  = vehicle.id,
-        vehicle    = respawnedUnit,
-        vehicleType = vehicle.vehicleType,
-        transport  = transport,
-        player     = player,
-        method     = method,
-        spawnMethod = "request_vehicle",
-        position   = spawnPos,
-        timestamp  = timer.getAbsTime(),
+        vehicleId            = vehicle.id,
+        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
+        dcsUnitObject        = respawnedUnit,    -- newly spawned DCS unit (may be nil on failure)
+        vehicleType          = vehicle.vehicleType,
+        transportUnitObject  = transport,        -- DCS Unit that was carrying the vehicle
+        player               = player,
+        method               = method,
+        spawnMethod          = "request_vehicle",
+        position             = spawnPos,
+        timestamp            = timer.getAbsTime(),
     })
 
     ctld.utils.log("INFO", string.format(

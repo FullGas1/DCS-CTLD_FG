@@ -1,13 +1,14 @@
-[CTLD] Log started : 2026-04-06 22:51:25
-[CTLD][TEST] START  [F-09] CTLDReconManager scan — marks F10 + OnReconScan
-[CTLD][INFO] CTLDReconManager: init complete
-[CTLD][TEST]   OK     CTLDReconManager init OK
-[CTLD][TEST]   OK     scan() ne crash pas
-[CTLD][TEST]   OK     OnReconScan publié après scan  [table: 0000023C7D37D408]
-[CTLD][TEST]   OK     payload.player non-nil  [Nouveau Surnom]
-[CTLD][TEST]   OK     payload.activeLayers non-nil  [table: 0000023C7D37D248]
-[CTLD][TEST]   OK     payload.targets non-nil  [table: 0000023C7D37D188]
-[CTLD][TEST]   OK     payload.targets est une table
-[CTLD][TEST]   OK     scan actif enregistré pour le player  [table: 0000023C7D37D208]
-[CTLD][TEST]   OK     INFO: 0 cible détectée (aucun ennemi visible à portée depuis 'uh1-1')
-[CTLD][TEST] END    [F-09] CTLDReconManager scan — marks F10 + OnReconScan — 9/9 passed  →  OK
+[CTLD] Log started : 2026-04-07 16:32:04
+[CTLD][TEST] START  [F-26] onPlayerLeaveUnit → player supprimé de _players
+[CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
+[CTLD][INFO] CTLDPlayerManager: init complete
+[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 1
+[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 1 items for group 1
+[CTLD][INFO] CTLDPlayerManager: enter unit=uh1-1 type=UH-1H transport=true vehicles=false
+[CTLD][TEST]   OK     onPlayerEnterUnit ne crash pas
+[CTLD][TEST]   OK     player présent après Enter  [table: 000001A7CEEF0CB8]
+[CTLD][INFO] CTLDPlayerManager: leave unit=uh1-1
+[CTLD][TEST]   OK     onPlayerLeaveUnit ne crash pas
+[CTLD][TEST]   OK     getPlayer(unitName) == nil après Leave  [nil]
+[CTLD][TEST]   OK     _players vide après Leave  [0 == 0]
+[CTLD][TEST] END    [F-26] onPlayerLeaveUnit → player supprimé de _players — 5/5 passed  →  OK

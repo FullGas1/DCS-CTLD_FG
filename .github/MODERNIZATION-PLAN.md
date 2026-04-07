@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~75% (C1+M1–M6 done, M7+features pending) |
+| **2** | Module split + OOP (`src/`) | 🟡 ~85% (C1+M1–M7 done, features pending) |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -191,7 +191,7 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ✅ **Done** | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ✅ **Done** [2026-04-07] | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ✅ **Done** [2026-04-07] | — |
-| M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |
+| M7 | `src/CTLD_player.lua` | CTLDPlayer, CTLDPlayerManager | ✅ **Done** [2026-04-07] | — |
 
 ### 2.3 — ~~CTLDCoalition~~ / ~~CTLDStateManager~~ — SUPPRIMÉS ✅
 

@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M6
+# CTLD_FG — Plan de recette C1 + M1–M7
 
 ## Modules couverts
 
@@ -11,6 +11,7 @@
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager |
+| M7 | `src/CTLD_player.lua` | CTLDPlayer, CTLDPlayerManager |
 
 ## Environnement d'exécution
 
@@ -58,10 +59,14 @@ La mission de test doit contenir :
 | U-23 | CTLDCrateAssemblyManager singleton + getTemplateForUnit | M6 | Singleton unique, template trouvé pour parts/repair/nil | ✅ PASS 16/16 | — |
 | U-24 | countComplete + getAllowedCount + guards | M6 | 0 sans systèmes, config limits, tryUnpackOrRepair guards | ✅ PASS 11/11 | — |
 | U-25 | _buildSpawnArrays géométrie | M6 | Positions distinctes, counts corrects KUB et NASAMS | ✅ PASS 13/13 | — |
+| U-26 | CTLDPlayer entity — construct + cargo helpers | M7 | Propriétés init correctes, add/removeLoadedVehicle/Crate | ✅ PASS 20/20 | — |
+| U-27 | CTLDPlayerManager singleton + getPlayer nil | M7 | getInstance() idempotent, getPlayer inconnu == nil | ✅ PASS 5/5 | — |
+| U-28 | _detectCapabilities — isTransport + canCarryVehicles | M7 | UH-1H/Hercules/F-16C_50 détectés correctement | ✅ PASS 6/6 | — |
+| U-29 | onPlayerEnterUnit + onPlayerLeaveUnit état _players | M7 | Player créé puis supprimé, propriétés correctes | ✅ PASS 9/9 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-23)
+## Section F — Tests fonctionnels (F-01 à F-26)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -88,6 +93,9 @@ La mission de test doit contenir :
 | F-21 | _assemble KUB complet | M6 | OnAASystemDeployed publié, countComplete==1, crates détruites | ✅ PASS 11/11 | — |
 | F-22 | _assemble KUB incomplet | M6 | Pas de déploiement, pas de crates détruites | ✅ PASS 6/6 | — |
 | F-23 | _repair KUB → OnAASystemRepaired | M6 | Repair crate détruite, système remplacé dans _completeSystems | ✅ PASS 14/14 | — |
+| F-24 | onPlayerEnterUnit → menu créé | M7 | CTLDPlayer dans _players + sous-menu 'CTLD' dans ctld.MenuManager | ✅ PASS 6/6 | — |
+| F-25 | OnVehicleLoaded/Unloaded → loadedVehicles | M7 | ctldVehicleObject ajouté puis retiré de player.loadedVehicles | ✅ PASS 6/6 | — |
+| F-26 | onPlayerLeaveUnit → player + menu supprimés | M7 | getPlayer == nil après Leave, _players vide | ✅ PASS 5/5 | — |
 
 ---
 
@@ -112,4 +120,5 @@ La mission de test doit contenir :
 - **M4** : 1 unitaire  + 3 fonctionnels = **4 cas**
 - **M5** : 4 unitaires + 6 fonctionnels = **10 cas**
 - **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
-- **Total** : **48 cas** — 48/48 PASS
+- **M7** : 4 unitaires + 3 fonctionnels = **7 cas**
+- **Total** : **55 cas** — 55/55 PASS
