@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~85% (C1+M1–M7 done, features pending) |
+| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette manquante sur 3 modules core (crate/troop/jtac) + features |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -53,23 +53,77 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ## PRIORITY ORDER — Next steps
 
 ```text
-✅ P1  src/lib/class.lua + refactor 4 files + relocate objectRegistry  [DONE]
-✅ C1  src/CTLD_core.lua (EventDispatcher + CTLDDCSEventBridge + CTLDPlayerTracker + CTLDCoreManager)  [2026-04-02]
-✅ M1  src/CTLD_zone.lua  [2026-04-02]
-✅ M2  src/CTLD_beacon.lua  [2026-04-02]
-✅ M3  src/CTLD_recon.lua  [2026-04-02]
-✅ M4  src/CTLD_fob.lua   [2026-04-03]
-✅ M5  src/CTLD_vehicle.lua  [2026-04-07]
-✅ M6  src/CTLD_aasystem.lua  [2026-04-07]
-🟡 M7  src/CTLD_player.lua
-⚪  Q1  src/compat/legacy_api.lua      [after Phase 2 complete]
-⚪  Q2  tests/ busted                  [after Phase 2 complete]
-⚪  Q3  GitHub Actions CI              [after tests]
-⚪  Q4  source/ dead code cleanup      [non-blocking, before v2 release]
-⚪  Q5  documentation complete         [ongoing]
--- Specs manquantes (Phase 0 restante, non bloquantes pour C1) --
-✅  S1  Feature A spec (virtual parachute)  [validé 2026-04-02]
-✅  S2  Feature C spec (OnMMCrateDetected event)  [validé 2026-04-02]
+── FONDATIONS IMPLÉMENTÉES, RECETTE COMPLÈTE ─────────────────────────────────
+✅ P1  src/lib/class.lua + objectRegistry          recette: N/A (lib interne)
+✅ C1  src/CTLD_core.lua                           recette: 9/9  100% [2026-04-02]
+✅ M1  src/CTLD_zone.lua                           recette: 9/9  100% [2026-04-02]
+✅ M2  src/CTLD_beacon.lua                         recette: 5/5  100% [2026-04-02]
+✅ M3  src/CTLD_recon.lua                          recette: 5/5  100% [2026-04-02]
+✅ M4  src/CTLD_fob.lua                            recette: 4/4  100% [2026-04-03] ⚠️ visuel scène à valider
+✅ M5  src/CTLD_vehicle.lua                        recette: 10/10 100% [2026-04-07]
+✅ M6  src/CTLD_aasystem.lua                       recette: 6/6  100% [2026-04-07]
+✅ M7  src/CTLD_player.lua                         recette: 7/7  100% [2026-04-07]
+
+── IMPLÉMENTÉS — RECETTE MANQUANTE ──────────────────────────────────────────
+🟡 R1  src/CTLD_crate.lua  (CTLDCrate + CTLDCrateManager)
+       recette: 0%  À générer — cas suggérés:
+         U: singleton, spawnCrate, getCrateByName, registerMMCrate, isNearby
+         F: spawnCrate→OnCrateSpawned, loadCrate→OnCrateLoaded,
+            unloadCrate→OnCrateUnloaded, unpackCrate→OnCrateUnpacked,
+            tryPackVehicle→OnVehiclePacked, timeout→OnCratesLost
+
+🟡 R2  src/CTLD_troop.lua  (CTLDTroopGroup + CTLDTroopManager)
+       recette: 0%  À générer — cas suggérés:
+         U: singleton, _registerTemplates, hasTroops, getWeight, transportLimit
+         F: loadFromZone→OnTroopsBoarded, deploy→OnTroopsDeployed,
+            returnToBase→OnTroopsExtracted, extract→OnTroopsExtracted,
+            OnTroopsDead (mort en transit), OnTroopsCountUpdated
+
+🟡 R3  src/CTLD_jtac.lua  (CTLDJTAC + CTLDJTACManager)
+       recette: 0%  À générer — cas suggérés:
+         U: singleton, isJTACUnitType, spawnJTAC, getStatus
+         F: laseStart→OnLaseStart, laseStop→OnLaseStop,
+            orbitStart→OnOrbitStart, orbitStop→OnOrbitStop,
+            dead→OnJTACDead, smokeTarget→OnSmokeTarget
+
+🟡 R4  src/CTLD_sceneManager.lua  (CTLDSceneManager)  — absent du workplan !
+       recette: 0%  À générer — cas suggérés:
+         U: registerSceneModel, isSceneModel, getSceneModel
+         F: playScene fob → objets spawnés + OnFOBDeployed ⚠️ visuel requis
+            playScene farp → objets spawnés ⚠️ visuel requis
+            playScene mineField → objets spawnés ⚠️ visuel requis
+
+🟡 R5  src/CTLD_menu.lua  (ctld.Menu + ctld.MenuManager)
+       recette: busted partiel (src/tests/CTLD_menu_test.lua) — pas de recette Witchcraft
+       À compléter: refresh atomique en DCS réel, pagination >10 items, clearBranch
+
+── FICHIER MANQUANT ─────────────────────────────────────────────────────────
+⚠️  CTLD_objectsDescDb.lua — référencé dans CTLD_loader.lua ligne 22 mais ABSENT de src/
+    → À vérifier si encore nécessaire ou à retirer du loader
+
+── FEATURES À IMPLÉMENTER ───────────────────────────────────────────────────
+⚪  FD  Feature D — Custom LoadableGroups API (CTLDTroopManager)
+        spec: validée (project_loadablegroups_api_spec.md)
+        implémentation: vérifier si déjà dans CTLD_troop.lua, sinon coder
+
+⚪  FC  Feature C — MM crate detection (INIT-B OnMMCrateDetected)
+        registerMMCrate() existe dans CTLDCrateManager — à vérifier complétude
+
+⚪  FE  Feature E — CTLD log file dédié (ctld.utils.log → ctld.log)
+        spec: §2.6 du plan — simple, autonome, peu risqué
+
+⚪  FA  Feature A — Virtual parachute (crates + troops + vehicles)
+        spec: validée (project_feature_a_spec.md) — grosse feature, dépend R1+R2
+
+⚪  FB  Feature B — Virtual slingload
+        spec: intégrée dans crates spec — vérifier si CTLDCrateManager l'implémente déjà
+
+── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
+⚪  Q1  src/compat/legacy_api.lua
+⚪  Q2  tests/ busted complets
+⚪  Q3  GitHub Actions CI
+⚪  Q4  source/ dead code cleanup (non-bloquant)
+⚪  Q5  documentation complète
 ```
 
 ---
@@ -169,15 +223,15 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | 2026-04-02 |
 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | 2026-04-02 |
 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | 2026-04-03 |
-| `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene | 2026-03-28 |
-| `src/scenes/CTLD_farpScene.lua` | farpScene | 2026-04-01 |
-| `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-03 (rewritten) |
-| `src/scenes/CTLD_aaHawkScene.lua` | aaHawkScene | 2026-04-01 |
-| `src/scenes/CTLD_aaPatriotScene.lua` | aaPatriotScene | 2026-04-01 |
-| `src/scenes/CTLD_aaNasamScene.lua` | aaNasamScene | 2026-04-01 |
-| `src/scenes/CTLD_aaBukScene.lua` | aaBukScene | 2026-04-01 |
-| `src/scenes/CTLD_aaKubScene.lua` | aaKubScene | 2026-04-01 |
-| `src/scenes/CTLD_aaS300Scene.lua` | aaS300Scene | 2026-04-01 |
+| `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene | 2026-03-28 — ⚠️ recette visuelle requise |
+| `src/scenes/CTLD_farpScene.lua` | farpScene | 2026-04-01 — ⚠️ recette visuelle requise |
+| `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-03 (rewritten) — ⚠️ recette visuelle requise |
+| ~~`src/scenes/CTLD_aa*Scene.lua`~~ | ~~6 fichiers AA~~ | 🗑️ **Supprimés 2026-04-07** — compositions AA dans CTLDCrateAssemblyManager.TEMPLATES |
+
+> **⚠️ Recette scènes** : chaque scène (farp, fob, mineField) nécessite une validation visuelle en mission DCS —
+> vérifier que les objets apparaissent au bon endroit et dans le bon ordre.
+> Les asserts Witchcraft couvrent la logique (events, états) mais **pas le rendu 3D**.
+> Avant chaque test de scène : demander à l'utilisateur de confirmer visuellement le résultat dans DCS.
 
 ### 2.2 — Remaining files (priority order)
 
@@ -322,20 +376,31 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 
 ## Module completion status
 
-| Module | Events | Impl file | Spec | Status |
-| ------ | ------ | --------- | ---- | ------ |
-| Crates | 6 ✅ | `src/CTLD_crate.lua` ✅ | ✅ | ✅ Done |
-| Troops | 6 ✅ | `src/CTLD_troop.lua` ✅ | ✅ | ✅ Done |
-| JTAC | 9 ✅ | `src/CTLD_jtac.lua` ✅ | ✅ | ✅ Done |
-| Beacons | 5 ✅ | `src/CTLD_beacon.lua` ✅ | ✅ | ✅ Done |
-| Recon | 4 ✅ | `src/CTLD_recon.lua` ✅ | ✅ | ✅ Done |
-| Zones | 2 ✅ | `src/CTLD_zone.lua` ✅ | ✅ | ✅ Done |
-| Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` ✅ | ✅ | ✅ Done [2026-04-07] |
-| FOB | 3 ✅ | `src/CTLD_fob.lua` ✅ | ✅ | ✅ Done |
-| Core Init | 1 ✅ | `src/CTLD_core.lua` ✅ | ✅ | ✅ Done |
-| Scenes | — | `src/scenes/` (9 files) ✅ | ✅ | ✅ Done |
-| i18n | — | `src/CTLD_i18n*.lua` ✅ | ✅ | ✅ Done |
-| Config | — | `src/CTLD_config.lua` ✅ | ✅ | ✅ Done |
+| Module | Impl | Spec | Recette | % recette | Notes |
+| ------ | ---- | ---- | ------- | --------- | ----- |
+| Config (`CTLD_config.lua`) | ✅ | ✅ | ⚪ | 0% | lib interne, risque faible |
+| Utils (`CTLD_utils.lua`) | ✅ | N/A | ⚪ | 0% | lib interne, testé indirectement |
+| Menu (`CTLD_menu.lua`) | ✅ | ✅ | 🟡 busted partiel | ~30% | recette DCS réelle manquante |
+| SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel requis |
+| **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ⚪ | **0%** | **R1 — priorité haute** |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ⚪ | **0%** | **R2 — priorité haute** |
+| **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ⚪ | **0%** | **R3 — priorité haute** |
+| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
+| Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
+| Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
+| Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
+| FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 PASS ⚠️ visuel scène [2026-04-03] |
+| Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07] |
+| AA System (`CTLD_aasystem.lua`) | ✅ | ✅ | ✅ | 100% | 6/6 PASS [2026-04-07] |
+| Player (`CTLD_player.lua`) | ✅ | ✅ | ✅ | 100% | 7/7 PASS [2026-04-07] |
+| Scenes fob/farp/mineField | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel DCS requis |
+| i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
+| ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ⚪ | 0% | Loader corrigé [2026-04-07] — ancien nom objectsDescDb éliminé |
+| Feature A (parachute) | ⚪ | ✅ | ⚪ | 0% | À implémenter |
+| Feature B (slingload) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDCrateManager |
+| Feature C (MM crate) | 🟡 partiel | ✅ | 🟡 | ~50% | registerMMCrate existe, event? |
+| Feature D (LoadableGroups) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDTroopManager |
+| Feature E (CTLD log) | ⚪ | ✅ | ⚪ | 0% | Simple, autonome |
 
 ---
 

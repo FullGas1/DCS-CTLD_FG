@@ -120,5 +120,5 @@ La mission de test doit contenir :
 - **M4** : 1 unitaire  + 3 fonctionnels = **4 cas**
 - **M5** : 4 unitaires + 6 fonctionnels = **10 cas**
 - **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
-- **M7** : 4 unitaires + 3 fonctionnels = **7 cas**
+- **M7** : 4 unitaires + 3 fonctionnels = **7 cas** ✅ PASS
 - **Total** : **55 cas** — 55/55 PASS
