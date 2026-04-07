@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~55% (C1+M1–M4 done, M5–M7+features pending) |
+| **2** | Module split + OOP (`src/`) | 🟡 ~65% (C1+M1–M5 done, M6–M7+features pending) |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -59,7 +59,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M2  src/CTLD_beacon.lua  [2026-04-02]
 ✅ M3  src/CTLD_recon.lua  [2026-04-02]
 ✅ M4  src/CTLD_fob.lua   [2026-04-03]
-🟡 M5  src/CTLD_vehicle.lua
+✅ M5  src/CTLD_vehicle.lua  [2026-04-07]
 🟡 M6  src/CTLD_aasystem.lua
 🟡 M7  src/CTLD_player.lua
 ⚪  Q1  src/compat/legacy_api.lua      [after Phase 2 complete]
@@ -189,7 +189,7 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | M2 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_beacons_spec.md` |
 | M3 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_recon_spec.md` |
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ✅ **Done** | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
-| M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ⚪ | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
+| M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ✅ **Done** [2026-04-07] | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |
 
@@ -330,7 +330,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Beacons | 5 ✅ | `src/CTLD_beacon.lua` ✅ | ✅ | ✅ Done |
 | Recon | 4 ✅ | `src/CTLD_recon.lua` ✅ | ✅ | ✅ Done |
 | Zones | 2 ✅ | `src/CTLD_zone.lua` ✅ | ✅ | ✅ Done |
-| Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` | ✅ | ⚪ Impl pending |
+| Vehicles | 3 ✅ | `src/CTLD_vehicle.lua` ✅ | ✅ | ✅ Done [2026-04-07] |
 | FOB | 3 ✅ | `src/CTLD_fob.lua` ✅ | ✅ | ✅ Done |
 | Core Init | 1 ✅ | `src/CTLD_core.lua` ✅ | ✅ | ✅ Done |
 | Scenes | — | `src/scenes/` (9 files) ✅ | ✅ | ✅ Done |

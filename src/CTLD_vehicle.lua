@@ -473,42 +473,42 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                     local ok, transform = pcall(function()
                         return transport:getTransformation()
                     end)
-                    if not ok or not transform then goto continue end
-
-                    local ok2, box = pcall(function()
-                        return transport:getDesc().box
-                    end)
-                    if not ok2 or not box then goto continue end
-
-                    local tName = transport:getName()
-
-                    -- Check WAITING vehicles for bbox entry
-                    for id, veh in pairs(waitingVehicles) do
-                        local uPos = veh.unit:getPoint()
-                        local lp   = self:_worldToLocal(uPos, transform)
-                        if self:_isInBbox(lp, box) then
-                            -- Vehicle entered bbox → load
-                            self:loadVehicle(veh, transport, nil, "dcs_native")
-                            -- Track transport for exit detection
-                            self._nativeTracked[tName] = self._nativeTracked[tName] or {}
-                            self._nativeTracked[tName][id] = true
-                            waitingVehicles[id] = nil  -- prevent double-fire
-                        end
+                    local ok2, box
+                    if ok and transform then
+                        ok2, box = pcall(function()
+                            return transport:getDesc().box
+                        end)
                     end
 
-                    -- Check LOADED (native) vehicles for bbox exit
-                    for id, veh in pairs(nativeLoaded) do
-                        if veh.loadTransportName == tName then
-                            -- Vehicle is LOADED but we can't query its position (unit destroyed)
-                            -- Use the tracked entry: if transport still alive, consider still loaded
-                            -- Exit is detected by the transport being gone or in a different state
-                            -- NOTE: When DCS ejects cargo the unit reappears; we detect the
-                            -- re-appearance via the unit's new existence on next tick.
-                            -- For parachute / ground exit we check if the spawned unit exists again.
+                    if ok and transform and ok2 and box then
+                        local tName = transport:getName()
+
+                        -- Check WAITING vehicles for bbox entry
+                        for id, veh in pairs(waitingVehicles) do
+                            local uPos = veh.unit:getPoint()
+                            local lp   = self:_worldToLocal(uPos, transform)
+                            if self:_isInBbox(lp, box) then
+                                -- Vehicle entered bbox → load
+                                self:loadVehicle(veh, transport, nil, "dcs_native")
+                                -- Track transport for exit detection
+                                self._nativeTracked[tName] = self._nativeTracked[tName] or {}
+                                self._nativeTracked[tName][id] = true
+                                waitingVehicles[id] = nil  -- prevent double-fire
+                            end
+                        end
+
+                        -- Check LOADED (native) vehicles for bbox exit
+                        for id, veh in pairs(nativeLoaded) do
+                            if veh.loadTransportName == tName then
+                                -- Vehicle is LOADED but we can't query its position (unit destroyed)
+                                -- Use the tracked entry: if transport still alive, consider still loaded
+                                -- Exit is detected by the transport being gone or in a different state
+                                -- NOTE: When DCS ejects cargo the unit reappears; we detect the
+                                -- re-appearance via the unit's new existence on next tick.
+                                -- For parachute / ground exit we check if the spawned unit exists again.
+                            end
                         end
                     end
-
-                    ::continue::
                 end
             end
         end
