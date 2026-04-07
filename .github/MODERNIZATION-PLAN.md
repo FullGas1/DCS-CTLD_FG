@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~65% (C1+M1–M5 done, M6–M7+features pending) |
+| **2** | Module split + OOP (`src/`) | 🟡 ~75% (C1+M1–M6 done, M7+features pending) |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -60,7 +60,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M3  src/CTLD_recon.lua  [2026-04-02]
 ✅ M4  src/CTLD_fob.lua   [2026-04-03]
 ✅ M5  src/CTLD_vehicle.lua  [2026-04-07]
-🟡 M6  src/CTLD_aasystem.lua
+✅ M6  src/CTLD_aasystem.lua  [2026-04-07]
 🟡 M7  src/CTLD_player.lua
 ⚪  Q1  src/compat/legacy_api.lua      [after Phase 2 complete]
 ⚪  Q2  tests/ busted                  [after Phase 2 complete]
@@ -190,7 +190,7 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | M3 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | ✅ **Done** [2026-04-02] | `Specs/project_ctld_events_recon_spec.md` |
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | ✅ **Done** | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner | ✅ **Done** [2026-04-07] | `Specs/project_ctld_events_zones_vehicles_fob_spec.md` |
-| M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ⚪ | — |
+| M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager | ✅ **Done** [2026-04-07] | — |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer | ⚪ | — |
 
 ### 2.3 — ~~CTLDCoalition~~ / ~~CTLDStateManager~~ — SUPPRIMÉS ✅

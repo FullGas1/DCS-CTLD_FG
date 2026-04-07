@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M5
+# CTLD_FG — Plan de recette C1 + M1–M6
 
 ## Modules couverts
 
@@ -10,6 +10,7 @@
 | M3 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager |
 | M4 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager |
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner |
+| M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager |
 
 ## Environnement d'exécution
 
@@ -54,10 +55,13 @@ La mission de test doit contenir :
 | U-20 | CTLDVehicleSpawner singleton | M5 | getInstance() retourne la même instance | ✅ PASS 6/6 | — |
 | U-21 | _worldToLocal + bbox inclusion | M5 | Algo géométrique pur (point dans boîte 3D) | ✅ PASS 8/8 | — |
 | U-22 | getDesc().box sur C-130J-30 | M5 | API DCS : vérification existence desc.box | ✅ PASS 1/1 (skip: C-130 absent) | — |
+| U-23 | CTLDCrateAssemblyManager singleton + getTemplateForUnit | M6 | Singleton unique, template trouvé pour parts/repair/nil | ✅ PASS 16/16 | — |
+| U-24 | countComplete + getAllowedCount + guards | M6 | 0 sans systèmes, config limits, tryUnpackOrRepair guards | ✅ PASS 11/11 | — |
+| U-25 | _buildSpawnArrays géométrie | M6 | Positions distinctes, counts corrects KUB et NASAMS | ✅ PASS 13/13 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-20)
+## Section F — Tests fonctionnels (F-01 à F-23)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -81,6 +85,9 @@ La mission de test doit contenir :
 | F-18 | load DCS natif C-130 bbox | M5 | Bbox inclusion détectée → OnVehicleLoaded | ✅ PASS 13/13 | — |
 | F-19 | unload C-130 au sol | M5 | Sortie bbox → OnVehicleUnloaded method=dcs_native | ✅ PASS 11/11 | — |
 | F-20 | unload C-130 en vol | M5 | Sortie bbox → OnVehicleUnloaded method=parachute | ✅ PASS 11/11 | — |
+| F-21 | _assemble KUB complet | M6 | OnAASystemDeployed publié, countComplete==1, crates détruites | ✅ PASS 11/11 | — |
+| F-22 | _assemble KUB incomplet | M6 | Pas de déploiement, pas de crates détruites | ✅ PASS 6/6 | — |
+| F-23 | _repair KUB → OnAASystemRepaired | M6 | Repair crate détruite, système remplacé dans _completeSystems | ✅ PASS 14/14 | — |
 
 ---
 
@@ -104,4 +111,5 @@ La mission de test doit contenir :
 - **M3** : 2 unitaires + 3 fonctionnels = **5 cas**
 - **M4** : 1 unitaire  + 3 fonctionnels = **4 cas**
 - **M5** : 4 unitaires + 6 fonctionnels = **10 cas**
-- **Total** : **42 cas** — 42/42 PASS
+- **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
+- **Total** : **48 cas** — 48/48 PASS
