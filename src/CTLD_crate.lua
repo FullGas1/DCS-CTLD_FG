@@ -258,7 +258,7 @@ function CTLDCrateManager:getCratesInRange(position, radius)
     local result = {}
     for _, crate in pairs(self.crates) do
         if crate:isOnGround() then
-            if ctld.utils.getDistance(position, crate.position) <= radius then
+            if ctld.utils.getDistance("CTLDCrateManager:getCratesInRange", position, crate.position) <= radius then
                 table.insert(result, crate)
             end
         end
@@ -383,7 +383,7 @@ function CTLDCrateManager:checkAssemblyReady(crate, radius)
         if c:isOnGround()
             and c.descriptor
             and c.descriptor.unit == crate.descriptor.unit
-            and ctld.utils.getDistance(crate.position, c.position) <= radius
+            and ctld.utils.getDistance("CTLDCrateManager:checkAssemblyReady", crate.position, c.position) <= radius
         then
             table.insert(assembled, c)
             if #assembled == required then

@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette manquante sur 3 modules core (crate/troop/jtac) + features |
+| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette manquante sur 2 modules core (troop/jtac) + features |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -65,12 +65,9 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M7  src/CTLD_player.lua                         recette: 7/7  100% [2026-04-07]
 
 ── IMPLÉMENTÉS — RECETTE MANQUANTE ──────────────────────────────────────────
-🟡 R1  src/CTLD_crate.lua  (CTLDCrate + CTLDCrateManager)
-       recette: 0%  À générer — cas suggérés:
-         U: singleton, spawnCrate, getCrateByName, registerMMCrate, isNearby
-         F: spawnCrate→OnCrateSpawned, loadCrate→OnCrateLoaded,
-            unloadCrate→OnCrateUnloaded, unpackCrate→OnCrateUnpacked,
-            tryPackVehicle→OnVehiclePacked, timeout→OnCratesLost
+✅ R1  src/CTLD_crate.lua  (CTLDCrate + CTLDCrateManager)
+       recette: 11/11  100% [2026-04-07]
+       bugfixes: getDistance caller manquant dans getCratesInRange + checkAssemblyReady
 
 🟡 R2  src/CTLD_troop.lua  (CTLDTroopGroup + CTLDTroopManager)
        recette: 0%  À générer — cas suggérés:
@@ -382,7 +379,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Utils (`CTLD_utils.lua`) | ✅ | N/A | ⚪ | 0% | lib interne, testé indirectement |
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | 🟡 busted partiel | ~30% | recette DCS réelle manquante |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel requis |
-| **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ⚪ | **0%** | **R1 — priorité haute** |
+| **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ⚪ | **0%** | **R2 — priorité haute** |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ⚪ | **0%** | **R3 — priorité haute** |
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |

@@ -1,14 +1,12 @@
-[CTLD] Log started : 2026-04-07 16:32:04
-[CTLD][TEST] START  [F-26] onPlayerLeaveUnit → player supprimé de _players
-[CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
-[CTLD][INFO] CTLDPlayerManager: init complete
-[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 1
-[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 1 items for group 1
-[CTLD][INFO] CTLDPlayerManager: enter unit=uh1-1 type=UH-1H transport=true vehicles=false
-[CTLD][TEST]   OK     onPlayerEnterUnit ne crash pas
-[CTLD][TEST]   OK     player présent après Enter  [table: 000001A7CEEF0CB8]
-[CTLD][INFO] CTLDPlayerManager: leave unit=uh1-1
-[CTLD][TEST]   OK     onPlayerLeaveUnit ne crash pas
-[CTLD][TEST]   OK     getPlayer(unitName) == nil après Leave  [nil]
-[CTLD][TEST]   OK     _players vide après Leave  [0 == 0]
-[CTLD][TEST] END    [F-26] onPlayerLeaveUnit → player supprimé de _players — 5/5 passed  →  OK
+[CTLD] Log started : 2026-04-07 21:05:39
+[CTLD][TEST] START  [F-32] dropCrate > maxDropHeight → OnCrateDestroyed
+[CTLD][TEST]   OK     crate LOADED avant drop  [loaded == loaded]
+[CTLD][CTLDCrateManager:dropCrate - destroyed on impact (alt=50m): drop_impact] INFO
+[CTLD][TEST]   OK     OnCrateDestroyed reçu  [table: 000001A7B9F9A3B8]
+[CTLD][TEST]   OK     OnCrateUnloaded NON reçu  [nil]
+[CTLD][TEST]   OK     payload.reason == drop_impact  [drop_impact == drop_impact]
+[CTLD][TEST]   OK     payload.crateName correct  [drop_impact == drop_impact]
+[CTLD][TEST]   OK     payload.coalition correct  [2 == 2]
+[CTLD][TEST]   OK     payload.timestamp présent  [64149.7]
+[CTLD][TEST]   OK     crate retirée du registry après drop_impact  [nil]
+[CTLD][TEST] END    [F-32] dropCrate > maxDropHeight → OnCrateDestroyed — 8/8 passed  →  OK

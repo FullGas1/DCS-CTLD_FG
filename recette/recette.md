@@ -63,6 +63,11 @@ La mission de test doit contenir :
 | U-27 | CTLDPlayerManager singleton + getPlayer nil | M7 | getInstance() idempotent, getPlayer inconnu == nil | ✅ PASS 5/5 | — |
 | U-28 | _detectCapabilities — isTransport + canCarryVehicles | M7 | UH-1H/Hercules/F-16C_50 détectés correctement | ✅ PASS 6/6 | — |
 | U-29 | onPlayerEnterUnit + onPlayerLeaveUnit état _players | M7 | Player créé puis supprimé, propriétés correctes | ✅ PASS 9/9 | — |
+| U-30 | CTLDCrate états + helpers | R1 | SPAWNED→LOADED→LANDED→UNPACKED, isOnGround/isLoaded | ✅ PASS 22/22 | — |
+| U-31 | canUnpack logique | R1 | forceCrateToBeMoved, canBeUnpacked, isOnGround guards | ✅ PASS 7/7 | — |
+| U-32 | CTLDCrateManager singleton + getCrateByName + getCratesInRange | R1 | Singleton, lookup, filtre distance | ✅ PASS 9/9 | — |
+| U-33 | findDescriptorByTypeName | R1 | Match typeName dans spawnableCrates, nil si inconnu | ✅ PASS 9/9 | — |
+| U-34 | checkAssemblyReady | R1 | cratesRequired=1 toujours ready, =2 avec/sans crate manquante | ✅ PASS 9/9 | — |
 
 ---
 
@@ -96,6 +101,12 @@ La mission de test doit contenir :
 | F-24 | onPlayerEnterUnit → menu créé | M7 | CTLDPlayer dans _players + sous-menu 'CTLD' dans ctld.MenuManager | ✅ PASS 6/6 | — |
 | F-25 | OnVehicleLoaded/Unloaded → loadedVehicles | M7 | ctldVehicleObject ajouté puis retiré de player.loadedVehicles | ✅ PASS 6/6 | — |
 | F-26 | onPlayerLeaveUnit → player + menu supprimés | M7 | getPlayer == nil après Leave, _players vide | ✅ PASS 5/5 | — |
+| F-27 | registerMMCrate → crate enregistrée | R1 | Mock static cargo → getCrateByName retourne la crate | ✅ PASS 9/9 | — |
+| F-28 | loadCrate → OnCrateLoaded | R1 | État LOADED + event publié avec payload correct | ✅ PASS 11/11 | — |
+| F-29 | unloadCrate → OnCrateUnloaded | R1 | État LANDED + event publié method=menu_ctld | ✅ PASS 11/11 | — |
+| F-30 | unpackCrate → OnCrateUnpacked + destroy | R1 | État UNPACKED + event + crate retirée du registry | ✅ PASS 10/10 | — |
+| F-31 | dropCrate ≤ maxDropHeight → OnCrateUnloaded | R1 | Drop safe → method=drop, crate en LANDED | ✅ PASS 10/10 | — |
+| F-32 | dropCrate > maxDropHeight → OnCrateDestroyed | R1 | Drop haute → reason=drop_impact, crate détruite | ✅ PASS 8/8 | — |
 
 ---
 
@@ -121,4 +132,5 @@ La mission de test doit contenir :
 - **M5** : 4 unitaires + 6 fonctionnels = **10 cas**
 - **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
 - **M7** : 4 unitaires + 3 fonctionnels = **7 cas** ✅ PASS
-- **Total** : **55 cas** — 55/55 PASS
+- **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS
+- **Total** : **66 cas** — 66/66 PASS ✅
