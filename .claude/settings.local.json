@@ -16,7 +16,8 @@
       "Bash(grep -n ^ctld.[a-zA-Z] c:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/source/CTLD_core.lua)",
       "Bash(for d:*)",
       "Bash(do mkdir:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Read(//c/Users/Moi/.github/**)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Moi\\Documents\\GitHub\\DCS-CTLD_FG\\source_futur",

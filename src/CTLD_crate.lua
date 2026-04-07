@@ -241,6 +241,15 @@ function CTLDCrateManager:registerMMCrate(obj, desc)
     self:_register(crate)
     _log("CTLDCrateManager:registerMMCrate - registered '" .. crateName
         .. "' type='" .. tostring(typeName) .. "'", "INFO")
+
+    self:_publish("OnMMCrateDetected", {
+        crate       = crate,
+        crateName   = crateName,
+        descriptor  = descriptor,
+        position    = crate.position,
+        coalition   = crate.coalition,
+        timestamp   = timer.getAbsTime(),
+    })
 end
 
 --- Get a crate by its DCS unit name.

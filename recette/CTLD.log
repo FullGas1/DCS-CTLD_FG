@@ -1,12 +1,16 @@
-[CTLD] Log started : 2026-04-07 21:05:39
-[CTLD][TEST] START  [F-32] dropCrate > maxDropHeight → OnCrateDestroyed
-[CTLD][TEST]   OK     crate LOADED avant drop  [loaded == loaded]
-[CTLD][CTLDCrateManager:dropCrate - destroyed on impact (alt=50m): drop_impact] INFO
-[CTLD][TEST]   OK     OnCrateDestroyed reçu  [table: 000001A7B9F9A3B8]
-[CTLD][TEST]   OK     OnCrateUnloaded NON reçu  [nil]
-[CTLD][TEST]   OK     payload.reason == drop_impact  [drop_impact == drop_impact]
-[CTLD][TEST]   OK     payload.crateName correct  [drop_impact == drop_impact]
-[CTLD][TEST]   OK     payload.coalition correct  [2 == 2]
-[CTLD][TEST]   OK     payload.timestamp présent  [64149.7]
-[CTLD][TEST]   OK     crate retirée du registry après drop_impact  [nil]
-[CTLD][TEST] END    [F-32] dropCrate > maxDropHeight → OnCrateDestroyed — 8/8 passed  →  OK
+[CTLD] Log started : 2026-04-07 21:34:57
+[CTLD][TEST] START  [F-44] fobScene auto-enregistrement dans CTLDSceneManager + structure
+[CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
+[CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
+[CTLD][TEST]   OK     fobScene absent avant dofile CTLD_fobScene  [nil]
+[CTLD][INFO] CTLDSceneManager: registered scene model 'fobScene'
+[CTLD][TEST]   OK     fobScene enregistré après dofile  [table: 000001A809F648A8]
+[CTLD][TEST]   OK     4 steps dans fobScene  [4 == 4]
+[CTLD][TEST]   OK     step 0 (prescript) : pas de registryKey  [nil]
+[CTLD][TEST]   OK     step 0 (prescript) : func présente  [function: 000001A809F8BF68]
+[CTLD][TEST]   OK     step 1 : registryKey = FOB_container  [FOB_container == FOB_container]
+[CTLD][TEST]   OK     step 1 : type polar présent  [table: 000001A809F65268]
+[CTLD][TEST]   OK     step 2 : registryKey = FOB_watchtower  [FOB_watchtower == FOB_watchtower]
+[CTLD][TEST]   OK     step 3 (completion) : pas de registryKey  [nil]
+[CTLD][TEST]   OK     step 3 (completion) : func présente  [function: 000001A809F8BF90]
+[CTLD][TEST] END    [F-44] fobScene auto-enregistrement dans CTLDSceneManager + structure — 10/10 passed  →  OK

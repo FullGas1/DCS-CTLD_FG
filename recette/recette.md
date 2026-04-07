@@ -12,6 +12,7 @@
 | M5 | `src/CTLD_vehicle.lua` | CTLDVehicle, CTLDVehicleSpawner |
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer, CTLDPlayerManager |
+| R4 | `src/CTLD_sceneManager.lua` | CtldScene, CTLDSceneManager + fobScene (auto-enregistrement) |
 
 ## Environnement d'exécution
 
@@ -68,10 +69,20 @@ La mission de test doit contenir :
 | U-32 | CTLDCrateManager singleton + getCrateByName + getCratesInRange | R1 | Singleton, lookup, filtre distance | ✅ PASS 9/9 | — |
 | U-33 | findDescriptorByTypeName | R1 | Match typeName dans spawnableCrates, nil si inconnu | ✅ PASS 9/9 | — |
 | U-34 | checkAssemblyReady | R1 | cratesRequired=1 toujours ready, =2 avec/sans crate manquante | ✅ PASS 9/9 | — |
+| U-35 | CTLDTroopGroup entity — init + états + transitions | R2 | LOADED→DEPLOYED→EXTRACTED, isInTransit, deploy(nil) EXZ | ✅ PASS 19/19 | — |
+| U-36 | CTLDTroopManager singleton + _registerTemplates | R2 | getInstance() idempotent, templates → db entries, total/hasJtac | ✅ PASS 17/17 | — |
+| U-37 | hasTroops / getInTransit / getWeight | R2 | Lookup direct, absent/présent, suppression | ✅ PASS 10/10 | — |
+| U-38 | _transportLimit | R2 | Default numberOfTroops + byType override | ✅ PASS 8/8 | — |
+| U-39 | CTLDJTAC entity — init + transitions d'états | R3 | IDLE→LASING→ORBITING→IN_TRANSIT→DEAD, updateLaseSpot | ✅ PASS 25/25 | — |
+| U-40 | CTLDJTACDetector.calculateFMRadio | R3 | Formule FM, limites 1111-1688, edge cases | ✅ PASS 11/11 | — |
+| U-41 | CTLDJTACDetector.calculateCorrectedSpot | R3 | Algo pur: anticipation vel + correction vent | ✅ PASS 9/9 | — |
+| U-42 | CTLDJTACManager singleton + laser pool | R3 | getInstance idempotent, pool 578 codes, assign/free | ✅ PASS 12/12 | — |
+| U-43 | CTLDSceneManager singleton + registerSceneModel | R4 | getInstance idempotent, register/guards/getModel, built-in FARP Alpha | ✅ PASS 9/9 | — |
+| U-44 | CtldScene step execution engine — func-only, delay=0 | R4 | 3 steps en ordre, onComplete appelé, _params transmis | ✅ PASS 8/8 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-26)
+## Section F — Tests fonctionnels (F-01 à F-36)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -107,6 +118,18 @@ La mission de test doit contenir :
 | F-30 | unpackCrate → OnCrateUnpacked + destroy | R1 | État UNPACKED + event + crate retirée du registry | ✅ PASS 10/10 | — |
 | F-31 | dropCrate ≤ maxDropHeight → OnCrateUnloaded | R1 | Drop safe → method=drop, crate en LANDED | ✅ PASS 10/10 | — |
 | F-32 | dropCrate > maxDropHeight → OnCrateDestroyed | R1 | Drop haute → reason=drop_impact, crate détruite | ✅ PASS 8/8 | — |
+| F-33 | loadFromZone — guards + success | R2 | Guards coalition/active/limit/capacity + load OK + limit décrément | ✅ PASS 13/13 | — |
+| F-34 | deploy — on ground, pas d'EXZ | R2 | spawnObject appelé, troupes vidées, groupe dans _droppedGroups | ✅ PASS 9/9 | — |
+| F-35 | returnToBase | R2 | Troupes retournées, zone.limit incrémenté, unlimited inchangé | ✅ PASS 9/9 | — |
+| F-36 | extract | R2 | Groupe mock nearby → état EXTRACTED, retiré de _droppedGroups | ✅ PASS 8/8 | — |
+| F-37 | spawnJTAC + markPending | R3 | Mock group → OnJTACSpawned + registry + pending flags | ✅ PASS 13/13 | — |
+| F-38 | setJTACInTransit → état + OnJTACInTransit | R3 | Lase stoppé, état IN_TRANSIT, payload correct, guards | ✅ PASS 9/9 | — |
+| F-39 | requestSmoke → OnJTACSmokeTarget | R3 | Payload smokePos déterministe (margin=0), guards | ✅ PASS 11/11 | — |
+| F-40 | killJTAC → OnJTACDead + laser libéré | R3 | État DEAD, registry vidé, laser pool +1, guards | ✅ PASS 11/11 | — |
+| F-41 | registerMMCrate → OnMMCrateDetected | FC | Event publié avec payload correct, guards double/inconnu | ✅ PASS 9/9 | — |
+| F-42 | playScene — guards | R4 | nil unit, dead unit, unknown model → nil ; valid call → scene | ✅ PASS 4/4 | — |
+| F-43 | FARP Alpha scene — structure validation | R4 | 14 steps, registryKeys, types polar, func, delayAfterPreviousStep | ✅ PASS 11/11 | — |
+| F-44 | fobScene auto-enregistrement | R4 | Absent avant dofile, présent après + 4 steps + clés correctes | ✅ PASS 10/10 | — |
 
 ---
 
@@ -133,4 +156,8 @@ La mission de test doit contenir :
 - **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
 - **M7** : 4 unitaires + 3 fonctionnels = **7 cas** ✅ PASS
 - **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS
-- **Total** : **66 cas** — 66/66 PASS ✅
+- **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
+- **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
+- **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
+- **FC** : 1 fonctionnel = **1 cas** ✅ PASS
+- **Total** : **88 cas** — 88/88 PASS ✅

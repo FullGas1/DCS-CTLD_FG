@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette manquante sur 2 modules core (troop/jtac) + features |
+| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette core complète (R1-R3 ✅) / features pending |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -69,26 +69,20 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
        recette: 11/11  100% [2026-04-07]
        bugfixes: getDistance caller manquant dans getCratesInRange + checkAssemblyReady
 
-🟡 R2  src/CTLD_troop.lua  (CTLDTroopGroup + CTLDTroopManager)
-       recette: 0%  À générer — cas suggérés:
-         U: singleton, _registerTemplates, hasTroops, getWeight, transportLimit
-         F: loadFromZone→OnTroopsBoarded, deploy→OnTroopsDeployed,
-            returnToBase→OnTroopsExtracted, extract→OnTroopsExtracted,
-            OnTroopsDead (mort en transit), OnTroopsCountUpdated
+✅ R2  src/CTLD_troop.lua  (CTLDTroopGroup + CTLDTroopManager)
+       recette: 8/8  100% [2026-04-07]
 
-🟡 R3  src/CTLD_jtac.lua  (CTLDJTAC + CTLDJTACManager)
-       recette: 0%  À générer — cas suggérés:
-         U: singleton, isJTACUnitType, spawnJTAC, getStatus
-         F: laseStart→OnLaseStart, laseStop→OnLaseStop,
-            orbitStart→OnOrbitStart, orbitStop→OnOrbitStop,
-            dead→OnJTACDead, smokeTarget→OnSmokeTarget
+✅ R3  src/CTLD_jtac.lua  (CTLDJTAC + CTLDJTACManager)
+       recette: 8/8  100% [2026-04-07]
 
-🟡 R4  src/CTLD_sceneManager.lua  (CTLDSceneManager)  — absent du workplan !
-       recette: 0%  À générer — cas suggérés:
-         U: registerSceneModel, isSceneModel, getSceneModel
-         F: playScene fob → objets spawnés + OnFOBDeployed ⚠️ visuel requis
-            playScene farp → objets spawnés ⚠️ visuel requis
-            playScene mineField → objets spawnés ⚠️ visuel requis
+✅ R4  src/CTLD_sceneManager.lua  (CTLDSceneManager)
+       recette: 5/5  100% [2026-04-07]
+         U-43: singleton + registerSceneModel  9/9
+         U-44: CtldScene step execution engine  8/8
+         F-42: playScene guards  4/4
+         F-43: FARP Alpha structure validation  11/11
+         F-44: fobScene self-registration  10/10
+       ⚠️ Exécution réelle des scènes (spawn DCS) non couverte — visuel requis en DCS
 
 🟡 R5  src/CTLD_menu.lua  (ctld.Menu + ctld.MenuManager)
        recette: busted partiel (src/tests/CTLD_menu_test.lua) — pas de recette Witchcraft
@@ -99,21 +93,21 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
     → À vérifier si encore nécessaire ou à retirer du loader
 
 ── FEATURES À IMPLÉMENTER ───────────────────────────────────────────────────
-⚪  FD  Feature D — Custom LoadableGroups API (CTLDTroopManager)
-        spec: validée (project_loadablegroups_api_spec.md)
-        implémentation: vérifier si déjà dans CTLD_troop.lua, sinon coder
+✅  FD  Feature D — Custom LoadableGroups API (CTLDTroopManager)
+        implémenté dans _registerTemplates() — validé R2 [2026-04-07]
 
-⚪  FC  Feature C — MM crate detection (INIT-B OnMMCrateDetected)
-        registerMMCrate() existe dans CTLDCrateManager — à vérifier complétude
+✅  FC  Feature C — MM crate detection (INIT-B OnMMCrateDetected)
+        registerMMCrate() + OnMMCrateDetected ajouté — validé F-41 [2026-04-07]
 
-⚪  FE  Feature E — CTLD log file dédié (ctld.utils.log → ctld.log)
-        spec: §2.6 du plan — simple, autonome, peu risqué
+✅  FE  Feature E — CTLD log file dédié (ctld.utils.log → ctld.log)
+        implémenté dans CTLD_utils.lua (initLog/log/closeLog/reopenLogAppend) [2026-04-07]
 
 ⚪  FA  Feature A — Virtual parachute (crates + troops + vehicles)
         spec: validée (project_feature_a_spec.md) — grosse feature, dépend R1+R2
 
 ⚪  FB  Feature B — Virtual slingload
-        spec: intégrée dans crates spec — vérifier si CTLDCrateManager l'implémente déjà
+        S_EVENT_SLINGLOAD_LOAD n'existe pas dans l'API DCS [vérifié Hoggit 2026-04-07]
+        → détection par polling (comme FA) — reporter après FA
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ⚪  Q1  src/compat/legacy_api.lua
@@ -380,8 +374,8 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | 🟡 busted partiel | ~30% | recette DCS réelle manquante |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel requis |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07] |
-| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ⚪ | **0%** | **R2 — priorité haute** |
-| **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ⚪ | **0%** | **R3 — priorité haute** |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07] |
+| **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07] |
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
