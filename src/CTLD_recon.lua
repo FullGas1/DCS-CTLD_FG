@@ -182,6 +182,13 @@ function CTLDReconManager:init()
     self._nextMarkId   = 1
     self._menuAdded    = {}   -- tostring(groupId) -> true
 
+    CTLDPlayerManager.getInstance():registerMenuSection({
+        key       = "recon",
+        manager   = self,
+        method    = "buildMenuSection",
+        configKey = "reconF10Menu",
+        order     = 70,
+    })
     ctld.utils.log("INFO", "CTLDReconManager: init complete")
 end
 
@@ -810,4 +817,60 @@ end
 -- @return table  array of layer objects
 function CTLDReconManager:getPlayerLayers(player)
     return self:_getPlayerLayers(player)
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "RECON" F10 submenu for a player.
+-- Requires reconF10Menu = true (configKey gate).
+-- Adds Scan, Hide, per-layer toggles, and AutoRefresh commands.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDReconManager:buildMenuSection(playerObj, menu)
+    local root     = ctld.tr("CTLD")
+    local reconSub = ctld.tr("RECON")
+    menu:addSubMenu({ root }, reconSub, { order = 70 })
+
+    menu:addCommand({ root, reconSub }, ctld.tr("Scan targets in LOS"),
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if unit then CTLDReconManager.getInstance():scan(unit, arg.playerName) end
+        end,
+        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+
+    menu:addCommand({ root, reconSub }, ctld.tr("Hide targets in LOS"),
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if unit then CTLDReconManager.getInstance():hideScan(unit, arg.playerName) end
+        end,
+        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+
+    -- Per-layer toggle commands
+    for _, layer in ipairs(CTLDReconManager._defaultLayers) do
+        menu:addCommand({ root, reconSub },
+            string.format(ctld.tr("Toggle %s"), layer.name),
+            function(arg)
+                local unit = Unit.getByName(arg.unitName)
+                if unit then
+                    CTLDReconManager.getInstance():toggleLayer(arg.playerName, unit, arg.layerId)
+                end
+            end,
+            { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
+    end
+
+    menu:addCommand({ root, reconSub }, ctld.tr("START autoRefresh"),
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if unit then CTLDReconManager.getInstance():enableAutoRefresh(unit, arg.playerName) end
+        end,
+        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+
+    menu:addCommand({ root, reconSub }, ctld.tr("STOP autoRefresh"),
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if unit then CTLDReconManager.getInstance():disableAutoRefresh(unit, arg.playerName) end
+        end,
+        { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end

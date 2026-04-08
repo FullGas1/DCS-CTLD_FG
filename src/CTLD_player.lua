@@ -104,7 +104,8 @@ function CTLDPlayerManager.getInstance()
 end
 
 function CTLDPlayerManager:init()
-    self._players = {}   -- unitName → CTLDPlayer
+    self._players      = {}   -- unitName → CTLDPlayer
+    self._menuSections = {}   -- ordered list of { key, manager, method, configKey, order }
 
     -- Register for DCS player slot events
     local bridge = CTLDDCSEventBridge.getInstance()
@@ -198,6 +199,25 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
+--- Register a menu section contributed by a manager.
+-- Called by each manager in its own init(), before any player enters a unit.
+-- sectionDef = {
+--   key       = string      unique identifier, e.g. "troops", "beacons"
+--   manager   = object      manager instance
+--   method    = string      method name: manager[method](manager, playerObj, menu)
+--   configKey = string|nil  ctld.gs(configKey) must be true to activate; nil = always active
+--   order     = number|nil  render position (ascending); nil = appended last
+-- }
+-- Idempotent: duplicate keys are silently ignored.
+function CTLDPlayerManager:registerMenuSection(sectionDef)
+    if not sectionDef or not sectionDef.key then return end
+    for _, s in ipairs(self._menuSections) do
+        if s.key == sectionDef.key then return end
+    end
+    table.insert(self._menuSections, sectionDef)
+    ctld.utils.log("INFO", "CTLDPlayerManager: registered menu section '%s'", sectionDef.key)
+end
+
 --- Return the CTLDPlayer for unitName, or nil if not tracked.
 -- @param unitName string
 -- @return CTLDPlayer or nil
@@ -207,6 +227,8 @@ end
 
 --- Build (or rebuild) the full F10 CTLD menu for a player.
 -- Wipes and reconstructs atomically via ctld.MenuManager.
+-- Sections are contributed by managers registered via registerMenuSection().
+-- Each section is rendered only when its configKey (if any) resolves to true.
 -- @param playerObj CTLDPlayer
 function CTLDPlayerManager:buildMenu(playerObj)
     local mm   = ctld.MenuManager:getInstance()
@@ -217,22 +239,40 @@ function CTLDPlayerManager:buildMenu(playerObj)
         return
     end
 
-    -- Root submenu "CTLD" at F1 slot (order 10)
-    menu:addSubMenu({}, ctld.tr("CTLD", "CTLD"), { order = 10 })
+    local root  = ctld.tr("CTLD")
+    local gid   = playerObj.groupId
 
-    -- Check Cargo — always present regardless of transport type
-    local groupId = playerObj.groupId
-    menu:addCommand({ ctld.tr("CTLD", "CTLD") }, ctld.tr("Check Cargo", "Check Cargo"),
+    -- Root submenu "CTLD" at F1 slot (order 10)
+    menu:addSubMenu({}, root, { order = 10 })
+
+    -- "Check Cargo" — always present regardless of transport type
+    menu:addCommand({ root }, ctld.tr("Check Cargo"),
         function()
-            trigger.action.outTextForGroup(groupId,
-                ctld.tr("No cargo on board.", "No cargo on board."), 10)
+            trigger.action.outTextForGroup(gid, ctld.tr("No cargo on board."), 10)
         end, {})
 
-    -- TODO M8+: if playerObj.isTransport, delegate to functional managers:
-    --   CTLDTroopManager:buildMenuSection(playerObj, menu)
-    --   CTLDVehicleManager:buildMenuSection(playerObj, menu)
-    --   CTLDCrateManager:buildMenuSection(playerObj, menu)
-    --   CTLDBeaconManager:buildMenuSection(playerObj, menu)
+    -- Registered sections sorted by order field
+    local sorted = {}
+    for _, s in ipairs(self._menuSections) do table.insert(sorted, s) end
+    table.sort(sorted, function(a, b)
+        return (a.order or math.huge) < (b.order or math.huge)
+    end)
+
+    for _, section in ipairs(sorted) do
+        local active = true
+        if section.configKey then
+            active = ctld.gs(section.configKey) == true
+        end
+        if active then
+            local fn = section.manager[section.method]
+            if fn then
+                fn(section.manager, playerObj, menu)
+            else
+                ctld.utils.log("WARN", "CTLDPlayerManager:buildMenu — section '%s' method '%s' not found",
+                    section.key, tostring(section.method))
+            end
+        end
+    end
 
     menu:refresh()
 end

@@ -398,6 +398,13 @@ function CTLDJTACManager.get()
         o._orbitScheduleId = nil
         o:_initLaserPool()
         CTLDJTACManager._instance = o
+        CTLDPlayerManager.getInstance():registerMenuSection({
+            key       = "jtac",
+            manager   = o,
+            method    = "buildMenuSection",
+            configKey = "JTAC_jtacStatusF10",
+            order     = 90,
+        })
     end
     return CTLDJTACManager._instance
 end
@@ -955,5 +962,60 @@ function CTLDJTACManager:onBirth(event)
     if self:_isPendingJTAC(groupName) then
         self:registerMMJTAC(group)
         self:_clearPendingJTAC(groupName)
+    end
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "JTAC" F10 submenu for a player.
+-- Requires JTAC_jtacStatusF10 = true (configKey gate).
+-- Adds "JTAC Status" command + per-active-JTAC submenus for player coalition.
+-- On JTAC state changes (spawn/dead/transit), CTLDPlayerManager:refreshAll()
+-- triggers a full wipe+rebuild, keeping this content current.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDJTACManager:buildMenuSection(playerObj, menu)
+    local root    = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+    menu:addSubMenu({ root }, jtacSub, { order = 90 })
+
+    menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
+        function(arg)
+            trigger.action.outTextForGroup(arg.groupId,
+                ctld.tr("No active JTACs."), 10)
+        end,
+        { groupId = playerObj.groupId })
+
+    -- Per-active-JTAC submenus for this coalition
+    for groupName, jtac in pairs(self.jtacs) do
+        if jtac.coalition == playerObj.coalition and not jtac:isDead() then
+            menu:addSubMenu({ root, jtacSub }, groupName)
+
+            if ctld.gs("JTAC_allowStandbyMode") then
+                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Toggle Lasing"),
+                    function(arg)
+                        ctld.utils.log("INFO", "Toggle Lasing for " .. arg.groupName)
+                    end,
+                    { groupName = groupName })
+            end
+
+            if ctld.gs("JTAC_allowSmokeRequest") then
+                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
+                    function(arg)
+                        CTLDJTACManager.get():requestSmoke(arg.groupName)
+                    end,
+                    { groupName = groupName })
+            end
+
+            if ctld.gs("JTAC_allow9Line") then
+                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request 9-Line"),
+                    function(arg)
+                        ctld.utils.log("INFO", "9-Line for " .. arg.groupName)
+                    end,
+                    { groupName = groupName })
+            end
+        end
     end
 end

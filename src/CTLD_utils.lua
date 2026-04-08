@@ -1745,3 +1745,38 @@ function ctld.utils.inAir(unit)
     local gndH = land.getHeight({ x = pt.x, y = pt.z })
     return (pt.y - gndH) > 2.0
 end
+
+--- Calculate the ground landing position for a single parachuting object.
+-- Accounts for forward inertia (shared direction from transport velocity)
+-- plus per-unit lateral random drift.
+-- Must be called once per unit at drop time (not deferred).
+--
+-- @param transport   DCS Unit  transport unit at the moment of drop
+-- @param descentRate number    m/s descent rate (positive)
+-- @return landPos vec3, descentTime number
+--   landPos.y is the MSL ground height at the computed XZ position.
+--   descentTime is in seconds.
+function ctld.utils.calcDropPosition(transport, descentRate)
+    local dropPos  = transport:getPoint()
+    local velocity = transport:getVelocity()
+    local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
+    local dropAltAGL  = dropPos.y - groundUnder
+    if dropAltAGL < 0 then dropAltAGL = 0 end
+    local descentTime = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
+
+    local inertiaFactor = ctld.gs and ctld.gs("parachuteInertiaFactor") or 0.3
+    local driftMin      = ctld.gs and ctld.gs("parachuteLateralDriftMin") or 10
+    local driftMax      = ctld.gs and ctld.gs("parachuteLateralDriftMax") or 80
+
+    local inertiaX = (velocity.x or 0) * inertiaFactor * descentTime
+    local inertiaZ = (velocity.z or 0) * inertiaFactor * descentTime
+
+    local angle     = math.random(0, 359) * math.pi / 180
+    local magnitude = driftMin + math.random() * (driftMax - driftMin)
+
+    local spawnX = dropPos.x + inertiaX + math.cos(angle) * magnitude
+    local spawnZ = dropPos.z + inertiaZ + math.sin(angle) * magnitude
+    local spawnY = land.getHeight({ x = spawnX, y = spawnZ })
+
+    return { x = spawnX, y = spawnY, z = spawnZ }, descentTime
+end

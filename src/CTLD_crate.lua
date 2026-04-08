@@ -165,9 +165,19 @@ local _cmInstance = nil
 function CTLDCrateManager.getInstance()
     if _cmInstance == nil then
         _cmInstance = setmetatable({}, CTLDCrateManager)
-        _cmInstance.crates = {}   -- [crateName] = CTLDCrate
+        _cmInstance.crates            = {}   -- [crateName] = CTLDCrate
+        _cmInstance._parachuteEffect  = CTLDNullParachuteEffect:new()
+        local pm = CTLDPlayerManager.getInstance()
+        pm:registerMenuSection({ key = "crates", manager = _cmInstance, method = "buildMenuSection",  configKey = "enableCrates",    order = 40 })
+        pm:registerMenuSection({ key = "smoke",  manager = _cmInstance, method = "buildSmokeSection", configKey = "enableSmokeDrop", order = 80 })
     end
     return _cmInstance
+end
+
+--- Replace the parachute visual effect handler.
+-- @param effect CTLDParachuteEffect
+function CTLDCrateManager:setParachuteEffect(effect)
+    self._parachuteEffect = effect
 end
 
 -- ============================================================
@@ -467,4 +477,227 @@ function CTLDCrateManager:cleanup()
         self:destroyCrate(crateName)
     end
     self.crates = {}
+end
+
+-- ============================================================
+-- F10 Menu sections
+-- ============================================================
+
+--- Parachute all crates loaded by a transport.
+-- Altitude AGL is checked at call time. If below parachuteMinAltitudeCrates, a message
+-- is sent to the player's group and nothing else happens.
+-- For each loaded crate: computes an independent landing position, schedules a timer
+-- to land it after descent, fires events.
+-- Publishes OnCrateParachuting immediately (per crate) and OnCrateParachuteLanded
+-- after descentTime (per crate).
+-- @param transport    Unit    DCS transport unit
+-- @param playerObj    table   CTLDPlayer-like {groupId, unitName}
+function CTLDCrateManager:parachuteCrates(transport, playerObj)
+    local dropPos     = transport:getPoint()
+    local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
+    local altAGL      = dropPos.y - groundUnder
+    local minAlt      = ctld.gs("parachuteMinAltitudeCrates") or 30
+
+    if altAGL < minAlt then
+        trigger.action.outTextForGroup(playerObj.groupId,
+            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+                math.floor(minAlt), math.floor(altAGL)), 10)
+        return
+    end
+
+    local descentRate = ctld.gs("parachuteDescentRateCrates") or 5
+    local loaded      = {}
+    for _, crate in pairs(self.crates) do
+        if crate:isLoaded() and crate.loadedBy == transport then
+            table.insert(loaded, crate)
+        end
+    end
+
+    if #loaded == 0 then
+        trigger.action.outTextForGroup(playerObj.groupId, ctld.tr("No crates loaded."), 8)
+        return
+    end
+
+    for _, crate in ipairs(loaded) do
+        local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
+        crate:startParachute(altAGL)
+        crate.estimatedLandingTime = timer.getAbsTime() + descentTime
+
+        local dropData = {
+            type          = "crate",
+            unitName      = crate.crateName,
+            dropPosition  = dropPos,
+            landPositions = { landPos },
+            altitude      = altAGL,
+            descentTime   = descentTime,
+            transport     = transport,
+            player        = playerObj.unitName,
+        }
+        self._parachuteEffect:onStart(dropData)
+
+        self:_publish("OnCrateParachuting", {
+            crate           = crate,
+            crateName       = crate.crateName,
+            descriptor      = crate.descriptor,
+            dropPosition    = dropPos,
+            landingPosition = landPos,
+            altitude        = altAGL,
+            descentTime     = descentTime,
+            carrierUnitName = transport:getName(),
+            player          = playerObj.unitName,
+            timestamp       = timer.getAbsTime(),
+        })
+
+        -- Capture loop variables for the timer closure
+        local _crate    = crate
+        local _landPos  = landPos
+        local _dropData = dropData
+        timer.scheduleFunction(function()
+            _crate:land(_landPos)
+            self._parachuteEffect:onLanded(_dropData)
+            self:_publish("OnCrateParachuteLanded", {
+                crate           = _crate,
+                crateName       = _crate.crateName,
+                descriptor      = _crate.descriptor,
+                position        = _landPos,
+                coalition       = _crate.coalition,
+                startAltitude   = altAGL,
+                carrierUnitName = transport:getName(),
+                player          = playerObj.unitName,
+                timestamp       = timer.getAbsTime(),
+            })
+        end, {}, timer.getTime() + descentTime)
+    end
+end
+
+--- Returns true if the unit type name is a JTAC-type unit.
+-- Used to filter JTAC crates from the Spawn Crates menu when JTAC_dropEnabled = false.
+-- Matches known JTAC unit type names (case-insensitive substring).
+local _jtacUnitTypes = { "hummer", "skp-11", "jtac" }
+function CTLDCrateManager:_isJTACUnitType(unitType)
+    if not unitType then return false end
+    local lower = string.lower(unitType)
+    for _, t in ipairs(_jtacUnitTypes) do
+        if string.find(lower, t, 1, true) then return true end
+    end
+    return false
+end
+
+--- Build "Spawn Crates" + "Crate Commands" F10 submenus for a player.
+-- Requires enableCrates = true (configKey gate) AND unitActions.crates = true.
+-- Sub-entries:
+--   Spawn Crates → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
+--   Crate Commands → Load/Drop/Unpack/List
+--                  → List FOBs         if enabledFOBBuilding
+--                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDCrateManager:buildMenuSection(playerObj, menu)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.crates) then return end
+
+    local root      = ctld.tr("CTLD")
+    local jtacOk    = ctld.gs("JTAC_dropEnabled") == true
+    local spawnSub  = ctld.tr("Spawn Crates")
+    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+
+    -- Spawn Crates: per LGZ × per category × per crate
+    local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
+    local spawnableCrates = ctld.gs("spawnableCrates") or {}
+
+    for _, lgz in ipairs(lgZones) do
+        local lgzName = lgz.name
+        menu:addSubMenu({ root, spawnSub }, lgzName)
+        for category, crates in pairs(spawnableCrates) do
+            menu:addSubMenu({ root, spawnSub, lgzName }, category)
+            for _, crate in ipairs(crates) do
+                local sideOk   = (crate.side == nil) or (crate.side == playerObj.coalition)
+                local crateJtac = self:_isJTACUnitType(crate.unit)
+                if sideOk and (not crateJtac or jtacOk) then
+                    menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
+                        function(arg)
+                            CTLDCrateManager.getInstance():spawnCrate(
+                                self:findDescriptorByTypeName(arg.unit),
+                                CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName),
+                                arg.coalition, arg.unitName, "menu_ctld")
+                        end,
+                        { unit = crate.unit, weight = crate.weight,
+                          zoneName = lgzName, unitName = playerObj.unitName,
+                          coalition = playerObj.coalition })
+                end
+            end
+        end
+    end
+
+    -- Crate Commands
+    local cratesSub = ctld.tr("Crate Commands")
+    menu:addSubMenu({ root }, cratesSub, { order = 50 })
+
+    menu:addCommand({ root, cratesSub }, ctld.tr("Load Nearby Crate(s)"),
+        function(arg) ctld.utils.log("INFO", "Load Nearby Crate(s) for " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, cratesSub }, ctld.tr("Drop Crate(s)"),
+        function(arg) ctld.utils.log("INFO", "Drop Crate(s) for " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, cratesSub }, ctld.tr("Unpack Any Crate"),
+        function(arg) ctld.utils.log("INFO", "Unpack Any Crate for " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, cratesSub }, ctld.tr("List Nearby Crates"),
+        function(arg) ctld.utils.log("INFO", "List Nearby Crates for " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName })
+
+    if ctld.gs("enabledFOBBuilding") == true then
+        menu:addCommand({ root, cratesSub }, ctld.tr("List FOBs"),
+            function(arg) ctld.utils.log("INFO", "List FOBs for group " .. tostring(arg.groupId)) end,
+            { groupId = playerObj.groupId })
+    end
+
+    if ctld.gs("enablePackingVehicles") == true then
+        -- Empty container populated dynamically via clearBranch + refresh on proximity scan
+        menu:addSubMenu({ root, cratesSub }, ctld.tr("Pack Vehicle"), { order = 99 })
+    end
+
+    -- Parachute Crates: only if canParachute=true for this unit type
+    local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
+    if acts2 and acts2.canParachute then
+        menu:addCommand({ root, cratesSub }, ctld.tr("Parachute Crates"),
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if not transport then return end
+                CTLDCrateManager.getInstance():parachuteCrates(transport, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId })
+    end
+end
+
+--- Build "Smoke" F10 submenu for a player.
+-- Requires enableSmokeDrop = true (configKey gate) AND isTransport.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDCrateManager:buildSmokeSection(playerObj, menu)
+    if not playerObj.isTransport then return end
+
+    local root     = ctld.tr("CTLD")
+    local smokeSub = ctld.tr("Smoke")
+    menu:addSubMenu({ root }, smokeSub, { order = 80 })
+
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Red Smoke"),
+        function(arg) ctld.utils.log("INFO", "Drop Red Smoke " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName, color = "red" })
+
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Blue Smoke"),
+        function(arg) ctld.utils.log("INFO", "Drop Blue Smoke " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName, color = "blue" })
+
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Orange Smoke"),
+        function(arg) ctld.utils.log("INFO", "Drop Orange Smoke " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName, color = "orange" })
+
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Green Smoke"),
+        function(arg) ctld.utils.log("INFO", "Drop Green Smoke " .. tostring(arg.unitName)) end,
+        { unitName = playerObj.unitName, color = "green" })
 end

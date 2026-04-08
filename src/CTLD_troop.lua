@@ -74,7 +74,7 @@ end
 
 CTLDTroopManager = class()
 
-local _instance = nil
+CTLDTroopManager._instance = nil
 
 -- ============================================================
 -- Unit types per role per coalition
@@ -107,10 +107,11 @@ CTLDTroopManager._ROLE_ORDER = { "aa", "inf", "mg", "at", "mortar", "jtac" }
 -- ============================================================
 
 function CTLDTroopManager.getInstance()
-    if _instance == nil then
-        _instance = setmetatable({}, CTLDTroopManager)
+    if CTLDTroopManager._instance == nil then
+        CTLDTroopManager._instance = setmetatable({}, CTLDTroopManager)
+        CTLDTroopManager._instance:init()
     end
-    return _instance
+    return CTLDTroopManager._instance
 end
 
 -- ============================================================
@@ -118,12 +119,25 @@ end
 -- ============================================================
 
 function CTLDTroopManager:init()
-    self._inTransit     = {}              -- [unitName] = CTLDTroopGroup (LOADED or EXTRACTED)
-    self._droppedGroups = { [1]={}, [2]={} }  -- [coalition] = { groupName, ... }
+    self._inTransit        = {}              -- [unitName] = CTLDTroopGroup (LOADED or EXTRACTED)
+    self._droppedGroups    = { [1]={}, [2]={} }  -- [coalition] = { groupName, ... }
+    self._parachuteEffect  = CTLDNullParachuteEffect:new()
     self:_registerTemplates()
+    CTLDPlayerManager.getInstance():registerMenuSection({
+        key    = "troops",
+        manager = self,
+        method  = "buildMenuSection",
+        order   = 20,
+    })
     ctld.utils.log("INFO", "CTLDTroopManager initialized — %d templates registered",
         self._templateCount or 0)
     return self
+end
+
+--- Replace the parachute visual effect handler.
+-- @param effect CTLDParachuteEffect
+function CTLDTroopManager:setParachuteEffect(effect)
+    self._parachuteEffect = effect
 end
 
 -- ============================================================
@@ -741,4 +755,171 @@ function CTLDTroopManager:_menuCheckCargo(unit)
         msg = ctld.tr("No troops onboard.")
     end
     trigger.action.outTextForGroup(unit:getGroup():getID(), msg, 10)
+end
+
+-- ============================================================
+-- Feature A — Virtual parachute
+-- ============================================================
+
+--- Parachute troops currently loaded on a transport.
+-- Altitude AGL is checked at call time. If below parachuteMinAltitudeTroops,
+-- a message is sent to the group and nothing happens.
+-- Each unit in the group gets its own independent landing position.
+-- The DCS ground group is spawned with all unit positions after descentTime.
+-- Publishes OnTroopsDeployed (trigger="parachute") immediately,
+-- and OnTroopsParachuteLanded after descentTime.
+-- @param transport  Unit    DCS transport unit
+-- @param playerObj  table   CTLDPlayer-like {groupId, unitName}
+function CTLDTroopManager:parachuteTroops(transport, playerObj)
+    local dropPos     = transport:getPoint()
+    local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
+    local altAGL      = dropPos.y - groundUnder
+    local minAlt      = ctld.gs("parachuteMinAltitudeTroops") or 50
+
+    if altAGL < minAlt then
+        trigger.action.outTextForGroup(playerObj.groupId,
+            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+                math.floor(minAlt), math.floor(altAGL)), 10)
+        return
+    end
+
+    local troopGroup = self._inTransit[playerObj.unitName]
+    if not troopGroup then
+        trigger.action.outTextForGroup(playerObj.groupId, ctld.tr("No troops onboard."), 8)
+        return
+    end
+
+    local descentRate = ctld.gs("parachuteDescentRateTroops") or 5
+    local unitDefs    = {}
+    local landPositions = {}
+
+    -- Compute one landing position per unit
+    for i = 1, #troopGroup.units do
+        local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
+        table.insert(landPositions, landPos)
+        unitDefs[i] = {
+            type    = troopGroup.units[i].type,
+            name    = troopGroup.groupName .. "_unit" .. i,
+            x       = landPos.x,
+            y       = landPos.z,   -- DCS ground group: position.y = world Z axis
+            heading = math.random(0, 360) * math.pi / 180,
+        }
+        -- All units share approximately the same descentTime (first unit's value used for timer)
+        if i == 1 then
+            -- capture for timer below
+            troopGroup._parachuteDescentTime = descentTime
+        end
+    end
+
+    local descentTime = troopGroup._parachuteDescentTime or
+        (troopGroup.units and #troopGroup.units > 0 and
+            select(2, ctld.utils.calcDropPosition(transport, descentRate))) or 10
+
+    -- Unload from transport cargo
+    self._inTransit[playerObj.unitName] = nil
+
+    local dropData = {
+        type          = "troop",
+        unitName      = troopGroup.groupName,
+        dropPosition  = dropPos,
+        landPositions = landPositions,
+        altitude      = altAGL,
+        descentTime   = descentTime,
+        transport     = transport,
+        player        = playerObj.unitName,
+    }
+    self._parachuteEffect:onStart(dropData)
+
+    EventDispatcher.getInstance():publish("OnTroopsDeployed", {
+        troops          = troopGroup,
+        carrierUnitName = transport:getName(),
+        player          = playerObj.unitName,
+        trigger         = "parachute",
+        destination     = { type = "combat", troopZone = nil },
+        timestamp       = timer.getAbsTime(),
+    })
+
+    -- Capture for timer closure
+    local _troopGroup   = troopGroup
+    local _unitDefs     = unitDefs
+    local _landPositions = landPositions
+    local _dropData     = dropData
+    local _coalition    = playerObj.coalition or 2
+
+    timer.scheduleFunction(function()
+        local country = coalition.getCountryCoalition and coalition.getCountryCoalition(_coalition) or _coalition
+        local spawnedGroup = coalition.addGroup(country, Group.Category.GROUND, {
+            name  = _troopGroup.groupName,
+            task  = "Ground Nothing",
+            units = _unitDefs,
+        })
+
+        local grp = Group.getByName(_troopGroup.groupName)
+        if grp then
+            table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.groupName)
+        end
+
+        self._parachuteEffect:onLanded(_dropData)
+
+        EventDispatcher.getInstance():publish("OnTroopsParachuteLanded", {
+            troops        = _troopGroup,
+            spawnedGroup  = spawnedGroup,
+            positions     = _landPositions,
+            transport     = transport:getName(),
+            player        = playerObj.unitName,
+            startAltitude = altAGL,
+            timestamp     = timer.getAbsTime(),
+        })
+    end, {}, timer.getTime() + descentTime)
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "Troop Commands" F10 submenu for a player.
+-- Added only when the unit type has troops capability in unitActions.
+-- Per-zone load commands are generated from TRZ zones matching player coalition.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDTroopManager:buildMenuSection(playerObj, menu)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.troops) then return end
+
+    local root     = ctld.tr("CTLD")
+    local troopSub = ctld.tr("Troop Commands")
+    menu:addSubMenu({ root }, troopSub, { order = 20 })
+
+    -- Unload / Extract always available
+    menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
+        function(arg)
+            CTLDTroopManager.getInstance():unloadTroops(arg.unitName)
+        end,
+        { unitName = playerObj.unitName })
+
+    -- One "Load Troops from <zone>" per TRZ accessible to this coalition
+    local zones = CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)
+    for _, zone in ipairs(zones) do
+        local zName = zone.name
+        menu:addCommand({ root, troopSub },
+            string.format(ctld.tr("Load from %s"), zName),
+            function(arg)
+                CTLDTroopManager.getInstance():loadFromZone(arg.unitName, arg.zoneName)
+            end,
+            { unitName = playerObj.unitName, zoneName = zName })
+    end
+
+    -- Parachute Troops: only if canParachute=true for this unit type
+    local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
+    if acts2 and acts2.canParachute then
+        menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if not transport then return end
+                CTLDTroopManager.getInstance():parachuteTroops(transport, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId,
+              coalition = playerObj.coalition })
+    end
 end

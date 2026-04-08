@@ -84,13 +84,10 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
          F-44: fobScene self-registration  10/10
        ⚠️ Exécution réelle des scènes (spawn DCS) non couverte — visuel requis en DCS
 
-🟡 R5  src/CTLD_menu.lua  (ctld.Menu + ctld.MenuManager)
-       recette: busted partiel (src/tests/CTLD_menu_test.lua) — pas de recette Witchcraft
-       À compléter: refresh atomique en DCS réel, pagination >10 items, clearBranch
-
-── FICHIER MANQUANT ─────────────────────────────────────────────────────────
-⚠️  CTLD_objectsDescDb.lua — référencé dans CTLD_loader.lua ligne 22 mais ABSENT de src/
-    → À vérifier si encore nécessaire ou à retirer du loader
+🟢 R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
+       Architecture: registerMenuSection() + configKey gateway + order sort
+       Fix: CTLDTroopManager._instance migré de local→public + init() appelé dans getInstance()
+       Recette: F-48→F-56 45/45 PASS ✅ — F-45→F-47 visual checks ⬜ (DCS réel requis)
 
 ── FEATURES À IMPLÉMENTER ───────────────────────────────────────────────────
 ✅  FD  Feature D — Custom LoadableGroups API (CTLDTroopManager)
@@ -102,8 +99,13 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅  FE  Feature E — CTLD log file dédié (ctld.utils.log → ctld.log)
         implémenté dans CTLD_utils.lua (initLog/log/closeLog/reopenLogAppend) [2026-04-07]
 
-⚪  FA  Feature A — Virtual parachute (crates + troops + vehicles)
-        spec: validée (project_feature_a_spec.md) — grosse feature, dépend R1+R2
+✅  FA  Feature A — Virtual parachute (crates + troops + vehicles)  [2026-04-08]
+        CTLDParachuteEffect + NullParachuteEffect (src/lib/)
+        ctld.utils.calcDropPosition() ajouté (CTLD_utils.lua)
+        8 params parachute + canParachute dans unitActions (CTLD_config.lua)
+        parachuteCrates/Troops/Vehicle() + menus F10 conditionnels (canParachute)
+        spawnVehicleAt() ajouté à CTLDVehicleSpawner
+        Recette FA: scripts à créer (⬜ TODO)
 
 ⚪  FB  Feature B — Virtual slingload
         S_EVENT_SLINGLOAD_LOAD n'existe pas dans l'API DCS [vérifié Hoggit 2026-04-07]

@@ -107,9 +107,10 @@ function CTLDVehicleSpawner.getInstance()
 end
 
 function CTLDVehicleSpawner:init()
-    self._vehicles      = {}   -- id         → CTLDVehicle
-    self._unitToVehicle = {}   -- unitName   → vehicleId   (reverse lookup)
-    self._vehicleCount  = 0
+    self._vehicles        = {}   -- id         → CTLDVehicle
+    self._unitToVehicle   = {}   -- unitName   → vehicleId   (reverse lookup)
+    self._vehicleCount    = 0
+    self._parachuteEffect = CTLDNullParachuteEffect:new()
     -- nativeTracked: transportName → { vehicleId, wasInBbox }
     -- populated by _checkNativeLoading to avoid re-firing on same entry
     self._nativeTracked = {}
@@ -126,6 +127,12 @@ function CTLDVehicleSpawner:init()
         return t + 1
     end, nil, timer.getTime() + 1)
 
+    CTLDPlayerManager.getInstance():registerMenuSection({
+        key     = "vehicles",
+        manager = self,
+        method  = "buildMenuSection",
+        order   = 30,
+    })
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
 end
 
@@ -552,4 +559,171 @@ function CTLDVehicleSpawner:onDead(event)
     ctld.utils.log("INFO", string.format(
         "CTLDVehicleSpawner: vehicle %s (%s) dead",
         vehicleId, vehicle.vehicleType))
+end
+
+-- ============================================================
+-- Feature A — Virtual parachute
+-- ============================================================
+
+--- Replace the parachute visual effect handler.
+-- @param effect CTLDParachuteEffect
+function CTLDVehicleSpawner:setParachuteEffect(effect)
+    self._parachuteEffect = effect
+end
+
+--- Parachute a vehicle currently loaded on a transport.
+-- Altitude AGL is checked at call time. If below parachuteMinAltitudeVehicles,
+-- a message is sent and nothing happens.
+-- Computes landing position, unloads the vehicle from the transport,
+-- fires OnVehicleParachuting, then after descentTime spawns the vehicle
+-- at the computed position and fires OnVehicleParachuteLanded.
+-- @param transport  Unit    DCS transport unit
+-- @param vehicleId  number  vehicle ID to drop (first loaded vehicle if nil)
+-- @param playerObj  table   CTLDPlayer-like {groupId, unitName, coalition}
+function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
+    local dropPos     = transport:getPoint()
+    local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
+    local altAGL      = dropPos.y - groundUnder
+    local minAlt      = ctld.gs("parachuteMinAltitudeVehicles") or 30
+
+    if altAGL < minAlt then
+        trigger.action.outTextForGroup(playerObj.groupId,
+            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+                math.floor(minAlt), math.floor(altAGL)), 10)
+        return
+    end
+
+    -- Resolve vehicle: use provided vehicleId or find first vehicle loaded on this transport
+    local vehicle
+    if vehicleId then
+        vehicle = self._vehicles[vehicleId]
+    else
+        for _, v in pairs(self._vehicles) do
+            if v.state == CTLDVehicle.STATE.LOADED and v.carrierUnitName == transport:getName() then
+                vehicle = v
+                break
+            end
+        end
+    end
+
+    if not vehicle then
+        trigger.action.outTextForGroup(playerObj.groupId, ctld.tr("No vehicle loaded."), 8)
+        return
+    end
+
+    local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
+    local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
+
+    -- Unload from transport
+    local spawnData = vehicle.spawnData
+    vehicle:transit()
+
+    local dropData = {
+        type          = "vehicle",
+        unitName      = vehicle.vehicleType,
+        dropPosition  = dropPos,
+        landPositions = { landPos },
+        altitude      = altAGL,
+        descentTime   = descentTime,
+        transport     = transport,
+        player        = playerObj.unitName,
+    }
+    self._parachuteEffect:onStart(dropData)
+
+    EventDispatcher.getInstance():publish("OnVehicleParachuting", {
+        vehicle              = vehicle,
+        transport            = transport:getName(),
+        player               = playerObj.unitName,
+        altitude             = altAGL,
+        dropPosition         = dropPos,
+        estimatedLandingPos  = landPos,
+        estimatedLandingTime = timer.getAbsTime() + descentTime,
+        timestamp            = timer.getAbsTime(),
+    })
+
+    local _vehicle   = vehicle
+    local _landPos   = landPos
+    local _dropData  = dropData
+    local _spawnData = spawnData
+    timer.scheduleFunction(function()
+        -- Spawn vehicle at computed landing position
+        local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
+        if _spawnData then
+            self:spawnVehicleAt(_spawnData, spawnPos)
+        end
+
+        self._parachuteEffect:onLanded(_dropData)
+
+        EventDispatcher.getInstance():publish("OnVehicleParachuteLanded", {
+            vehicle       = _vehicle,
+            position      = _landPos,
+            transport     = transport:getName(),
+            player        = playerObj.unitName,
+            startAltitude = altAGL,
+            timestamp     = timer.getAbsTime(),
+        })
+    end, {}, timer.getTime() + descentTime)
+end
+
+--- Spawn a vehicle at an explicit world position (used by parachute drop).
+-- @param spawnData  table   vehicle spawn descriptor
+-- @param position   vec3    world position {x, y, z}
+function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
+    if not spawnData then return end
+    local coalitionId = spawnData.coalitionId or 2
+    local country     = spawnData.country or coalitionId
+    local unitDef = {
+        name    = spawnData.groupName or (spawnData.vehicleType .. "_parachute_" .. timer.getAbsTime()),
+        task    = "Ground Nothing",
+        units   = {{
+            type    = spawnData.vehicleType,
+            name    = spawnData.unitName or spawnData.vehicleType,
+            x       = position.x,
+            y       = position.z,
+            heading = 0,
+        }},
+    }
+    coalition.addGroup(country, Group.Category.GROUND, unitDef)
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "Vehicle Commands" F10 submenu for a player.
+-- Added only when the unit can carry vehicles (canCarryVehicles = true).
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
+    if not playerObj.canCarryVehicles then return end
+
+    local root   = ctld.tr("CTLD")
+    local vehSub = ctld.tr("Vehicle Commands")
+    menu:addSubMenu({ root }, vehSub, { order = 30 })
+
+    menu:addCommand({ root, vehSub }, ctld.tr("Unload Vehicles"),
+        function(arg)
+            CTLDVehicleSpawner.getInstance():unloadVehicle(nil, nil, nil, "menu_ctld")
+        end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, vehSub }, ctld.tr("Load / Extract Vehicles"),
+        function(arg)
+            -- Placeholder: actual load triggers vehicle proximity scan
+            ctld.utils.log("INFO", "Load/Extract Vehicles requested by " .. tostring(arg.unitName))
+        end,
+        { unitName = playerObj.unitName })
+
+    -- Parachute Vehicle: only if canParachute=true for this unit type
+    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
+    if acts and acts.canParachute then
+        menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if not transport then return end
+                CTLDVehicleSpawner.getInstance():parachuteVehicle(transport, nil, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId,
+              coalition = playerObj.coalition })
+    end
 end

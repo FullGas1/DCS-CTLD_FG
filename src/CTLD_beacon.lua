@@ -137,6 +137,13 @@ function CTLDBeaconManager:init()
         self:_scheduleRefresh()
     end
 
+    CTLDPlayerManager.getInstance():registerMenuSection({
+        key       = "beacons",
+        manager   = self,
+        method    = "buildMenuSection",
+        configKey = "enabledRadioBeaconDrop",
+        order     = 60,
+    })
     ctld.utils.log("INFO", "CTLDBeaconManager: init complete")
 end
 
@@ -691,4 +698,41 @@ end
 --- Return CTLDBeacon by beaconName, or nil.
 function CTLDBeaconManager:getBeacon(beaconName)
     return self._beacons[beaconName]
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "Radio Beacons" F10 submenu for a player.
+-- Requires enabledRadioBeaconDrop = true (configKey gate) AND isTransport.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDBeaconManager:buildMenuSection(playerObj, menu)
+    if not playerObj.isTransport then return end
+
+    local root      = ctld.tr("CTLD")
+    local beaconSub = ctld.tr("Radio Beacons")
+    menu:addSubMenu({ root }, beaconSub, { order = 60 })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
+        end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
+        end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():listBeacons(transport) end
+        end,
+        { unitName = playerObj.unitName })
 end

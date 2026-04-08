@@ -288,6 +288,24 @@ function CTLDConfig:load()
     self.settings["fobTroopPickupRadius"]           = 150      -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
 
     -- ═══════════════════════════════════════════════════════════
+    -- [FA] PARACHUTE — Virtual parachute drop (Feature A)
+    -- ═══════════════════════════════════════════════════════════
+    -- Minimum altitude AGL (m) required to initiate a parachute drop.
+    self.settings["parachuteMinAltitudeCrates"]   = 30    -- m AGL
+    self.settings["parachuteMinAltitudeTroops"]   = 50    -- m AGL (safety margin for personnel)
+    self.settings["parachuteMinAltitudeVehicles"] = 30    -- m AGL
+    -- Vertical descent speed (m/s) — determines time-to-ground.
+    self.settings["parachuteDescentRateCrates"]   = 5     -- m/s
+    self.settings["parachuteDescentRateTroops"]   = 5     -- m/s
+    self.settings["parachuteDescentRateVehicles"] = 8     -- m/s (heavier load)
+    -- Horizontal drift physics.
+    self.settings["parachuteInertiaFactor"]       = 0.3   -- fraction of transport velocity applied as forward drift (0.0–1.0)
+    self.settings["parachuteLateralDriftMin"]     = 10    -- m, minimum random lateral drift per unit
+    self.settings["parachuteLateralDriftMax"]     = 80    -- m, maximum random lateral drift per unit
+    -- Auto-unpack radius for parachuted crates (wider than normal because of dispersion).
+    self.settings["autoUnpackRadiusParachute"]    = 1000  -- m
+
+    -- ═══════════════════════════════════════════════════════════
     -- [7] BEACONS — Radio beacon drop, sounds and battery life
     -- ═══════════════════════════════════════════════════════════
     self.settings["enabledRadioBeaconDrop"]         = true     -- if its set to false then beacons cannot be dropped by units
@@ -591,25 +609,28 @@ function CTLDConfig:load()
         -- ["SA342L"] = {crates=false, troops=true},
         -- ["SA342M"] = {crates=false, troops=true},
 
+        -- canParachute=true enables "Parachute Crates/Troops/Vehicle" menu entries (Feature A).
+        -- Set to true for aircraft that support virtual parachute drops.
+
         --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = {crates=true, troops=true},
-        ["Hercules"] = { crates = true, troops = true },
-        ["SK-60"] = { crates = true, troops = true },
-        ["UH-60L"] = { crates = true, troops = true },
-        ["C-130J-30"] = { crates = true, troops = true },
-        --["T-45"] = {crates=true, troops=true},
+        --["Bronco-OV-10A"] = {crates=true, troops=true, canParachute=false},
+        ["Hercules"] = { crates = true, troops = true, canParachute = false },
+        ["SK-60"] = { crates = true, troops = true, canParachute = false },
+        ["UH-60L"] = { crates = true, troops = true, canParachute = false },
+        ["C-130J-30"] = { crates = true, troops = true, canParachute = false },
+        --["T-45"] = {crates=true, troops=true, canParachute=false},
 
         --%%%%% CHOPPERS %%%%%
-        --["Ka-50"] = {crates=true, troops=false},
-        --["Ka-50_3"] = {crates=true, troops=false},
-        ["Mi-8MT"] = { crates = true, troops = true },
-        ["Mi-24P"] = { crates = true, troops = true },
-        --["SA342L"] = {crates=false, troops=true},
-        --["SA342M"] = {crates=false, troops=true},
-        --["SA342Mistral"] = {crates=false, troops=true},
-        --["SA342Minigun"] = {crates=false, troops=true},
-        ["UH-1H"] = { crates = true, troops = true },
-        ["CH-47Fbl1"] = { crates = true, troops = true },
+        --["Ka-50"] = {crates=true, troops=false, canParachute=false},
+        --["Ka-50_3"] = {crates=true, troops=false, canParachute=false},
+        ["Mi-8MT"] = { crates = true, troops = true, canParachute = false },
+        ["Mi-24P"] = { crates = true, troops = true, canParachute = false },
+        --["SA342L"] = {crates=false, troops=true, canParachute=false},
+        --["SA342M"] = {crates=false, troops=true, canParachute=false},
+        --["SA342Mistral"] = {crates=false, troops=true, canParachute=false},
+        --["SA342Minigun"] = {crates=false, troops=true, canParachute=false},
+        ["UH-1H"] = { crates = true, troops = true, canParachute = false },
+        ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false },
 
         --%%%%% AIRCRAFTS %%%%%
         --["C-101EB"] = {crates=true, troops=true},

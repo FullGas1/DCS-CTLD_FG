@@ -13,6 +13,7 @@
 | M6 | `src/CTLD_aasystem.lua` | CTLDCrateAssemblyManager |
 | M7 | `src/CTLD_player.lua` | CTLDPlayer, CTLDPlayerManager |
 | R4 | `src/CTLD_sceneManager.lua` | CtldScene, CTLDSceneManager + fobScene (auto-enregistrement) |
+| R5 | `src/CTLD_player.lua` + tous managers | buildMenu() Option D — registerMenuSection + config-variant |
 
 ## Environnement d'exécution
 
@@ -130,6 +131,18 @@ La mission de test doit contenir :
 | F-42 | playScene — guards | R4 | nil unit, dead unit, unknown model → nil ; valid call → scene | ✅ PASS 4/4 | — |
 | F-43 | FARP Alpha scene — structure validation | R4 | 14 steps, registryKeys, types polar, func, delayAfterPreviousStep | ✅ PASS 11/11 | — |
 | F-44 | fobScene auto-enregistrement | R4 | Absent avant dofile, présent après + 4 steps + clés correctes | ✅ PASS 10/10 | — |
+| F-45 | buildMenu() initial — UH-1H + all ON | R5 | Menu F10 construit : FOB disabled, sections présentes — VISUAL CHECK | ⬜ TODO | — |
+| F-46 | Double refresh() idempotent | R5 | Deuxième refresh() → menu identique — VISUAL CHECK | ⬜ TODO | — |
+| F-47 | Enable FOB + clearBranch + pagination | R5 | FOB activé + Pack Vehicles 11 items → 9+NextPage — VISUAL CHECK | ⬜ TODO | — |
+| F-48 | buildMenu() tous flags true — toutes sections | R5 | isTransport=true, canCarryVehicles=false : 8 sections + Pack Vehicle présents | ✅ PASS 10/10 | — |
+| F-49 | enableCrates=false → Spawn Crates + Crate Commands absent | R5 | Smoke + Beacons + Troops toujours présents | ✅ PASS 5/5 | — |
+| F-50 | enabledRadioBeaconDrop=false → Radio Beacons absent | R5 | Toutes autres sections présentes | ✅ PASS 5/5 | — |
+| F-51 | reconF10Menu=false → RECON absent | R5 | Toutes autres sections présentes | ✅ PASS 4/4 | — |
+| F-52 | JTAC_jtacStatusF10=false → JTAC absent | R5 | Toutes autres sections présentes | ✅ PASS 4/4 | — |
+| F-53 | enabledFOBBuilding=false → List FOBs absent | R5 | Crate Commands présent, Pack Vehicle présent | ✅ PASS 3/3 | — |
+| F-54 | enablePackingVehicles=false → Pack Vehicle absent | R5 | Crate Commands présent, List FOBs présent | ✅ PASS 3/3 | — |
+| F-55 | non-transport → pas de sections transport | R5 | isTransport=false : Troops/Crates/Smoke/Beacons absents ; RECON+JTAC présents | ✅ PASS 8/8 | — |
+| F-56 | canCarryVehicles=true → Vehicle Commands présent | R5 | UH-1H canCarryVehicles=true : Vehicle Commands + Troops + Crates présents | ✅ PASS 3/3 | — |
 
 ---
 
@@ -159,5 +172,6 @@ La mission de test doit contenir :
 - **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
 - **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
 - **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
+- **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ⬜, F-48→F-56 45/45 ✅)
 - **FC** : 1 fonctionnel = **1 cas** ✅ PASS
-- **Total** : **88 cas** — 88/88 PASS ✅
+- **Total** : **100 cas** — 97/100 PASS (3 visual checks R5 ⬜ TODO)
