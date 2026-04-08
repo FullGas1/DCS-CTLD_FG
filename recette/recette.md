@@ -81,6 +81,9 @@ La mission de test doit contenir :
 | U-42 | CTLDJTACManager singleton + laser pool | R3 | getInstance idempotent, pool 578 codes, assign/free | ✅ PASS 12/12 | — |
 | U-43 | CTLDSceneManager singleton + registerSceneModel | R4 | getInstance idempotent, register/guards/getModel, built-in FARP Alpha | ✅ PASS 9/9 | — |
 | U-44 | CtldScene step execution engine — func-only, delay=0 | R4 | 3 steps en ordre, onComplete appelé, _params transmis | ✅ PASS 8/8 | — |
+| U-54 | CTLDObjectRegistry get() + findByDCSType() | P1 | Lookup direct + reverse lookup par DCS typeName + nil guards | ✅ PASS 14/14 | — |
+| U-55 | CTLDObjectRegistry spawnObject() STATIC | P1 | coalition.addStaticObject appelé, champs injectés, overrides, unknown key nil | ✅ PASS 16/16 | — |
+| U-56 | CTLDObjectRegistry spawnObject() GROUND | P1 | 3 unités, coalition-aware unitType BLUE/RED, rotation heading 0° et 90° | ✅ PASS 13/13 | — |
 
 ---
 
@@ -132,9 +135,9 @@ La mission de test doit contenir :
 | F-42 | playScene — guards | R4 | nil unit, dead unit, unknown model → nil ; valid call → scene | ✅ PASS 4/4 | — |
 | F-43 | FARP Alpha scene — structure validation | R4 | 14 steps, registryKeys, types polar, func, delayAfterPreviousStep | ✅ PASS 11/11 | — |
 | F-44 | fobScene auto-enregistrement | R4 | Absent avant dofile, présent après + 4 steps + clés correctes | ✅ PASS 10/10 | — |
-| F-45 | buildMenu() initial — UH-1H + all ON | R5 | Menu F10 construit : FOB disabled, sections présentes — VISUAL CHECK | ⬜ TODO | — |
-| F-46 | Double refresh() idempotent | R5 | Deuxième refresh() → menu identique — VISUAL CHECK | ⬜ TODO | — |
-| F-47 | Enable FOB + clearBranch + pagination | R5 | FOB activé + Pack Vehicles 11 items → 9+NextPage — VISUAL CHECK | ⬜ TODO | — |
+| F-45 | buildMenu() initial — UH-1H + all ON | R5 | Menu F10 construit : FOB disabled, sections présentes — VISUAL CHECK | ✅ PASS (visual) | — |
+| F-46 | Double refresh() idempotent | R5 | Deuxième refresh() → menu identique — VISUAL CHECK | ✅ PASS (visual) | — |
+| F-47 | Enable FOB + clearBranch + pagination | R5 | FOB activé + Pack Vehicles 11 items → 9+NextPage — VISUAL CHECK | ✅ PASS (visual) | — |
 | F-48 | buildMenu() tous flags true — toutes sections | R5 | isTransport=true, canCarryVehicles=false : 8 sections + Pack Vehicle présents | ✅ PASS 10/10 | — |
 | F-49 | enableCrates=false → Spawn Crates + Crate Commands absent | R5 | Smoke + Beacons + Troops toujours présents | ✅ PASS 5/5 | — |
 | F-50 | enabledRadioBeaconDrop=false → Radio Beacons absent | R5 | Toutes autres sections présentes | ✅ PASS 5/5 | — |
@@ -188,8 +191,9 @@ La mission de test doit contenir :
 - **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
 - **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
 - **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
-- **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ⬜, F-48→F-56 45/45 ✅)
+- **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ✅, F-48→F-56 45/45 ✅) [2026-04-08]
 - **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅)
 - **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅)
 - **FC** : 1 fonctionnel = **1 cas** ✅ PASS
-- **Total** : **115 cas** — 152/152 PASS (3 visual R5 ⬜ DCS requis)
+- **ObjectRegistry** : 3 unitaires = **3 cas** ✅ PASS (U-54→U-56 43/43 ✅) [2026-04-08]
+- **Total** : **118 cas** — 198/198 PASS ✅

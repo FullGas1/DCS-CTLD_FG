@@ -1,47 +1,22 @@
-[CTLD] Log started : 2026-04-08 21:08:20
-[CTLD][TEST] START  [F-71] cutSlingload — AGL > 40m → OnCrateLost(slingload_cut_impact)
-[CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
-[CTLD][INFO] CTLDZoneManager: all zone names valid
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic1' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic2' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic3' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic4' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic5' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic6' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic7' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic8' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic9' not found in mission
-[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic10' not found in mission
-[CTLD][INFO] CTLDZoneManager ready — troop:0 logistic:0
-[CTLD][INFO] CTLDPlayerManager: init complete
-[CTLD][INFO] _registerTemplates: 'Standard Group' → key='troop_1_Standard_Group' (10 units)
-[CTLD][INFO] _registerTemplates: 'Anti Air' → key='troop_2_Anti_Air' (5 units)
-[CTLD][INFO] _registerTemplates: 'Anti Tank' → key='troop_3_Anti_Tank' (8 units)
-[CTLD][INFO] _registerTemplates: 'Mortar Squad' → key='troop_4_Mortar_Squad' (6 units)
-[CTLD][INFO] _registerTemplates: 'JTAC Group' → key='troop_5_JTAC_Group' (5 units)
-[CTLD][INFO] _registerTemplates: 'Single JTAC' → key='troop_6_Single_JTAC' (1 units)
-[CTLD][INFO] _registerTemplates: '2x - Standard Groups' → key='troop_7_2x___Standard_Groups' (20 units)
-[CTLD][INFO] _registerTemplates: '2x - Anti Air' → key='troop_8_2x___Anti_Air' (10 units)
-[CTLD][INFO] _registerTemplates: '2x - Anti Tank' → key='troop_9_2x___Anti_Tank' (16 units)
-[CTLD][INFO] _registerTemplates: '2x - Standard Groups + 2x Mortar' → key='troop_10_2x___Standard_Groups___2x_Mortar' (32 units)
-[CTLD][INFO] _registerTemplates: '3x - Standard Groups' → key='troop_11_3x___Standard_Groups' (30 units)
-[CTLD][INFO] _registerTemplates: '3x - Anti Air' → key='troop_12_3x___Anti_Air' (15 units)
-[CTLD][INFO] _registerTemplates: '3x - Anti Tank' → key='troop_13_3x___Anti_Tank' (24 units)
-[CTLD][INFO] _registerTemplates: '3x - Mortar Squad' → key='troop_14_3x___Mortar_Squad' (18 units)
-[CTLD][INFO] _registerTemplates: '5x - Mortar Squad' → key='troop_15_5x___Mortar_Squad' (30 units)
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'troops'
-[CTLD][INFO] CTLDTroopManager initialized — 15 templates registered
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'vehicles'
-[CTLD][INFO] CTLDVehicleSpawner: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'crates'
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'smoke'
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'beacons'
-[CTLD][INFO] CTLDBeaconManager: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'recon'
-[CTLD][INFO] CTLDReconManager: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'jtac'
-[CTLD][TEST]   OK     OnCrateLost fired
-[CTLD][TEST]   OK     trigger=slingload_cut_impact
-[CTLD][TEST]   OK     crate removed from registry
-[CTLD][TEST]   OK     inTransitOnSlingload=false
-[CTLD][TEST] END    [F-71] cutSlingload — AGL > 40m → OnCrateLost(slingload_cut_impact) — 4/4 passed  →  OK
+[CTLD] Log started : 2026-04-08 21:49:51
+[CTLD][TEST] START  [U-55] CTLDObjectRegistry spawnObject() STATIC
+[CTLD][INFO] spawnObject: STATIC 'FARP-1' spawned at (1000.0, 2000.0)
+[CTLD][TEST]   OK     T1a: spawnObject(FARP) returns non-nil  [table: 0000027ABE444AA8]
+[CTLD][TEST]   OK     T1b: coalition.addStaticObject called once  [1 == 1]
+[CTLD][TEST]   OK     T1c: groupData passed to addStaticObject  [table: 0000027ABE444968]
+[CTLD][TEST]   OK     T1d: x == 1000  [1000 == 1000]
+[CTLD][TEST]   OK     T1e: y (=z) == 2000  [2000 == 2000]
+[CTLD][TEST]   OK     T1f: heading == 0  [0 == 0]
+[CTLD][TEST]   OK     T1g: start_time == 0  [0 == 0]
+[CTLD][TEST]   OK     T1h: name injected  [FARP-1]
+[CTLD][TEST]   OK     T1i: transportable injected  [table: 0000027ABE4449A8]
+[CTLD][TEST]   OK     T1j: groupType stripped from groupData  [nil]
+[CTLD][TEST]   OK     T1k: namePrefix stripped from groupData  [nil]
+[CTLD][TEST]   OK     T1l: descriptor.type preserved  [FARP == FARP]
+[CTLD][WARN] spawnObject: unknown objectKey '__no_such_key__'
+[CTLD][TEST]   OK     T2a: unknown key returns nil  [nil]
+[CTLD][TEST]   OK     T2b: no extra addStaticObject call  [1 == 1]
+[CTLD][INFO] spawnObject: STATIC 'FARP-2' spawned at (0.0, 0.0)
+[CTLD][TEST]   OK     T3a: override heliport_frequency applied  [130.0 == 130.0]
+[CTLD][TEST]   OK     T3b: custom override field merged  [yes == yes]
+[CTLD][TEST] END    [U-55] CTLDObjectRegistry spawnObject() STATIC — 16/16 passed  →  OK

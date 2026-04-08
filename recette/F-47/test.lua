@@ -3,14 +3,15 @@
 -- REQUIRES: F-45 executed first
 trigger.action.outText("F-47: Enable FOB + clearBranch + 11 items + pagination", 10)
 
-local unit = Unit.getByName("h1-1")
+local players = coalition.getPlayers(coalition.side.BLUE) or {}
+local unit = players[1]
 if not unit then
-    trigger.action.outText("F-47 SKIP: unit 'h1-1' not found", 10); return
+    trigger.action.outText("F-47 SKIP: no BLUE player found", 10); return
 end
 local groupId = unit:getGroup():getID()
 local menu    = ctld.MenuManager:getInstance():getMenuByGroupId(groupId)
 if not menu then
-    trigger.action.outText("F-47 SKIP: no menu for h1-1 — run F-45 first", 10); return
+    trigger.action.outText("F-47 SKIP: no menu found — run F-45 first", 10); return
 end
 
 timer.scheduleFunction(function()
@@ -22,6 +23,6 @@ timer.scheduleFunction(function()
     end
     menu:refresh()
     trigger.action.outText(
-        "F-47 VISUAL CHECK:\n  FOB now visible.\n  Pack Vehicles: 9 items + Next Page (11 total).", 20)
+        "F-47 VISUAL CHECK:\n  FOB now visible.\n  Pack Vehicles: 9 items + Next Page (11 total).", 30)
     env.info("[F-47] Menu updated. Awaiting visual confirmation.")
 end, {}, timer.getTime() + 3)

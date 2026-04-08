@@ -87,7 +87,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
        Architecture: registerMenuSection() + configKey gateway + order sort
        Fix: CTLDTroopManager._instance migré de local→public + init() appelé dans getInstance()
-       Recette: F-48→F-56 45/45 PASS ✅ — F-45→F-47 visual checks ⬜ (DCS réel requis)
+       Recette: F-48→F-56 45/45 PASS ✅ + F-45→F-47 visual checks ✅ 3/3 PASS [2026-04-08]
 
 ── FEATURES À IMPLÉMENTER ───────────────────────────────────────────────────
 ✅  FD  Feature D — Custom LoadableGroups API (CTLDTroopManager)
@@ -376,7 +376,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | ------ | ---- | ---- | ------- | --------- | ----- |
 | Config (`CTLD_config.lua`) | ✅ | ✅ | ⚪ | 0% | lib interne, risque faible |
 | Utils (`CTLD_utils.lua`) | ✅ | N/A | ⚪ | 0% | lib interne, testé indirectement |
-| Menu (`CTLD_menu.lua`) | ✅ | ✅ | 🟡 busted partiel | ~30% | recette DCS réelle manquante |
+| Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | R5: 48/48 PASS (45 auto + 3 visual) [2026-04-08] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel requis |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07] |
@@ -391,7 +391,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Player (`CTLD_player.lua`) | ✅ | ✅ | ✅ | 100% | 7/7 PASS [2026-04-07] |
 | Scenes fob/farp/mineField | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel DCS requis |
 | i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
-| ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ⚪ | 0% | Loader corrigé [2026-04-07] — ancien nom objectsDescDb éliminé |
+| ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ✅ | 100% | U-54→U-56 43/43 PASS [2026-04-08] |
 | Feature A (parachute) | ✅ | ✅ | ✅ | 100% | F-57→F-64 33/33 PASS [2026-04-08] |
 | Feature B (slingload) | ✅ | ✅ | ✅ | 100% | F-65→F-71 22/22 PASS [2026-04-08] |
 | Feature C (MM crate) | ✅ | ✅ | ✅ | 100% | registerMMCrate + OnMMCrateDetected, F-41 PASS [2026-04-07] |
