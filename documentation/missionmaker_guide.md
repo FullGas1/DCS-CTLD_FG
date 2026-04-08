@@ -12,6 +12,7 @@
 3. [Scene Deployment](#3-scene-deployment)
 4. [Zone Setup](#4-zone-setup)
 5. [Troop Transport](#5-troop-transport)
+6. [Virtual Parachute Drop](#6-virtual-parachute-drop)
 
 ---
 
@@ -625,6 +626,87 @@ If conditions are not met while airborne, CTLD refuses deployment and shows an e
 When troops are deployed inside an EXZ zone, **no DCS group is spawned**. Instead, the troop count is added to the zone's DCS flag. Use this to score evacuations or trigger mission phases.
 
 See [§4.6 EXZ](#46-exz--extract-zone) for zone naming and flag conventions.
+
+---
+
+## 6. Virtual Parachute Drop
+
+CTLD can simulate parachute drops for crates, troops, and vehicles without relying on DCS physics. When a player activates a parachute drop from the F10 menu, each unit or crate is immediately removed from the transport and scheduled to land at a computed ground position after a simulated descent time.
+
+### 6.1 Enabling parachute drops per aircraft
+
+Parachute menus are **hidden by default**. Enable them individually for each aircraft type via `canParachute` in `ctld.unitActions`:
+
+```lua
+ctld.unitActions = {
+    ["UH-1H"]    = { crates = true, troops = true, canParachute = true  },
+    ["CH-47Fbl1"]= { crates = true, troops = true, canParachute = true  },
+    ["Mi-8MT"]   = { crates = true, troops = true, canParachute = false },
+    -- ...
+}
+```
+
+When `canParachute = true`, three new F10 menu entries appear for that aircraft type:
+
+- **Parachute Crates** — drops all loaded crates
+- **Parachute Troops** — drops all embarked troops
+- **Parachute Vehicle** — drops the loaded vehicle
+
+All three share the same altitude gate: the action is refused (with an on-screen message) if the aircraft is below the configured minimum AGL for that payload type.
+
+### 6.2 Landing position algorithm
+
+Each dropped unit lands at a position computed from:
+
+1. **Inertia** — forward drift inherited from transport velocity, scaled by `parachuteInertiaFactor × descentTime`
+2. **Lateral drift** — random direction, random magnitude in `[parachuteLateralDriftMin, parachuteLateralDriftMax]` metres
+
+Units of the same drop (e.g. an 8-man squad) each receive an independent random drift, so they scatter realistically around the drop zone.
+
+### 6.3 Configuration parameters
+
+All parameters are set in `CTLD_userConfig.lua`.
+
+#### Minimum altitude gates
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `parachuteMinAltitudeCrates` | `30` | Minimum AGL (m) to drop crates |
+| `parachuteMinAltitudeTroops` | `50` | Minimum AGL (m) to drop troops |
+| `parachuteMinAltitudeVehicles` | `30` | Minimum AGL (m) to drop a vehicle |
+
+Below these thresholds the menu action is rejected and the payload remains loaded.
+
+#### Descent rates
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `parachuteDescentRateCrates` | `5` | Simulated descent speed (m/s) for crates |
+| `parachuteDescentRateTroops` | `5` | Simulated descent speed (m/s) for troops |
+| `parachuteDescentRateVehicles` | `8` | Simulated descent speed (m/s) for vehicles (heavier load) |
+
+The descent rate determines how long the payload takes to reach the ground, which directly controls how far inertia carries it forward.
+
+#### Drift parameters
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `parachuteInertiaFactor` | `0.3` | Fraction of transport velocity applied as forward drift (0.0 = no inertia, 1.0 = full velocity) |
+| `parachuteLateralDriftMin` | `10` | Minimum random lateral drift per unit (m) |
+| `parachuteLateralDriftMax` | `80` | Maximum random lateral drift per unit (m) |
+
+### 6.4 Events
+
+| Event | Fired | Payload |
+| --- | --- | --- |
+| `OnCrateParachuting` | Immediately at drop, per crate | `{ crate, transport, estimatedLandingTime }` |
+| `OnCrateParachuteLanded` | After descent time, per crate | `{ crate, landPos }` |
+| `OnTroopsDeployed` | Immediately at drop | `{ troops, transport, trigger="parachute" }` |
+| `OnTroopsParachuteLanded` | After descent time, per unit | `{ unit, landPos }` |
+| `OnVehicleParachuting` | Immediately at drop | `{ vehicle, transport, estimatedLandingTime }` |
+| `OnVehicleParachuteLanded` | After descent time | `{ vehicle, landPos }` |
+
+Use `OnTroopsDeployed` with `trigger == "parachute"` to distinguish parachute drops from normal ground deployments.
 
 ---
 
