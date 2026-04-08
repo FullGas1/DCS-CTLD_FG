@@ -73,7 +73,7 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `enableCrates` | `true` | Enable crate spawning and unpacking |
 | `enableAllCrates` | `true` | Show "all crates" shortcut menu entries |
 | `slingLoad` | `false` | Use DCS sling-load physics instead of hover simulation |
-| `hoverPickup` | `true` | Allow crate loading by hovering |
+| `enableHoverSlingload` | `true` | Allow crate loading by hovering above it (simulated slingload). If `false`, crates can only be loaded via F10 menu (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Allow crate loading via F10 menu |
 | `forceCrateToBeMoved` | `true` | Crate must be moved at least once before unpacking |
 | `disableAllSmoke` | `false` | Globally disable all smoke signals |

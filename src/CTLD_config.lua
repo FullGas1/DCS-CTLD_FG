@@ -220,7 +220,7 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     self.settings["enableCrates"]                         = true  -- if false, Helis will not be able to spawn or unpack crates so will be normal CTTS
     self.settings["enableAllCrates"]                      = true  -- if false, the "all crates" menu items will not be displayed
-    self.settings["hoverPickup"]                          = true  --    if set to false you can load crates with the F10 menu instead of hovering... Only if not using real crates!
+    self.settings["enableHoverSlingload"]                 = true  -- if false, hover-based slingload pickup is disabled; crates can still be loaded via F10 menu (loadCrateFromMenu)
     self.settings["loadCrateFromMenu"]                    = true  -- if set to true, you can load crates with the F10 menu OR hovering, in case of using choppers and planes for example.
     self.settings["slingLoad"]                            = false -- if false, crates can be used WITHOUT slingloading, by hovering above the crate, simulating slingloading but not the weight...
     -- There are some bug with Sling-loading that can cause crashes, if these occur set slingLoad to false
