@@ -13,6 +13,7 @@
 4. [Zone Setup](#4-zone-setup)
 5. [Troop Transport](#5-troop-transport)
 6. [Virtual Parachute Drop](#6-virtual-parachute-drop)
+7. [Virtual Slingload](#7-virtual-slingload)
 
 ---
 
@@ -707,6 +708,81 @@ The descent rate determines how long the payload takes to reach the ground, whic
 | `OnVehicleParachuteLanded` | After descent time | `{ vehicle, landPos }` |
 
 Use `OnTroopsDeployed` with `trigger == "parachute"` to distinguish parachute drops from normal ground deployments.
+
+---
+
+## 7. Virtual Slingload
+
+Virtual slingload is an alternative to DCS native sling-load physics (`slingLoad=true`). It simulates the hook-and-carry mechanic by polling the helicopter's position relative to nearby crates. No DCS cargo sling event is used.
+
+### 7.1 Enabling slingload per aircraft
+
+Add `canSlingload = true` to the relevant entries in `ctld.unitActions`:
+
+```lua
+ctld.unitActions = {
+    ["UH-1H"]    = { crates = true, troops = true, canSlingload = true  },
+    ["Mi-8MT"]   = { crates = true, troops = true, canSlingload = true  },
+    ["CH-47Fbl1"]= { crates = true, troops = true, canSlingload = true  },
+    ["C-130J-30"]= { crates = true, troops = true, canSlingload = false },
+    -- fixed-wing aircraft cannot hover, so slingload=false
+}
+```
+
+Default is `false` for all types. FOB crates are never slingloadable.
+
+### 7.2 Hooking a crate (hover pickup)
+
+Hover pickup is enabled by `enableHoverSlingload = true` (default). To hook a crate:
+
+1. Fly directly above the crate at a height between `minimumHoverHeight` and `maximumHoverHeight` (7.5–12 m by default).
+2. Stay within `maxDistanceFromCrate` (5.5 m) horizontally.
+3. Hold the hover for `hoverTime` seconds (10 s by default). A countdown is displayed on screen.
+
+If the helicopter drifts out of range the countdown resets. Once the timer reaches zero, the crate is automatically attached and the on-screen message confirms the hook.
+
+`enableHoverSlingload = false` disables the hover countdown entirely. Crates can still be loaded via the F10 "Load Nearby Crate(s)" menu entry if `loadCrateFromMenu = true`.
+
+### 7.3 Carrying and dropping
+
+Once a crate is slingloaded, two F10 menu entries appear under **Crate Commands** (visible only while airborne):
+
+**Release Slingload** — controlled release:
+
+- Only available when AGL ≤ `maximumHoverHeight` (≈ at or near the ground).
+- Crate is placed safely below the helicopter.
+- Use this for precision delivery.
+
+**Cut Slingload** — emergency drop, available at any altitude:
+
+- AGL > 40 m → crate is **destroyed** on impact (too much speed at landing).
+- AGL ≤ 40 m → crate lands at a position offset by the helicopter's current inertia. Faster flight = more drift from the drop point.
+
+### 7.4 Speed limit
+
+If the helicopter exceeds `maxSlingloadSpeed` (default 50 m/s ≈ 180 km/h) while carrying a slingloaded crate, the crate is **automatically lost** and destroyed. A warning message is sent to the group. This forces realistic low-speed transport.
+
+### 7.5 Configuration parameters
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `enableHoverSlingload` | `true` | Enable hover-based pickup countdown |
+| `minimumHoverHeight` | `7.5` | Min height (m) between helicopter and crate for pickup |
+| `maximumHoverHeight` | `12.0` | Max height (m) between helicopter and crate for pickup |
+| `maxDistanceFromCrate` | `5.5` | Max horizontal distance (m) from crate for pickup |
+| `hoverTime` | `10` | Seconds of sustained hover required to hook a crate |
+| `maxSlingloadSpeed` | `50` | Max speed (m/s) while carrying a slingloaded crate — exceed it and the crate is lost |
+
+### 7.6 Events
+
+| Event | Fired | Payload |
+| --- | --- | --- |
+| `OnCrateLoaded` | Crate successfully hooked | `{ crate, transport, trigger="slingload" }` |
+| `OnCrateUnloaded` | Release Slingload | `{ crate, transport, trigger="slingload_release", position }` |
+| `OnCrateUnloaded` | Cut Slingload (AGL ≤ 40m) | `{ crate, transport, trigger="slingload_cut", position }` |
+| `OnCrateLost` | Cut too high (AGL > 40m) or overspeed | `{ crate, transport, trigger="slingload_cut_impact"\|"slingload_overspeed" }` |
+
+Use the `trigger` field to distinguish slingload events from normal load/unload operations.
 
 ---
 
