@@ -599,7 +599,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         vehicle = self._vehicles[vehicleId]
     else
         for _, v in pairs(self._vehicles) do
-            if v.state == CTLDVehicle.STATE.LOADED and v.carrierUnitName == transport:getName() then
+            if v.state == CTLDVehicle.STATE.LOADED and v.loadTransportName == transport:getName() then
                 vehicle = v
                 break
             end

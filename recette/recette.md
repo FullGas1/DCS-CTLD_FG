@@ -143,6 +143,14 @@ La mission de test doit contenir :
 | F-54 | enablePackingVehicles=false → Pack Vehicle absent | R5 | Crate Commands présent, List FOBs présent | ✅ PASS 3/3 | — |
 | F-55 | non-transport → pas de sections transport | R5 | isTransport=false : Troops/Crates/Smoke/Beacons absents ; RECON+JTAC présents | ✅ PASS 8/8 | — |
 | F-56 | canCarryVehicles=true → Vehicle Commands présent | R5 | UH-1H canCarryVehicles=true : Vehicle Commands + Troops + Crates présents | ✅ PASS 3/3 | — |
+| F-57 | parachuteCrates — altitude OK | FA | OnCrateParachuting + OnCrateParachuteLanded publiés, crate état LANDED | ⬜ TODO | — |
+| F-58 | parachuteCrates — altitude trop basse | FA | Message joueur, aucun event publié | ⬜ TODO | — |
+| F-59 | parachuteTroops — altitude OK | FA | OnTroopsDeployed(trigger=parachute) + OnTroopsParachuteLanded, groupe spawné | ⬜ TODO | — |
+| F-60 | parachuteTroops — altitude trop basse | FA | Message joueur, aucun event publié | ⬜ TODO | — |
+| F-61 | parachuteVehicle — altitude OK | FA | OnVehicleParachuting + OnVehicleParachuteLanded, vehicle spawné | ⬜ TODO | — |
+| F-62 | parachuteVehicle — altitude trop basse | FA | Message joueur, aucun event publié | ⬜ TODO | — |
+| F-63 | canParachute=false → menus parachute absents | FA | UH-1H canParachute=false : Parachute Crates/Troops/Vehicle absents | ⬜ TODO | — |
+| F-64 | canParachute=true → menus parachute présents | FA | UH-1H canParachute=true : Parachute Crates dans Crate Commands, Parachute Troops + Vehicle présents | ⬜ TODO | — |
 
 ---
 
@@ -173,5 +181,6 @@ La mission de test doit contenir :
 - **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
 - **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
 - **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ⬜, F-48→F-56 45/45 ✅)
+- **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ⬜ TODO (F-57→F-64)
 - **FC** : 1 fonctionnel = **1 cas** ✅ PASS
-- **Total** : **100 cas** — 97/100 PASS (3 visual checks R5 ⬜ TODO)
+- **Total** : **108 cas** — 97/108 PASS (3 visual R5 ⬜, 8 FA ⬜)

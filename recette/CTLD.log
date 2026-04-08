@@ -1,16 +1,48 @@
-[CTLD] Log started : 2026-04-07 21:34:57
-[CTLD][TEST] START  [F-44] fobScene auto-enregistrement dans CTLDSceneManager + structure
-[CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
-[CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
-[CTLD][TEST]   OK     fobScene absent avant dofile CTLD_fobScene  [nil]
-[CTLD][INFO] CTLDSceneManager: registered scene model 'fobScene'
-[CTLD][TEST]   OK     fobScene enregistré après dofile  [table: 000001A809F648A8]
-[CTLD][TEST]   OK     4 steps dans fobScene  [4 == 4]
-[CTLD][TEST]   OK     step 0 (prescript) : pas de registryKey  [nil]
-[CTLD][TEST]   OK     step 0 (prescript) : func présente  [function: 000001A809F8BF68]
-[CTLD][TEST]   OK     step 1 : registryKey = FOB_container  [FOB_container == FOB_container]
-[CTLD][TEST]   OK     step 1 : type polar présent  [table: 000001A809F65268]
-[CTLD][TEST]   OK     step 2 : registryKey = FOB_watchtower  [FOB_watchtower == FOB_watchtower]
-[CTLD][TEST]   OK     step 3 (completion) : pas de registryKey  [nil]
-[CTLD][TEST]   OK     step 3 (completion) : func présente  [function: 000001A809F8BF90]
-[CTLD][TEST] END    [F-44] fobScene auto-enregistrement dans CTLDSceneManager + structure — 10/10 passed  →  OK
+[CTLD] Log started : 2026-04-08 10:19:08
+[CTLD][TEST] START  [F-64] canParachute=true — menus Parachute Crates/Troops/Vehicle présents
+[CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
+[CTLD][INFO] CTLDZoneManager: all zone names valid
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic1' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic2' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic3' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic4' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic5' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic6' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic7' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic8' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic9' not found in mission
+[CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic10' not found in mission
+[CTLD][INFO] CTLDZoneManager ready — troop:0 logistic:0
+[CTLD][INFO] CTLDPlayerManager: init complete
+[CTLD][INFO] _registerTemplates: 'Standard Group' → key='troop_1_Standard_Group' (10 units)
+[CTLD][INFO] _registerTemplates: 'Anti Air' → key='troop_2_Anti_Air' (5 units)
+[CTLD][INFO] _registerTemplates: 'Anti Tank' → key='troop_3_Anti_Tank' (8 units)
+[CTLD][INFO] _registerTemplates: 'Mortar Squad' → key='troop_4_Mortar_Squad' (6 units)
+[CTLD][INFO] _registerTemplates: 'JTAC Group' → key='troop_5_JTAC_Group' (5 units)
+[CTLD][INFO] _registerTemplates: 'Single JTAC' → key='troop_6_Single_JTAC' (1 units)
+[CTLD][INFO] _registerTemplates: '2x - Standard Groups' → key='troop_7_2x___Standard_Groups' (20 units)
+[CTLD][INFO] _registerTemplates: '2x - Anti Air' → key='troop_8_2x___Anti_Air' (10 units)
+[CTLD][INFO] _registerTemplates: '2x - Anti Tank' → key='troop_9_2x___Anti_Tank' (16 units)
+[CTLD][INFO] _registerTemplates: '2x - Standard Groups + 2x Mortar' → key='troop_10_2x___Standard_Groups___2x_Mortar' (32 units)
+[CTLD][INFO] _registerTemplates: '3x - Standard Groups' → key='troop_11_3x___Standard_Groups' (30 units)
+[CTLD][INFO] _registerTemplates: '3x - Anti Air' → key='troop_12_3x___Anti_Air' (15 units)
+[CTLD][INFO] _registerTemplates: '3x - Anti Tank' → key='troop_13_3x___Anti_Tank' (24 units)
+[CTLD][INFO] _registerTemplates: '3x - Mortar Squad' → key='troop_14_3x___Mortar_Squad' (18 units)
+[CTLD][INFO] _registerTemplates: '5x - Mortar Squad' → key='troop_15_5x___Mortar_Squad' (30 units)
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'troops'
+[CTLD][INFO] CTLDTroopManager initialized — 15 templates registered
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'vehicles'
+[CTLD][INFO] CTLDVehicleSpawner: init complete
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'crates'
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'smoke'
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'beacons'
+[CTLD][INFO] CTLDBeaconManager: init complete
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'recon'
+[CTLD][INFO] CTLDReconManager: init complete
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'jtac'
+[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 9901
+[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 1 items for group 9901
+[CTLD][TEST]   OK     Parachute Crates present (canParachute=true)
+[CTLD][TEST]   OK     Parachute Troops present (canParachute=true)
+[CTLD][TEST]   OK     Parachute Vehicle present (canParachute=true)
+[CTLD][TEST] END    [F-64] canParachute=true — menus Parachute Crates/Troops/Vehicle présents — 3/3 passed  →  OK
