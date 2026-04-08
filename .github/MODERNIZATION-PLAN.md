@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~65% impl ✅ / recette core complète (R1-R3 ✅) / features pending |
+| **2** | Module split + OOP (`src/`) | 🟡 ~90% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / Feature D (LoadableGroups) à vérifier / Q1-Q5 pending |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -84,7 +84,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
          F-44: fobScene self-registration  10/10
        ⚠️ Exécution réelle des scènes (spawn DCS) non couverte — visuel requis en DCS
 
-🟢 R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
+✅ R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
        Architecture: registerMenuSection() + configKey gateway + order sort
        Fix: CTLDTroopManager._instance migré de local→public + init() appelé dans getInstance()
        Recette: F-48→F-56 45/45 PASS ✅ — F-45→F-47 visual checks ⬜ (DCS réel requis)
@@ -392,11 +392,11 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Scenes fob/farp/mineField | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel DCS requis |
 | i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
 | ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ⚪ | 0% | Loader corrigé [2026-04-07] — ancien nom objectsDescDb éliminé |
-| Feature A (parachute) | ⚪ | ✅ | ⚪ | 0% | À implémenter |
+| Feature A (parachute) | ✅ | ✅ | ✅ | 100% | F-57→F-64 33/33 PASS [2026-04-08] |
 | Feature B (slingload) | ✅ | ✅ | ✅ | 100% | F-65→F-71 22/22 PASS [2026-04-08] |
-| Feature C (MM crate) | 🟡 partiel | ✅ | 🟡 | ~50% | registerMMCrate existe, event? |
+| Feature C (MM crate) | ✅ | ✅ | ✅ | 100% | registerMMCrate + OnMMCrateDetected, F-41 PASS [2026-04-07] |
 | Feature D (LoadableGroups) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDTroopManager |
-| Feature E (CTLD log) | ⚪ | ✅ | ⚪ | 0% | Simple, autonome |
+| Feature E (CTLD log) | ✅ | ✅ | ⚪ | ~80% | initLog/log/closeLog dans CTLD_utils.lua [2026-04-07] — recette indirecte |
 
 ---
 
