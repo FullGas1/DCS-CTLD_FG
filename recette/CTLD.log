@@ -1,5 +1,5 @@
-[CTLD] Log started : 2026-04-08 10:19:08
-[CTLD][TEST] START  [F-64] canParachute=true — menus Parachute Crates/Troops/Vehicle présents
+[CTLD] Log started : 2026-04-08 14:26:01
+[CTLD][TEST] START  [F-60] parachuteTroops — altitude trop basse → aucun event, groupe intact
 [CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
 [CTLD][INFO] CTLDZoneManager: all zone names valid
 [CTLD][WARN] CTLDZoneManager: logisticUnits 'logistic1' not found in mission
@@ -31,18 +31,6 @@
 [CTLD][INFO] _registerTemplates: '5x - Mortar Squad' → key='troop_15_5x___Mortar_Squad' (30 units)
 [CTLD][INFO] CTLDPlayerManager: registered menu section 'troops'
 [CTLD][INFO] CTLDTroopManager initialized — 15 templates registered
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'vehicles'
-[CTLD][INFO] CTLDVehicleSpawner: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'crates'
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'smoke'
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'beacons'
-[CTLD][INFO] CTLDBeaconManager: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'recon'
-[CTLD][INFO] CTLDReconManager: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'jtac'
-[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 9901
-[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 1 items for group 9901
-[CTLD][TEST]   OK     Parachute Crates present (canParachute=true)
-[CTLD][TEST]   OK     Parachute Troops present (canParachute=true)
-[CTLD][TEST]   OK     Parachute Vehicle present (canParachute=true)
-[CTLD][TEST] END    [F-64] canParachute=true — menus Parachute Crates/Troops/Vehicle présents — 3/3 passed  →  OK
+[CTLD][TEST]   OK     OnTroopsDeployed NOT fired (alt too low)
+[CTLD][TEST]   OK     troopGroup still in _inTransit
+[CTLD][TEST] END    [F-60] parachuteTroops — altitude trop basse → aucun event, groupe intact — 2/2 passed  →  OK
