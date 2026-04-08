@@ -793,34 +793,36 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local unitDefs    = {}
     local landPositions = {}
 
+    -- Resolve unit type from template registry (fallback to generic infantry)
+    local template    = troopGroup.templateKey and CTLDObjectRegistry._db[troopGroup.templateKey]
+    local unitCount   = troopGroup.unitTotal or 1
+    local unitType    = (template and template.units and template.units[1] and template.units[1].type)
+                        or "Soldier AK"
+
     -- Compute one landing position per unit
-    for i = 1, #troopGroup.units do
+    local firstDescentTime = nil
+    for i = 1, unitCount do
         local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
         table.insert(landPositions, landPos)
         unitDefs[i] = {
-            type    = troopGroup.units[i].type,
-            name    = troopGroup.groupName .. "_unit" .. i,
+            type    = unitType,
+            name    = troopGroup.templateName .. "_unit" .. i,
             x       = landPos.x,
             y       = landPos.z,   -- DCS ground group: position.y = world Z axis
             heading = math.random(0, 360) * math.pi / 180,
         }
-        -- All units share approximately the same descentTime (first unit's value used for timer)
-        if i == 1 then
-            -- capture for timer below
-            troopGroup._parachuteDescentTime = descentTime
-        end
+        if i == 1 then firstDescentTime = descentTime end
     end
 
-    local descentTime = troopGroup._parachuteDescentTime or
-        (troopGroup.units and #troopGroup.units > 0 and
-            select(2, ctld.utils.calcDropPosition(transport, descentRate))) or 10
+    local descentTime = firstDescentTime or
+        select(2, ctld.utils.calcDropPosition(transport, descentRate))
 
     -- Unload from transport cargo
     self._inTransit[playerObj.unitName] = nil
 
     local dropData = {
         type          = "troop",
-        unitName      = troopGroup.groupName,
+        unitName      = troopGroup.templateName,
         dropPosition  = dropPos,
         landPositions = landPositions,
         altitude      = altAGL,
@@ -849,14 +851,14 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     timer.scheduleFunction(function()
         local country = coalition.getCountryCoalition and coalition.getCountryCoalition(_coalition) or _coalition
         local spawnedGroup = coalition.addGroup(country, Group.Category.GROUND, {
-            name  = _troopGroup.groupName,
+            name  = _troopGroup.templateName,
             task  = "Ground Nothing",
             units = _unitDefs,
         })
 
-        local grp = Group.getByName(_troopGroup.groupName)
+        local grp = Group.getByName(_troopGroup.templateName)
         if grp then
-            table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.groupName)
+            table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.templateName)
         end
 
         self._parachuteEffect:onLanded(_dropData)

@@ -614,9 +614,9 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
-    -- Unload from transport
+    -- Unload from transport (mark as delivered — will be re-spawned at landing position)
     local spawnData = vehicle.spawnData
-    vehicle:transit()
+    vehicle:setState(CTLDVehicle.STATE.DELIVERED)
 
     local dropData = {
         type          = "vehicle",

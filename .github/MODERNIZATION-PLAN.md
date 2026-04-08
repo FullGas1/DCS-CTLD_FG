@@ -105,7 +105,8 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
         8 params parachute + canParachute dans unitActions (CTLD_config.lua)
         parachuteCrates/Troops/Vehicle() + menus F10 conditionnels (canParachute)
         spawnVehicleAt() ajouté à CTLDVehicleSpawner
-        Recette FA: scripts à créer (⬜ TODO)
+        Recette FA: F-57→F-64 33/33 PASS ✅ [2026-04-08]
+        Fix: groupName→templateName, vehicle:transit()→setState(DELIVERED), carrierUnitName→loadTransportName
 
 ⚪  FB  Feature B — Virtual slingload
         S_EVENT_SLINGLOAD_LOAD n'existe pas dans l'API DCS [vérifié Hoggit 2026-04-07]
