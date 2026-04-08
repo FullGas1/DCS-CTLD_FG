@@ -232,11 +232,12 @@ function CTLDConfig:load()
     self.settings["minimumDeployDistance"]                = 1000                                          -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]              = 200                                           -- max distance from vehicle to logistics to allow a loading or spawning operation
 
-    -- Simulated Sling load configuration
+    -- Simulated Sling load configuration (Feature B)
     self.settings["minimumHoverHeight"]             = 7.5  -- Lowest allowable height for crate hover
     self.settings["maximumHoverHeight"]             = 12.0 -- Highest allowable height for crate hover
     self.settings["maxDistanceFromCrate"]           = 5.5  -- Maximum distance from from crate for hover
     self.settings["hoverTime"]                      = 10   -- Time to hold hover above a crate for loading in seconds
+    self.settings["maxSlingloadSpeed"]              = 50   -- Max speed (m/s) while carrying a slingloaded crate — exceed it and the crate is lost
     -- end of Simulated Sling load configuration
 
     -- ═══════════════════════════════════════════════════════════
@@ -609,28 +610,30 @@ function CTLDConfig:load()
         -- ["SA342L"] = {crates=false, troops=true},
         -- ["SA342M"] = {crates=false, troops=true},
 
-        -- canParachute=true enables "Parachute Crates/Troops/Vehicle" menu entries (Feature A).
-        -- Set to true for aircraft that support virtual parachute drops.
+        -- canParachute=true  enables "Parachute Crates/Troops/Vehicle" menu entries (Feature A).
+        -- canSlingload=true  enables "Release Slingload" / "Cut Slingload" menu entries (Feature B)
+        --                    and activates hover-pickup polling for this aircraft type.
+        -- Helicopters support slingload; fixed-wing aircraft do not.
 
         --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = {crates=true, troops=true, canParachute=false},
-        ["Hercules"] = { crates = true, troops = true, canParachute = false },
-        ["SK-60"] = { crates = true, troops = true, canParachute = false },
-        ["UH-60L"] = { crates = true, troops = true, canParachute = false },
-        ["C-130J-30"] = { crates = true, troops = true, canParachute = false },
-        --["T-45"] = {crates=true, troops=true, canParachute=false},
+        --["Bronco-OV-10A"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
+        ["Hercules"]  = { crates = true, troops = true, canParachute = false, canSlingload = false },
+        ["SK-60"]     = { crates = true, troops = true, canParachute = false, canSlingload = false },
+        ["UH-60L"]    = { crates = true, troops = true, canParachute = false, canSlingload = true  },
+        ["C-130J-30"] = { crates = true, troops = true, canParachute = false, canSlingload = false },
+        --["T-45"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
 
         --%%%%% CHOPPERS %%%%%
-        --["Ka-50"] = {crates=true, troops=false, canParachute=false},
-        --["Ka-50_3"] = {crates=true, troops=false, canParachute=false},
-        ["Mi-8MT"] = { crates = true, troops = true, canParachute = false },
-        ["Mi-24P"] = { crates = true, troops = true, canParachute = false },
-        --["SA342L"] = {crates=false, troops=true, canParachute=false},
-        --["SA342M"] = {crates=false, troops=true, canParachute=false},
-        --["SA342Mistral"] = {crates=false, troops=true, canParachute=false},
-        --["SA342Minigun"] = {crates=false, troops=true, canParachute=false},
-        ["UH-1H"] = { crates = true, troops = true, canParachute = false },
-        ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false },
+        --["Ka-50"]   = {crates=true, troops=false, canParachute=false, canSlingload=true},
+        --["Ka-50_3"] = {crates=true, troops=false, canParachute=false, canSlingload=true},
+        ["Mi-8MT"]    = { crates = true, troops = true, canParachute = false, canSlingload = true  },
+        ["Mi-24P"]    = { crates = true, troops = true, canParachute = false, canSlingload = false },
+        --["SA342L"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
+        --["SA342M"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
+        --["SA342Mistral"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
+        --["SA342Minigun"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
+        ["UH-1H"]     = { crates = true, troops = true, canParachute = false, canSlingload = true  },
+        ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false, canSlingload = true  },
 
         --%%%%% AIRCRAFTS %%%%%
         --["C-101EB"] = {crates=true, troops=true},
