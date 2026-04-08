@@ -108,9 +108,11 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
         Recette FA: F-57→F-64 33/33 PASS ✅ [2026-04-08]
         Fix: groupName→templateName, vehicle:transit()→setState(DELIVERED), carrierUnitName→loadTransportName
 
-⚪  FB  Feature B — Virtual slingload
-        S_EVENT_SLINGLOAD_LOAD n'existe pas dans l'API DCS [vérifié Hoggit 2026-04-07]
-        → détection par polling (comme FA) — reporter après FA
+✅  FB  Feature B — Virtual slingload  [2026-04-08]
+        CTLDCrateManager: checkHoverStatus() polling 1s, releaseSlingload(), cutSlingload()
+        canSlingload dans unitActions, maxSlingloadSpeed param, inTransitOnSlingload flag
+        P1 overspeed loss, P3 Release/Cut menus distincts, P2 inertia drift (calcDropPosition)
+        Recette FB: F-65→F-71 22/22 PASS ✅ [2026-04-08]
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ⚪  Q1  src/compat/legacy_api.lua
@@ -391,7 +393,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
 | ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ⚪ | 0% | Loader corrigé [2026-04-07] — ancien nom objectsDescDb éliminé |
 | Feature A (parachute) | ⚪ | ✅ | ⚪ | 0% | À implémenter |
-| Feature B (slingload) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDCrateManager |
+| Feature B (slingload) | ✅ | ✅ | ✅ | 100% | F-65→F-71 22/22 PASS [2026-04-08] |
 | Feature C (MM crate) | 🟡 partiel | ✅ | 🟡 | ~50% | registerMMCrate existe, event? |
 | Feature D (LoadableGroups) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDTroopManager |
 | Feature E (CTLD log) | ⚪ | ✅ | ⚪ | 0% | Simple, autonome |

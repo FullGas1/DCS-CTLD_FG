@@ -14,6 +14,7 @@
 | M7 | `src/CTLD_player.lua` | CTLDPlayer, CTLDPlayerManager |
 | R4 | `src/CTLD_sceneManager.lua` | CtldScene, CTLDSceneManager + fobScene (auto-enregistrement) |
 | R5 | `src/CTLD_player.lua` + tous managers | buildMenu() Option D — registerMenuSection + config-variant |
+| FB | `src/CTLD_crate.lua` | CTLDCrateManager — virtual slingload (hover pickup + release/cut) |
 
 ## Environnement d'exécution
 
@@ -151,6 +152,13 @@ La mission de test doit contenir :
 | F-62 | parachuteVehicle — altitude trop basse | FA | Aucun event, vehicle reste LOADED | ✅ PASS 2/2 | — |
 | F-63 | canParachute=false → menus parachute absents | FA | UH-1H canParachute=false : Parachute Crates/Troops/Vehicle absents | ✅ PASS 6/6 | — |
 | F-64 | canParachute=true → menus parachute présents | FA | UH-1H canParachute=true : 3 menus présents | ✅ PASS 3/3 | — |
+| F-65 | canSlingload=false → menus Release/Cut absents | FB | transport en vol, canSlingload=false : menus absents | ✅ PASS 2/2 | — |
+| F-66 | canSlingload=true, transport au sol → menus absents | FB | inAir=false : Release/Cut absents | ✅ PASS 2/2 | — |
+| F-67 | canSlingload=true, transport en vol → menus présents | FB | inAir=true : Release/Cut présents | ✅ PASS 2/2 | — |
+| F-68 | checkHoverStatus — hover OK → OnCrateLoaded(slingload) | FB | hoverTime=1, hauteur et distance OK → hook + inTransitOnSlingload=true | ✅ PASS 4/4 | — |
+| F-69 | checkHoverStatus — hauteur hors plage → pas d'accrochage | FB | transport trop haut → hoverStatus reset, crate intacte | ✅ PASS 4/4 | — |
+| F-70 | releaseSlingload — AGL ≤ maxH → OnCrateUnloaded(slingload_release) | FB | AGL=8m ≤ 12m : release propre | ✅ PASS 4/4 | — |
+| F-71 | cutSlingload — AGL > 40m → OnCrateLost(slingload_cut_impact) | FB | AGL=190m : crate détruite | ✅ PASS 4/4 | — |
 
 ---
 
@@ -182,5 +190,6 @@ La mission de test doit contenir :
 - **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
 - **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ⬜, F-48→F-56 45/45 ✅)
 - **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅)
+- **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅)
 - **FC** : 1 fonctionnel = **1 cas** ✅ PASS
-- **Total** : **108 cas** — 130/130 PASS (3 visual R5 ⬜ DCS requis)
+- **Total** : **115 cas** — 152/152 PASS (3 visual R5 ⬜ DCS requis)
