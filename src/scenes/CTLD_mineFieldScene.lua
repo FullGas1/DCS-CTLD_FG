@@ -178,13 +178,83 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
         vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
     end
 
-    -- Draw bounding quadrilateral on the F10 map
+    -- Draw bounding quadrilateral on the F10 map (unless disabled in config)
     local lastSpawned = spawnedObjs[#spawnedObjs]
-    if lastSpawned then
+    if lastSpawned and ctld.gs("showMinefieldOnF10Map") ~= false then
         ctld.utils.drawQuad(coalitionId, vec3Points1To4, lastSpawned:getName())
     end
 
     return true, spawnedObjs
+end
+
+-- ====================================================================================================
+-- mineFieldScene.setLandMineAuto
+-- Parametric minefield: derives column count and row count automatically from a target area
+-- (width × length in metres) and a desired total mine count, then delegates to setLandMine.
+--
+-- The layout is always quinconce (staggered rows):
+--   odd rows  : N mines
+--   even rows : N-1 mines, laterally offset by colSpacing/2
+-- Total for N cols and R rows: T(N,R) = R*N - floor(R/2)
+--
+-- The algorithm finds the (N, R) pair whose T(N,R) is closest to nbMines while respecting
+-- the requested aspect ratio (width/length).  Column and line spacings are derived from the
+-- dimensions: cs = width/(N-1),  ls = length/(R-1).
+--
+-- @param triggerUnitObj  DCS Unit object — defines origin and heading
+-- @param distFromUnit    number  forward distance (m) from unit to first mine row
+-- @param widthMeters     number  lateral extent of the minefield (m)
+-- @param lengthMeters    number  forward extent of the minefield (m)
+-- @param nbMines         number  desired number of mines
+-- @return boolean, table|string  success flag + spawned object array or error message
+--
+-- Example (MM usage):
+--   local ok, result = mineFieldScene.setLandMineAuto(transport, 30, 50, 80, 40)
+--   -- lays ~40 mines in a 50 m wide × 80 m long staggered field starting 30 m ahead
+-- ====================================================================================================
+function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeters, lengthMeters, nbMines)
+    if not triggerUnitObj then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): triggerUnitObj is nil"
+    end
+    if not nbMines or nbMines < 1 then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): nbMines must be >= 1"
+    end
+    if not widthMeters or widthMeters <= 0 or not lengthMeters or lengthMeters <= 0 then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): widthMeters and lengthMeters must be > 0"
+    end
+
+    -- Single mine: bypass layout computation
+    if nbMines == 1 then
+        return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, 1, 1, widthMeters, lengthMeters)
+    end
+
+    -- T(N,R) = R*N - floor(R/2)  →  R ≈ nbMines / (N - 0.5)
+    local function countForNR(N, R)
+        return R * N - math.floor(R / 2)
+    end
+
+    -- Estimate N from aspect ratio; clamp to [2, 50]
+    local N0 = math.max(2, math.min(50, math.floor(math.sqrt(nbMines * widthMeters / lengthMeters) + 0.5)))
+
+    local bestN, bestR, bestDiff = N0, 1, math.huge
+    for _, N in ipairs({ N0 - 1, N0, N0 + 1 }) do
+        if N >= 2 then
+            local R = math.max(1, math.min(200, math.floor(nbMines / (N - 0.5) + 0.5)))
+            for _, Rc in ipairs({ R - 1, R, R + 1 }) do
+                if Rc >= 1 then
+                    local diff = math.abs(countForNR(N, Rc) - nbMines)
+                    if diff < bestDiff then
+                        bestDiff, bestN, bestR = diff, N, Rc
+                    end
+                end
+            end
+        end
+    end
+
+    local cs = widthMeters  / (bestN - 1)
+    local ls = lengthMeters / math.max(1, bestR - 1)
+
+    return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, bestN, bestR, cs, ls)
 end
 
 -- ====================================================================================================

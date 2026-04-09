@@ -195,9 +195,11 @@ La mission de test doit contenir :
 | F-78 | getCentroid | M9 | 4 points → centroïde x/z correct, empty→nil (mock land.getHeight) | ✅ PASS 8/8 | — |
 | F-79 | calcDropPosition | M9 | descentTime==AGL/rate, position décalée selon vitesse (mock Unit) | ✅ PASS 5/5 | — |
 | F-80 | getSpawnObjectPositions | M9 | n positions, structure {positions,clock,distance}, spacing vérifié | ✅ PASS 16/16 | — |
-| F-83 | mineFieldScene setLandMine 1×1 single mine | M10 | 1 mine spawnée réelle + losange F10 dessiné — VISUAL CHECK | ✅ PASS 4/4 | — |
-| F-84 | mineFieldScene setLandMine 5×15 colonnes impaires | M10 | 75 mines réelles + grand quad F10 — VISUAL CHECK | ✅ PASS 3/3 | — |
-| F-85 | mineFieldScene setLandMine 4×3 colonnes paires | M10 | 12 mines réelles + quad F10 — VISUAL CHECK | ✅ PASS 3/3 | — |
+| F-83 | mineFieldScene setLandMine 1×1 single mine | M10 | 1 mine spawnée réelle + carré F10 — VISUAL CHECK | ✅ PASS 5/5 | — |
+| F-84 | mineFieldScene setLandMine 5×15 quinconce | M10 | 68 mines quinconce + grand quad F10 — VISUAL CHECK | ✅ PASS 4/4 | — |
+| F-85 | mineFieldScene setLandMine 4×3 quinconce | M10 | 11 mines quinconce + quad F10 — VISUAL CHECK | ✅ PASS 4/4 | — |
+| F-86 | mineFieldScene showMinefieldOnF10Map config guard | M10 | drawQuad non appelé si false, appelé si true | ✅ PASS 4/4 | — |
+| F-87 | mineFieldScene setLandMineAuto parametric | M10 | 50×80 ~40 mines, nbMines=1, guards — VISUAL CHECK | ✅ PASS 11/11 | — |
 
 ---
 
@@ -234,5 +236,17 @@ La mission de test doit contenir :
 - **ObjectRegistry** : 3 unitaires = **3 cas** ✅ PASS (U-54→U-56 43/43 ✅) [2026-04-08]
 - **M8** : 10 unitaires + 8 fonctionnels = **18 cas** ✅ PASS (U-57→U-66 + F-72→F-77 97/97 ✅ + F-81→F-82 visual ✅) [2026-04-09]
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
-- **M10** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-85 10/10 visual ✅) [2026-04-09]
-- **Total** : **151 cas** — 437/437 PASS ✅
+- **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
+- **Total** : **153 cas** — 455/455 PASS ✅
+
+---
+
+## Recettes restantes à générer
+
+| Module | Fichier source | Priorité | Notes |
+| --- | --- | --- | --- |
+| **CTLD_config.lua** | `src/CTLD_config.lua` | Basse | lib interne — tester load(), getSetting(), valeurs par défaut, override MM |
+| **CTLD_i18n.lua** | `src/CTLD_i18n.lua` + `CTLD_i18n_en.lua` | Basse | tester ctld.tr() fallback EN, langue inconnue, clé manquante |
+| **CTLD_farpScene.lua** | `src/scenes/CTLD_farpScene.lua` | Moyenne | recette visuelle DCS — 14 steps, objets FARP visibles en mission |
+| **CTLD_fobScene.lua** | `src/scenes/CTLD_fobScene.lua` | Moyenne | recette visuelle DCS — steps FOB, objets visibles en mission |
+| **Feature D — LoadableGroups** | `src/CTLD_troop.lua` (CTLDTroopManager) | Haute | API MM custom troops templates — vérifier intégration dans buildMenu + chargement |

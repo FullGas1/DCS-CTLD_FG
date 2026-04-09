@@ -372,6 +372,11 @@ function CTLDConfig:load()
     self.settings["reconLastScheduleIdAutoRefresh"] = 0                            -- last schedule ID for auto refresh
 
     -- ═══════════════════════════════════════════════════════════
+    -- [M10] MINEFIELD — Landmine deployment options
+    -- ═══════════════════════════════════════════════════════════
+    self.settings["showMinefieldOnF10Map"]              = true  -- if true, draws a bounding quad on the F10 map when a minefield is deployed
+
+    -- ═══════════════════════════════════════════════════════════
     -- [11] ZONES — Pickup, drop-off and waypoint zones
     -- ═══════════════════════════════════════════════════════════
 

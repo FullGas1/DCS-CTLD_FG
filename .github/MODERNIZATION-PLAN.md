@@ -219,7 +219,7 @@ Then refactor existing files to use it: `CTLD_crate.lua`, `CTLD_troop.lua`, `CTL
 | `src/CTLD_beacon.lua` | CTLDBeacon, CTLDBeaconManager | 2026-04-02 |
 | `src/CTLD_recon.lua` | CTLDReconRenderer, CTLDReconManager | 2026-04-02 |
 | `src/CTLD_fob.lua` | CTLDFOB, CTLDFOBManager | 2026-04-03 |
-| `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene | 2026-03-28 — ⚠️ recette visuelle requise |
+| `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene, setLandMine, setLandMineAuto | 2026-04-09 — ✅ recette complète (U-74→U-75, F-83→F-87, visual ✅) |
 | `src/scenes/CTLD_farpScene.lua` | farpScene | 2026-04-01 — ⚠️ recette visuelle requise |
 | `src/scenes/CTLD_fobScene.lua` | fobScene | 2026-04-03 (rewritten) — ⚠️ recette visuelle requise |
 | ~~`src/scenes/CTLD_aa*Scene.lua`~~ | ~~6 fichiers AA~~ | 🗑️ **Supprimés 2026-04-07** — compositions AA dans CTLDCrateAssemblyManager.TEMPLATES |
@@ -374,10 +374,10 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 
 | Module | Impl | Spec | Recette | % recette | Notes |
 | ------ | ---- | ---- | ------- | --------- | ----- |
-| Config (`CTLD_config.lua`) | ✅ | ✅ | ⚪ | 0% | lib interne, risque faible |
-| Utils (`CTLD_utils.lua`) | ✅ | N/A | ⚪ | 0% | lib interne, testé indirectement |
-| Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | R5: 48/48 PASS (45 auto + 3 visual) [2026-04-08] |
-| SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel requis |
+| Config (`CTLD_config.lua`) | ✅ | ✅ | ⚪ | 0% | lib interne, risque faible — recette à écrire |
+| Utils (`CTLD_utils.lua`) | ✅ | N/A | ✅ | 100% | M9: U-67→U-73 + F-78→F-80, 118/118 PASS [2026-04-09] |
+| Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
+| SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07] |
@@ -389,7 +389,8 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07] |
 | AA System (`CTLD_aasystem.lua`) | ✅ | ✅ | ✅ | 100% | 6/6 PASS [2026-04-07] |
 | Player (`CTLD_player.lua`) | ✅ | ✅ | ✅ | 100% | 7/7 PASS [2026-04-07] |
-| Scenes fob/farp/mineField | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel DCS requis |
+| mineFieldScene | ✅ | ✅ | ✅ | 100% | U-74→U-75 + F-83→F-87, 40/40 PASS visual ✅ [2026-04-09] — quinconce + setLandMineAuto + showMinefieldOnF10Map |
+| Scenes fob/farp | ✅ | ✅ | ⚪ | 0% | ⚠️ visuel DCS requis |
 | i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
 | ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ✅ | 100% | U-54→U-56 43/43 PASS [2026-04-08] |
 | Feature A (parachute) | ✅ | ✅ | ✅ | 100% | F-57→F-64 33/33 PASS [2026-04-08] |

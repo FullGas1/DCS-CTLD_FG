@@ -786,4 +786,68 @@ Use the `trigger` field to distinguish slingload events from normal load/unload 
 
 ---
 
+---
+
+## 8. Minefield
+
+### 8.1 Overview
+
+The minefield system spawns real DCS landmine statics in a **quinconce (staggered) pattern** in front of a transport unit. Odd rows contain N mines, even rows contain N−1 mines offset laterally by half a column spacing:
+
+```text
+x    x    x    x        ← row 1 (odd,  N mines)
+   x    x    x          ← row 2 (even, N-1 mines, shifted right by spacing/2)
+x    x    x    x        ← row 3 (odd)
+   x    x    x          ← row 4 (even)
+```
+
+A bounding quadrilateral is drawn on the F10 map to mark the extent of the field.
+
+### 8.2 Parametric API — `setLandMineAuto`
+
+The simplest way to deploy a minefield. Provide the desired area dimensions and mine count; the system computes the best column/row layout automatically.
+
+```lua
+local ok, result = mineFieldScene.setLandMineAuto(
+    transport,   -- DCS Unit object (defines origin and heading)
+    30,          -- distance (m) from unit to first mine row
+    50,          -- width  (m) — lateral extent of the field
+    80,          -- length (m) — forward extent of the field
+    40           -- desired number of mines
+)
+-- result is the array of spawned DCS static objects.
+-- Actual count may differ slightly from the requested value due to quinconce rounding.
+-- Use #result to get the exact count.
+```
+
+### 8.3 Explicit API — `setLandMine`
+
+For full control over column count, row count, and spacings:
+
+```lua
+local ok, result = mineFieldScene.setLandMine(
+    transport,   -- DCS Unit object
+    20,          -- distance (m) from unit to first mine row
+    5,           -- mines per odd row (N columns)
+    15,          -- number of rows
+    6,           -- lateral spacing between adjacent mines (m)
+    12           -- forward spacing between rows (m)
+)
+-- quinconce: 8 odd rows × 5 + 7 even rows × 4 = 68 mines
+```
+
+### 8.4 Configuration parameters
+
+| Parameter                  | Default | Description                                              |
+|----------------------------|---------|----------------------------------------------------------|
+| `showMinefieldOnF10Map`    | `true`  | Draw bounding quad on F10 map when a minefield is placed |
+
+### 8.5 Special cases
+
+| Condition              | Behaviour                                    |
+|------------------------|----------------------------------------------|
+| `nbMines == 1`         | Single mine, small square F10 marker         |
+| `nbMinesColumns == 1`  | Straight forward column, no stagger          |
+| `nbMinesColumns >= 2`  | Full quinconce layout                        |
+
 *— End of current content — further chapters to be added progressively —*

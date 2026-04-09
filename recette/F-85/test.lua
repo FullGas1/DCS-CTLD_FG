@@ -1,6 +1,6 @@
 ---@diagnostic disable
 -- ============================================================
--- F-85 : mineFieldScene.setLandMine — 4×3 (colonnes paires)
+-- F-85 : mineFieldScene.setLandMine — 4×3 quinconce (colonnes paires)
 -- Module  : M10 (src/scenes/CTLD_mineFieldScene.lua)
 -- Objectif: quinconce 4 cols × 3 lignes = 11 mines réelles + quad F10
 -- VISUAL  : mines en quinconce 4col×3lig + quad F10
@@ -23,35 +23,24 @@ local transport = ctld_test.getTransport()
 if not transport then ctld_test.finish() return end
 
 local scene = CTLDSceneManager.getInstance():getModel("mineField")
+ctld_test.clearMines()
 
--- Count existing mines in mission before spawning
-local function countMines(coa)
-    local count = 0
-    local statics = coalition.getStaticObjects(coa)
-    if statics then
-        for _, obj in pairs(statics) do
-            if obj and obj:isExist() and obj:getName():find("^Mine%-") then
-                count = count + 1
-            end
-        end
-    end
-    return count
-end
-
-local coa = transport:getCoalition()
-local before = countMines(coa)
-
--- 4 colonnes (pair) × 3 lignes, espacement 6m latéral × 12m longitudinal
--- quinconce: row1=4, row2=3, row3=4 → 11 mines
+-- 4 colonnes (pair) × 3 lignes — quinconce: 4+3+4 = 11 mines
 local ok, result = scene.setLandMine(transport, 20, 4, 3, 6, 12)
+ctld_test.saveMineMarks()
 
-ctld_test.assert(ok,                          "T1: return true")
-ctld_test.assertNotNil(result,                "T2: result non-nil")
-ctld_test.assertEqual(#result, 11,            "T3: 11 mines spawned — quinconce 4×3 (return value)")
+ctld_test.assert(ok,              "T1: return true")
+ctld_test.assertNotNil(result,    "T2: result non-nil")
+ctld_test.assertEqual(#result, 11, "T3: 11 mines spawned — quinconce 4×3 (return value)")
 
-local after = countMines(coa)
-ctld_test.assertEqual(after - before, 11,     "T4: 11 mines statiques dans la mission (coalition.getStaticObjects)")
+-- Verify all spawned objects actually exist in DCS world via StaticObject.getByName
+local existing = 0
+for _, obj in ipairs(result) do
+    local so = StaticObject.getByName(obj:getName())
+    if so and so:isExist() then existing = existing + 1 end
+end
+ctld_test.assertEqual(existing, 11, "T4: 11 mines existent dans le monde DCS (StaticObject.getByName)")
 
-env.info("[F-85] VISUAL: 11 mines quinconce 4col×3lig + quad F10 (branche paire)")
+env.info("[F-85] VISUAL: 11 mines quinconce 4col×3lig + quad F10")
 
 ctld_test.finish()
