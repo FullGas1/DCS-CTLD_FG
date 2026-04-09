@@ -1,6 +1,12 @@
-[CTLD] Log started : 2026-04-09 09:16:22
-[CTLD][TEST] START  [F-82] MenuManager ordering visuel DCS F10
-[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 1
-[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 3 items for group 1
-[CTLD][TEST]   OK     T1: refresh() success=true (missionCommands OK)
-[CTLD][TEST] END    [F-82] MenuManager ordering visuel DCS F10 — 1/1 passed  →  OK
+[CTLD] Log started : 2026-04-09 09:45:44
+[CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
+[CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
+[CTLD][INFO] CTLDSceneManager: registered scene model 'mineField'
+[CTLD][TEST] START  [F-83] mineFieldScene setLandMine 1x1 single mine
+[CTLD][INFO] spawnObject: STATIC 'Mine-1' spawned at (-356100.6, 618279.4)
+[CTLD][TEST]   OK     T1: return true
+[CTLD][TEST]   OK     T2: result non-nil  [table: 00000226692BF248]
+[CTLD][TEST]   OK     T3: result est une table  [table == table]
+[CTLD][TEST]   OK     T4: 1 objet spawné (return value)  [1 == 1]
+[CTLD][TEST]   FAIL   T5: 1 mine statique dans la mission (coalition.getStaticObjects)  [expected 1, got 0]
+[CTLD][TEST] END    [F-83] mineFieldScene setLandMine 1x1 single mine — 4/5 passed  →  KO

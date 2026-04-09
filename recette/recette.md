@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M9
+# CTLD_FG — Plan de recette C1 + M1–M10
 
 ## Modules couverts
 
@@ -17,6 +17,7 @@
 | FB | `src/CTLD_crate.lua` | CTLDCrateManager — virtual slingload (hover pickup + release/cut) |
 | M8 | `src/CTLD_menu.lua` | ctld.Menu, ctld.MenuManager |
 | M9 | `src/CTLD_utils.lua` | ctld.utils.* (math, vecteurs, géométrie, données) |
+| M10 | `src/scenes/CTLD_mineFieldScene.lua` | mineFieldScene (setLandMine, auto-registration) |
 
 ## Environnement d'exécution
 
@@ -103,6 +104,8 @@ La mission de test doit contenir :
 | U-71 | rotateVec3 + polarToCartesian | M9 | Heading 0°/90° exacts ; polarToCartesian distance×2 | ✅ PASS 13/13 | — |
 | U-72 | deepCopy + isValueInIpairTable + countTableEntries + getNextUniqId | M9 | Copie indépendante, lookup, count, compteur monotone | ✅ PASS 16/16 | — |
 | U-73 | zoneToVec3 branche table | M9 | {point=}, {x,y,z} direct, nil→nil | ✅ PASS 8/8 | — |
+| U-74 | mineFieldScene structure + auto-registration | M10 | Modèle 'mineField' enregistré dans CTLDSceneManager, stepsDatas, setLandMine | ✅ PASS 7/7 | — |
+| U-75 | mineFieldScene.setLandMine guards | M10 | nil unit → false ; nbMinesColumns=0 + unit réel → false | ✅ PASS 5/5 | — |
 
 ---
 
@@ -192,6 +195,9 @@ La mission de test doit contenir :
 | F-78 | getCentroid | M9 | 4 points → centroïde x/z correct, empty→nil (mock land.getHeight) | ✅ PASS 8/8 | — |
 | F-79 | calcDropPosition | M9 | descentTime==AGL/rate, position décalée selon vitesse (mock Unit) | ✅ PASS 5/5 | — |
 | F-80 | getSpawnObjectPositions | M9 | n positions, structure {positions,clock,distance}, spacing vérifié | ✅ PASS 16/16 | — |
+| F-83 | mineFieldScene setLandMine 1×1 single mine | M10 | 1 mine spawnée réelle + losange F10 dessiné — VISUAL CHECK | ✅ PASS 4/4 | — |
+| F-84 | mineFieldScene setLandMine 5×15 colonnes impaires | M10 | 75 mines réelles + grand quad F10 — VISUAL CHECK | ✅ PASS 3/3 | — |
+| F-85 | mineFieldScene setLandMine 4×3 colonnes paires | M10 | 12 mines réelles + quad F10 — VISUAL CHECK | ✅ PASS 3/3 | — |
 
 ---
 
@@ -228,4 +234,5 @@ La mission de test doit contenir :
 - **ObjectRegistry** : 3 unitaires = **3 cas** ✅ PASS (U-54→U-56 43/43 ✅) [2026-04-08]
 - **M8** : 10 unitaires + 8 fonctionnels = **18 cas** ✅ PASS (U-57→U-66 + F-72→F-77 97/97 ✅ + F-81→F-82 visual ✅) [2026-04-09]
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
-- **Total** : **146 cas** — 415/415 PASS ✅
+- **M10** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-85 10/10 visual ✅) [2026-04-09]
+- **Total** : **151 cas** — 437/437 PASS ✅
