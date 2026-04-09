@@ -1,22 +1,6 @@
-[CTLD] Log started : 2026-04-08 21:49:51
-[CTLD][TEST] START  [U-55] CTLDObjectRegistry spawnObject() STATIC
-[CTLD][INFO] spawnObject: STATIC 'FARP-1' spawned at (1000.0, 2000.0)
-[CTLD][TEST]   OK     T1a: spawnObject(FARP) returns non-nil  [table: 0000027ABE444AA8]
-[CTLD][TEST]   OK     T1b: coalition.addStaticObject called once  [1 == 1]
-[CTLD][TEST]   OK     T1c: groupData passed to addStaticObject  [table: 0000027ABE444968]
-[CTLD][TEST]   OK     T1d: x == 1000  [1000 == 1000]
-[CTLD][TEST]   OK     T1e: y (=z) == 2000  [2000 == 2000]
-[CTLD][TEST]   OK     T1f: heading == 0  [0 == 0]
-[CTLD][TEST]   OK     T1g: start_time == 0  [0 == 0]
-[CTLD][TEST]   OK     T1h: name injected  [FARP-1]
-[CTLD][TEST]   OK     T1i: transportable injected  [table: 0000027ABE4449A8]
-[CTLD][TEST]   OK     T1j: groupType stripped from groupData  [nil]
-[CTLD][TEST]   OK     T1k: namePrefix stripped from groupData  [nil]
-[CTLD][TEST]   OK     T1l: descriptor.type preserved  [FARP == FARP]
-[CTLD][WARN] spawnObject: unknown objectKey '__no_such_key__'
-[CTLD][TEST]   OK     T2a: unknown key returns nil  [nil]
-[CTLD][TEST]   OK     T2b: no extra addStaticObject call  [1 == 1]
-[CTLD][INFO] spawnObject: STATIC 'FARP-2' spawned at (0.0, 0.0)
-[CTLD][TEST]   OK     T3a: override heliport_frequency applied  [130.0 == 130.0]
-[CTLD][TEST]   OK     T3b: custom override field merged  [yes == yes]
-[CTLD][TEST] END    [U-55] CTLDObjectRegistry spawnObject() STATIC — 16/16 passed  →  OK
+[CTLD] Log started : 2026-04-09 09:16:22
+[CTLD][TEST] START  [F-82] MenuManager ordering visuel DCS F10
+[CTLD][INFO] ctld.MenuManager:createMenuForGroup: created menu for group 1
+[CTLD][INFO] ctld.MenuManager:refreshMenuForGroup: rebuilt 3 items for group 1
+[CTLD][TEST]   OK     T1: refresh() success=true (missionCommands OK)
+[CTLD][TEST] END    [F-82] MenuManager ordering visuel DCS F10 — 1/1 passed  →  OK

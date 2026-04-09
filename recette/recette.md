@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M7
+# CTLD_FG — Plan de recette C1 + M1–M9
 
 ## Modules couverts
 
@@ -15,6 +15,8 @@
 | R4 | `src/CTLD_sceneManager.lua` | CtldScene, CTLDSceneManager + fobScene (auto-enregistrement) |
 | R5 | `src/CTLD_player.lua` + tous managers | buildMenu() Option D — registerMenuSection + config-variant |
 | FB | `src/CTLD_crate.lua` | CTLDCrateManager — virtual slingload (hover pickup + release/cut) |
+| M8 | `src/CTLD_menu.lua` | ctld.Menu, ctld.MenuManager |
+| M9 | `src/CTLD_utils.lua` | ctld.utils.* (math, vecteurs, géométrie, données) |
 
 ## Environnement d'exécution
 
@@ -84,6 +86,23 @@ La mission de test doit contenir :
 | U-54 | CTLDObjectRegistry get() + findByDCSType() | P1 | Lookup direct + reverse lookup par DCS typeName + nil guards | ✅ PASS 14/14 | — |
 | U-55 | CTLDObjectRegistry spawnObject() STATIC | P1 | coalition.addStaticObject appelé, champs injectés, overrides, unknown key nil | ✅ PASS 16/16 | — |
 | U-56 | CTLDObjectRegistry spawnObject() GROUND | P1 | 3 unités, coalition-aware unitType BLUE/RED, rotation heading 0° et 90° | ✅ PASS 13/13 | — |
+| U-57 | ctld.MenuManager singleton | M8 | getInstance() idempotent — même instance retournée | ✅ PASS 3/3 | — |
+| U-58 | createMenuForGroup | M8 | Succès, idempotence, guards (nil / string) | ✅ PASS 6/6 | — |
+| U-59 | _sortByOrder | M8 | Tri ascendant par order, sans-order → fin | ✅ PASS 7/7 | — |
+| U-60 | addSubMenu succès + idempotence + opts | M8 | Création nœud, idempotence, opts order/enabled | ✅ PASS 10/10 | — |
+| U-61 | addSubMenu guards | M8 | name nil, parent=command node → failure | ✅ PASS 4/4 | — |
+| U-62 | addCommand succès + guards | M8 | Succès, anyArgument nil→{}, guards fn/arg/name invalides | ✅ PASS 9/9 | — |
+| U-63 | clearBranch | M8 | Vide children, container intact, guards | ✅ PASS 7/7 | — |
+| U-64 | setBranchEnabled | M8 | Toggle true/false, guard path inconnu | ✅ PASS 6/6 | — |
+| U-65 | removeMenuBranch | M8 | Suppression + removedCount, root guard, path inconnu | ✅ PASS 8/8 | — |
+| U-66 | _rebuildPagedChildren pagination | M8 | ≤10 inline, 11→9+NextPage+2, 20→deux niveaux | ✅ PASS 6/6 | — |
+| U-67 | ctld.utils math utilities | M9 | round, radianToDegree, normalizeHeadingInDegrees, kmphToMps | ✅ PASS 14/14 | — |
+| U-68 | vec3Mag + get2DDist + getDistance | M9 | Triangle 3-4-5, Vec2 input, guards nil→0 | ✅ PASS 11/11 | — |
+| U-69 | addVec3 + subVec3 + multVec3 | M9 | Opérations vectorielles, nil guards | ✅ PASS 13/13 | — |
+| U-70 | makeVec3FromVec2OrVec3 + makeVec2FromVec3OrVec2 | M9 | Conversions Vec2↔Vec3, passthrough, nil→nil | ✅ PASS 14/14 | — |
+| U-71 | rotateVec3 + polarToCartesian | M9 | Heading 0°/90° exacts ; polarToCartesian distance×2 | ✅ PASS 13/13 | — |
+| U-72 | deepCopy + isValueInIpairTable + countTableEntries + getNextUniqId | M9 | Copie indépendante, lookup, count, compteur monotone | ✅ PASS 16/16 | — |
+| U-73 | zoneToVec3 branche table | M9 | {point=}, {x,y,z} direct, nil→nil | ✅ PASS 8/8 | — |
 
 ---
 
@@ -162,6 +181,17 @@ La mission de test doit contenir :
 | F-69 | checkHoverStatus — hauteur hors plage → pas d'accrochage | FB | transport trop haut → hoverStatus reset, crate intacte | ✅ PASS 4/4 | — |
 | F-70 | releaseSlingload — AGL ≤ maxH → OnCrateUnloaded(slingload_release) | FB | AGL=8m ≤ 12m : release propre | ✅ PASS 4/4 | — |
 | F-71 | cutSlingload — AGL > 40m → OnCrateLost(slingload_cut_impact) | FB | AGL=190m : crate détruite | ✅ PASS 4/4 | — |
+| F-72 | refreshMenuForGroup séquence complète | M8 | create+addSubMenu+addCommand+refresh → missionCommands dans bon ordre | ✅ PASS 7/7 | — |
+| F-73 | disabled nodes invisibles en DCS | M8 | setBranchEnabled(false)+refresh → pas d'appel DCS ; re-enable → apparaît | ✅ PASS 4/4 | — |
+| F-74 | order détermine l'ordre de rendu DCS | M8 | 3 submenus ordre 30/10/20 → rendus 10/20/30 | ✅ PASS 4/4 | — |
+| F-75 | clearBranch + repopulate + refresh | M8 | Pattern proximité : 3 nouvelles commandes, anciennes absentes | ✅ PASS 5/5 | — |
+| F-76 | removeMenuBranch permanent — mémoire + _lookup | M8 | Nœud absent du parent + _lookup nettoyé | ✅ PASS 8/8 | — |
+| F-77 | refreshMenuForGroup sans menu connu → failure | M8 | success=false + message + refreshedCount=0 | ✅ PASS 3/3 | — |
+| F-81 | Pagination visuelle DCS F10 | M8 | 11 items → 9 en page 1 + "→ Next Page" → 2 items — VISUAL CHECK | ✅ PASS (visual) | — |
+| F-82 | Ordering visuel DCS F10 | M8 | Submenus ordre 30/10/20 → rendus A→B→C dans F10 — VISUAL CHECK | ✅ PASS (visual) | — |
+| F-78 | getCentroid | M9 | 4 points → centroïde x/z correct, empty→nil (mock land.getHeight) | ✅ PASS 8/8 | — |
+| F-79 | calcDropPosition | M9 | descentTime==AGL/rate, position décalée selon vitesse (mock Unit) | ✅ PASS 5/5 | — |
+| F-80 | getSpawnObjectPositions | M9 | n positions, structure {positions,clock,distance}, spacing vérifié | ✅ PASS 16/16 | — |
 
 ---
 
@@ -179,21 +209,23 @@ La mission de test doit contenir :
 
 ## Résumé de couverture
 
-- **C1** : 7 unitaires + 2 fonctionnels = **9 cas**
-- **M1** : 6 unitaires + 3 fonctionnels = **9 cas**
-- **M2** : 2 unitaires + 3 fonctionnels = **5 cas**
-- **M3** : 2 unitaires + 3 fonctionnels = **5 cas**
-- **M4** : 1 unitaire  + 3 fonctionnels = **4 cas**
-- **M5** : 4 unitaires + 6 fonctionnels = **10 cas**
-- **M6** : 3 unitaires + 3 fonctionnels = **6 cas**
-- **M7** : 4 unitaires + 3 fonctionnels = **7 cas** ✅ PASS
-- **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS
-- **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
-- **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS
-- **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS
+- **C1** : 7 unitaires + 2 fonctionnels = **9 cas** ✅ PASS [2026-04-02]
+- **M1** : 6 unitaires + 3 fonctionnels = **9 cas** ✅ PASS [2026-04-02]
+- **M2** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS [2026-04-02]
+- **M3** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS [2026-04-02]
+- **M4** : 1 unitaire  + 3 fonctionnels = **4 cas** ✅ PASS [2026-04-02]
+- **M5** : 4 unitaires + 6 fonctionnels = **10 cas** ✅ PASS [2026-04-07]
+- **M6** : 3 unitaires + 3 fonctionnels = **6 cas** ✅ PASS [2026-04-07]
+- **M7** : 4 unitaires + 3 fonctionnels = **7 cas** ✅ PASS [2026-04-07]
+- **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS [2026-04-07]
+- **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
+- **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
+- **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS [2026-04-07]
 - **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ✅, F-48→F-56 45/45 ✅) [2026-04-08]
-- **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅)
-- **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅)
-- **FC** : 1 fonctionnel = **1 cas** ✅ PASS
+- **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅) [2026-04-08]
+- **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅) [2026-04-08]
+- **FC** : 1 fonctionnel = **1 cas** ✅ PASS [2026-04-07]
 - **ObjectRegistry** : 3 unitaires = **3 cas** ✅ PASS (U-54→U-56 43/43 ✅) [2026-04-08]
-- **Total** : **118 cas** — 198/198 PASS ✅
+- **M8** : 10 unitaires + 8 fonctionnels = **18 cas** ✅ PASS (U-57→U-66 + F-72→F-77 97/97 ✅ + F-81→F-82 visual ✅) [2026-04-09]
+- **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
+- **Total** : **146 cas** — 415/415 PASS ✅
