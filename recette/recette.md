@@ -25,6 +25,7 @@
 - Commande : `node "$USERPROFILE/.vscode-dcs-tools/bridge.js" "<chemin_absolu>/recette/<cas>/test.lua"`
 - Log dual : `env.info()` → DCS.log  +  `io.open()` → `recette/CTLD.log`
 - Chaque script de cas purge `CTLD.log` en début d'exécution.
+- **Purge des objets DCS** entre tests visuels : `node bridge.js recette/purge_scene.lua` — détruit tous les statics/groupes spawnés par les scènes (prefixes SINGLE_HELIPAD, FOB_Outpost, CTLDBeacon, etc.).
 
 ## Mission martyr — prérequis
 
@@ -114,7 +115,7 @@ La mission de test doit contenir :
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-91)
+## Section F — Tests fonctionnels (F-01 à F-93)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
