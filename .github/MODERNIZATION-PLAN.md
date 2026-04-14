@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~95% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / Feature D ✅ [2026-04-14] / Q1-Q5 pending |
+| **2** | Module split + OOP (`src/`) | ✅ ~100% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / scenes fob/farp ✅ [2026-04-14] / Q1-Q5 pending |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -59,7 +59,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 ✅ M1  src/CTLD_zone.lua                           recette: 9/9  100% [2026-04-02]
 ✅ M2  src/CTLD_beacon.lua                         recette: 5/5  100% [2026-04-02]
 ✅ M3  src/CTLD_recon.lua                          recette: 5/5  100% [2026-04-02]
-✅ M4  src/CTLD_fob.lua                            recette: 4/4  100% [2026-04-03] ⚠️ visuel scène à valider
+✅ M4  src/CTLD_fob.lua                            recette: 4/4 + F-90/F-93 visual ✅ 100% [2026-04-14]
 ✅ M5  src/CTLD_vehicle.lua                        recette: 10/10 100% [2026-04-07]
 ✅ M6  src/CTLD_aasystem.lua                       recette: 6/6  100% [2026-04-07]
 ✅ M7  src/CTLD_player.lua                         recette: 7/7  100% [2026-04-07]
