@@ -76,13 +76,15 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
        recette: 8/8  100% [2026-04-07]
 
 ✅ R4  src/CTLD_sceneManager.lua  (CTLDSceneManager)
-       recette: 5/5  100% [2026-04-07]
+       recette: 7/7  100% [2026-04-14]
          U-43: singleton + registerSceneModel  9/9
          U-44: CtldScene step execution engine  8/8
          F-42: playScene guards  4/4
          F-43: FARP Alpha structure validation  11/11
          F-44: fobScene self-registration  10/10
-       ⚠️ Exécution réelle des scènes (spawn DCS) non couverte — visuel requis en DCS
+         F-90: fobScene structure + spawn visuel  18/18 PASS ✅ [2026-04-14]
+         F-91: farpScene structure + spawn visuel  22/22 PASS ✅ [2026-04-14]
+         bugfix: CTLD_farpScene.lua — stepsDatas→steps, polar.dist→polar.distance
 
 ✅ R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
        Architecture: registerMenuSection() + configKey gateway + order sort

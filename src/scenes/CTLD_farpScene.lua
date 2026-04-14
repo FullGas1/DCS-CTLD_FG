@@ -16,41 +16,41 @@ local farpScene = {}
 farpScene.name = "farpScene"
 
 -- All offsets are (dx = forward/North, dz = right/East) relative to trigger unit, metres.
-farpScene.stepsDatas = {
+farpScene.steps = {
     {
         registryKey              = "SINGLE_HELIPAD",
-        polar                    = { dist = 0, angle = 0 },
+        polar                    = { distance = 0, angle = 0 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
-        func                     = nil,
+        relativeAltitudeInMeters = 0,
     },
     {
         registryKey              = "FARP_Tent",
-        polar                    = { dist = 20, angle = 90 },
+        polar                    = { distance = 30, angle = 90 },
         delayAfterPreviousStep   = 1,
         relativeHeadingInDegrees = 0,
-        func                     = nil,
+        relativeAltitudeInMeters = 0,
     },
     {
         registryKey              = "FARP_Ammo_Storage",
-        polar                    = { dist = 30, angle = 135 },
+        polar                    = { distance = 30, angle = 135 },
         delayAfterPreviousStep   = 1,
         relativeHeadingInDegrees = 0,
-        func                     = nil,
+        relativeAltitudeInMeters = 0,
     },
     {
         registryKey              = "Windsock",
-        polar                    = { dist = 15, angle = 270 },
+        polar                    = { distance = 15, angle = 270 },
         delayAfterPreviousStep   = 1,
         relativeHeadingInDegrees = 0,
-        func                     = nil,
+        relativeAltitudeInMeters = 0,
     },
     {
         registryKey              = "Fuel_Truck",
-        polar                    = { dist = 25, angle = 225 },
+        polar                    = { distance = 35, angle = 225 },
         delayAfterPreviousStep   = 1,
         relativeHeadingInDegrees = 0,
-        func                     = nil,
+        relativeAltitudeInMeters = 0,
     },
 }
 

@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M10 + R1–R5 + FA–FD
+# CTLD_FG — Plan de recette C1 + M1–M10 + R1–R5 + FA–FD + scenes fob/farp
 
 ## Modules couverts
 
@@ -114,7 +114,7 @@ La mission de test doit contenir :
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-89)
+## Section F — Tests fonctionnels (F-01 à F-91)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -207,6 +207,8 @@ La mission de test doit contenir :
 | F-87 | mineFieldScene setLandMineAuto parametric | M10 | 50×80 ~40 mines, nbMines=1, guards — VISUAL CHECK | ✅ PASS 11/11 | — |
 | F-88 | _loadUserConfig — ctld_config_user | FD | 3 customs créés, 2 standards désactivés, ObjectRegistry peuplé | ✅ PASS 18/18 | — |
 | F-89 | buildMenu filtre disabled / side / capacity | FD | 2 Load visibles (Standard+BLUE Recon), 4 exclus (disabled×2, side×1, cap×1) | ✅ PASS 7/7 | — |
+| F-90 | fobScene structure + spawn visuel | R4 | 4 steps, registryKeys, prescript, container + watchtower en mission | ✅ PASS 18/18 | — |
+| F-91 | farpScene structure + spawn visuel | R4 | 5 steps, registryKeys, SINGLE_HELIPAD + 4 objets FARP en mission | ✅ PASS 22/22 | — |
 
 ---
 
@@ -235,7 +237,7 @@ La mission de test doit contenir :
 - **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS [2026-04-07]
 - **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
 - **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
-- **R4** : 2 unitaires + 3 fonctionnels = **5 cas** ✅ PASS [2026-04-07]
+- **R4** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (F-90+F-91 40/40 ✅ visual) [2026-04-14]
 - **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ✅, F-48→F-56 45/45 ✅) [2026-04-08]
 - **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅) [2026-04-08]
 - **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅) [2026-04-08]
@@ -245,7 +247,7 @@ La mission de test doit contenir :
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
-- **Total** : **160 cas** — 564/564 PASS ✅
+- **Total** : **162 cas** — 604/604 PASS ✅
 
 ---
 
@@ -255,6 +257,6 @@ La mission de test doit contenir :
 | --- | --- | --- | --- |
 | **CTLD_config.lua** | `src/CTLD_config.lua` | Basse | lib interne — tester load(), getSetting(), valeurs par défaut, override MM |
 | **CTLD_i18n.lua** | `src/CTLD_i18n.lua` + `CTLD_i18n_en.lua` | Basse | tester ctld.tr() fallback EN, langue inconnue, clé manquante |
-| **CTLD_farpScene.lua** | `src/scenes/CTLD_farpScene.lua` | Moyenne | recette visuelle DCS — 14 steps, objets FARP visibles en mission |
-| **CTLD_fobScene.lua** | `src/scenes/CTLD_fobScene.lua` | Moyenne | recette visuelle DCS — steps FOB, objets visibles en mission |
+| ~~**CTLD_farpScene.lua**~~ | ~~`src/scenes/CTLD_farpScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-91 22/22 PASS (bugfix stepsDatas→steps) |
+| ~~**CTLD_fobScene.lua**~~ | ~~`src/scenes/CTLD_fobScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-90 18/18 PASS |
 | ~~**Feature D — LoadableGroups**~~ | ~~`src/CTLD_troop.lua`~~ | ~~Haute~~ | ✅ Recette complète [2026-04-14] — U-76→U-80 + F-88→F-89 |
