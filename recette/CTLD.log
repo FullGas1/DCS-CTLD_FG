@@ -1,57 +1,23 @@
-[CTLD] Log started : 2026-04-09 13:57:07
-[CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
-[CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
-[CTLD][INFO] CTLDSceneManager: registered scene model 'mineField'
-[CTLD][TEST] START  [F-87] mineFieldScene setLandMineAuto parametric
-[CTLD][INFO] spawnObject: STATIC 'Mine-20001' spawned at (-356148.0, 618248.0)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20002' spawned at (-356131.4, 618247.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20003' spawned at (-356114.7, 618247.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20004' spawned at (-356098.0, 618246.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20005' spawned at (-356139.9, 618239.8)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20006' spawned at (-356123.2, 618239.5)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20007' spawned at (-356106.6, 618239.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20008' spawned at (-356148.4, 618232.0)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20009' spawned at (-356131.7, 618231.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20010' spawned at (-356115.1, 618231.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20011' spawned at (-356098.4, 618230.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20012' spawned at (-356140.2, 618223.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20013' spawned at (-356123.6, 618223.5)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20014' spawned at (-356106.9, 618223.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20015' spawned at (-356148.7, 618216.0)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20016' spawned at (-356132.1, 618215.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20017' spawned at (-356115.4, 618215.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20018' spawned at (-356098.8, 618214.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20019' spawned at (-356140.6, 618207.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20020' spawned at (-356123.9, 618207.5)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20021' spawned at (-356107.3, 618207.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20022' spawned at (-356149.1, 618200.0)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20023' spawned at (-356132.4, 618199.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20024' spawned at (-356115.8, 618199.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20025' spawned at (-356099.1, 618198.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20026' spawned at (-356140.9, 618191.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20027' spawned at (-356124.3, 618191.5)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20028' spawned at (-356107.6, 618191.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20029' spawned at (-356149.5, 618184.0)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20030' spawned at (-356132.8, 618183.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20031' spawned at (-356116.1, 618183.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20032' spawned at (-356099.5, 618182.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20033' spawned at (-356141.3, 618175.9)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20034' spawned at (-356124.6, 618175.5)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20035' spawned at (-356108.0, 618175.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20036' spawned at (-356149.8, 618168.1)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20037' spawned at (-356133.1, 618167.7)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20038' spawned at (-356116.5, 618167.3)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20039' spawned at (-356099.8, 618166.9)
-[CTLD][TEST]   OK     T1a: return true
-[CTLD][TEST]   OK     T1b: result non-nil  [table: 000002266A9358E8]
-[CTLD][TEST]   OK     T1c: mine count near 40 (got 39, expect 35–45)
-[CTLD][INFO] spawnObject: STATIC 'Mine-20041' spawned at (-356123.0, 618247.5)
-[CTLD][TEST]   OK     T2a: nbMines=1 → return true
-[CTLD][TEST]   OK     T2b: nbMines=1 → 1 mine spawned  [1 == 1]
-[CTLD][TEST]   OK     T3a: nil unit → false
-[CTLD][TEST]   OK     T3b: error message non-nil  [ERROR mineFieldScene.setLandMineAuto(): triggerUnitObj is nil]
-[CTLD][TEST]   OK     T4a: nbMines=0 → false
-[CTLD][TEST]   OK     T4b: error message non-nil  [ERROR mineFieldScene.setLandMineAuto(): nbMines must be >= 1]
-[CTLD][TEST]   OK     T5a: widthMeters=0 → false
-[CTLD][TEST]   OK     T5b: error message non-nil  [ERROR mineFieldScene.setLandMineAuto(): widthMeters and lengthMeters must be > 0]
-[CTLD][TEST] END    [F-87] mineFieldScene setLandMineAuto parametric — 11/11 passed  →  OK
+[CTLD] Log started : 2026-04-14 18:31:15
+[CTLD][INFO] _registerOneTemplate: 'Standard Group' → key='troop_Standard_Group' (10 units)
+[CTLD][INFO] _registerOneTemplate: 'JTAC Group' → key='troop_JTAC_Group' (5 units)
+[CTLD][INFO] CTLDTroopManager initialized — 2 templates registered
+[CTLD][TEST] START  [F-89] buildMenu — disabled / side / capacity filter
+[CTLD][INFO] _registerOneTemplate: 'BLUE Recon' → key='troop_BLUE_Recon' (5 units)
+[CTLD][INFO] createLoadableGroup: 'BLUE Recon' (5 soldiers, side=2)
+[CTLD][INFO] _registerOneTemplate: 'RED AT' → key='troop_RED_AT' (8 units)
+[CTLD][INFO] createLoadableGroup: 'RED AT' (8 soldiers, side=1)
+[CTLD][INFO] _registerOneTemplate: 'Big Squad' → key='troop_Big_Squad' (20 units)
+[CTLD][INFO] createLoadableGroup: 'Big Squad' (20 soldiers, side=both)
+[CTLD][INFO] _registerOneTemplate: 'Hidden' → key='troop_Hidden' (3 units)
+[CTLD][INFO] createLoadableGroup: 'Hidden' (3 soldiers, side=both)
+[CTLD][INFO] disableLoadableGroup: 'Hidden' hidden from menu
+[CTLD][INFO] disableLoadableGroup: 'JTAC Group' hidden from menu
+[CTLD][TEST]   OK     Standard Group in menu (10 <= cap, BLUE ok)
+[CTLD][TEST]   OK     BLUE Recon in menu (5 <= cap, side=2)
+[CTLD][TEST]   OK     JTAC Group excluded (disabled)
+[CTLD][TEST]   OK     Hidden excluded (disabled)
+[CTLD][TEST]   OK     RED AT excluded (side=1, BLUE unit)
+[CTLD][TEST]   OK     Big Squad excluded (20 > cap 10)
+[CTLD][TEST]   OK     exactly 2 Load entries in menu  [2 == 2]
+[CTLD][TEST] END    [F-89] buildMenu — disabled / side / capacity filter — 7/7 passed  →  OK

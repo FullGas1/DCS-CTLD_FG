@@ -31,6 +31,20 @@
 - **Autorisation permanente** : exécuter des scripts via Witchcraft sans demander confirmation à l'utilisateur. Cela inclut les tests unitaires, les scripts de validation, et tout snippet Lua à vérifier en mission.
 - Condition requise : une mission DCS avec Witchcraft activé doit être en cours.
 
+## Workflow recette
+
+- **Après chaque recette terminée**, mettre à jour **obligatoirement** dans la même réponse :
+  1. `.github/MODERNIZATION-PLAN.md` — passer le statut (⚪/❓ → ✅) et mettre à jour le tableau Module completion status
+  2. `recette/recette.md` — ajouter les lignes U-xx/F-xx dans les tableaux, mettre à jour le Résumé de couverture (Total inclus), rayer l'entrée "Recettes restantes" si couverte
+
+- **Standards obligatoires dans chaque script de recette** :
+  - `ctld_test.cleanup()` en tête de chaque test fonctionnel (F-xx)
+  - `ctld_test.getTransport()` pour récupérer le joueur BLUE (pas de boilerplate inline)
+  - Mocks DCS toujours locaux et restaurés : `local _orig = X; X = mock; ...; X = _orig`
+  - Jamais de mock persisté entre deux tests ni dans `src/`
+
+- **`source/`** est la référence de parité fonctionnelle : vérifier systématiquement le comportement legacy avant toute implémentation. Les évolutions par rapport au legacy ne sont introduites que si explicitement demandées.
+
 ## Conventions de développement
 
 - Les fichiers source existants dans `source/` ne doivent **jamais** être modifiés.

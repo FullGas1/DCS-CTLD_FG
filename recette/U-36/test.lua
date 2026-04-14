@@ -10,6 +10,21 @@ dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/setup.lua")
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_core.lua")
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/lib/CTLD_objectRegistry.lua")
+dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/lib/CTLDParachuteEffect.lua")
+
+-- Stub CTLDPlayerManager for unit isolation (menu registration not under test here)
+CTLDPlayerManager = CTLDPlayerManager or {}
+CTLDPlayerManager.getInstance = CTLDPlayerManager.getInstance or function()
+    return { registerMenuSection = function() end }
+end
+
+-- Stub missionCommands (used by buildMenu during init path)
+missionCommands = missionCommands or {
+    addSubMenuForGroup  = function() return {} end,
+    addCommandForGroup  = function() end,
+    removeItemForGroup  = function() end,
+}
+
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_troop.lua")
 
 ctld_test.start("U-36", "CTLDTroopManager singleton + _registerTemplates")

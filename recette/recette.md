@@ -1,4 +1,4 @@
-# CTLD_FG — Plan de recette C1 + M1–M10
+# CTLD_FG — Plan de recette C1 + M1–M10 + R1–R5 + FA–FD
 
 ## Modules couverts
 
@@ -36,7 +36,7 @@ La mission de test doit contenir :
 
 ---
 
-## Section U — Tests unitaires (U-01 à U-22)
+## Section U — Tests unitaires (U-01 à U-80)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -106,10 +106,15 @@ La mission de test doit contenir :
 | U-73 | zoneToVec3 branche table | M9 | {point=}, {x,y,z} direct, nil→nil | ✅ PASS 8/8 | — |
 | U-74 | mineFieldScene structure + auto-registration | M10 | Modèle 'mineField' enregistré dans CTLDSceneManager, stepsDatas, setLandMine | ✅ PASS 7/7 | — |
 | U-75 | mineFieldScene.setLandMine guards | M10 | nil unit → false ; nbMinesColumns=0 + unit réel → false | ✅ PASS 5/5 | — |
+| U-76 | createLoadableGroup — valid cases | FD | Minimal (1 champ), full (6 champs), side=nil ; total/hasJtac/_dbKey/ObjectRegistry | ✅ PASS 21/21 | — |
+| U-77 | createLoadableGroup — guard cases | FD | nil config, no name, empty name, no composition, zero composition, duplicate std, duplicate custom | ✅ PASS 15/15 | — |
+| U-78 | removeLoadableGroup | FD | Remove custom + clear ObjectRegistry, remove standard, not-found error | ✅ PASS 12/12 | — |
+| U-79 | editLoadableGroup | FD | Edit composition + side, recompute total/hasJtac, refuse standard, not-found, zero composition | ✅ PASS 21/21 | — |
+| U-80 | disableLoadableGroup / enableLoadableGroup | FD | Toggle disabled, template count unchanged, not-found error | ✅ PASS 15/15 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-36)
+## Section F — Tests fonctionnels (F-01 à F-89)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -200,6 +205,8 @@ La mission de test doit contenir :
 | F-85 | mineFieldScene setLandMine 4×3 quinconce | M10 | 11 mines quinconce + quad F10 — VISUAL CHECK | ✅ PASS 4/4 | — |
 | F-86 | mineFieldScene showMinefieldOnF10Map config guard | M10 | drawQuad non appelé si false, appelé si true | ✅ PASS 4/4 | — |
 | F-87 | mineFieldScene setLandMineAuto parametric | M10 | 50×80 ~40 mines, nbMines=1, guards — VISUAL CHECK | ✅ PASS 11/11 | — |
+| F-88 | _loadUserConfig — ctld_config_user | FD | 3 customs créés, 2 standards désactivés, ObjectRegistry peuplé | ✅ PASS 18/18 | — |
+| F-89 | buildMenu filtre disabled / side / capacity | FD | 2 Load visibles (Standard+BLUE Recon), 4 exclus (disabled×2, side×1, cap×1) | ✅ PASS 7/7 | — |
 
 ---
 
@@ -237,7 +244,8 @@ La mission de test doit contenir :
 - **M8** : 10 unitaires + 8 fonctionnels = **18 cas** ✅ PASS (U-57→U-66 + F-72→F-77 97/97 ✅ + F-81→F-82 visual ✅) [2026-04-09]
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
-- **Total** : **153 cas** — 455/455 PASS ✅
+- **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
+- **Total** : **160 cas** — 564/564 PASS ✅
 
 ---
 
@@ -249,4 +257,4 @@ La mission de test doit contenir :
 | **CTLD_i18n.lua** | `src/CTLD_i18n.lua` + `CTLD_i18n_en.lua` | Basse | tester ctld.tr() fallback EN, langue inconnue, clé manquante |
 | **CTLD_farpScene.lua** | `src/scenes/CTLD_farpScene.lua` | Moyenne | recette visuelle DCS — 14 steps, objets FARP visibles en mission |
 | **CTLD_fobScene.lua** | `src/scenes/CTLD_fobScene.lua` | Moyenne | recette visuelle DCS — steps FOB, objets visibles en mission |
-| **Feature D — LoadableGroups** | `src/CTLD_troop.lua` (CTLDTroopManager) | Haute | API MM custom troops templates — vérifier intégration dans buildMenu + chargement |
+| ~~**Feature D — LoadableGroups**~~ | ~~`src/CTLD_troop.lua`~~ | ~~Haute~~ | ✅ Recette complète [2026-04-14] — U-76→U-80 + F-88→F-89 |

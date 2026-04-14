@@ -40,7 +40,7 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | 🟡 ~90% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / Feature D (LoadableGroups) à vérifier / Q1-Q5 pending |
+| **2** | Module split + OOP (`src/`) | 🟡 ~95% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / Feature D ✅ [2026-04-14] / Q1-Q5 pending |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
@@ -396,7 +396,7 @@ Remaining: complete missionmaker_guide (JTAC, crate config, LoadableGroups), pla
 | Feature A (parachute) | ✅ | ✅ | ✅ | 100% | F-57→F-64 33/33 PASS [2026-04-08] |
 | Feature B (slingload) | ✅ | ✅ | ✅ | 100% | F-65→F-71 22/22 PASS [2026-04-08] |
 | Feature C (MM crate) | ✅ | ✅ | ✅ | 100% | registerMMCrate + OnMMCrateDetected, F-41 PASS [2026-04-07] |
-| Feature D (LoadableGroups) | ❓ à vérifier | ✅ | ⚪ | 0% | Vérifier CTLDTroopManager |
+| Feature D (LoadableGroups) | ✅ | ✅ | ✅ | 100% | U-76→U-80 + F-88→F-89, 102/102 PASS [2026-04-14] |
 | Feature E (CTLD log) | ✅ | ✅ | ⚪ | ~80% | initLog/log/closeLog dans CTLD_utils.lua [2026-04-07] — recette indirecte |
 
 ---

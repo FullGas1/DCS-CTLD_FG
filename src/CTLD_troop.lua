@@ -122,7 +122,10 @@ function CTLDTroopManager:init()
     self._inTransit        = {}              -- [unitName] = CTLDTroopGroup (LOADED or EXTRACTED)
     self._droppedGroups    = { [1]={}, [2]={} }  -- [coalition] = { groupName, ... }
     self._parachuteEffect  = CTLDNullParachuteEffect:new()
+    self._templates        = {}              -- mutable runtime list (standard + custom)
     self:_registerTemplates()
+    self:_loadUserConfig()
+    self._templateCount = #self._templates
     CTLDPlayerManager.getInstance():registerMenuSection({
         key    = "troops",
         manager = self,
@@ -130,7 +133,7 @@ function CTLDTroopManager:init()
         order   = 20,
     })
     ctld.utils.log("INFO", "CTLDTroopManager initialized — %d templates registered",
-        self._templateCount or 0)
+        self._templateCount)
     return self
 end
 
@@ -148,62 +151,229 @@ local function _sanitizeKey(name)
     return (name:gsub("[^%w]", "_"))
 end
 
--- Generates one GROUND descriptor per loadable template and inserts it into CTLDObjectRegistry._db.
--- Sets tmpl.total (total unit count) and tmpl._dbKey on each template entry.
+-- Populates self._templates from config and registers each standard template.
+-- Mutates source objects (adds _dbKey, total, hasJtac, custom, disabled) — consistent with legacy.
 function CTLDTroopManager:_registerTemplates()
-    local templates = ctld.gs("loadableGroups") or {}
-    local count = 0
+    local cfgTemplates = ctld.gs("loadableGroups") or {}
+    for _, tmpl in ipairs(cfgTemplates) do
+        tmpl.custom   = false
+        tmpl.disabled = false
+        table.insert(self._templates, tmpl)
+        self:_registerOneTemplate(tmpl)
+    end
+end
 
-    for idx, tmpl in ipairs(templates) do
-        -- Compute total unit count and hasJtac flag
-        local total   = 0
-        local hasJtac = false
-        for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
-            local n = tmpl[role] or 0
-            total   = total + n
-            if role == "jtac" and n > 0 then hasJtac = true end
+-- Computes total/hasJtac, assigns _dbKey, and inserts a GROUND descriptor into CTLDObjectRegistry.
+-- Safe to call at init or at runtime (createLoadableGroup).
+function CTLDTroopManager:_registerOneTemplate(tmpl)
+    local total   = 0
+    local hasJtac = false
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = tmpl[role] or 0
+        total   = total + n
+        if role == "jtac" and n > 0 then hasJtac = true end
+    end
+    tmpl.total   = total
+    tmpl.hasJtac = hasJtac
+
+    -- Build the units array (no dx/dz: circle formation computes them at spawn time)
+    local units = {}
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n      = tmpl[role] or 0
+        local isJtac = (role == "jtac")
+        for _ = 1, n do
+            local capturedRole = role
+            table.insert(units, {
+                namePrefix = isJtac and "JTAC" or string.upper(capturedRole),
+                unitType   = (function(r)
+                    return function(cid)
+                        return CTLDTroopManager._UNIT_TYPES[r][cid]
+                            or CTLDTroopManager._UNIT_TYPES[r][2]
+                    end
+                end)(capturedRole),
+            })
         end
-        tmpl.total   = total
-        tmpl.hasJtac = hasJtac
-
-        -- Build the units array (no dx/dz: circle formation computes them at spawn time)
-        local units = {}
-        for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
-            local n      = tmpl[role] or 0
-            local isJtac = (role == "jtac")
-            for _ = 1, n do
-                -- Capture role in closure to avoid upvalue aliasing in loop
-                local capturedRole = role
-                table.insert(units, {
-                    namePrefix = isJtac and "JTAC" or string.upper(capturedRole),
-                    unitType   = (function(r)
-                        return function(cid)
-                            return CTLDTroopManager._UNIT_TYPES[r][cid]
-                                or CTLDTroopManager._UNIT_TYPES[r][2]
-                        end
-                    end)(capturedRole),
-                })
-            end
-        end
-
-        local key     = "troop_" .. idx .. "_" .. _sanitizeKey(tmpl.name)
-        tmpl._dbKey   = key
-
-        CTLDObjectRegistry._db[key] = {
-            groupType  = "GROUND",
-            namePrefix = "TroopGrp_" .. _sanitizeKey(tmpl.name),
-            task       = "Ground Nothing",
-            category   = Unit.Category.GROUND_UNIT,
-            formation  = { type = "circle" },
-            units      = units,
-        }
-
-        count = count + 1
-        ctld.utils.log("INFO", "_registerTemplates: '%s' → key='%s' (%d units)",
-            tmpl.name, key, total)
     end
 
-    self._templateCount = count
+    local key   = "troop_" .. _sanitizeKey(tmpl.name)
+    tmpl._dbKey = key
+
+    CTLDObjectRegistry._db[key] = {
+        groupType  = "GROUND",
+        namePrefix = "TroopGrp_" .. _sanitizeKey(tmpl.name),
+        task       = "Ground Nothing",
+        category   = Unit.Category.GROUND_UNIT,
+        formation  = { type = "circle" },
+        units      = units,
+    }
+
+    ctld.utils.log("INFO", "_registerOneTemplate: '%s' → key='%s' (%d units)",
+        tmpl.name, key, total)
+end
+
+-- Applies ctld_config_user.customLoadableGroups and ctld_config_user.disableLoadableGroups.
+function CTLDTroopManager:_loadUserConfig()
+    local cfg = (type(ctld_config_user) == "table") and ctld_config_user or {}
+
+    local customs = cfg.customLoadableGroups
+    if type(customs) == "table" then
+        for _, entry in ipairs(customs) do
+            local ok, err = self:createLoadableGroup(entry)
+            if not ok then
+                ctld.utils.log("WARN", "_loadUserConfig: skipped custom group — %s", err)
+            end
+        end
+    end
+
+    local disables = cfg.disableLoadableGroups
+    if type(disables) == "table" then
+        for _, name in ipairs(disables) do
+            local ok, err = self:disableLoadableGroup(name)
+            if not ok then
+                ctld.utils.log("WARN", "_loadUserConfig: could not disable '%s' — %s", name, err)
+            end
+        end
+    end
+end
+
+-- ============================================================
+-- Public API — LoadableGroup management
+-- ============================================================
+
+-- Returns the template entry with this name, or nil.
+function CTLDTroopManager:_findTemplate(name)
+    for _, tmpl in ipairs(self._templates) do
+        if tmpl.name == name then return tmpl end
+    end
+    return nil
+end
+
+-- Creates and registers a custom loadable group template.
+-- @param config table  { name, composition={inf,mg,at,aa,mortar,jtac}, side }
+-- @return boolean, string|nil
+function CTLDTroopManager:createLoadableGroup(config)
+    if type(config) ~= "table" then
+        return false, "config must be a table"
+    end
+    if not config.name or config.name == "" then
+        return false, "name is required"
+    end
+    if type(config.composition) ~= "table" then
+        return false, "composition is required"
+    end
+
+    local comp = config.composition
+    local inf    = comp.inf    or 0
+    local mg     = comp.mg     or 0
+    local at     = comp.at     or 0
+    local aa     = comp.aa     or 0
+    local mortar = comp.mortar or 0
+    local jtac   = comp.jtac   or 0
+    local total  = inf + mg + at + aa + mortar + jtac
+
+    if total == 0 then
+        return false, "composition must have at least 1 soldier"
+    end
+
+    if self:_findTemplate(config.name) then
+        ctld.utils.log("WARN", "createLoadableGroup: '%s' already exists, skipping", config.name)
+        return false, "template name already exists"
+    end
+
+    local tmpl = {
+        name     = config.name,
+        inf      = inf,  mg = mg,  at = at,  aa = aa,  mortar = mortar,  jtac = jtac,
+        side     = config.side,
+        custom   = true,
+        disabled = false,
+    }
+    table.insert(self._templates, tmpl)
+    self:_registerOneTemplate(tmpl)
+
+    ctld.utils.log("INFO", "createLoadableGroup: '%s' (%d soldiers, side=%s)",
+        tmpl.name, tmpl.total, tostring(tmpl.side or "both"))
+    return true
+end
+
+-- Removes a template (standard or custom).
+-- @param name string
+-- @return boolean, string|nil
+function CTLDTroopManager:removeLoadableGroup(name)
+    for i, tmpl in ipairs(self._templates) do
+        if tmpl.name == name then
+            CTLDObjectRegistry._db[tmpl._dbKey] = nil
+            table.remove(self._templates, i)
+            ctld.utils.log("INFO", "removeLoadableGroup: '%s' removed", name)
+            return true
+        end
+    end
+    return false, "template not found: " .. tostring(name)
+end
+
+-- Edits a custom template's composition and/or side restriction.
+-- Standard templates cannot be edited (use createLoadableGroup instead).
+-- @param name   string
+-- @param config table  { composition={...}, side }
+-- @return boolean, string|nil
+function CTLDTroopManager:editLoadableGroup(name, config)
+    local tmpl = self:_findTemplate(name)
+    if not tmpl then
+        return false, "template not found: " .. tostring(name)
+    end
+    if not tmpl.custom then
+        return false, "cannot edit standard template '" .. name .. "' — create a custom one instead"
+    end
+    if type(config) ~= "table" then
+        return false, "config must be a table"
+    end
+
+    if type(config.composition) == "table" then
+        local comp = config.composition
+        local inf    = comp.inf    or 0
+        local mg     = comp.mg     or 0
+        local at     = comp.at     or 0
+        local aa     = comp.aa     or 0
+        local mortar = comp.mortar or 0
+        local jtac   = comp.jtac   or 0
+        if inf + mg + at + aa + mortar + jtac == 0 then
+            return false, "composition must have at least 1 soldier"
+        end
+        tmpl.inf = inf; tmpl.mg = mg; tmpl.at = at
+        tmpl.aa  = aa;  tmpl.mortar = mortar; tmpl.jtac = jtac
+    end
+
+    if config.side ~= nil then
+        tmpl.side = config.side
+    end
+
+    -- Re-register to update ObjectRegistry and recompute total/hasJtac
+    self:_registerOneTemplate(tmpl)
+
+    ctld.utils.log("INFO", "editLoadableGroup: '%s' updated (%d soldiers, side=%s)",
+        tmpl.name, tmpl.total, tostring(tmpl.side or "both"))
+    return true
+end
+
+-- Hides a template from the F10 menu without removing it.
+-- @param name string
+-- @return boolean, string|nil
+function CTLDTroopManager:disableLoadableGroup(name)
+    local tmpl = self:_findTemplate(name)
+    if not tmpl then return false, "template not found: " .. tostring(name) end
+    tmpl.disabled = true
+    ctld.utils.log("INFO", "disableLoadableGroup: '%s' hidden from menu", name)
+    return true
+end
+
+-- Restores a previously disabled template in the F10 menu.
+-- @param name string
+-- @return boolean, string|nil
+function CTLDTroopManager:enableLoadableGroup(name)
+    local tmpl = self:_findTemplate(name)
+    if not tmpl then return false, "template not found: " .. tostring(name) end
+    tmpl.disabled = false
+    ctld.utils.log("INFO", "enableLoadableGroup: '%s' restored to menu", name)
+    return true
 end
 
 -- ============================================================
@@ -544,15 +714,14 @@ function CTLDTroopManager:buildMenu(unit, groupId, parentPath)
         end)
 
     -- Transport capacity for this aircraft type
-    local limit     = self:_transportLimit(typeName)
-    local templates = ctld.gs("loadableGroups") or {}
+    local limit = self:_transportLimit(typeName)
 
-    -- Filter applicable templates (side + capacity)
+    -- Filter applicable templates (not disabled + side + capacity)
     local entries = {}
-    for _, tmpl in ipairs(templates) do
+    for _, tmpl in ipairs(self._templates) do
         local sideOk = (tmpl.side == nil or tmpl.side == coalition)
         local sizeOk = (tmpl.total <= limit)
-        if sideOk and sizeOk then
+        if not tmpl.disabled and sideOk and sizeOk then
             table.insert(entries, tmpl)
         end
     end
@@ -924,4 +1093,45 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, groupId = playerObj.groupId,
               coalition = playerObj.coalition })
     end
+end
+
+-- ============================================================
+-- Public ctld.* API — LoadableGroup wrappers
+-- ============================================================
+
+--- Create a custom loadable group template.
+-- @param config table  { name, composition={inf,mg,at,aa,mortar,jtac}, side }
+-- @return boolean, string|nil
+function ctld.createLoadableGroup(config)
+    return CTLDTroopManager.getInstance():createLoadableGroup(config)
+end
+
+--- Remove a loadable group template (standard or custom).
+-- @param name string
+-- @return boolean, string|nil
+function ctld.removeLoadableGroup(name)
+    return CTLDTroopManager.getInstance():removeLoadableGroup(name)
+end
+
+--- Edit a custom loadable group template.
+-- Standard templates are refused.
+-- @param name   string
+-- @param config table  { composition={...}, side }
+-- @return boolean, string|nil
+function ctld.editLoadableGroup(name, config)
+    return CTLDTroopManager.getInstance():editLoadableGroup(name, config)
+end
+
+--- Hide a template from the F10 menu.
+-- @param name string
+-- @return boolean, string|nil
+function ctld.disableLoadableGroup(name)
+    return CTLDTroopManager.getInstance():disableLoadableGroup(name)
+end
+
+--- Restore a disabled template in the F10 menu.
+-- @param name string
+-- @return boolean, string|nil
+function ctld.enableLoadableGroup(name)
+    return CTLDTroopManager.getInstance():enableLoadableGroup(name)
 end
