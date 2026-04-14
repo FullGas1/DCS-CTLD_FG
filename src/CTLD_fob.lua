@@ -294,10 +294,21 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
     local logRadius = ctld.gs("fobLogisticZoneRadius") or 150
     CTLDZoneManager.getInstance():registerFOBAsLogistic(fobName, centroid, logRadius, coalitionId)
 
-    -- Drop FOB beacon (infinite battery)
+    -- Drop FOB beacon (infinite battery).
+    -- Beacon is placed in the open space between container and watchtower:
+    -- 20 m at 158° from the scene heading (same direction as watchtower step,
+    -- but short enough to stay clear of both buildings).
     local transport = Unit.getByName(transportName)
     if transport and transport:isExist() and CTLDBeaconManager then
-        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, centroid)
+        local hdg        = scene._refHdgRad or 0
+        local angleRad   = hdg + math.rad(158)
+        local leftRad    = hdg - math.pi / 2   -- perpendicular left from heli heading
+        local beaconPos  = {
+            x = centroid.x + math.cos(angleRad) * 20 + math.cos(leftRad) * 7,
+            y = centroid.y,
+            z = centroid.z + math.sin(angleRad) * 20 + math.sin(leftRad) * 7,
+        }
+        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
         fob.beacon = beacon
     end
 

@@ -1,11 +1,11 @@
-[CTLD] Log started : 2026-04-14 23:25:36
+[CTLD] Log started : 2026-04-14 23:38:15
 [CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
 [CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
 [CTLD][INFO] CTLDSceneManager: registered scene model 'fobScene'
 [CTLD][TEST] START  [F-93] FOB unpack complet — fobScene + beacon au centroid
 [CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
 [CTLD][INFO] CTLDFOBManager: init complete
-[CTLD][INFO] spawnObject: STATIC 'FOB_Outpost-1' spawned at (-356063.4, 618198.4)
-[CTLD][INFO] spawnObject: STATIC 'FOB_Watchtower-2' spawned at (-356072.3, 618236.4)
+[CTLD][INFO] spawnObject: STATIC 'FOB_Outpost-1' spawned at (-356063.0, 618198.7)
+[CTLD][INFO] spawnObject: STATIC 'FOB_Watchtower-2' spawned at (-356072.0, 618236.6)
 [CTLD][INFO] CTLDSceneManager: started scene 'fobScene#1' for unit 'uh1-1'
 [CTLD][TEST] END    [F-93] FOB unpack complet — fobScene + beacon au centroid — 0/0 passed  →  OK
