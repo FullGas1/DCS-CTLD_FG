@@ -9,6 +9,30 @@ do local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log
 
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/setup.lua")
 
+-- ----------------------------------------------------------------
+-- Purge objects spawned by the previous scene test run
+-- ----------------------------------------------------------------
+local function purgeLastScene()
+    _CTLD_SCENE_LAST_SPAWNED = _CTLD_SCENE_LAST_SPAWNED or {}
+    local destroyed = 0
+    for _, name in ipairs(_CTLD_SCENE_LAST_SPAWNED) do
+        local obj = StaticObject.getByName(name)
+        if obj and obj:isExist() then
+            obj:destroy()
+            destroyed = destroyed + 1
+        else
+            local grp = Group.getByName(name)
+            if grp then grp:destroy(); destroyed = destroyed + 1 end
+        end
+    end
+    _CTLD_SCENE_LAST_SPAWNED = {}
+    if destroyed > 0 then
+        env.info(string.format("[F-90] purge: destroyed %d object(s) from previous run", destroyed))
+    end
+end
+purgeLastScene()
+
+dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/lib/CTLD_objectRegistry.lua")
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/CTLD_sceneManager.lua")
 dofile("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/scenes/CTLD_fobScene.lua")
 
@@ -23,26 +47,22 @@ local fob = mgr:getModel("fobScene")
 ctld_test.assertNotNil(fob,                                        "fobScene enregistré après dofile")
 ctld_test.assertEqual(#fob.steps, 4,                               "4 steps dans fobScene")
 
--- Step 1 (prescript): func-only
 ctld_test.assertNil(fob.steps[1].registryKey,                      "step 1 : prescript — pas de registryKey")
 ctld_test.assertNotNil(fob.steps[1].func,                          "step 1 : prescript — func présente")
 ctld_test.assertEqual(fob.steps[1].delayAfterPreviousStep, 0,      "step 1 : delay = 0")
 
--- Step 2: FOB_container
 ctld_test.assertEqual(fob.steps[2].registryKey, "FOB_container",   "step 2 : registryKey = FOB_container")
 ctld_test.assertNotNil(fob.steps[2].polar,                         "step 2 : type polar présent")
 ctld_test.assertEqual(fob.steps[2].polar.distance, 0,              "step 2 : polar.distance = 0")
 ctld_test.assertEqual(fob.steps[2].polar.angle, 0,                 "step 2 : polar.angle = 0")
 ctld_test.assertEqual(fob.steps[2].delayAfterPreviousStep, 0,      "step 2 : delay = 0")
 
--- Step 3: FOB_watchtower
 ctld_test.assertEqual(fob.steps[3].registryKey, "FOB_watchtower",  "step 3 : registryKey = FOB_watchtower")
 ctld_test.assertNotNil(fob.steps[3].polar,                         "step 3 : type polar présent")
 ctld_test.assertEqual(fob.steps[3].polar.distance, 39,             "step 3 : polar.distance = 39")
 ctld_test.assertEqual(fob.steps[3].polar.angle, 158,               "step 3 : polar.angle = 158°")
 ctld_test.assertEqual(fob.steps[3].delayAfterPreviousStep, 2,      "step 3 : delay = 2 s")
 
--- Step 4: completion func-only
 ctld_test.assertNil(fob.steps[4].registryKey,                      "step 4 : completion — pas de registryKey")
 ctld_test.assertNotNil(fob.steps[4].func,                          "step 4 : completion — func présente")
 ctld_test.assertEqual(fob.steps[4].delayAfterPreviousStep, 0,      "step 4 : delay = 0")
@@ -50,25 +70,25 @@ ctld_test.assertEqual(fob.steps[4].delayAfterPreviousStep, 0,      "step 4 : del
 ctld_test.finish()
 
 -- ----------------------------------------------------------------
--- Part 2: Visual spawn (requires live DCS mission)
+-- Part 2: Visual spawn
 -- ----------------------------------------------------------------
-local players = coalition.getPlayers(coalition.side.BLUE) or {}
-local unit = players[1]
-if not unit then
-    trigger.action.outText("F-90 VISUAL SKIP: no BLUE player found", 10)
-    env.info("[F-90] VISUAL SKIP: no BLUE player")
-    return
-end
+local unit = ctld_test.getTransport()
+if not unit then return end
 
 env.info("[F-90] Triggering fobScene for unit: " .. unit:getName())
 
 mgr:playScene(unit, "fobScene", {}, function(scene)
-    env.info("[F-90] fobScene onComplete fired. Spawned objects: " .. #scene._spawnedObjs)
+    env.info("[F-90] fobScene onComplete. Spawned: " .. #scene._spawnedObjs)
+    _CTLD_SCENE_LAST_SPAWNED = {}
+    for _, obj in ipairs(scene._spawnedObjs) do
+        if obj and obj.getName then
+            _CTLD_SCENE_LAST_SPAWNED[#_CTLD_SCENE_LAST_SPAWNED + 1] = obj:getName()
+        end
+    end
 end)
 
 trigger.action.outText(
     "F-90 VISUAL CHECK (fobScene):\n" ..
-    "  - FOB outpost container spawned ~100 m devant l'hélico\n" ..
-    "  - Watchtower spawned ~39 m à 158° du container\n" ..
-    "  - Message coalition 'FOB deployed by...' reçu en fin de scène", 30)
-env.info("[F-90] playScene called. Awaiting visual confirmation.")
+    "  - FOB container spawné ~100 m devant l'hélico\n" ..
+    "  - Watchtower spawné ~39 m à 158° du container\n" ..
+    "  - Message coalition 'FOB deployed by...' reçu", 30)

@@ -297,7 +297,7 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
     -- Drop FOB beacon (infinite battery)
     local transport = Unit.getByName(transportName)
     if transport and transport:isExist() and CTLDBeaconManager then
-        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true)
+        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, centroid)
         fob.beacon = beacon
     end
 

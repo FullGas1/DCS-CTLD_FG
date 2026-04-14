@@ -83,8 +83,12 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
          F-43: FARP Alpha structure validation  11/11
          F-44: fobScene self-registration  10/10
          F-90: fobScene structure + spawn visuel  18/18 PASS ✅ [2026-04-14]
-         F-91: farpScene structure + spawn visuel  22/22 PASS ✅ [2026-04-14]
-         bugfix: CTLD_farpScene.lua — stepsDatas→steps, polar.dist→polar.distance
+         F-91: farpScene structure + spawn visuel  24/24 PASS ✅ [2026-04-14]
+         bugfix: CTLD_farpScene.lua — stepsDatas→steps, polar.dist→polar.distance, prescript 50m ref point
+         F-92: FOB beacon au centroid (overridePosition)  13/13 PASS ✅ [2026-04-14]
+         bugfix: CTLD_beacon.lua — dropBeacon overridePosition param (supprime getPointAt12Oclock inexistant)
+         bugfix: CTLD_fob.lua — beacon spawné au centroid FOB, pas sous le transport
+         F-93: FOB flow complet (fobScene + beacon)  visual ✅ [2026-04-14]
 
 ✅ R5  src/CTLD_menu.lua + CTLD_player.lua + tous managers  (buildMenu Option D)  [2026-04-08]
        Architecture: registerMenuSection() + configKey gateway + order sort

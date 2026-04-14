@@ -208,7 +208,9 @@ La mission de test doit contenir :
 | F-88 | _loadUserConfig — ctld_config_user | FD | 3 customs créés, 2 standards désactivés, ObjectRegistry peuplé | ✅ PASS 18/18 | — |
 | F-89 | buildMenu filtre disabled / side / capacity | FD | 2 Load visibles (Standard+BLUE Recon), 4 exclus (disabled×2, side×1, cap×1) | ✅ PASS 7/7 | — |
 | F-90 | fobScene structure + spawn visuel | R4 | 4 steps, registryKeys, prescript, container + watchtower en mission | ✅ PASS 18/18 | — |
-| F-91 | farpScene structure + spawn visuel | R4 | 5 steps, registryKeys, SINGLE_HELIPAD + 4 objets FARP en mission | ✅ PASS 22/22 | — |
+| F-91 | farpScene structure + spawn visuel | R4 | 6 steps (prescript+5), ref 50m devant hélico, tous objets relatifs au helipad | ✅ PASS 24/24 | — |
+| F-92 | FOB beacon — dropBeacon au centroid | CTLD_fob+beacon | beacon spawné au centroid FOB (dx=0), batterie infinie, 3 groupes VHF/UHF/FM | ✅ PASS 13/13 | — |
+| F-93 | FOB unpack complet — fobScene + beacon | CTLD_fob+beacon | flow complet _onFOBBuilt : container+watchtower+beacon au centroid ✅ visual | ✅ PASS visual | — |
 
 ---
 
@@ -237,7 +239,8 @@ La mission de test doit contenir :
 - **R1** : 5 unitaires + 6 fonctionnels = **11 cas** ✅ PASS [2026-04-07]
 - **R2** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
 - **R3** : 4 unitaires + 4 fonctionnels = **8 cas** ✅ PASS [2026-04-07]
-- **R4** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (F-90+F-91 40/40 ✅ visual) [2026-04-14]
+- **R4** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (F-90 18/18 + F-91 24/24 ✅ visual) [2026-04-14]
+- **FOB beacon** : 2 fonctionnels = **2 cas** ✅ PASS (F-92 13/13 + F-93 visual ✅ — flow complet fobScene+beacon) [2026-04-14]
 - **R5** : 0 unitaires + 12 fonctionnels = **12 cas** ✅ PASS (F-45→F-47 visual ✅, F-48→F-56 45/45 ✅) [2026-04-08]
 - **FA** : 0 unitaires + 8 fonctionnels = **8 cas** ✅ PASS (F-57→F-64 33/33 ✅) [2026-04-08]
 - **FB** : 0 unitaires + 7 fonctionnels = **7 cas** ✅ PASS (F-65→F-71 22/22 ✅) [2026-04-08]
@@ -247,7 +250,7 @@ La mission de test doit contenir :
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
-- **Total** : **162 cas** — 604/604 PASS ✅
+- **Total** : **164 cas** — 632/632 PASS ✅
 
 ---
 

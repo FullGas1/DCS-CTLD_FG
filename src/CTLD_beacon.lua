@@ -319,14 +319,13 @@ end
 -- @param player     string playerName
 -- @param isFOB      bool   (default false)
 -- @return CTLDBeacon or nil
-function CTLDBeaconManager:dropBeacon(transport, player, isFOB)
+function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition)
     if not ctld.gs("enabledRadioBeaconDrop") then
         ctld.utils.log("WARN", "CTLDBeaconManager:dropBeacon — beacons disabled in config")
         return nil
     end
 
-    local point      = ctld.utils.getPointAt12Oclock and
-                       ctld.utils.getPointAt12Oclock(transport, 50) or transport:getPoint()
+    local point      = overridePosition or transport:getPoint()
     local coalitionId= transport:getCoalition()
     local countryId  = transport:getCountry()
 
