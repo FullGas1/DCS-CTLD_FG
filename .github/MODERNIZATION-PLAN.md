@@ -9,7 +9,7 @@
 
 Rewrite CTLD as a modern, modular, and testable Lua project while
 preserving backward compatibility with existing missions.
-Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
+Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
 ---
 
@@ -17,14 +17,14 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 | # | Topic | Decision |
 | - | ----- | -------- |
-| 1 | Module split | ✅ **Done** — `src/` files concatenated → `CTLD_futur.lua` by `merger_V2/merge_CTLD.ps1`. Order: `merger_V2/listToMerge.txt` |
+| 1 | Module split | ✅ **Done** — `src/` files concatenated → `CTLD_futur.lua` by `tools/merger_V2/merge_CTLD.ps1`. Order: `tools/merger_V2/listToMerge.txt` |
 | 2 | OOP | ✅ **Done** — `src/lib/class.lua` created (P1). All entity classes refactored. |
 | 3 | MIST | ✅ **Done** — all `mist.*` calls replaced by `ctld.utils.*`. No active `mist.*` call in `src/` |
 | 4 | Legacy API | ⚪ Planned — wrappers in `src/compat/legacy_api.lua` (Phase 4). Long term v3: removed |
 | 5 | Lua env | Lua 5.1 DCS sandbox, desanitized server (`io`, `os`, `lfs` accessible) |
 | 6 | Testing | ⚪ Planned — busted + DCS/MIST mocks in CI + in-game test missions (Phase 5) |
 | 7 | Docs | 🟡 Partial — `documentation/` in-repo started. MkDocs future. |
-| 8 | i18n | ✅ **Done** — `src/CTLD_i18n*.lua` (EN/FR/ES/KO), `ctld.tr()` at all sites, generator `merger_V2/generate_i18n_dicts.ps1` |
+| 8 | i18n | ✅ **Done** — `src/CTLD_i18n*.lua` (EN/FR/ES/KO), `ctld.tr()` at all sites, generator `tools/merger_V2/generate_i18n_dicts.ps1` |
 | 9 | Branching | Feature branches `feature/<description>`. `master` stays stable |
 | 10 | Events | ✅ **Done** — 38 CTLD events specified. EventDispatcher ✅. CTLDDCSEventBridge ✅. StateManager + Coalition supprimés (absorbés par managers). C1 impl ✅ [2026-04-02]. |
 | 11 | Scenes | ✅ **Done** — `src/scenes/` (9 files). Auto-register via `CTLDSceneManager.getInstance():registerSceneModel(...)` |
@@ -140,6 +140,15 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
           Menu F10 "Pack Vehicle" (sous Crate Commands) — populé dynamiquement avec véhicules packables
         Recette Q1: U-81→U-83 (62/62) + F-94→F-99 (86/86) = 148/148 PASS ✅
 ⚪  Q2  tests/ busted complets
+✅  Q2  tests/ busted infrastructure  [2026-04-15]
+        tests/helpers/dcs_stubs.lua — stubs DCS complets (coalition, Unit, Group, timer, trigger, Spot…)
+        tests/helpers/loader.lua    — charge tous les modules src/ dans l'ordre listToMerge, idempotent
+        tests/helpers/init.lua      — point d'entrée busted (référencé dans .busted)
+        tests/specs/crate_manager_spec.lua — 8 specs findDescriptorByUnitType + spawnCrate
+        .busted                     — config busted (pattern _spec, helper init.lua)
+        Job 3 busted ajouté dans ci.yml (choco lua + luarocks install busted + busted tests/specs/)
+        Note: busted non installé localement — validation uniquement via GitHub Actions CI
+
 ✅  Q3  GitHub Actions CI  [2026-04-15]
         .github/workflows/ci.yml créé
         Job 1 — lua-lint : choco install lua 5.4 → loadfile() syntax-check sur tous src/**/*.lua
@@ -147,9 +156,20 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
           - fichiers manquants (AA scenes, userConfig) → warning seulement (parité merger.cmd)
           - artifact uploadé 7 jours (actions/upload-artifact@v4)
         Triggers : push sur master + feature_* , PR vers master
-⚪  Q4  source/ dead code cleanup (non-bloquant)
+✅  Q4a Réorganisation arborescence repo  [2026-04-15]
+        Suppressions : old/, merger/ (V1), src/tests/, conversation.text, witchcraft_test.lua
+        Déplacements : merger_V2/ → tools/merger_V2/, CTLD_loader.lua → tools/,
+          documentation/ + Specs/ → docs/, *.ogg → assets/, *.png → docs/,
+          *.miz → missions/, CTLD.lua (v1) → source/
+        .gitignore : ajout CTLD_futur.lua
+        ci.yml : chemin corrigé tools/merger_V2/listToMerge.txt
+⚪  Q4b source/ dead code cleanup (non-bloquant)
 ⚪  Q5  documentation complète
-        ⚪  Q5-A  documentation/missionmaker_guide.md — section Legacy API
+        ✅  Q5-A  docs/missionmaker_guide.md — guide complet  [2026-04-15]
+                   §1–9 existants + §10 Crates + §11 Vehicles + §12 FOB + §13 Beacons
+                   + §14 JTAC + §15 Recon + §16 AA Systems
+                   Chaque section : description bloc, actions (utilité/fonctionnement/activation/exemple),
+                   paramètres config, events
                    Objectif : guide MM expliquant les 22 fonctions legacy encore utilisables
                    Contenu requis :
                      - Avertissement dépréciation + lien vers EventDispatcher pour addCallback
@@ -158,15 +178,10 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
                      - Note sur pack vehicle (ctld.spawnCrateAtZone/Point maintenant fonctionnel)
                    Statut : ⚪ À faire
 
-        ⚪  Q5-B  documentation/dev-guide.md (ou migration-v2.md) — section Legacy API
-                   Objectif : guide développeur pour migrer un script v1 vers l'API v2 native
-                   Contenu requis :
-                     - Principe des wrappers (thin delegate + logWarning)
-                     - Tableau de migration : ctld.XXX → Manager:method() pour chaque wrapper
-                     - Exemple de migration complet (DO SCRIPT v1 → v2)
-                     - Explication du remplacement de ctld.addCallback par EventDispatcher:subscribe()
-                     - Note sur pack vehicle : CTLDVehicleSpawner:packVehicle() + findPackableVehicles()
-                   Statut : ⚪ À faire
+        ✅  Q5-B  docs/dev-guide.md  [2026-04-15]
+                   Sections : repo structure, architecture managers, new module howto,
+                   events pub/sub, build + test workflow, migration v1→v2 (table 22 wrappers,
+                   addCallback → subscribe, pack vehicle, exemple complet DO SCRIPT)
 ```
 
 ---
@@ -209,10 +224,10 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 
 ### 0.4 — Build infrastructure ✅
 
-- `merger_V2/merge_CTLD.ps1`: concatenates `src/` → `CTLD_futur.lua`
-- `merger_V2/listToMerge.txt`: canonical load order
-- `merger_V2/generate_loader.ps1`: generates `CTLD_loader.lua` for dev
-- `merger_V2/generate_i18n_dicts.ps1`: syncs i18n keys across languages
+- `tools/merger_V2/merge_CTLD.ps1`: concatenates `src/` → `CTLD_futur.lua`
+- `tools/merger_V2/listToMerge.txt`: canonical load order
+- `tools/merger_V2/generate_loader.ps1`: generates `CTLD_loader.lua` for dev
+- `tools/merger_V2/generate_i18n_dicts.ps1`: syncs i18n keys across languages
 
 ---
 
@@ -380,12 +395,12 @@ end
 
 | Task | Status | Detail |
 | ---- | ------ | ------ |
-| 6.1 | ✅ Done | `merger_V2/merge_CTLD.ps1` → `CTLD_futur.lua` |
+| 6.1 | ✅ Done | `tools/merger_V2/merge_CTLD.ps1` → `CTLD_futur.lua` |
 | 6.2 | ⚪ | GitHub Actions — run busted tests |
 | 6.3 | ⚪ | GitHub Actions — build `CTLD_futur.lua` on push |
 | 6.4 | ⚪ | GitHub Actions — release artifact on tag |
 | 6.5 | ⚪ | GitHub Actions — MkDocs deploy to GitHub Pages |
-| 6.6 | ✅ Done | i18n lint: `merger_V2/generate_i18n_dicts.ps1` |
+| 6.6 | ✅ Done | i18n lint: `tools/merger_V2/generate_i18n_dicts.ps1` |
 
 ---
 
@@ -398,7 +413,7 @@ end
 | `src/CTLD_i18n_fr.lua` | French translations |
 | `src/CTLD_i18n_es.lua` | Spanish translations |
 | `src/CTLD_i18n_ko.lua` | Korean translations |
-| `merger_V2/generate_i18n_dicts.ps1` | Key sync — detects drift between languages |
+| `tools/merger_V2/generate_i18n_dicts.ps1` | Key sync — detects drift between languages |
 
 Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propagated by generator.
 

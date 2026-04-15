@@ -5,7 +5,7 @@
     Translator: rising_star
     Note: some entries are intentionally empty (untranslated) — ctld.tr() will fall back to English.
     Note: "Pack Vehicles" was absent from the original KO dictionary — added with empty placeholder.
-    To update: run merger_V2/generate_i18n_dicts.ps1 after any ctld.tr() change.
+    To update: run tools/merger_V2/generate_i18n_dicts.ps1 after any ctld.tr() change.
 ]]
 if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end

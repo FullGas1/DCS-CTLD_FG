@@ -1138,5 +1138,5 @@ local maximumDistanceLogistic = config:getSetting("maximumDistanceLogistic")  --
 config:setSetting("maximumDistanceLogistic", 250)
 
 -- To completely reset the singleton (useful for testing):
-CTLDConfig.reset()  -- ALEX - Avec "." car méthode de classe
+CTLDConfig.reset()  -- class method (dot notation)
 ]] --

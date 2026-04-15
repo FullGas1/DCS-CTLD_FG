@@ -14,6 +14,15 @@
 5. [Troop Transport](#5-troop-transport)
 6. [Virtual Parachute Drop](#6-virtual-parachute-drop)
 7. [Virtual Slingload](#7-virtual-slingload)
+8. [Minefield](#8-minefield)
+9. [Legacy API compatibility](#9-legacy-api-compatibility)
+10. [Crates](#10-crates)
+11. [Vehicles](#11-vehicles)
+12. [FOB — Forward Operating Base](#12-fob--forward-operating-base)
+13. [Radio Beacons](#13-radio-beacons)
+14. [JTAC](#14-jtac)
+15. [Recon](#15-recon)
+16. [AA Systems](#16-aa-systems)
 
 ---
 
@@ -850,4 +859,496 @@ local ok, result = mineFieldScene.setLandMine(
 | `nbMinesColumns == 1`  | Straight forward column, no stagger          |
 | `nbMinesColumns >= 2`  | Full quinconce layout                        |
 
-*— End of current content — further chapters to be added progressively —*
+---
+
+## 9. Legacy API compatibility
+
+> **Deprecation notice:** The functions below are compatibility wrappers from CTLD v1.
+> They remain functional in v2 but will be removed in v3.
+> For new missions, use the v2 event-driven API via `EventDispatcher:subscribe()` instead.
+
+### 9.1 Overview
+
+CTLD v2 provides 22 thin wrapper functions that replicate the v1 global API.
+Each wrapper delegates to the appropriate v2 manager internally.
+A deprecation warning is logged to `ctld.log` on every call.
+
+### 9.2 Troops
+
+| v1 function | Description |
+|---|---|
+| `ctld.spawnGroupAtTrigger(groupName, triggerName, side)` | Spawn a troop group at a trigger zone |
+| `ctld.spawnGroupAtPoint(groupName, point, side)` | Spawn a troop group at a world point |
+| `ctld.preLoadTransport(unitName, groupName)` | Pre-load troops into a transport |
+| `ctld.unloadTransport(unitName)` | Unload all troops from a transport |
+| `ctld.loadTransport(unitName, groupName)` | Load a specific group into a transport |
+| `ctld.unloadInProximityToEnemy(unitName)` | Force-unload troops near an enemy unit |
+
+**Example — spawn troops from a DO SCRIPT:**
+```lua
+ctld.spawnGroupAtTrigger("Infantry Squad Alpha", "LZ_NORTH", coalition.side.BLUE)
+```
+
+### 9.3 Pickup and extract zones
+
+| v1 function | Description |
+|---|---|
+| `ctld.activatePickupZone(zoneName)` | Activate a troop pickup zone |
+| `ctld.deactivatePickupZone(zoneName)` | Deactivate a troop pickup zone |
+| `ctld.changeRemainingGroupsForPickupZone(zoneName, n)` | Set remaining group count for a zone |
+| `ctld.activateWaypointZone(zoneName)` | Activate a waypoint (extract) zone |
+| `ctld.deactivateWaypointZone(zoneName)` | Deactivate a waypoint zone |
+| `ctld.createExtractZone(name, point, radius, side)` | Create an extract zone at runtime |
+| `ctld.removeExtractZone(zoneName)` | Remove a runtime extract zone |
+| `ctld.countDroppedGroupsInZone(zoneName)` | Return number of deployed groups in zone |
+| `ctld.countDroppedUnitsInZone(zoneName)` | Return number of deployed units in zone |
+| `ctld.cratesInZone(zoneName)` | Return number of crates in zone |
+
+**Example — dynamic extract zone:**
+```lua
+ctld.createExtractZone("EXZ_ALPHA", { x = 12000, y = 0, z = -5000 }, 300, coalition.side.BLUE)
+-- ... later, when objective is complete:
+ctld.removeExtractZone("EXZ_ALPHA")
+```
+
+### 9.4 Crates
+
+| v1 function | Description |
+|---|---|
+| `ctld.spawnCrateAtZone(unitType, triggerZoneName, side)` | Spawn a vehicle crate at a trigger zone |
+| `ctld.spawnCrateAtPoint(unitType, point, side)` | Spawn a vehicle crate at a world point |
+
+> **Note:** `ctld.spawnCrateAtZone` and `ctld.spawnCrateAtPoint` are fully functional in v2.
+> They use `CTLDCrateManager:spawnCrate()` which calls `ctld.utils.dynAddStatic` internally.
+
+**Example — spawn a Humvee crate near a FARP:**
+```lua
+ctld.spawnCrateAtZone("M1043 HMMWV Armament", "FARP_BRAVO", coalition.side.BLUE)
+```
+
+### 9.5 Radio beacon
+
+| v1 function | Description |
+|---|---|
+| `ctld.createRadioBeaconAtZone(zoneName, side, freq, modulation)` | Place a radio beacon at a trigger zone |
+
+**Example:**
+```lua
+ctld.createRadioBeaconAtZone("LZ_NORTH", coalition.side.BLUE, 270000, radio.modulation.AM)
+```
+
+### 9.6 JTAC
+
+| v1 function | Description |
+|---|---|
+| `ctld.JTACAutoLase(groupName, code, smoke)` | Start auto-lasing a group |
+| `ctld.JTACStart(unitName, code, smoke)` | Start lasing a specific unit |
+| `ctld.JTACAutoLaseStop(groupName)` | Stop auto-lasing |
+
+**Example — auto-lase an enemy armour group:**
+```lua
+ctld.JTACAutoLase("ENEMY_ARMOUR_1", 1688, true)
+-- ... when strike complete:
+ctld.JTACAutoLaseStop("ENEMY_ARMOUR_1")
+```
+
+### 9.7 Callbacks (replaced by EventDispatcher)
+
+In v1, external scripts used `ctld.addCallback(fn)` to react to CTLD events.
+In v2, use `EventDispatcher:subscribe(eventName, fn)` instead.
+
+| v1 pattern | v2 equivalent |
+|---|---|
+| `ctld.addCallback(function(event) ... end)` | `EventDispatcher.getInstance():subscribe("OnCrateSpawned", fn)` |
+
+Available v2 events: `OnCrateSpawned`, `OnCrateLoaded`, `OnCrateUnloaded`, `OnCrateUnpacked`,
+`OnVehiclePacked`, `OnTroopsBoarded`, `OnTroopsDeployed`, `OnTroopsExtracted`,
+`OnJTACSpawned`, `OnLaseStart`, `OnLaseStop`, `OnBeaconDropped`, `OnFOBDeployed`, and more.
+
+---
+
+## 10. Crates
+
+### 10.1 Overview
+
+Crates are the core CTLD mechanic. A transport helicopter flies to a logistics zone, spawns a crate from the F10 menu (or loads one already on the ground), carries it to a destination, and unpacks it to deploy a vehicle, AA system, or FOB component.
+
+```
+LGZ (spawn) → load (hover or menu) → fly → unload → unpack → vehicle / FOB / AA
+```
+
+### 10.2 Actions
+
+#### Spawn crate
+**Utility:** Creates a DCS static cargo object near the logistics zone. The crate represents a specific vehicle or kit.
+**How it works:** Player selects "Get Crate" from the F10 menu while inside a LGZ. A crate static is spawned at a fixed offset from the helicopter (forward sector). One crate per 40 s cooldown per player.
+**Activation:** F10 → Crate Commands → Get [vehicle name]
+**Script:**
+```lua
+-- v2 direct API
+CTLDCrateManager.getInstance():spawnCrate(descriptor, position, coalition.side.BLUE, "pilotName", "crate_spawn")
+-- legacy wrapper
+ctld.spawnCrateAtZone("M1043 HMMWV Armament", "LGZ_depot1", coalition.side.BLUE)
+```
+
+#### Load crate
+**Utility:** Attaches a nearby crate to the transport so it can be carried.
+**How it works:** Two methods available depending on config:
+- **Hover pickup** (`enableHoverSlingload=true`): hover 7.5–12 m above the crate for `hoverTime` seconds. Countdown shown on screen.
+- **Menu pickup** (`loadCrateFromMenu=true`): F10 → Crate Commands → Load Nearby Crate(s).
+**Activation:** Hover above crate OR F10 → Crate Commands → Load Nearby Crate(s)
+
+#### Unload crate
+**Utility:** Places the carried crate on the ground at the current position.
+**How it works:** Crate is spawned as a static at the helicopter's position. The transport is freed.
+**Activation:** F10 → Crate Commands → Unload Crate(s)
+**Script:**
+```lua
+CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
+```
+
+#### Unpack crate
+**Utility:** Consumes the crate(s) and deploys the vehicle, AA system, or triggers FOB construction.
+**How it works:** CTLD checks that the required number of matching crates (`cratesRequired`) are within 300 m. If met, crates are destroyed and the vehicle/AA group is spawned via `coalition.addGroup`.
+**Activation:** F10 → Crate Commands → Unpack Crate(s)
+**Conditions:** Must be on the ground, not inside a LGZ, crates within 300 m, not too close to friendly pickup zone (`minimumDeployDistance`).
+
+### 10.3 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enableCrates` | `true` | Enable the crate system |
+| `enableAllCrates` | `true` | Add "Get All Crates" shortcut entries |
+| `crateWaitTime` | `40` | Cooldown (s) between crate spawns per player |
+| `minimumDeployDistance` | `1000` | Min distance (m) from a PKZ to unpack |
+| `forceCrateToBeMoved` | `true` | Crate must be moved ≥ 1 m before unpack |
+| `maximumDistanceLogistic` | `200` | Max distance (m) from logistics unit to interact |
+
+### 10.4 Events
+
+| Event | Fired when |
+|---|---|
+| `OnCrateSpawned` | Crate spawned from logistics zone |
+| `OnCrateLoaded` | Crate loaded onto transport |
+| `OnCrateUnloaded` | Crate placed on ground |
+| `OnCrateUnpacked` | Crate assembled into vehicle/AA/FOB |
+| `OnCrateLost` | Crate destroyed (overspeed, cut slingload high) |
+
+---
+
+## 11. Vehicles
+
+### 11.1 Overview
+
+CTLD supports two vehicle operations: **requesting** a vehicle at a logistics zone (spawns it from a crate remotely) and **packing** an existing ground vehicle back into crates for transport.
+
+### 11.2 Actions
+
+#### Request vehicle (spawn from logistics zone)
+**Utility:** Allows a player to call for a specific vehicle to be delivered to their position from a logistics zone without needing to fly there and back.
+**How it works:** Player selects a vehicle type from the F10 menu while inside a LGZ. CTLD spawns the vehicle group near the logistics zone, ready for the player to load or drive.
+**Activation:** F10 → Vehicle Transport → Request [vehicle name]
+
+#### Load vehicle (dynamic cargo)
+**Utility:** Loads a nearby ground vehicle into a dynamic-cargo-capable transport (C-130, Il-76) using DCS native cargo loading.
+**How it works:** CTLD detects vehicles in `vehiclesForTransport` within the aircraft's cargo bay bounding box. The vehicle group is destroyed and held in memory. On unload, it is re-spawned.
+**Activation:** Automatic when vehicle enters aircraft cargo bay, or F10 → Vehicle Transport → Load Vehicle
+
+#### Unload vehicle
+**Utility:** Re-spawns the carried vehicle at the current position.
+**How it works:** Vehicle group is spawned behind the transport (dynamic cargo aircraft) or at a fixed offset.
+**Activation:** F10 → Vehicle Transport → Unload Vehicle
+
+#### Pack vehicle
+**Utility:** Converts a ground vehicle back into crates so a helicopter can transport it. This is the reverse of unpack.
+**How it works:** Player lands near a packable ground vehicle (within `maximumDistancePackableUnitsSearch`). The vehicle is destroyed and `cratesRequired` crates are spawned around the helicopter:
+- **Helicopter** (non dynamic cargo): crates spawned in the **front** sector (±45°)
+- **C-130 / Il-76** (dynamic cargo capable): crates spawned in the **rear** sector (±45°)
+**Activation:** F10 → Crate Commands → Pack Vehicle → [vehicle name] (appears only when a packable vehicle is nearby and the aircraft is on the ground)
+**Script:**
+```lua
+CTLDVehicleSpawner.getInstance():packVehicle(transportUnitName, vehicleUnitName, playerObj)
+```
+
+### 11.3 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enablePackingVehicles` | `true` | Enable pack vehicle menu |
+| `maximumDistancePackableUnitsSearch` | `200` | Max distance (m) from transport to search for packable vehicles |
+| `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports |
+| `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports |
+
+### 11.4 Events
+
+| Event | Fired when |
+|---|---|
+| `OnVehiclePacked` | Vehicle packed into crates |
+| `OnVehicleDead` | Spawned CTLD vehicle destroyed |
+
+---
+
+## 12. FOB — Forward Operating Base
+
+### 12.1 Overview
+
+A FOB is a deployable forward base built from crates. Once built, it automatically registers as a logistics zone (players can spawn crates from it) and optionally as a troop pickup zone.
+
+### 12.2 Build action
+
+**Utility:** Assembles FOB crates into a functioning forward base with structures, beacon, and logistics capability.
+**How it works:**
+1. Player loads `cratesRequiredForFOB` FOB crates (weight 1001–1003 by default) and flies to the desired location.
+2. Unpack is triggered from the F10 menu. CTLD checks that all required crates are within 750 m of each other and that the position is ≥ `fobMinDistanceFromZones` from existing zones.
+3. The FOB scene plays (structures spawn sequentially over `buildTimeFOB` seconds).
+4. When complete: a radio beacon is automatically placed at the FOB centroid, the area registers as a LGZ, and (if `troopPickupAtFOB=true`) as a PKZ.
+**Activation:** F10 → Crate Commands → Unpack Crate(s) (when FOB crates are nearby)
+
+### 12.3 FOB destruction
+
+If enemy forces destroy ≥ `fobDestructionThreshold` (50% by default) of the FOB structures, the FOB is considered destroyed: its logistic zone and beacon are removed, and the `OnFOBDestroyed` event is fired.
+
+### 12.4 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enabledFOBBuilding` | `true` | Enable FOB construction |
+| `cratesRequiredForFOB` | `3` | Number of FOB crates required |
+| `buildTimeFOB` | `120` | Construction time (s) |
+| `troopPickupAtFOB` | `true` | Register FOB as a troop pickup zone after build |
+| `fobMinDistanceFromZones` | `500` | Min distance (m) from existing zones |
+| `fobDestructionThreshold` | `0.5` | Fraction of structures destroyed to trigger FOB loss |
+| `fobLogisticZoneRadius` | `150` | Logistics zone radius (m) around FOB centroid |
+
+### 12.5 Events
+
+| Event | Fired when |
+|---|---|
+| `OnFOBDeployed` | FOB construction completed |
+| `OnFOBDestroyed` | FOB destroyed by enemy action |
+
+---
+
+## 13. Radio Beacons
+
+### 13.1 Overview
+
+Radio beacons are deployable navigation aids. A player drops a beacon from their aircraft; it transmits on automatically-assigned VHF, UHF and FM frequencies for a configurable battery life. All coalition members see the beacon on the F10 map.
+
+### 13.2 Actions
+
+#### Drop beacon
+**Utility:** Places a radio beacon at the current position for navigation or coordination.
+**How it works:** A static unit is spawned at the helicopter's position. CTLD auto-assigns unique VHF, UHF and FM frequencies from the configured pools (no two active beacons share a frequency). Transmission starts immediately. An F10 map marker is drawn.
+**Activation:** F10 → Beacon Commands → Drop Beacon
+**Script:**
+```lua
+-- Drop at helicopter position
+CTLDBeaconManager.getInstance():dropBeacon(transportUnit, playerObj)
+-- Drop at a trigger zone (legacy wrapper)
+ctld.createRadioBeaconAtZone("LZ_NORTH", coalition.side.BLUE, 270000, radio.modulation.AM)
+```
+
+#### Remove beacon
+**Utility:** Removes the nearest friendly beacon.
+**How it works:** CTLD finds the closest beacon to the transport within detection range, removes the static, stops transmission, and removes the F10 marker.
+**Activation:** F10 → Beacon Commands → Remove Beacon
+
+#### List beacons
+**Utility:** Displays all active beacons for the player's coalition with their frequencies and position.
+**Activation:** F10 → Beacon Commands → List Beacons
+
+#### Toggle F10 map layer
+**Utility:** Show or hide all beacon markers on the F10 map for this player.
+**Activation:** F10 → Beacon Commands → Toggle Beacon Layer
+
+### 13.3 Frequency assignment
+
+CTLD auto-assigns frequencies from three pools defined in config:
+
+| Pool | Config key | Default range |
+|---|---|---|
+| VHF | `beaconVHFFrequencies` | 118–136 MHz |
+| UHF | `beaconUHFFrequencies` | 225–400 MHz |
+| FM | `beaconFMFrequencies` | 30–88 MHz |
+
+### 13.4 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enabledRadioBeaconDrop` | `true` | Enable beacon deployment |
+| `deployedBeaconBattery` | `30` | Battery life (minutes) |
+| `radioSound` | `"beacon.ogg"` | Sound file (must be added to mission sound library) |
+
+### 13.5 Events
+
+| Event | Fired when |
+|---|---|
+| `OnBeaconDropped` | Beacon placed |
+| `OnBeaconRemoved` | Beacon manually removed |
+| `OnBeaconDestroyed` | Beacon static destroyed by enemy |
+| `OnBeaconRefreshed` | Beacon frequencies/mark refreshed |
+
+---
+
+## 14. JTAC
+
+### 14.1 Overview
+
+CTLD provides two JTAC modes: **crate-deployed JTACs** (spawned by players from the F10 menu) and **pre-placed JTACs** (groups placed in the Mission Editor and auto-detected at startup). All JTACs auto-lase the nearest enemy target within LOS.
+
+### 14.2 Actions
+
+#### Spawn JTAC (from crate)
+**Utility:** Deploys a JTAC unit from a crate near the current position. The JTAC starts lasing immediately.
+**How it works:** Player selects "Get JTAC Crate" from the F10 menu inside a LGZ. A JTAC crate is spawned, then unpacked at the destination. The JTAC unit appears and begins scanning for targets.
+**Activation:** F10 → Crate Commands → Get JTAC Crate → Unpack Crate(s)
+
+#### Auto-lase (script)
+**Utility:** Starts a JTAC auto-lasing loop on a named group. The JTAC continuously re-acquires the nearest LOS enemy.
+**How it works:** CTLD runs a `timer.scheduleFunction` loop. Each cycle it calls `world.searchObjects` in the JTAC's LOS cone, selects the nearest valid target, and fires the DCS laser spot. If the target is destroyed the JTAC re-acquires.
+**Activation:** F10 (automatic for spawned JTACs) or script:
+```lua
+CTLDJTACManager.get():autoLase("JTAC_BLUE_1", 1688, true)
+-- params: groupName, laserCode, enableSmoke
+-- legacy wrapper
+ctld.JTACAutoLase("JTAC_BLUE_1", 1688, true)
+```
+
+#### Start lase / Stop lase (script)
+**Utility:** Force-start or stop lasing on a specific JTAC group from a mission script.
+```lua
+CTLDJTACManager.get():startLase("JTAC_BLUE_1", 1688, true)
+CTLDJTACManager.get():stopAutoLase("JTAC_BLUE_1")
+-- legacy wrappers
+ctld.JTACStart("JTAC_BLUE_1", 1688, true)
+ctld.JTACAutoLaseStop("JTAC_BLUE_1")
+```
+
+#### Smoke target
+**Utility:** Marks the lased target with smoke for pilot identification.
+**Activation:** F10 → JTAC Commands → Smoke Target (appears when JTAC is active in range)
+
+### 14.3 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `JTAC_LIMIT_BLUE` | `10` | Max JTAC crates for BLUE |
+| `JTAC_LIMIT_RED` | `10` | Max JTAC crates for RED |
+| `JTAC_dropEnabled` | `true` | Enable JTAC crate spawn from F10 |
+| `JTAC_maxDistance` | `10000` | JTAC LOS scan range (m) |
+| `JTAC_lock` | `"all"` | Target filter: `"vehicle"`, `"troop"`, `"all"` |
+| `JTAC_allowStandbyMode` | `true` | Allow toggling laser on/off |
+| `JTAC_allow9Line` | `true` | Enable 9-line CAS request display |
+
+### 14.4 Events
+
+| Event | Fired when |
+|---|---|
+| `OnJTACSpawned` | JTAC unit created |
+| `OnLaseStart` | Laser activated on a target |
+| `OnLaseStop` | Laser deactivated |
+| `OnTargetLased` | Lased target confirmed LOS |
+| `OnSmokeTarget` | Smoke marker placed on target |
+| `OnJTACDead` | JTAC unit destroyed |
+
+---
+
+## 15. Recon
+
+### 15.1 Overview
+
+The recon system allows players to perform LOS-based enemy scanning from their aircraft. Detected units are marked on the F10 map with icons. Players can enable auto-refresh to keep the picture current.
+
+### 15.2 Actions
+
+#### Scan
+**Utility:** Performs an immediate LOS scan of the area around the player's aircraft and marks detected enemy units on the F10 map.
+**How it works:** CTLD runs `world.searchObjects` in a sphere of radius `reconLosSearchRadius`. Each detected enemy unit within LOS is marked with a small icon on the F10 map (visible to the player's coalition only).
+**Activation:** F10 → Recon → Scan Area
+
+#### Hide scan
+**Utility:** Removes all recon markers from the F10 map for this player.
+**Activation:** F10 → Recon → Hide Marks
+
+#### Enable / disable auto-refresh
+**Utility:** Automatically re-scans at a fixed interval and updates the F10 map without player input.
+**How it works:** A `timer.scheduleFunction` fires every `reconAutoRefreshInterval` seconds. Previous marks are removed and new ones placed.
+**Activation:** F10 → Recon → Enable Auto-Refresh / Disable Auto-Refresh
+
+#### Toggle layer
+**Utility:** Show or hide a specific recon layer (e.g. vehicles only, troops only) on the F10 map.
+**Activation:** F10 → Recon → Toggle Layer → [layer name]
+
+### 15.3 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `reconF10Menu` | `true` | Enable the recon F10 menu |
+| `reconLosSearchRadius` | `2000` | LOS scan radius (m) |
+| `reconLosMarkRadius` | `100` | Mark circle radius on F10 map (m) |
+| `reconAutoRefreshInterval` | `60` | Auto-refresh interval (s) |
+
+### 15.4 Events
+
+| Event | Fired when |
+|---|---|
+| `OnReconScan` | Manual scan performed |
+| `OnReconScanRefresh` | Auto-refresh scan performed |
+| `OnReconHideTargets` | Marks hidden |
+| `OnReconAutoRefreshEnabled` | Auto-refresh started |
+| `OnReconAutoRefreshDisabled` | Auto-refresh stopped |
+| `OnReconLayerToggled` | A layer toggled on/off |
+
+---
+
+## 16. AA Systems
+
+### 16.1 Overview
+
+AA systems (Hawk, Patriot, NASAM, BUK, KUB, S-300) are multi-crate kits. Each system requires a specific number of part crates (radar, launcher, command post…) to be assembled together. CTLD handles assembly, repair, and rearm.
+
+### 16.2 Actions
+
+#### Deploy AA system
+**Utility:** Assembles all required part crates into a functional AA ground group.
+**How it works:** When a player unpacks a crate that belongs to an AA template, CTLD checks that all required part types (defined in `CTLDCrateAssemblyManager.TEMPLATES`) are within 300 m. If the count is met and the coalition AA limit (`AASystemLimitBLUE/RED`) has not been reached, all part crates are destroyed and the AA group is spawned via `coalition.addGroup`.
+**Activation:** F10 → Crate Commands → Unpack Crate(s) (when all required parts are present nearby)
+
+#### Repair AA system
+**Utility:** Restores a damaged AA group to full strength.
+**How it works:** Player brings a repair crate (specific weight for the system) and unpacks it within 300 m of the damaged AA group. The group is destroyed and re-spawned at full health.
+**Activation:** F10 → Crate Commands → Unpack Crate(s) (with repair crate nearby and damaged AA system in range)
+
+#### Rearm AA system
+**Utility:** Restores ammunition to a depleted AA launcher.
+**How it works:** Player unpacks a full part-set of crates for the same system near the existing group. The group is destroyed and re-spawned with full ammunition loadout.
+**Activation:** F10 → Crate Commands → Unpack Crate(s) (with full crate set nearby and existing AA system in range)
+
+### 16.3 Key configuration parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `AASystemLimitBLUE` | `20` | Max simultaneous active AA systems for BLUE |
+| `AASystemLimitRED` | `20` | Max simultaneous active AA systems for RED |
+| `AASystemCrateStacking` | `false` | Allow additional crate sets to add extra launchers to existing system |
+
+### 16.4 Built-in AA templates
+
+| Template | Crates required | Parts |
+|---|---|---|
+| Hawk | 3 | Search radar, Track radar, Launcher |
+| Patriot | 3 | Search radar, ECS/ICC, Launcher |
+| NASAM | 3 | Search radar, C2, Launcher |
+| BUK | 3 | Search radar, TELAR, Loader |
+| KUB | 2 | Search radar, TELAR |
+| S-300 | 4 | Big Bird radar, Clam Shell, Command post, Launcher |
+
+### 16.5 Events
+
+| Event | Fired when |
+|---|---|
+| `OnCrateUnpacked` | AA system assembled (same event as vehicle unpack, check `descriptor.isAASystem`) |
+| `OnCrateLost` | AA crate destroyed before assembly |
+
+*— End of missionmaker_guide.md —*
