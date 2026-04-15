@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [master, 'feature_*']
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Job 1 — Lua syntax check (all src/**/*.lua)
+  # Uses Lua 5.4 loadfile() as a pure syntax validator.
+  # DCS runs Lua 5.1, but syntax is compatible for this purpose.
+  # ─────────────────────────────────────────────────────────────
+  lua-lint:
+    name: Lua Syntax Check
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua 5.4
+        run: choco install lua --version 5.4.6 -y --no-progress
+        shell: pwsh
+
+      - name: Syntax-check src/
+        run: |
+          $failed = 0
+          $total  = 0
+          Get-ChildItem -Path src -Recurse -Filter "*.lua" | ForEach-Object {
+            $total++
+            $path = $_.FullName -replace '\\', '/'
+            # Use [[ ]] long-string to avoid quoting issues with backslashes
+            $result = lua -e "local f,e=loadfile([[$path]]); if e then io.stderr:write(e..'\n'); os.exit(1) end" 2>&1
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error file=$($_.FullName)::$result"
+              $failed++
+            }
+          }
+          Write-Host ""
+          if ($failed -gt 0) {
+            Write-Host "::error::$failed / $total Lua file(s) failed syntax check."
+            exit 1
+          }
+          Write-Host "Syntax OK — $total Lua file(s) checked."
+        shell: pwsh
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 2 — Merge build (produces CTLD_futur.lua)
+  # Replicates merger_V2/merger.cmd logic in PowerShell so that
+  # the CI runner does not block on the interactive 'pause'.
+  # Missing files → warning (same behaviour as the local .cmd).
+  # ─────────────────────────────────────────────────────────────
+  build:
+    name: Merge Build
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build CTLD_futur.lua
+        id: merge
+        run: |
+          $listFile = "tools\merger_V2\listToMerge.txt"
+          $srcDir   = "src"
+          $outFile  = "CTLD_futur.lua"
+
+          # Header (mirrors merger.cmd)
+          @"
+---@meta
+---@diagnostic disable
+
+"@ | Set-Content $outFile -Encoding UTF8
+
+          $warnings = 0
+          $merged   = 0
+
+          foreach ($line in (Get-Content $listFile)) {
+            # Skip comment lines and blank lines
+            if ($line -match '^\s*(--|$)') { continue }
+
+            $file = Join-Path $srcDir $line
+            if (-not (Test-Path $file)) {
+              Write-Host "::warning::File not yet in src/: $line"
+              $warnings++
+              continue
+            }
+
+            "-- ====================================================================================================" | Add-Content $outFile
+            "-- Start : $line" | Add-Content $outFile
+            Get-Content $file | Add-Content $outFile
+            ""                | Add-Content $outFile
+            "-- End : $line"  | Add-Content $outFile
+            $merged++
+          }
+
+          $size = (Get-Item $outFile).Length
+          Write-Host ""
+          Write-Host "Merged : $merged file(s)  |  Skipped (missing): $warnings"
+          Write-Host "Output : $outFile ($size bytes)"
+
+          if ($merged -eq 0) {
+            Write-Host "::error::No files were merged — output is empty."
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CTLD_futur
+          path: CTLD_futur.lua
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 3 — busted unit tests (tests/specs/**/*_spec.lua)
+  # Runs entirely without DCS — DCS API is stubbed in tests/helpers/.
+  # ─────────────────────────────────────────────────────────────
+  busted:
+    name: busted Unit Tests
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua + LuaRocks + busted
+        run: |
+          choco install lua --version 5.4.6 -y --no-progress
+          choco install luarocks -y --no-progress
+          luarocks install busted
+        shell: pwsh
+
+      - name: Run busted
+        run: busted tests/specs/
+        shell: pwsh

@@ -1,0 +1,10 @@
+return {
+  default = {
+    verbose  = true,
+    coverage = false,
+    -- Discover files matching *_spec.lua under tests/specs/
+    pattern  = "_spec",
+    -- Helper loaded before every spec: stubs + CTLD modules
+    helper   = "tests/helpers/init.lua",
+  },
+}

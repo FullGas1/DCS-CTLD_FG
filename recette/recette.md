@@ -221,6 +221,7 @@ La mission de test doit contenir :
 | F-97 | Legacy API — Beacon wrapper | Q1 | createRadioBeaconAtZone → createAtZone + warning | ✅ PASS 6/6 | — |
 | F-98 | Legacy API — JTAC wrappers | Q1 | 3 wrappers JTACAutoLase/JTACStart/JTACAutoLaseStop | ✅ PASS 11/11 | — |
 | F-99 | Pack Vehicle flow | Q1 | findPackableVehicles + packVehicle : destroy, spawnCrate, OnVehiclePacked, menu refresh | ✅ PASS 16/16 | — |
+| F-100 | spawnCrate — VISUAL CHECK | Q1 | 2 statics réels (load + dynamic) ~30/60 m devant hélico, StaticObject.getByName ✅, OnCrateSpawned×2 | ✅ PASS 14/14 visual ✅ [2026-04-15] | — |
 
 ---
 
@@ -260,8 +261,8 @@ La mission de test doit contenir :
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
-- **Q1** : 3 unitaires + 6 fonctionnels = **9 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-99 86/86 ✅) [2026-04-15]
-- **Total** : **173 cas** — 780/780 PASS ✅
+- **Q1** : 3 unitaires + 7 fonctionnels = **10 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-100 100/100 ✅) [2026-04-15]
+- **Total** : **174 cas** — 794/794 PASS ✅
 
 ---
 

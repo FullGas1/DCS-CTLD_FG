@@ -1,21 +1,23 @@
-[CTLD] Log started : 2026-04-15 10:33:20
+[CTLD] Log started : 2026-04-15 14:09:45
+[CTLD][TEST] START  [F-100] spawnCrate — static DCS réel + VISUAL CHECK
 [CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
-[CTLD][INFO] CTLDVehicleSpawner: init complete
-[CTLD][TEST] START  [F-99] Pack Vehicle — findPackableVehicles + packVehicle flow
-[CTLD][TEST]   OK     findPackableVehicles: 1 vehicle found  [1 == 1]
-[CTLD][TEST]   OK     findPackableVehicles: correct unitName  [HumveeMG1 == HumveeMG1]
-[CTLD][TEST]   OK     findPackableVehicles: descriptor attached  [table: 00000284020545D8]
-[CTLD][TEST]   OK     findPackableVehicles: correct descriptor unit type  [M1043 HMMWV Armament == M1043 HMMWV Armament]
-[CTLD][TEST]   OK     findPackableVehicles: vehicle outside radius not found  [0 == 0]
-[CTLD][TEST]   OK     packVehicle: vehicle unit destroyed
-[CTLD][TEST]   OK     packVehicle: 1 crate spawned (no cratesRequired)  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: coalition.addStaticObject called once  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: OnVehiclePacked published  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: event.vehicleType correct  [M1043 HMMWV Armament == M1043 HMMWV Armament]
-[CTLD][TEST]   OK     packVehicle: event.cratesSpawned=1  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: outTextForGroup called  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: message contains vehicle info
-[CTLD][TEST]   OK     packVehicle: refreshForUnit called  [1 == 1]
-[CTLD][TEST]   OK     packVehicle: refresh for transport unit  [Heli1 == Heli1]
-[CTLD][TEST]   OK     packVehicle: guard — dead vehicle not destroyed again
-[CTLD][TEST] END    [F-99] Pack Vehicle — findPackableVehicles + packVehicle flow — 16/16 passed  →  OK
+[CTLD][INFO] CTLDPlayerManager: init complete
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'crates'
+[CTLD][INFO] CTLDPlayerManager: registered menu section 'smoke'
+[CTLD][TEST]   OK     findDescriptorByUnitType: descriptor trouvé  [table: 00000283A0E2A868]
+[CTLD][INFO] shape_name not present
+[CTLD][TEST]   OK     spawnCrate load: retourne CTLDCrate  [table: 00000283A0E314E8]
+[CTLD][TEST]   OK     spawnCrate load: crateName assigné  [CTLD_Crate_1]
+[CTLD][TEST]   OK     spawnCrate load: StaticObject présent en mission ✅ VISUAL  [table: 00000283A0E315A8]
+[CTLD][TEST]   OK     spawnCrate load: enregistré dans cm.crates  [table: 00000283A0E314E8]
+[CTLD][INFO] shape_name not present
+[CTLD][TEST]   OK     spawnCrate dynamic: retourne CTLDCrate  [table: 00000283A0E318E8]
+[CTLD][TEST]   OK     spawnCrate dynamic: StaticObject présent en mission ✅ VISUAL  [table: 00000283A0E319A8]
+[CTLD][TEST]   OK     OnCrateSpawned: 2 events reçus  [2 == 2]
+[CTLD][TEST]   OK     event 1: spawnedBy=MissionMaker  [MissionMaker == MissionMaker]
+[CTLD][TEST]   OK     event 1: coalition=BLUE  [2 == 2]
+[CTLD][TEST]   OK     event 1: position présente  [table: 00000283A0E31128]
+[CTLD][TEST]   OK     spawnCrate load: position.x correct
+[CTLD][TEST]   OK     spawnCrate load: position.z correct
+[CTLD][TEST]   OK     spawnCrate dynamic: position.x correct
+[CTLD][TEST] END    [F-100] spawnCrate — static DCS réel + VISUAL CHECK — 14/14 passed  →  OK

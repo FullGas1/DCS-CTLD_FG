@@ -12,7 +12,9 @@ local SRC = "C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/src/"
 dofile(SRC .. "CTLD_core.lua")
 
 -- ── DCS stubs ──────────────────────────────────────────────
-local _spawnedStatics = {}   -- name → data
+-- spawnCrate uses ctld.utils.dynAddStatic which internally calls coalition.addStaticObject.
+-- Mocking coalition.addStaticObject captures the final call from dynAddStatic.
+local _spawnedStatics = {}   -- name → data (populated by coalition.addStaticObject mock)
 local _addStaticOrig  = coalition.addStaticObject
 coalition.addStaticObject = function(countryId, data)
     _spawnedStatics[data.name] = { countryId = countryId, data = data }

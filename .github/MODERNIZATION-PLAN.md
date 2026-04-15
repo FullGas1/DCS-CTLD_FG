@@ -40,11 +40,11 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
 | ----- | ----------- | ------ |
 | **0** | Specification & Architecture | ✅ 100% — all events + features specs done |
 | **1** | Dead code cleanup (`source/`) | ⚪ To do (non-blocking) |
-| **2** | Module split + OOP (`src/`) | ✅ ~100% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / scenes fob/farp ✅ [2026-04-14] / Q1-Q5 pending |
+| **2** | Module split + OOP (`src/`) | ✅ ~100% impl ✅ / R1-R5 ✅ / FA+FB+FC+FD+FE ✅ / scenes fob/farp ✅ / Q1 ✅ [2026-04-15] / Q2-Q5 pending |
 | **3** | MIST middleware | ✅ Done |
 | **4** | Legacy API compatibility | ⚪ After Phase 2 |
 | **5** | Unit tests (busted) | ⚪ After Phase 2 |
-| **6** | CI infrastructure | 🟡 Build script done |
+| **6** | CI infrastructure | ✅ Done — `.github/workflows/ci.yml` (lint + build) [2026-04-15] |
 | **7** | i18n cleanup + tooling | ✅ Done |
 | **8** | Documentation | 🟡 Partial |
 
@@ -125,12 +125,48 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
         22 wrappers (Troops×6, Zones×10, Crates×3, Beacons×1, JTAC×3) — thin delegates
         Bugfix: CTLDTroopManager:deploy() exzZone.flagName → exzZone.objectiveFlag
         New: CTLDZoneManager:isUnitInZone() (méthode manquante appelée par deploy)
-        Nouvelles méthodes managers: TroopManager×8, ZoneManager×6, CrateManager×3,
-          BeaconManager×1, JTACManager×3 — Note: spawnCrateAtZone/Point bloqué sur spawnCrate stub
+        Nouvelles méthodes managers: TroopManager×8, ZoneManager×6, CrateManager×4,
+          BeaconManager×1, JTACManager×3
+        Pack Vehicle implémenté (gap critique comblé) [2026-04-15]:
+          CTLDCrateManager:spawnCrate() — coalition.addStaticObject, model auto (load/sling/dynamic),
+            OnCrateSpawned publié, crate enregistrée
+          CTLDCrateManager:findDescriptorByUnitType() — lookup par champ unit dans spawnableCrates
+          CTLDVehicleSpawner:findPackableVehicles(transport) — scan ground units coalition,
+            filtre par maximumDistancePackableUnitsSearch, match descriptor par typeName
+          CTLDVehicleSpawner:packVehicle(transportName, packableUnitName, playerObj) —
+            destroy vehicle, spawn cratesRequired crates (secteur avant hélico / arrière C-130),
+            OnVehiclePacked publié, menu rafraîchi
+          CTLDVehicleSpawner:_checkPackingLanding() — timer 3s, transition inAir→landed → refreshForUnit
+          Menu F10 "Pack Vehicle" (sous Crate Commands) — populé dynamiquement avec véhicules packables
+        Recette Q1: U-81→U-83 (62/62) + F-94→F-99 (86/86) = 148/148 PASS ✅
 ⚪  Q2  tests/ busted complets
-⚪  Q3  GitHub Actions CI
+✅  Q3  GitHub Actions CI  [2026-04-15]
+        .github/workflows/ci.yml créé
+        Job 1 — lua-lint : choco install lua 5.4 → loadfile() syntax-check sur tous src/**/*.lua
+        Job 2 — build    : merge PowerShell (replique merger.cmd sans pause interactif) → CTLD_futur.lua
+          - fichiers manquants (AA scenes, userConfig) → warning seulement (parité merger.cmd)
+          - artifact uploadé 7 jours (actions/upload-artifact@v4)
+        Triggers : push sur master + feature_* , PR vers master
 ⚪  Q4  source/ dead code cleanup (non-bloquant)
 ⚪  Q5  documentation complète
+        ⚪  Q5-A  documentation/missionmaker_guide.md — section Legacy API
+                   Objectif : guide MM expliquant les 22 fonctions legacy encore utilisables
+                   Contenu requis :
+                     - Avertissement dépréciation + lien vers EventDispatcher pour addCallback
+                     - Tableau des 22 fonctions : signature legacy → équivalent v2
+                     - 1 exemple d'utilisation par groupe (Troops, Zones, Crates, Beacon, JTAC)
+                     - Note sur pack vehicle (ctld.spawnCrateAtZone/Point maintenant fonctionnel)
+                   Statut : ⚪ À faire
+
+        ⚪  Q5-B  documentation/dev-guide.md (ou migration-v2.md) — section Legacy API
+                   Objectif : guide développeur pour migrer un script v1 vers l'API v2 native
+                   Contenu requis :
+                     - Principe des wrappers (thin delegate + logWarning)
+                     - Tableau de migration : ctld.XXX → Manager:method() pour chaque wrapper
+                     - Exemple de migration complet (DO SCRIPT v1 → v2)
+                     - Explication du remplacement de ctld.addCallback par EventDispatcher:subscribe()
+                     - Note sur pack vehicle : CTLDVehicleSpawner:packVehicle() + findPackableVehicles()
+                   Statut : ⚪ À faire
 ```
 
 ---

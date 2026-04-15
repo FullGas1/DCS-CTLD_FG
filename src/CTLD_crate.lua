@@ -500,7 +500,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
     local uid = ctld.utils.getNextUniqId()
     local crateName = string.format("CTLD_Crate_%d", uid)
 
-    -- Resolve country id
+    -- Resolve country id (numeric DCS country id)
     local cId = countryId
     if not cId then
         if coalitionId == coalition.side.RED then
@@ -510,26 +510,27 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         end
     end
 
-    -- Build DCS static data (note: coalition.addStaticObject uses x/y where y = DCS z-axis)
+    -- Build DCS static data — mirrors ctld.spawnCrateStatic / dynAddStatic format:
+    --   x/y = world x/z, mass triggers category="Cargos", country required by dynAddStatic
     local hdg = 0
     local data = {
         name     = crateName,
         x        = position.x,
-        y        = position.z,
+        y        = position.z,   -- dynAddStatic maps y → DCS z-axis
         heading  = hdg,
-        category = model.category or "Cargos",
         type     = model.type     or "ammo_cargo",
         canCargo = model.canCargo or false,
         mass     = descriptor.weight,
+        country  = cId,
         dead     = false,
     }
-    if model.shape_name then
-        data.shape_name = model.shape_name
-    end
+    if model.shape_name then data.shape_name = model.shape_name end
+    -- category derived from mass by dynAddStatic: if mass → "Cargos"
+    -- (no need to set explicitly — dynAddStatic handles it)
 
-    local ok, err = pcall(function() coalition.addStaticObject(cId, data) end)
+    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:spawnCrate", data) end)
     if not ok then
-        _log("CTLDCrateManager:spawnCrate - coalition.addStaticObject failed: " .. tostring(err), "WARNING")
+        _log("CTLDCrateManager:spawnCrate - dynAddStatic failed: " .. tostring(err), "WARNING")
         return nil
     end
 
