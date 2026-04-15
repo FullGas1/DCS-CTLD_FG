@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [master, 'feature_*']
+    tags: ['v*']
   pull_request:
     branches: [master]
 
@@ -46,7 +47,7 @@ jobs:
         shell: pwsh
 
   # ─────────────────────────────────────────────────────────────
-  # Job 2 — Merge build (produces CTLD_futur.lua)
+  # Job 2 — Merge build (produces CTLD_Next.lua)
   # Replicates merger_V2/merger.cmd logic in PowerShell so that
   # the CI runner does not block on the interactive 'pause'.
   # Missing files → warning (same behaviour as the local .cmd).
@@ -58,12 +59,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build CTLD_futur.lua
+      - name: Build CTLD_Next.lua
         id: merge
         run: |
           $listFile = "tools\merger_V2\listToMerge.txt"
           $srcDir   = "src"
-          $outFile  = "CTLD_futur.lua"
+          $outFile  = "CTLD_Next.lua"
 
           # Header (mirrors merger.cmd)
           @"
@@ -108,8 +109,8 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CTLD_futur
-          path: CTLD_futur.lua
+          name: CTLD_Next
+          path: CTLD_Next.lua
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────
@@ -132,4 +133,87 @@ jobs:
 
       - name: Run busted
         run: busted tests/specs/
+        shell: pwsh
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 4 — MkDocs deploy to GitHub Pages (master branch only)
+  # Builds the docs/ site with mkdocs-material and pushes to
+  # the gh-pages branch. Requires GitHub Pages enabled on the
+  # repo (Settings → Pages → Source: Deploy from branch gh-pages).
+  # ─────────────────────────────────────────────────────────────
+  docs:
+    name: Deploy Docs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history needed for mkdocs git-revision-date
+
+      - name: Install MkDocs Material
+        run: pip install mkdocs-material
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 5 — GitHub Release (runs only on version tags: v*)
+  # Builds CTLD_Next.lua and attaches it to a new GitHub Release.
+  # Trigger: git tag v2.0 && git push origin v2.0
+  # ─────────────────────────────────────────────────────────────
+  release:
+    name: GitHub Release
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build CTLD_Next.lua
+        run: |
+          $listFile = "tools\merger_V2\listToMerge.txt"
+          $srcDir   = "src"
+          $outFile  = "CTLD_Next.lua"
+
+          @"
+---@meta
+---@diagnostic disable
+
+"@ | Set-Content $outFile -Encoding UTF8
+
+          $merged = 0
+          foreach ($line in (Get-Content $listFile)) {
+            if ($line -match '^\s*(--|$)') { continue }
+            $file = Join-Path $srcDir $line
+            if (-not (Test-Path $file)) {
+              Write-Host "::warning::File not yet in src/: $line"
+              continue
+            }
+            "-- ====================================================================================================" | Add-Content $outFile
+            "-- Start : $line" | Add-Content $outFile
+            Get-Content $file  | Add-Content $outFile
+            ""                 | Add-Content $outFile
+            "-- End : $line"   | Add-Content $outFile
+            $merged++
+          }
+
+          if ($merged -eq 0) { Write-Host "::error::No files merged."; exit 1 }
+          Write-Host "Merged $merged file(s) → $outFile"
+        shell: pwsh
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          gh release create $tag CTLD_Next.lua `
+            --title "CTLD $tag" `
+            --notes "## CTLD $tag`n`nBuild produced automatically from \`src/\` by the CI pipeline.`n`n**Installation:** drop \`CTLD_Next.lua\` into your DCS mission trigger as a DO SCRIPT FILE."
         shell: pwsh

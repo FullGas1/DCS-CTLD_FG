@@ -9,7 +9,7 @@ src/              Source modules (OOP, one class per file)
   compat/         Legacy v1 API wrappers (thin delegates, deprecated)
 source/           Reference — original monolithic v1 CTLD.lua (read-only)
 tools/
-  merger_V2/      Build tooling: merge src/ → CTLD_futur.lua
+  merger_V2/      Build tooling: merge src/ → CTLD_Next.lua
   CTLD_loader.lua Dev loader for Witchcraft (live DCS injection)
 tests/            busted unit tests (no DCS required)
   helpers/        DCS stubs + module loader
@@ -107,7 +107,7 @@ Full event catalogue: `docs/specs/CTLD_Events.md`
 cd tools/merger_V2
 ./merger.cmd
 ```
-Output: `CTLD_futur.lua` at repo root (gitignored).
+Output: `CTLD_Next.lua` at repo root (gitignored).
 
 **CI (GitHub Actions):** automatic on push — see `.github/workflows/ci.yml`.
 

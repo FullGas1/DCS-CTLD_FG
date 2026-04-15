@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-@REM Merges all files listed in "listToMerge.txt" from ../src into ../CTLD_futur.lua
+@REM Merges all files listed in "listToMerge.txt" from ../src into ../CTLD_Next.lua
 @REM Lines starting with "--" are treated as comments and skipped.
 @REM Subdirectory paths (e.g. scenes/foo.lua) are resolved relative to src.
 @REM --------------------------------------------------------------------
@@ -17,7 +17,7 @@ set "SOURCE_DIR=%PARENT_DIR%\src"
 
 @REM List file and output file
 set "LIST=%MERGER_DIR%listToMerge.txt"
-set "OUT=%PARENT_DIR%\CTLD_futur.lua"
+set "OUT=%PARENT_DIR%\CTLD_Next.lua"
 
 if not exist "%LIST%" (
     echo [ERROR] %LIST% not found.

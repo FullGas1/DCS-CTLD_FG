@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- CTLD Dev Loader
 -- Manually maintained load order for development via Witchcraft.
--- For production: use tools/merger_V2/merge_CTLD.ps1 to produce CTLD_futur.lua.
+-- For production: use tools/merger_V2/merge_CTLD.ps1 to produce CTLD_Next.lua.
 --
 -- HOW TO USE:
 --   1. Set CTLD_SOURCE_PATH to the absolute path of your src/ directory.

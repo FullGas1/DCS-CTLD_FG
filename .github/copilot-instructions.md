@@ -38,7 +38,7 @@ Defined in `source/CTLD_loader.lua`. Each module depends on globals initialized 
 
 ### Module loading order (v2 / source_futur/)
 
-Defined in `merger_futur/listToMerge.txt`. Concatenated into `CTLD_futur.lua` by `merger_futur/merge_CTLD.ps1`.
+Defined in `merger_futur/listToMerge.txt`. Concatenated into `CTLD_Next.lua` by `merger_futur/merge_CTLD.ps1`.
 
 ```
 -- Core foundations
