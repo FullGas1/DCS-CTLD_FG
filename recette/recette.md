@@ -212,6 +212,15 @@ La mission de test doit contenir :
 | F-91 | farpScene structure + spawn visuel | R4 | 6 steps (prescript+5), ref 50m devant hélico, tous objets relatifs au helipad | ✅ PASS 24/24 | — |
 | F-92 | FOB beacon — dropBeacon au centroid | CTLD_fob+beacon | beacon spawné au centroid FOB (dx=0), batterie infinie, 3 groupes VHF/UHF/FM | ✅ PASS 13/13 | — |
 | F-93 | FOB unpack complet — fobScene + beacon | CTLD_fob+beacon | flow complet _onFOBBuilt : container+watchtower+beacon au centroid ✅ visual | ✅ PASS visual | — |
+| U-81 | _resolveTemplateForLegacy | Q1 | integer exact/closest, composition table, disabled skip, empty → nil | ✅ PASS 14/14 | — |
+| U-82 | CTLDZoneManager new methods | Q1 | createExtractZone/removeExtractZone/changeRemainingGroups/isUnitInZone | ✅ PASS 25/25 | — |
+| U-83 | CTLDCrateManager:spawnCrate + findDescriptorByUnitType | Q1 | coalition.addStaticObject, model selection, OnCrateSpawned, guards | ✅ PASS 23/23 | — |
+| F-94 | Legacy API — Troops wrappers | Q1 | 6 wrappers : routing + deprecation warning | ✅ PASS 18/18 | — |
+| F-95 | Legacy API — Zones wrappers | Q1 | 10 wrappers : routing correct vers CTLDZoneManager + CTLDTroopManager | ✅ PASS 23/23 | — |
+| F-96 | Legacy API — Crates wrappers | Q1 | spawnCrateAtZone/Point functional + cratesInZone watcher | ✅ PASS 12/12 | — |
+| F-97 | Legacy API — Beacon wrapper | Q1 | createRadioBeaconAtZone → createAtZone + warning | ✅ PASS 6/6 | — |
+| F-98 | Legacy API — JTAC wrappers | Q1 | 3 wrappers JTACAutoLase/JTACStart/JTACAutoLaseStop | ✅ PASS 11/11 | — |
+| F-99 | Pack Vehicle flow | Q1 | findPackableVehicles + packVehicle : destroy, spawnCrate, OnVehiclePacked, menu refresh | ✅ PASS 16/16 | — |
 
 ---
 
@@ -251,7 +260,8 @@ La mission de test doit contenir :
 - **M9** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-67→U-73 + F-78→F-80 118/118 ✅) [2026-04-09]
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
-- **Total** : **164 cas** — 632/632 PASS ✅
+- **Q1** : 3 unitaires + 6 fonctionnels = **9 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-99 86/86 ✅) [2026-04-15]
+- **Total** : **173 cas** — 780/780 PASS ✅
 
 ---
 
@@ -264,3 +274,4 @@ La mission de test doit contenir :
 | ~~**CTLD_farpScene.lua**~~ | ~~`src/scenes/CTLD_farpScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-91 22/22 PASS (bugfix stepsDatas→steps) |
 | ~~**CTLD_fobScene.lua**~~ | ~~`src/scenes/CTLD_fobScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-90 18/18 PASS |
 | ~~**Feature D — LoadableGroups**~~ | ~~`src/CTLD_troop.lua`~~ | ~~Haute~~ | ✅ Recette complète [2026-04-14] — U-76→U-80 + F-88→F-89 |
+| ~~**Q1 — Legacy API**~~ | ~~`src/compat/legacy_api.lua`~~ | ~~Haute~~ | ✅ Implémenté + recetté [2026-04-15] — 22 wrappers + packVehicle + spawnCrate, U-81→U-83 + F-94→F-99, 148/148 PASS |

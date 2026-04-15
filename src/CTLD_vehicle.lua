@@ -133,6 +133,15 @@ function CTLDVehicleSpawner:init()
         method  = "buildMenuSection",
         order   = 30,
     })
+
+    -- Pack menu refresh: detect inAir→landed transition every 3 s
+    self._prevInAir = {}
+    timer.scheduleFunction(function(_, t)
+        local inst = CTLDVehicleSpawner._instance
+        if inst then inst:_checkPackingLanding() end
+        return t + 3
+    end, nil, timer.getTime() + 3)
+
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
 end
 
@@ -689,6 +698,131 @@ end
 -- ============================================================
 -- F10 Menu section
 -- ============================================================
+
+-- ============================================================
+-- Pack Vehicle
+-- ============================================================
+
+--- Detect inAir→landed transition for each player and refresh their menu.
+-- Mirrors ctld.updatePackMenuOnlanding; called every 3 s from init timer.
+function CTLDVehicleSpawner:_checkPackingLanding()
+    if ctld.gs("enablePackingVehicles") ~= true then return end
+    local players = CTLDPlayerManager.getInstance()._players
+    for unitName, _ in pairs(players) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() then
+            local inAirNow = ctld.utils.inAir(unit)
+            if self._prevInAir[unitName] == true and not inAirNow then
+                CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+            end
+            self._prevInAir[unitName] = inAirNow
+        else
+            self._prevInAir[unitName] = nil
+        end
+    end
+end
+
+--- Return packable vehicles within maximumDistancePackableUnitsSearch of a transport.
+-- Searches ground units of the same coalition; matches DCS typeName against spawnableCrates[*].unit.
+-- @param transport DCS Unit
+-- @return table  array of { unitName (string), descriptor (table) }
+function CTLDVehicleSpawner:findPackableVehicles(transport)
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local coa     = transport:getCoalition()
+    local tPos    = transport:getPoint()
+    local result  = {}
+
+    local groups = coalition.getGroups(coa, Group.Category.GROUND) or {}
+    for _, grp in ipairs(groups) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit:isExist() then
+                local dist = ctld.utils.getDistance(
+                    "CTLDVehicleSpawner:findPackableVehicles", tPos, unit:getPoint())
+                if dist <= maxDist then
+                    local descriptor = CTLDCrateManager.getInstance()
+                        :findDescriptorByUnitType(unit:getTypeName())
+                    if descriptor then
+                        table.insert(result, { unitName = unit:getName(), descriptor = descriptor })
+                    end
+                end
+            end
+        end
+    end
+    return result
+end
+
+--- Pack a vehicle back into crate(s).
+-- Destroys the vehicle DCS unit and spawns cratesRequired static crates near the transport.
+-- Front sector (heli) or rear sector (C-130/Il-76, dynamic cargo capable).
+-- Publishes OnVehiclePacked and refreshes the player menu.
+-- @param transportUnitName  string
+-- @param packableUnitName   string
+-- @param playerObj          table  { groupId, unitName, coalition }
+function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, playerObj)
+    local transport = Unit.getByName(transportUnitName)
+    if not (transport and transport:isExist()) then
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:packVehicle - transport not found: "
+            .. tostring(transportUnitName))
+        return
+    end
+
+    local packableUnit = Unit.getByName(packableUnitName)
+    if not (packableUnit and packableUnit:isExist()) then
+        trigger.action.outTextForGroup(playerObj.groupId, ctld.tr("Vehicle no longer exists."), 8)
+        return
+    end
+
+    local descriptor = CTLDCrateManager.getInstance()
+        :findDescriptorByUnitType(packableUnit:getTypeName())
+    if not descriptor then
+        trigger.action.outTextForGroup(playerObj.groupId, ctld.tr("Cannot pack this vehicle type."), 8)
+        return
+    end
+
+    local isDynamic    = _isNativeCargoCapable(transport)
+    local hdg          = ctld.utils.getHeadingInRadians("CTLDVehicleSpawner:packVehicle", transport, true)
+    local offset       = _secureOffset(transport)
+    local cratesReq    = descriptor.cratesRequired or 1
+    local modelKey     = isDynamic and "dynamic" or "load"
+    local coa          = transport:getCoalition()
+    local cId          = transport:getCountry()
+    local tPos         = transport:getPoint()
+
+    packableUnit:destroy()
+
+    for i = 1, cratesReq do
+        local angle
+        if isDynamic then
+            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
+                hdg + math.pi - math.pi / 4, hdg + math.pi + math.pi / 4)
+        else
+            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
+                hdg - math.pi / 4, hdg + math.pi / 4)
+        end
+        local dist = offset + i * 5
+        local px = tPos.x + math.cos(angle) * dist
+        local pz = tPos.z + math.sin(angle) * dist
+        local py = land.getHeight({ x = px, y = pz })
+        CTLDCrateManager.getInstance():spawnCrate(
+            descriptor, { x = px, y = py, z = pz },
+            coa, playerObj and playerObj.unitName or nil,
+            CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, cId, modelKey)
+    end
+
+    trigger.action.outTextForGroup(playerObj.groupId,
+        string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)
+
+    EventDispatcher.getInstance():publish("OnVehiclePacked", {
+        vehicleType  = packableUnit:getTypeName(),
+        descriptor   = descriptor,
+        transport    = transportUnitName,
+        player       = playerObj and playerObj.unitName or nil,
+        cratesSpawned = cratesReq,
+        timestamp    = timer.getAbsTime(),
+    })
+
+    CTLDPlayerManager.getInstance():refreshForUnit(transportUnitName)
+end
 
 --- Build the "Vehicle Commands" F10 submenu for a player.
 -- Added only when the unit can carry vehicles (canCarryVehicles = true).

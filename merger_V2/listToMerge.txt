@@ -34,5 +34,7 @@ scenes/CTLD_aaNasamScene.lua
 scenes/CTLD_aaBukScene.lua
 scenes/CTLD_aaKubScene.lua
 scenes/CTLD_aaS300Scene.lua
+-- Legacy API compatibility (after all managers)
+compat/legacy_api.lua
 -- User configuration (always last)
 CTLD_userConfig.lua

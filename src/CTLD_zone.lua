@@ -737,6 +737,114 @@ function CTLDZoneManager:setTroopZoneActive(zoneName, active)
 end
 
 -- ============================================================
+-- Legacy-compatible public API (called by compat/legacy_api.lua)
+-- ============================================================
+
+--- Return the first troop zone of the given capability containing unitName.
+-- zoneType: "extract" (hasExtract), "pickup" (hasPickup), nil (any active zone).
+-- @param unitName string
+-- @param zoneType string|nil
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:isUnitInZone(unitName, zoneType)
+    local unit = Unit.getByName(unitName)
+    if not unit or not unit:isExist() then return nil end
+    local pt = unit:getPoint()
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:isInZone(pt) then
+            if zoneType == "extract" then
+                if zone:hasExtract() then return zone end
+            elseif zoneType == "pickup" then
+                if zone:hasPickup() then return zone end
+            else
+                return zone
+            end
+        end
+    end
+    return nil
+end
+
+--- Create a dynamic extract zone at a DCS trigger zone (MM DO SCRIPT).
+-- Troops deployed inside will be counted silently and increment flagNumber.
+-- smoke: trigger.smokeColor.* or -1 for no smoke.
+-- @param zoneName   string          DCS trigger zone name
+-- @param flagNumber number|string   DCS user flag to set to troop count
+-- @param smoke      number          smoke color or -1
+-- @return boolean
+function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
+    local trig = trigger.misc.getZone(zoneName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDZoneManager:createExtractZone — zone not found: %s", tostring(zoneName))
+        return false
+    end
+    if self._troopZones[zoneName] then
+        ctld.utils.log("WARN", "CTLDZoneManager:createExtractZone — zone already registered: %s", zoneName)
+        return false
+    end
+    local p2 = { x = trig.point.x, y = trig.point.z }
+    local pt = { x = p2.x, y = land.getHeight(p2), z = p2.y }
+    local smokeColor = (smoke ~= nil and tonumber(smoke) and tonumber(smoke) >= 0) and tonumber(smoke) or -1
+    self._troopZones[zoneName] = CTLDTroopZone:new({
+        dcsName       = zoneName,
+        zoneName      = zoneName,
+        coalition     = 0,
+        center        = pt,
+        radius        = trig.radius,
+        objectiveFlag = tostring(flagNumber),
+        smoke         = smokeColor,
+        active        = true,
+    })
+    if smokeColor >= 0 then trigger.action.smoke(pt, smokeColor) end
+    ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone — '%s' flag=%s", zoneName, tostring(flagNumber))
+    return true
+end
+
+--- Remove a dynamic extract zone.
+-- flagNumber is accepted for API compatibility but ignored.
+-- @param zoneName   string
+-- @param flagNumber number|string  (ignored)
+-- @return boolean
+function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
+    if self._troopZones[zoneName] then
+        self._troopZones[zoneName] = nil
+        ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone — '%s' removed", zoneName)
+        return true
+    end
+    ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone — not found: %s", tostring(zoneName))
+    return false
+end
+
+--- Activate a waypoint zone (troops deployed inside will move toward zone center).
+-- @param zoneName string
+function CTLDZoneManager:activateWaypointZone(zoneName)
+    return self:setTroopZoneActive(zoneName, true)
+end
+
+--- Deactivate a waypoint zone.
+-- @param zoneName string
+function CTLDZoneManager:deactivateWaypointZone(zoneName)
+    return self:setTroopZoneActive(zoneName, false)
+end
+
+--- Adjust the available pickup stock for a troop zone by amount (positive or negative).
+-- @param zoneName string
+-- @param amount   number
+-- @return boolean
+function CTLDZoneManager:changeRemainingGroups(zoneName, amount)
+    local zone = self._troopZones[zoneName]
+    if not zone then
+        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups — not found: %s", tostring(zoneName))
+        return false
+    end
+    if zone.pickMaxStock == nil then
+        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups — '%s' has no pickup stock", zoneName)
+        return false
+    end
+    zone.pickCurrentStock = math.max(0, zone.pickCurrentStock + amount)
+    ctld.utils.log("INFO", "CTLDZoneManager:changeRemainingGroups — '%s' stock=%d", zoneName, zone.pickCurrentStock)
+    return true
+end
+
+-- ============================================================
 -- Zone name validation (developer tool — reports to DCS log + screen)
 -- ============================================================
 

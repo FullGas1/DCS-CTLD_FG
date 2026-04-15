@@ -603,6 +603,65 @@ function CTLDJTACManager:killJTAC(groupName, killer)
     self.jtacs[groupName] = nil
 end
 
+-- ============================================================
+-- Legacy-compatible public API (called by compat/legacy_api.lua)
+-- ============================================================
+
+--- Activate auto-lase for an existing DCS JTAC group (MM DO SCRIPT).
+-- Equivalent to legacy ctld.JTACAutoLase(). Wraps spawnJTAC with converted params.
+-- @param groupName string   DCS group name
+-- @param laserCode number   laser code 1111-1688 (nil = auto-assigned)
+-- @param smoke     boolean  enable smoke on target
+-- @param lock      string   "all" | "vehicle" | "troop" (nil = "all")
+-- @param colour    number   trigger.smokeColor.* (nil = Red)
+-- @param radio     table    { freq, mod, name } (nil = auto)
+-- @return CTLDJTAC|nil
+function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio)
+    if self.jtacs[groupName] then
+        ctld.utils.log("WARN", "CTLDJTACManager:autoLase — JTAC already active: %s", groupName)
+        return self.jtacs[groupName]
+    end
+    local cfg = {
+        laserCode    = laserCode and tonumber(laserCode) or nil,
+        smokeEnabled = smoke == true,
+        lockMode     = (lock == "vehicle" or lock == "troop") and lock or "all",
+        smokeColor   = colour or trigger.smokeColor.Red,
+        radio        = radio,
+    }
+    return self:spawnJTAC(groupName, cfg, nil)
+end
+
+--- Activate auto-lase with a 1-second delay (legacy ctld.JTACStart behaviour).
+-- @param groupName string
+-- @param laserCode number
+-- @param smoke     boolean
+-- @param lock      string
+-- @param colour    number
+-- @param radio     table
+function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio)
+    timer.scheduleFunction(
+        function(args, t)
+            CTLDJTACManager.get():autoLase(
+                args[1], args[2], args[3], args[4], args[5], args[6])
+        end,
+        { groupName, laserCode, smoke, lock, colour, radio },
+        timer.getTime() + 1
+    )
+end
+
+--- Stop auto-lase for a JTAC group without firing the Dead event.
+-- Sets the JTAC to standby mode; the auto-lase loop will stop lasing and idle.
+-- @param groupName string
+function CTLDJTACManager:stopAutoLase(groupName)
+    local jtac = self.jtacs[groupName]
+    if not jtac then
+        ctld.utils.log("WARN", "CTLDJTACManager:stopAutoLase — JTAC not found: %s", tostring(groupName))
+        return
+    end
+    jtac.standbyMode = true
+    ctld.utils.log("INFO", "CTLDJTACManager:stopAutoLase — '%s' set to standby", groupName)
+end
+
 --- Destroy all active JTACs and reset state.
 function CTLDJTACManager:cleanup()
     for _, jtac in pairs(self.jtacs) do

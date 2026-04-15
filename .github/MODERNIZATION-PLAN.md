@@ -121,7 +121,12 @@ Deliverable: single `.lua` file produced by `merger_V2/merge_CTLD.ps1`.
         Recette FB: F-65→F-71 22/22 PASS ✅ [2026-04-08]
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
-⚪  Q1  src/compat/legacy_api.lua
+✅  Q1  src/compat/legacy_api.lua  [2026-04-15]
+        22 wrappers (Troops×6, Zones×10, Crates×3, Beacons×1, JTAC×3) — thin delegates
+        Bugfix: CTLDTroopManager:deploy() exzZone.flagName → exzZone.objectiveFlag
+        New: CTLDZoneManager:isUnitInZone() (méthode manquante appelée par deploy)
+        Nouvelles méthodes managers: TroopManager×8, ZoneManager×6, CrateManager×3,
+          BeaconManager×1, JTACManager×3 — Note: spawnCrateAtZone/Point bloqué sur spawnCrate stub
 ⚪  Q2  tests/ busted complets
 ⚪  Q3  GitHub Actions CI
 ⚪  Q4  source/ dead code cleanup (non-bloquant)

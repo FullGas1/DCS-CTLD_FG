@@ -1,11 +1,21 @@
-[CTLD] Log started : 2026-04-14 23:38:15
-[CTLD][INFO] CTLDSceneManager: registered scene model 'FARP Alpha'
-[CTLD][INFO] CTLDSceneManager: initialized (1 built-in scene(s))
-[CTLD][INFO] CTLDSceneManager: registered scene model 'fobScene'
-[CTLD][TEST] START  [F-93] FOB unpack complet — fobScene + beacon au centroid
+[CTLD] Log started : 2026-04-15 10:33:20
 [CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
-[CTLD][INFO] CTLDFOBManager: init complete
-[CTLD][INFO] spawnObject: STATIC 'FOB_Outpost-1' spawned at (-356063.0, 618198.7)
-[CTLD][INFO] spawnObject: STATIC 'FOB_Watchtower-2' spawned at (-356072.0, 618236.6)
-[CTLD][INFO] CTLDSceneManager: started scene 'fobScene#1' for unit 'uh1-1'
-[CTLD][TEST] END    [F-93] FOB unpack complet — fobScene + beacon au centroid — 0/0 passed  →  OK
+[CTLD][INFO] CTLDVehicleSpawner: init complete
+[CTLD][TEST] START  [F-99] Pack Vehicle — findPackableVehicles + packVehicle flow
+[CTLD][TEST]   OK     findPackableVehicles: 1 vehicle found  [1 == 1]
+[CTLD][TEST]   OK     findPackableVehicles: correct unitName  [HumveeMG1 == HumveeMG1]
+[CTLD][TEST]   OK     findPackableVehicles: descriptor attached  [table: 00000284020545D8]
+[CTLD][TEST]   OK     findPackableVehicles: correct descriptor unit type  [M1043 HMMWV Armament == M1043 HMMWV Armament]
+[CTLD][TEST]   OK     findPackableVehicles: vehicle outside radius not found  [0 == 0]
+[CTLD][TEST]   OK     packVehicle: vehicle unit destroyed
+[CTLD][TEST]   OK     packVehicle: 1 crate spawned (no cratesRequired)  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: coalition.addStaticObject called once  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: OnVehiclePacked published  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: event.vehicleType correct  [M1043 HMMWV Armament == M1043 HMMWV Armament]
+[CTLD][TEST]   OK     packVehicle: event.cratesSpawned=1  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: outTextForGroup called  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: message contains vehicle info
+[CTLD][TEST]   OK     packVehicle: refreshForUnit called  [1 == 1]
+[CTLD][TEST]   OK     packVehicle: refresh for transport unit  [Heli1 == Heli1]
+[CTLD][TEST]   OK     packVehicle: guard — dead vehicle not destroyed again
+[CTLD][TEST] END    [F-99] Pack Vehicle — findPackableVehicles + packVehicle flow — 16/16 passed  →  OK

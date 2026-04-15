@@ -534,11 +534,11 @@ function CTLDTroopManager:deploy(unit)
     -- EXZ zone check (extract zone: count troops silently, no DCS group spawn)
     local exzZone = CTLDZoneManager.getInstance():isUnitInZone(unitName, "extract")
     if exzZone then
-        local current = trigger.misc.getUserFlag(exzZone.flagName) or 0
-        trigger.action.setUserFlag(exzZone.flagName, current + group.unitTotal)
+        local current = trigger.misc.getUserFlag(exzZone.objectiveFlag) or 0
+        trigger.action.setUserFlag(exzZone.objectiveFlag, current + group.unitTotal)
         group:deploy(nil)
         ctld.utils.log("INFO", "deploy: %d troops sent to EXZ '%s' (flag %s = %d)",
-            group.unitTotal, exzZone.zoneName, exzZone.flagName, current + group.unitTotal)
+            group.unitTotal, exzZone.zoneName, exzZone.objectiveFlag, current + group.unitTotal)
     else
         -- Compute circle radius: safe distance from aircraft + config offset
         local safeR   = ctld.utils.getSecureDistanceFromUnit(unitName) or 10
@@ -1134,4 +1134,255 @@ end
 -- @return boolean, string|nil
 function ctld.enableLoadableGroup(name)
     return CTLDTroopManager.getInstance():enableLoadableGroup(name)
+end
+
+-- ============================================================
+-- Legacy-compatible public API (called by compat/legacy_api.lua)
+-- ============================================================
+
+--- Resolve a count or composition table to the closest available template.
+-- integer → template whose total is nearest; table {inf,mg,...} → sum totals then match.
+-- @param coalitionId number  (unused — templates are coalition-agnostic)
+-- @param number      number|table
+-- @return table|nil  template
+function CTLDTroopManager:_resolveTemplateForLegacy(coalitionId, number)
+    if #self._templates == 0 then return nil end
+    if type(number) == "table" then
+        local total = 0
+        for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+            total = total + (number[role] or 0)
+        end
+        number = total
+    end
+    local n = tonumber(number) or 1
+    local best, bestDelta = nil, math.huge
+    for _, tmpl in ipairs(self._templates) do
+        if not tmpl.disabled then
+            local delta = math.abs((tmpl.total or 0) - n)
+            if delta < bestDelta then bestDelta = delta; best = tmpl end
+        end
+    end
+    return best
+end
+
+--- Spawn a deployable troop group at a DCS trigger zone (MM DO SCRIPT).
+-- @param side        string         "red" | "blue"
+-- @param number      number|table   troop count or composition {inf=N,mg=N,...}
+-- @param triggerName string         DCS trigger zone name
+-- @param radius      number         random spread radius in metres (0 = at center)
+-- @return boolean
+function CTLDTroopManager:spawnGroupAtTrigger(side, number, triggerName, radius)
+    local trig = trigger.misc.getZone(triggerName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtTrigger — zone not found: %s", tostring(triggerName))
+        return false
+    end
+    local p2 = { x = trig.point.x, y = trig.point.z }
+    local pt = { x = p2.x, y = land.getHeight(p2), z = p2.y }
+    return self:spawnGroupAtPoint(side, number, pt, radius)
+end
+
+--- Spawn a deployable troop group at a Vec3 point (MM DO SCRIPT).
+-- The closest template by unit count is used; group is registered as droppable.
+-- @param side    string         "red" | "blue"
+-- @param number  number|table   troop count or composition table
+-- @param point   table          vec3 {x, y, z}
+-- @param radius  number         random spread radius in metres
+-- @return boolean
+function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
+    local coalitionId = (side == "red") and coalition.side.RED or coalition.side.BLUE
+    local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    radius = math.max(0, radius or 0)
+
+    local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)
+    if not tmpl then
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint — no template available")
+        return false
+    end
+
+    local dcsGroup = CTLDObjectRegistry.spawnObject(
+        tmpl._dbKey, coalitionId, countryId,
+        point.x, point.z, 0,
+        { circleRadius = radius }
+    )
+    if not dcsGroup then
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint — spawnObject failed for key '%s'", tostring(tmpl._dbKey))
+        return false
+    end
+    table.insert(self._droppedGroups[coalitionId], dcsGroup:getName())
+    ctld.utils.log("INFO", "CTLDTroopManager:spawnGroupAtPoint — '%s' spawned (%s, %d units)",
+        dcsGroup:getName(), side, tmpl.total)
+    return true
+end
+
+--- Pre-load a named transport with troops, replacing any existing cargo.
+-- Uses the template closest to number for the transport's coalition.
+-- @param unitName string         DCS unit name of the transport
+-- @param number   number|table   troop count or composition
+-- @param troops   boolean        legacy param (ignored — always loads infantry template)
+-- @return boolean
+function CTLDTroopManager:preLoadTransport(unitName, number, troops)
+    local unit = Unit.getByName(unitName)
+    if not unit or not unit:isExist() then
+        ctld.utils.log("WARN", "CTLDTroopManager:preLoadTransport — unit not found: %s", tostring(unitName))
+        return false
+    end
+    local coalitionId = unit:getCoalition()
+    local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)
+    if not tmpl then
+        ctld.utils.log("ERROR", "CTLDTroopManager:preLoadTransport — no template for '%s'", unitName)
+        return false
+    end
+    local weight = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        weight = weight + (tmpl[role] or 0) * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
+    end
+    self._inTransit[unitName] = CTLDTroopGroup:new({
+        templateKey  = tmpl._dbKey,
+        templateName = tmpl.name,
+        unitTotal    = tmpl.total,
+        weight       = weight,
+        hasJtac      = tmpl.hasJtac or false,
+        coalitionId  = coalitionId,
+        countryId    = unit:getCountry(),
+    })
+    self:_updateWeight(unitName)
+    ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport — '%s' loaded [%s]", unitName, tmpl.name)
+    return true
+end
+
+--- Force-deploy all troops from a named transport.
+-- @param unitName string  DCS unit name
+-- @return boolean
+function CTLDTroopManager:unloadTransport(unitName)
+    local unit = Unit.getByName(unitName)
+    if not unit or not unit:isExist() then
+        ctld.utils.log("WARN", "CTLDTroopManager:unloadTransport — unit not found: %s", tostring(unitName))
+        return false
+    end
+    if not self:hasTroops(unitName) then return false end
+    return self:deploy(unit)
+end
+
+--- Force-load troops into a named transport from the nearest active pickup zone.
+-- Uses the first available template. No-op if no pickup zone found.
+-- @param unitName string  DCS unit name
+-- @return boolean
+function CTLDTroopManager:loadTransport(unitName)
+    local unit = Unit.getByName(unitName)
+    if not unit or not unit:isExist() then
+        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport — unit not found: %s", tostring(unitName))
+        return false
+    end
+    local zone = CTLDZoneManager.getInstance():getTroopZoneForUnit(unitName)
+    if not zone or not zone:hasPickup() then
+        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport — no pickup zone for '%s'", unitName)
+        return false
+    end
+    local tmpl = self._templates[1]
+    if not tmpl then return false end
+    return self:loadFromZone(unit, zone, tmpl)
+end
+
+--- Unload troops from a named AI transport when an enemy is detected within distance.
+-- No-op for player-controlled units. Requires CTLDJTACDetector (LOS check).
+-- @param unitName string  DCS unit name
+-- @param distance number  detection radius in metres
+-- @return boolean  true if troops were unloaded
+function CTLDTroopManager:unloadInProximityToEnemy(unitName, distance)
+    local unit = Unit.getByName(unitName)
+    if not unit or not unit:isExist() then return false end
+    local player = unit:getPlayerName()
+    if player and player ~= "" then return false end  -- AI only
+    if not self:hasTroops(unitName) then return false end
+    local enemy = CTLDJTACDetector.findNearestVisibleEnemy(unit, "all", distance)
+    if not enemy then return false end
+    return self:deploy(unit)
+end
+
+--- Start a recurring watcher counting dropped groups in a zone, writing DCS flags.
+-- Reschedules every 5 seconds. Call once from a DO SCRIPT trigger.
+-- @param zoneName string          DCS trigger zone name
+-- @param blueFlag number|string   flag for BLUE group count (nil = skip)
+-- @param redFlag  number|string   flag for RED group count (nil = skip)
+function CTLDTroopManager:startGroupCountWatcher(zoneName, blueFlag, redFlag)
+    local trig = trigger.misc.getZone(zoneName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDTroopManager:startGroupCountWatcher — zone not found: %s", tostring(zoneName))
+        return
+    end
+    local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
+    local radius = trig.radius
+    local self_ref = self
+    local function _tick()
+        local blueCount, redCount = 0, 0
+        for _, name in ipairs(self_ref._droppedGroups[coalition.side.BLUE] or {}) do
+            local g = Group.getByName(name)
+            if g and g:isExist() and #g:getUnits() > 0 then
+                local u = g:getUnit(1)
+                if u and ctld.utils.getDistance("groupWatcher", u:getPoint(), center) <= radius then
+                    blueCount = blueCount + 1
+                end
+            end
+        end
+        for _, name in ipairs(self_ref._droppedGroups[coalition.side.RED] or {}) do
+            local g = Group.getByName(name)
+            if g and g:isExist() and #g:getUnits() > 0 then
+                local u = g:getUnit(1)
+                if u and ctld.utils.getDistance("groupWatcher", u:getPoint(), center) <= radius then
+                    redCount = redCount + 1
+                end
+            end
+        end
+        if blueFlag then trigger.action.setUserFlag(blueFlag, blueCount) end
+        if redFlag  then trigger.action.setUserFlag(redFlag,  redCount)  end
+        timer.scheduleFunction(function()
+            self_ref:startGroupCountWatcher(zoneName, blueFlag, redFlag)
+        end, nil, timer.getTime() + 5)
+    end
+    _tick()
+end
+
+--- Start a recurring watcher counting dropped units in a zone, writing DCS flags.
+-- @param zoneName string          DCS trigger zone name
+-- @param blueFlag number|string   flag for BLUE unit count (nil = skip)
+-- @param redFlag  number|string   flag for RED unit count (nil = skip)
+function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
+    local trig = trigger.misc.getZone(zoneName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDTroopManager:startUnitCountWatcher — zone not found: %s", tostring(zoneName))
+        return
+    end
+    local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
+    local radius = trig.radius
+    local self_ref = self
+    local function _tick()
+        local blueCount, redCount = 0, 0
+        for _, name in ipairs(self_ref._droppedGroups[coalition.side.BLUE] or {}) do
+            local g = Group.getByName(name)
+            if g and g:isExist() then
+                for _, u in ipairs(g:getUnits()) do
+                    if u:isExist() and ctld.utils.getDistance("unitWatcher", u:getPoint(), center) <= radius then
+                        blueCount = blueCount + 1
+                    end
+                end
+            end
+        end
+        for _, name in ipairs(self_ref._droppedGroups[coalition.side.RED] or {}) do
+            local g = Group.getByName(name)
+            if g and g:isExist() then
+                for _, u in ipairs(g:getUnits()) do
+                    if u:isExist() and ctld.utils.getDistance("unitWatcher", u:getPoint(), center) <= radius then
+                        redCount = redCount + 1
+                    end
+                end
+            end
+        end
+        if blueFlag then trigger.action.setUserFlag(blueFlag, blueCount) end
+        if redFlag  then trigger.action.setUserFlag(redFlag,  redCount)  end
+        timer.scheduleFunction(function()
+            self_ref:startUnitCountWatcher(zoneName, blueFlag, redFlag)
+        end, nil, timer.getTime() + 5)
+    end
+    _tick()
 end

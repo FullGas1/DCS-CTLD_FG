@@ -735,3 +735,81 @@ function CTLDBeaconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
+
+-- ============================================================
+-- Legacy-compatible public API (called by compat/legacy_api.lua)
+-- ============================================================
+
+--- Create a radio beacon at a DCS trigger zone (MM DO SCRIPT, no transport required).
+-- coalitionStr: "red" | "blue". batteryLife: minutes (nil = config default).
+-- name: display name (nil = auto-generated "Beacon #N").
+-- @param zoneName    string   DCS trigger zone name
+-- @param coalitionStr string  "red" | "blue"
+-- @param batteryLife number|nil  battery life in minutes
+-- @param name        string|nil  display name
+-- @return CTLDBeacon|nil
+function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, name)
+    local trig = trigger.misc.getZone(zoneName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone — zone not found: %s", tostring(zoneName))
+        return nil
+    end
+    local p2 = { x = trig.point.x, y = trig.point.z }
+    local pt = { x = p2.x, y = land.getHeight(p2), z = p2.y }
+    local coalitionId = (coalitionStr == "red") and coalition.side.RED or coalition.side.BLUE
+    local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+
+    local freqs = self:_assignFrequencies()
+    self._beaconCount = self._beaconCount + 1
+
+    if not name or name == "" then name = "Beacon #" .. self._beaconCount end
+
+    local freqText = string.format("%.2f kHz - %.2f / %.2f MHz",
+        freqs.vhf / 1000, freqs.uhf / 1000000, freqs.fm / 1000000)
+
+    local vhfGroup = self:_spawnBeaconUnit(pt, countryId, name .. " VHF " .. freqText)
+    local uhfGroup = self:_spawnBeaconUnit(pt, countryId, name .. " UHF " .. freqText)
+    local fmGroup  = self:_spawnBeaconUnit(pt, countryId, name .. " FM "  .. freqText)
+
+    if not (vhfGroup and uhfGroup and fmGroup) then
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone — spawn failed for '%s'", name)
+        return nil
+    end
+
+    local batteryMins = batteryLife or ctld.gs("deployedBeaconBattery") or 30
+    local batteryEnd  = timer.getTime() + batteryMins * 60
+
+    local beacon = CTLDBeacon:new({
+        beaconName     = vhfGroup:getName(),
+        name           = name,
+        coalitionId    = coalitionId,
+        position       = pt,
+        vhfGroupName   = vhfGroup:getName(),
+        uhfGroupName   = uhfGroup:getName(),
+        fmGroupName    = fmGroup:getName(),
+        vhf            = freqs.vhf,
+        uhf            = freqs.uhf,
+        fm             = freqs.fm,
+        batteryEndTime = batteryEnd,
+        spawnTime      = timer.getAbsTime(),
+        isFOB          = false,
+    })
+
+    self._beacons[beacon.beaconName] = beacon
+    self:_startTransmissions(beacon)
+    self:_addBeaconToLayers(beacon)
+
+    trigger.action.outTextForCoalition(coalitionId,
+        name .. "\n" .. freqText, 20)
+
+    EventDispatcher.getInstance():publish("OnBeaconDropped", {
+        player     = "MissionMaker",
+        playerUnit = nil,
+        coalition  = coalitionId,
+        beacon     = self:_beaconPayload(beacon),
+        timestamp  = timer.getAbsTime(),
+    })
+
+    ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
+    return beacon
+end

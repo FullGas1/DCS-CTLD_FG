@@ -473,18 +473,92 @@ end
 -- ============================================================
 
 --- Spawn a new crate from the F10 menu or as the result of packing a vehicle.
--- @param descriptor  table    CTLD crate descriptor (from spawnableCrates)
+-- Uses coalition.addStaticObject (Hoggit: DCS_func_addStaticObject).
+-- @param descriptor  table         CTLD crate descriptor (from spawnableCrates)
 -- @param position    vec3
--- @param coalition   number   coalition.side.*
--- @param spawnedBy   string|nil  player name
--- @param spawnMethod string   CTLDCrate.SPAWN_METHOD.*
+-- @param coalitionId number        coalition.side.*
+-- @param spawnedBy   string|nil    player/trigger name
+-- @param spawnMethod string        CTLDCrate.SPAWN_METHOD.*
+-- @param countryId   number|nil    DCS country id; if nil, derived from coalition
+-- @param modelKey    string|nil    key in spawnableCratesModels ("load"|"sling"|"dynamic"); auto if nil
 -- @return CTLDCrate or nil
-function CTLDCrateManager:spawnCrate(descriptor, position, coalition, spawnedBy, spawnMethod)
-    -- TODO: DCS API for static spawn (coalition.addStaticObject) must be verified on Hoggit
-    --       before this method can be implemented.
-    --       See: https://wiki.hoggitworld.com/view/DCS_func_addStaticObject
-    _log("CTLDCrateManager:spawnCrate - not yet implemented (DCS spawn API pending verification)", "WARNING")
-    return nil
+function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey)
+    if not (descriptor and position) then
+        _log("CTLDCrateManager:spawnCrate - missing descriptor or position", "WARNING")
+        return nil
+    end
+
+    -- Choose static model
+    local models = ctld.gs("spawnableCratesModels") or {}
+    local key = modelKey
+    if not key then
+        key = ctld.gs("slingLoad") and "sling" or "load"
+    end
+    local model = models[key] or models["load"] or {}
+
+    -- Generate unique name
+    local uid = ctld.utils.getNextUniqId()
+    local crateName = string.format("CTLD_Crate_%d", uid)
+
+    -- Resolve country id
+    local cId = countryId
+    if not cId then
+        if coalitionId == coalition.side.RED then
+            cId = country.id.RUSSIA
+        else
+            cId = country.id.USA
+        end
+    end
+
+    -- Build DCS static data (note: coalition.addStaticObject uses x/y where y = DCS z-axis)
+    local hdg = 0
+    local data = {
+        name     = crateName,
+        x        = position.x,
+        y        = position.z,
+        heading  = hdg,
+        category = model.category or "Cargos",
+        type     = model.type     or "ammo_cargo",
+        canCargo = model.canCargo or false,
+        mass     = descriptor.weight,
+        dead     = false,
+    }
+    if model.shape_name then
+        data.shape_name = model.shape_name
+    end
+
+    local ok, err = pcall(function() coalition.addStaticObject(cId, data) end)
+    if not ok then
+        _log("CTLDCrateManager:spawnCrate - coalition.addStaticObject failed: " .. tostring(err), "WARNING")
+        return nil
+    end
+
+    local dcsStatic = StaticObject.getByName(crateName)
+
+    local crate = CTLDCrate:new({
+        crateName   = crateName,
+        descriptor  = descriptor,
+        spawnMethod = spawnMethod or CTLDCrate.SPAWN_METHOD.CRATE_SPAWN,
+        position    = position,
+        heading     = hdg,
+        coalition   = coalitionId,
+        spawnedBy   = spawnedBy,
+        dcsStatic   = dcsStatic,
+    })
+    self:_register(crate)
+
+    self:_publish("OnCrateSpawned", {
+        crate       = crate,
+        crateName   = crateName,
+        descriptor  = descriptor,
+        position    = position,
+        coalition   = coalitionId,
+        spawnedBy   = spawnedBy,
+        spawnMethod = crate.spawnMethod,
+        timestamp   = timer.getAbsTime(),
+    })
+
+    return crate
 end
 
 --- Register a crate pre-placed by the mission maker (called from INIT-B).
@@ -635,6 +709,24 @@ function CTLDCrateManager:destroyCrate(crateName)
     if not crate then return end
     crate:destroy()
     self:_unregister(crateName)
+end
+
+--- Find a CTLD descriptor by the DCS unit field (vehicle typeName for pack lookup).
+-- Searches ctld.gs("spawnableCrates") for an entry whose unit field matches exactly.
+-- @param typeName string  DCS typeName (e.g. "M-1 Abrams")
+-- @return descriptor table or nil
+function CTLDCrateManager:findDescriptorByUnitType(typeName)
+    if not typeName then return nil end
+    local spawnableCrates = ctld.gs("spawnableCrates")
+    if not spawnableCrates then return nil end
+    for _, category in pairs(spawnableCrates) do
+        for _, descriptor in ipairs(category) do
+            if descriptor.unit == typeName then
+                return descriptor
+            end
+        end
+    end
+    return nil
 end
 
 --- Find a CTLD descriptor matching a DCS typeName.
@@ -927,8 +1019,29 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     end
 
     if ctld.gs("enablePackingVehicles") == true then
-        -- Empty container populated dynamically via clearBranch + refresh on proximity scan
-        menu:addSubMenu({ root, cratesSub }, ctld.tr("Pack Vehicle"), { order = 99 })
+        local packSub   = ctld.tr("Pack Vehicle")
+        menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })
+        local transport = Unit.getByName(playerObj.unitName)
+        if transport and transport:isExist() then
+            local packable = CTLDVehicleSpawner.getInstance():findPackableVehicles(transport)
+            if #packable == 0 then
+                menu:addCommand({ root, cratesSub, packSub }, ctld.tr("No packable vehicles nearby"),
+                    function() end, {})
+            else
+                for _, v in ipairs(packable) do
+                    menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
+                        function(arg)
+                            CTLDVehicleSpawner.getInstance():packVehicle(
+                                arg.transportName, arg.packableUnitName, arg)
+                        end,
+                        { transportName   = playerObj.unitName,
+                          packableUnitName = v.unitName,
+                          groupId          = playerObj.groupId,
+                          unitName         = playerObj.unitName,
+                          coalition        = playerObj.coalition })
+                end
+            end
+        end
     end
 
     -- Parachute Crates: only if canParachute=true for this unit type
@@ -991,4 +1104,94 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Green Smoke"),
         function(arg) ctld.utils.log("INFO", "Drop Green Smoke " .. tostring(arg.unitName)) end,
         { unitName = playerObj.unitName, color = "green" })
+end
+
+-- ============================================================
+-- Legacy-compatible public API (called by compat/legacy_api.lua)
+-- ============================================================
+
+--- Find a crate descriptor by weight number.
+-- Searches all spawnableCrates categories for a descriptor whose weight matches.
+-- @param weight number
+-- @return table|nil  descriptor
+function CTLDCrateManager:findDescriptorByWeight(weight)
+    if not weight then return nil end
+    local spawnableCrates = ctld.gs("spawnableCrates")
+    if not spawnableCrates then return nil end
+    for _, category in pairs(spawnableCrates) do
+        for _, descriptor in ipairs(category) do
+            if descriptor.weight == weight then return descriptor end
+        end
+    end
+    return nil
+end
+
+--- Spawn a crate at a DCS trigger zone (MM DO SCRIPT).
+-- NOTE: depends on CTLDCrateManager:spawnCrate() which is pending DCS API verification.
+-- @param side   string   "red" | "blue"
+-- @param weight number   crate weight (lookup key in spawnableCrates)
+-- @param zone   string   DCS trigger zone name
+-- @return CTLDCrate|nil
+function CTLDCrateManager:spawnCrateAtZone(side, weight, zone)
+    local trig = trigger.misc.getZone(zone)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone — zone not found: %s", tostring(zone))
+        return nil
+    end
+    local descriptor = self:findDescriptorByWeight(weight)
+    if not descriptor then
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone — no descriptor for weight=%s", tostring(weight))
+        return nil
+    end
+    local p2  = { x = trig.point.x, y = trig.point.z }
+    local pt  = { x = p2.x, y = land.getHeight(p2), z = p2.y }
+    local cId = (side == "red") and coalition.side.RED or coalition.side.BLUE
+    return self:spawnCrate(descriptor, pt, cId, nil, CTLDCrate.SPAWN_METHOD.MISSION_MAKER)
+end
+
+--- Spawn a crate at a Vec3 point (MM DO SCRIPT).
+-- NOTE: depends on CTLDCrateManager:spawnCrate() which is pending DCS API verification.
+-- @param side   string   "red" | "blue"
+-- @param weight number   crate weight
+-- @param point  table    vec3 {x, y, z}
+-- @param hdg    number   heading in degrees (ignored until spawnCrate is implemented)
+-- @return CTLDCrate|nil
+function CTLDCrateManager:spawnCrateAtPoint(side, weight, point, hdg)
+    local descriptor = self:findDescriptorByWeight(weight)
+    if not descriptor then
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtPoint — no descriptor for weight=%s", tostring(weight))
+        return nil
+    end
+    local cId = (side == "red") and coalition.side.RED or coalition.side.BLUE
+    return self:spawnCrate(descriptor, point, cId, nil, CTLDCrate.SPAWN_METHOD.MISSION_MAKER)
+end
+
+--- Start a recurring watcher that counts crates in a DCS zone and sets a DCS flag.
+-- Reschedules every 5 seconds. Call once from a DO SCRIPT trigger.
+-- @param zoneName   string          DCS trigger zone name
+-- @param flagNumber number|string   DCS user flag to set to crate count
+function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
+    local trig = trigger.misc.getZone(zoneName)
+    if not trig then
+        ctld.utils.log("ERROR", "CTLDCrateManager:startCrateCountWatcher — zone not found: %s", tostring(zoneName))
+        return
+    end
+    local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
+    local radius = trig.radius
+    local self_ref = self
+    local function _tick()
+        local count = 0
+        for _, crate in pairs(self_ref.crates) do
+            if crate:isOnGround() then
+                if ctld.utils.getDistance("crateWatcher", crate.position, center) <= radius then
+                    count = count + 1
+                end
+            end
+        end
+        trigger.action.setUserFlag(flagNumber, count)
+        timer.scheduleFunction(function()
+            self_ref:startCrateCountWatcher(zoneName, flagNumber)
+        end, nil, timer.getTime() + 5)
+    end
+    _tick()
 end
