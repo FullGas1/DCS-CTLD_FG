@@ -366,7 +366,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 
 | Module | Impl | Spec | Recette | % recette | Notes |
 | ------ | ---- | ---- | ------- | --------- | ----- |
-| Config (`CTLD_config.lua`) | ✅ | ✅ | ⚪ | 0% | lib interne, risque faible — recette à écrire |
+| Config (`CTLD_config.lua`) | ✅ | ✅ | ✅ | 100% | U-84→U-89 + F-101→F-102, 57/57 PASS [2026-04-16] |
 | Utils (`CTLD_utils.lua`) | ✅ | N/A | ✅ | 100% | M9: U-67→U-73 + F-78→F-80, 118/118 PASS [2026-04-09] |
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |

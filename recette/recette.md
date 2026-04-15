@@ -112,10 +112,19 @@ La mission de test doit contenir :
 | U-78 | removeLoadableGroup | FD | Remove custom + clear ObjectRegistry, remove standard, not-found error | ✅ PASS 12/12 | — |
 | U-79 | editLoadableGroup | FD | Edit composition + side, recompute total/hasJtac, refuse standard, not-found, zero composition | ✅ PASS 21/21 | — |
 | U-80 | disableLoadableGroup / enableLoadableGroup | FD | Toggle disabled, template count unchanged, not-found error | ✅ PASS 15/15 | — |
+| U-81 | CTLDTroopManager:_resolveTemplateForLegacy | Q1 | int exact/closest, table sum, disabled template skippé, no templates → nil | ✅ PASS 14/14 | — |
+| U-82 | CTLDCrateManager:findDescriptorByUnitType | Q1 | match typeName, nil si inconnu, BLUE only invisible RED | ✅ PASS 25/25 | — |
+| U-83 | CTLDVehicleSpawner:findPackableVehicles | Q1 | scan ground units coalition, filtre distance, exclude transport | ✅ PASS 23/23 | — |
+| U-84 | CTLDConfig singleton pattern | Config | get() × 2 → même instance, isLoaded, mutation partagée | ✅ PASS 5/5 | — |
+| U-85 | CTLDConfig load() idempotency | Config | 2nd load() retourne tôt, mutation préservée | ✅ PASS 4/4 | — |
+| U-86 | CTLDConfig getSetting() defaults | Config | 10 valeurs par défaut clés vérifiées | ✅ PASS 10/10 | — |
+| U-87 | ctld.gs() shortcut | Config | 3 clés connues + clé inconnue → nil | ✅ PASS 4/4 | — |
+| U-88 | CTLDConfig.to_type() | Config | bool/int/float/string/quotes | ✅ PASS 8/8 | — |
+| U-89 | CTLDConfig.parseYAML() | Config | k/v simple, types, dotted keys, multi-line, empty | ✅ PASS 9/9 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-93)
+## Section F — Tests fonctionnels (F-01 à F-102)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -222,6 +231,8 @@ La mission de test doit contenir :
 | F-98 | Legacy API — JTAC wrappers | Q1 | 3 wrappers JTACAutoLase/JTACStart/JTACAutoLaseStop | ✅ PASS 11/11 | — |
 | F-99 | Pack Vehicle flow | Q1 | findPackableVehicles + packVehicle : destroy, spawnCrate, OnVehiclePacked, menu refresh | ✅ PASS 16/16 | — |
 | F-100 | spawnCrate — VISUAL CHECK | Q1 | 2 statics réels (load + dynamic) ~30/60 m devant hélico, StaticObject.getByName ✅, OnCrateSpawned×2 | ✅ PASS 14/14 visual ✅ [2026-04-15] | — |
+| F-101 | CTLDConfig userConfig override | Config | ctld.yamlConfigDatas → 3 settings overridés, 1 non-overridé intact, report string | ✅ PASS 6/6 | — |
+| F-102 | CTLDConfig singleton reset + fresh defaults | Config | reset _instance → fresh load → defaults restaurés, isLoaded=true | ✅ PASS 5/5 | — |
 
 ---
 
@@ -262,7 +273,8 @@ La mission de test doit contenir :
 - **M10** : 2 unitaires + 5 fonctionnels = **7 cas** ✅ PASS (U-74→U-75 12/12 ✅ + F-83→F-87 28/28 visual ✅) [2026-04-09]
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
 - **Q1** : 3 unitaires + 7 fonctionnels = **10 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-100 100/100 ✅) [2026-04-15]
-- **Total** : **174 cas** — 794/794 PASS ✅
+- **Config** : 6 unitaires + 2 fonctionnels = **8 cas** ✅ PASS (U-84→U-89 46/46 + F-101→F-102 11/11 ✅) [2026-04-16]
+- **Total** : **182 cas** — 851/851 PASS ✅
 
 ---
 
@@ -270,7 +282,7 @@ La mission de test doit contenir :
 
 | Module | Fichier source | Priorité | Notes |
 | --- | --- | --- | --- |
-| **CTLD_config.lua** | `src/CTLD_config.lua` | Basse | lib interne — tester load(), getSetting(), valeurs par défaut, override MM |
+| ~~**CTLD_config.lua**~~ | ~~`src/CTLD_config.lua`~~ | ~~Basse~~ | ✅ Recette complète [2026-04-16] — U-84→U-89 + F-101→F-102 |
 | **CTLD_i18n.lua** | `src/CTLD_i18n.lua` + `CTLD_i18n_en.lua` | Basse | tester ctld.tr() fallback EN, langue inconnue, clé manquante |
 | ~~**CTLD_farpScene.lua**~~ | ~~`src/scenes/CTLD_farpScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-91 22/22 PASS (bugfix stepsDatas→steps) |
 | ~~**CTLD_fobScene.lua**~~ | ~~`src/scenes/CTLD_fobScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-90 18/18 PASS |
