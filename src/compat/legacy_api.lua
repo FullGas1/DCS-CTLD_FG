@@ -9,10 +9,8 @@
 -- Deprecation warnings are logged at WARNING level so they
 -- appear in both DCS.log and ctld.log (if enabled).
 --
--- NOTE: ctld.spawnCrateAtZone / ctld.spawnCrateAtPoint depend
--- on CTLDCrateManager:spawnCrate() which is pending DCS API
--- verification (coalition.addStaticObject). They will log an
--- error and return nil until that method is implemented.
+-- NOTE: ctld.spawnCrateAtZone / ctld.spawnCrateAtPoint delegate
+-- to CTLDCrateManager:spawnCrate() (implemented, uses ctld.utils.dynAddStatic).
 --
 -- NOTE: ctld.addCallback() is not wrapped — use
 -- EventDispatcher:subscribe(eventName, handler) instead.

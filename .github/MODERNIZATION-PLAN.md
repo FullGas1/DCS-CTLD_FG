@@ -358,7 +358,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | -------- | ---- | ------ |
 | Mission maker | `docs/missionmaker_guide.md` | ✅ §1–16 complete |
 | Developer | `docs/dev-guide.md` | ✅ Complete (architecture, new module, events, build, tests, migration v1→v2) |
-| MkDocs / GitHub Pages | — | ⚪ Optional (Phase 6.5) |
+| MkDocs / GitHub Pages | `mkdocs.yml` + `docs/index.md` | ✅ Done — CI job 6.5 (gh-deploy on push master) [2026-04-16] |
 
 ---
 

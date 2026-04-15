@@ -28,12 +28,6 @@ CTLD_core.lua
 scenes/CTLD_farpScene.lua
 scenes/CTLD_fobScene.lua
 scenes/CTLD_mineFieldScene.lua
-scenes/CTLD_aaHawkScene.lua
-scenes/CTLD_aaPatriotScene.lua
-scenes/CTLD_aaNasamScene.lua
-scenes/CTLD_aaBukScene.lua
-scenes/CTLD_aaKubScene.lua
-scenes/CTLD_aaS300Scene.lua
 -- Legacy API compatibility (after all managers)
 compat/legacy_api.lua
 -- User configuration (always last)

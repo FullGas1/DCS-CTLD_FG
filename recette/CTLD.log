@@ -1,23 +1,8 @@
-[CTLD] Log started : 2026-04-15 14:09:45
-[CTLD][TEST] START  [F-100] spawnCrate — static DCS réel + VISUAL CHECK
-[CTLD][INFO] CTLDDCSEventBridge: world.addEventHandler registered
-[CTLD][INFO] CTLDPlayerManager: init complete
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'crates'
-[CTLD][INFO] CTLDPlayerManager: registered menu section 'smoke'
-[CTLD][TEST]   OK     findDescriptorByUnitType: descriptor trouvé  [table: 00000283A0E2A868]
-[CTLD][INFO] shape_name not present
-[CTLD][TEST]   OK     spawnCrate load: retourne CTLDCrate  [table: 00000283A0E314E8]
-[CTLD][TEST]   OK     spawnCrate load: crateName assigné  [CTLD_Crate_1]
-[CTLD][TEST]   OK     spawnCrate load: StaticObject présent en mission ✅ VISUAL  [table: 00000283A0E315A8]
-[CTLD][TEST]   OK     spawnCrate load: enregistré dans cm.crates  [table: 00000283A0E314E8]
-[CTLD][INFO] shape_name not present
-[CTLD][TEST]   OK     spawnCrate dynamic: retourne CTLDCrate  [table: 00000283A0E318E8]
-[CTLD][TEST]   OK     spawnCrate dynamic: StaticObject présent en mission ✅ VISUAL  [table: 00000283A0E319A8]
-[CTLD][TEST]   OK     OnCrateSpawned: 2 events reçus  [2 == 2]
-[CTLD][TEST]   OK     event 1: spawnedBy=MissionMaker  [MissionMaker == MissionMaker]
-[CTLD][TEST]   OK     event 1: coalition=BLUE  [2 == 2]
-[CTLD][TEST]   OK     event 1: position présente  [table: 00000283A0E31128]
-[CTLD][TEST]   OK     spawnCrate load: position.x correct
-[CTLD][TEST]   OK     spawnCrate load: position.z correct
-[CTLD][TEST]   OK     spawnCrate dynamic: position.x correct
-[CTLD][TEST] END    [F-100] spawnCrate — static DCS réel + VISUAL CHECK — 14/14 passed  →  OK
+[CTLD] Log started : 2026-04-16 00:36:36
+[CTLD][TEST] START  [F-102] CTLDConfig singleton reset + fresh defaults
+[CTLD][TEST]   OK     pre-reset: mutation is 99  [99 == 99]
+[CTLD][TEST]   OK     post-reset: numberOfTroops restored to default 10  [10 == 10]
+[CTLD][TEST]   OK     post-reset: maximumDistanceLogistic restored to 200  [200 == 200]
+[CTLD][TEST]   OK     post-reset: buildTimeFOB restored to 120  [120 == 120]
+[CTLD][TEST]   OK     fresh instance isLoaded == true after load()  [true == true]
+[CTLD][TEST] END    [F-102] CTLDConfig singleton reset + fresh defaults — 5/5 passed  →  OK

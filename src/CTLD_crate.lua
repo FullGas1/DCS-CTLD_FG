@@ -1128,7 +1128,6 @@ function CTLDCrateManager:findDescriptorByWeight(weight)
 end
 
 --- Spawn a crate at a DCS trigger zone (MM DO SCRIPT).
--- NOTE: depends on CTLDCrateManager:spawnCrate() which is pending DCS API verification.
 -- @param side   string   "red" | "blue"
 -- @param weight number   crate weight (lookup key in spawnableCrates)
 -- @param zone   string   DCS trigger zone name
@@ -1151,11 +1150,10 @@ function CTLDCrateManager:spawnCrateAtZone(side, weight, zone)
 end
 
 --- Spawn a crate at a Vec3 point (MM DO SCRIPT).
--- NOTE: depends on CTLDCrateManager:spawnCrate() which is pending DCS API verification.
 -- @param side   string   "red" | "blue"
 -- @param weight number   crate weight
 -- @param point  table    vec3 {x, y, z}
--- @param hdg    number   heading in degrees (ignored until spawnCrate is implemented)
+-- @param hdg    number   heading in degrees
 -- @return CTLDCrate|nil
 function CTLDCrateManager:spawnCrateAtPoint(side, weight, point, hdg)
     local descriptor = self:findDescriptorByWeight(weight)
