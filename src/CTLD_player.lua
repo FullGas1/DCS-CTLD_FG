@@ -143,7 +143,33 @@ function CTLDPlayerManager:init()
         self:refreshForUnit(playerObj.unitName)
     end)
 
+    -- Scan players already in slots at init time (script loaded after slot take).
+    -- S_EVENT_PLAYER_ENTER_UNIT will not fire retroactively, so we build menus manually.
+    self:_scanExistingPlayers()
+
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
+end
+
+--- Build menus for any players already occupying slots when CTLD loads.
+-- Called once at init(); uses coalition.getPlayers() to enumerate connected players.
+function CTLDPlayerManager:_scanExistingPlayers()
+    local count = 0
+    for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
+        local units = coalition.getPlayers(side) or {}
+        for _, unit in ipairs(units) do
+            if unit:isExist() and unit:getPlayerName() then
+                local unitName = unit:getName()
+                if not self._players[unitName] then
+                    -- Simulate the enter-unit event
+                    self:onPlayerEnterUnit({ initiator = unit })
+                    count = count + 1
+                end
+            end
+        end
+    end
+    if count > 0 then
+        ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d pre-existing player(s)", count)
+    end
 end
 
 --- DCS S_EVENT_PLAYER_ENTER_UNIT handler.
