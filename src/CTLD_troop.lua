@@ -491,7 +491,7 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
 
     self:_updateWeight(unitName)
 
-    trigger.action.outTextForCoalition(coalition,
+    trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("%1 loaded [%2] into %3.",
             self:_callsign(unit), template.name, typeName), 10)
 
@@ -1136,6 +1136,23 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
             end
         end
     end
+
+    -- Check troops onboard
+    menu:addCommand({ root, troopSub }, ctld.tr("Check Troops Onboard"),
+        function(arg)
+            local u = Unit.getByName(arg.unitName)
+            if not u then return end
+            local tm    = CTLDTroopManager.getInstance()
+            local group = tm._inTransit[arg.unitName]
+            if group then
+                trigger.action.outTextForGroup(u:getGroup():getID(),
+                    ctld.tr("Onboard: %1 (%2 troops)", group.templateName, group.unitTotal), 10)
+            else
+                trigger.action.outTextForGroup(u:getGroup():getID(),
+                    ctld.tr("No troops onboard."), 10)
+            end
+        end,
+        { unitName = playerObj.unitName })
 
     -- Parachute Troops: only if canParachute=true for this unit type
     local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
