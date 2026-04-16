@@ -831,7 +831,7 @@ end
 -- Returns true if unit is in the air (AGL > 2 m).
 function CTLDTroopManager:_isInAir(unit)
     local pt   = unit:getPoint()
-    local gndH = land.getHeight({ x = pt.x, z = pt.z })
+    local gndH = land.getHeight({ x = pt.x, y = pt.z })  -- vec2: y = world-Z
     return (pt.y - gndH) > 2.0
 end
 
@@ -840,7 +840,7 @@ function CTLDTroopManager:_safeToFastRope(unit)
     if not ctld.gs("enableFastRopeInsertion") then return false end
     local maxH   = (ctld.gs("fastRopeMaximumHeight") or 18.28) + 3.0
     local pt     = unit:getPoint()
-    local gndH   = land.getHeight({ x = pt.x, z = pt.z })
+    local gndH   = land.getHeight({ x = pt.x, y = pt.z })  -- vec2: y = world-Z
     local altAGL = pt.y - gndH
     local vel    = unit:getVelocity()
     local speed  = math.sqrt(vel.x^2 + vel.y^2 + vel.z^2)
