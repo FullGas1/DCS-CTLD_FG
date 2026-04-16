@@ -14302,10 +14302,6 @@ function CTLDPlayerManager:init()
         self:refreshForUnit(playerObj.unitName)
     end)
 
-    -- Scan players already in slots at init time (script loaded after slot take).
-    -- S_EVENT_PLAYER_ENTER_UNIT will not fire retroactively, so we build menus manually.
-    self:_scanExistingPlayers()
-
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
 
@@ -16514,8 +16510,27 @@ local _cfg = CTLDConfig.get()
 ---@diagnostic disable-next-line: lowercase-global
 function ctld.initialize()
     ctld.utils.initLog()
-    CTLDPlayerManager.getInstance()
-    CTLDCoreManager.getInstance()
+
+    -- Boot all domain managers first so they can register their menu sections.
+    -- Order matters: PlayerManager must be up before any other manager calls
+    -- registerMenuSection(), and _scanExistingPlayers() must run last so all
+    -- sections are registered before menus are built for pre-existing players.
+    CTLDPlayerManager.getInstance()   -- creates _menuSections registry
+    CTLDZoneManager.getInstance()
+    CTLDTroopManager.getInstance()    -- registers "troops" section
+    CTLDCrateManager.getInstance()    -- registers "crates" + "smoke" sections
+    CTLDVehicleSpawner.getInstance()  -- registers "vehicles" section
+    CTLDFOBManager.getInstance()
+    CTLDBeaconManager.getInstance()   -- registers "beacons" section
+    CTLDReconManager.getInstance()    -- registers "recon" section
+    CTLDJTACManager.getInstance()     -- registers "jtac" section
+    CTLDCrateAssemblyManager.getInstance()
+    CTLDCoreManager.getInstance()     -- INIT-B (MM crates) + INIT-C (MM JTACs)
+
+    -- Now that all sections are registered, build menus for any player
+    -- already in a slot (no retroactive S_EVENT_PLAYER_ENTER_UNIT).
+    CTLDPlayerManager.getInstance():_scanExistingPlayers()
+
     ctld.utils.log("INFO", "CTLD initialized.")
 end
 

@@ -143,10 +143,6 @@ function CTLDPlayerManager:init()
         self:refreshForUnit(playerObj.unitName)
     end)
 
-    -- Scan players already in slots at init time (script loaded after slot take).
-    -- S_EVENT_PLAYER_ENTER_UNIT will not fire retroactively, so we build menus manually.
-    self:_scanExistingPlayers()
-
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
 
