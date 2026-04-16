@@ -7959,7 +7959,9 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
     -- Unload / Extract always available
     menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
         function(arg)
-            CTLDTroopManager.getInstance():unloadTroops(arg.unitName)
+            local u = Unit.getByName(arg.unitName)
+            if not u then return end
+            CTLDTroopManager.getInstance():_menuUnloadOrExtract(u)
         end,
         { unitName = playerObj.unitName })
 
