@@ -1098,17 +1098,42 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    -- One "Load Troops from <zone>" per pickup-capable zone accessible to this coalition
+    -- Filter templates applicable to this aircraft and coalition
+    local limit = self:_transportLimit(playerObj.typeName)
+    local validTmpls = {}
+    for _, tmpl in ipairs(self._templates) do
+        local sideOk = (tmpl.side == nil or tmpl.side == playerObj.coalition)
+        local sizeOk = (tmpl.total <= limit)
+        if not tmpl.disabled and sideOk and sizeOk then
+            table.insert(validTmpls, tmpl)
+        end
+    end
+
+    -- One sub-menu per pickup-capable zone, listing available templates
     local zones = CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)
     for _, zone in ipairs(zones) do
         if zone:hasPickup() then
-            local zName = zone.zoneName
-            menu:addCommand({ root, troopSub },
-                string.format(ctld.tr("Load from %s"), zName),
-                function(arg)
-                    CTLDTroopManager.getInstance():loadFromZone(arg.unitName, arg.zoneName)
-                end,
-                { unitName = playerObj.unitName, zoneName = zName })
+            local zName    = zone.zoneName
+            local zoneSub  = string.format(ctld.tr("Load from %s"), zName)
+            menu:addSubMenu({ root, troopSub }, zoneSub)
+            for _, tmpl in ipairs(validTmpls) do
+                local capturedTmpl  = tmpl
+                local capturedZName = zName
+                menu:addCommand({ root, troopSub, zoneSub },
+                    ctld.tr("Load ") .. tmpl.name,
+                    function(arg)
+                        local u = Unit.getByName(arg.unitName)
+                        if not u then return end
+                        local z = CTLDZoneManager.getInstance():getTroopZone(arg.zoneName)
+                        if not z then
+                            trigger.action.outTextForGroup(u:getGroup():getID(),
+                                ctld.tr("Zone not found."), 10)
+                            return
+                        end
+                        CTLDTroopManager.getInstance():loadFromZone(u, z, arg.tmpl)
+                    end,
+                    { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
+            end
         end
     end
 
