@@ -577,39 +577,47 @@ CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log 
 
 ### Overview
 
-CTLD transports infantry teams between pickup zones (TRZ) and combat areas. The full cycle is:
+CTLD transports infantry teams between pickup zones (TRZ) and combat areas. The full operational cycle is:
 
 ```
-TRZ (load) → aircraft → combat area (fast-rope / drop)
-                      → TRZ with flag (extract objective, counts troops)
-                      → TRZ (return to base, restores pool)
+1. Load     — board troops from a TRZ pickup zone
+2. Deploy   — fast-rope or ground-drop at any location
+               └─ If inside a TRZ with a flag: objective scored (no DCS group spawned)
+3. Extract  — land near a dropped group and pick it up
+4. Re-deploy — drop the extracted group at a new location (repeatable)
+5. RTB      — unload inside a TRZ to return troops to the zone pool
 ```
 
 Troops are **never** physically on board the aircraft as DCS units — they are held in memory until deployed.
 
 ---
 
-### F10 menu — "Troop Transport"
+### F10 menu — "Troop Commands"
 
 The menu appears automatically for all transport-capable aircraft (types listed in `unitActions` config).
 
 ```
-Troop Transport
-  ├── Unload / Extract Troops     ← context-sensitive (see below)
-  ├── Load Standard Group
-  ├── Load Anti Air
-  ├── ...
-  ├── [Next page]                 ← appears if more than 9 templates
-  └── Check Cargo
+CTLD
+  └── Troop Commands
+        ├── Unload / Extract Troops     ← context-sensitive (see below)
+        ├── Load from <zone1>           ← one sub-menu per active TRZ pickup zone
+        │     ├── Load Standard Group
+        │     ├── Load Anti Air
+        │     └── ...                  ← templates filtered by aircraft capacity
+        ├── Load from <zone2>
+        │     └── ...
+        └── Check Troops Onboard       ← shows loaded template name and count
 ```
 
 **"Unload / Extract Troops" behaviour (priority order):**
 
-| Condition | Action |
+| Aircraft state | Action |
 |---|---|
-| On ground + friendly dropped group nearby + no troops onboard | Extract group from combat |
+| On ground + friendly dropped group ≤ `maxExtractDistance` m + no troops onboard | Extract group from combat |
 | Has troops onboard + inside a TRZ pickup zone | Return troops to base (restores zone pool) |
-| Has troops onboard + not in TRZ | Fast-rope (if conditions met) or drop into combat / extract zone |
+| Has troops onboard + not in TRZ | Fast-rope (if conditions met) or ground drop into combat |
+| In air + no troops + dropped group nearby | Show "Land near troops to extract them (Xm away)" |
+| None of the above | "No troops onboard and no extractable troops nearby" |
 
 ---
 
