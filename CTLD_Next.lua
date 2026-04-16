@@ -7569,11 +7569,10 @@ function CTLDTroopManager:extract(unit)
     self:_removeFromDropped(coalition, nearest.groupName)
     nearest.group:destroy()
 
-    self:_updateWeight(unitName)
+    pcall(self._updateWeight, self, unitName)
 
-    trigger.action.outTextForCoalition(coalition,
-        ctld.tr("%1 extracted [%2] from combat.",
-            self:_callsign(unit), nearest.groupName), 10)
+    trigger.action.outTextForGroup(unit:getGroup():getID(),
+        ctld.tr("Extracted [%1] (%2 troops).", nearest.groupName, groupSize), 10)
 
     ctld.utils.log("INFO", "extract: '%s' extracted group '%s' (%d units)",
         unitName, nearest.groupName, groupSize)
@@ -7800,7 +7799,17 @@ function CTLDTroopManager:_menuUnloadOrExtract(unit)
         return
     end
 
-    -- No troops, not in air, no nearby group
+    -- In air, no troops: check if there are groups to extract nearby (hint to land)
+    if inAir then
+        local nearest = self:_findNearestDropped(unit, coalition)
+        if nearest then
+            trigger.action.outTextForGroup(unit:getGroup():getID(),
+                ctld.tr("Land near troops to extract them (%1m away).", math.floor(nearest.distM)), 10)
+            return
+        end
+    end
+
+    -- No troops, on ground, no nearby group
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("No troops onboard and no extractable troops nearby."), 10)
 end
