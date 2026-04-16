@@ -43,7 +43,8 @@ CTLDTroopZone = class()
 -- @param data table
 --   Required : dcsName, zoneName, coalition, center (vec3), radius
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
---              smoke (trigger.smokeColor.* or -1), active
+--              smoke (trigger.smokeColor.* or -1), active,
+--              isWaypoint (bool), isDropoff (bool)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
@@ -61,6 +62,11 @@ function CTLDTroopZone:init(data)
     self.objectiveFlag    = data.objectiveFlag   -- nil | string
     self.objectiveTarget  = data.objectiveTarget -- nil | number
 
+    -- WPZ: troops deployed inside march to zone center
+    self.isWaypoint = data.isWaypoint or false
+    -- DOZ: AI transport landing here auto-deploys its troops
+    self.isDropoff  = data.isDropoff  or false
+
     self.smoke  = (data.smoke ~= nil) and data.smoke or -1
     self.active = (data.active ~= nil) and data.active or true
 end
@@ -73,6 +79,16 @@ end
 --- True if this zone acts as an extract / objective zone.
 function CTLDTroopZone:hasExtract()
     return self.objectiveFlag ~= nil
+end
+
+--- True if this zone redirects deployed troops toward its center (WPZ).
+function CTLDTroopZone:hasWaypoint()
+    return self.isWaypoint == true
+end
+
+--- True if this zone is an AI auto-drop point (DOZ).
+function CTLDTroopZone:hasDropoff()
+    return self.isDropoff == true
 end
 
 --- True if point is inside the zone (circular or polygonal).
@@ -235,6 +251,8 @@ function CTLDZoneManager:init()
 
     self:_validateZoneNames()
     self:_discoverTRZ()
+    self:_discoverDOZ()
+    self:_discoverWPZ()
     self:_discoverLGZ()
     self:_loadLegacyZones()
     self:_scheduleSmoke()
@@ -334,6 +352,24 @@ function CTLDZoneManager:_parseLGZ(name)
     return { name = lgzName, coalition = coalitionId }
 end
 
+-- Parse DOZ_name_[R|B|N]  (AI auto-drop zone)
+-- Parse WPZ_name_[R|B|N]  (waypoint zone — troops march to center)
+-- Shared logic: prefix must match, second field = zoneName, optional third = coalition.
+local function _parseSimpleZone(prefix, name)
+    local parts = _split(name, "_")
+    if parts[1] ~= prefix then return nil, "wrong prefix" end
+    local zoneName = parts[2]
+    if not zoneName then return nil, "missing zoneName" end
+    local coalitionId = 0
+    if     parts[3] == "R" then coalitionId = coalition.side.RED
+    elseif parts[3] == "B" then coalitionId = coalition.side.BLUE
+    elseif parts[3] == "N" then coalitionId = coalition.side.NEUTRAL end
+    return { zoneName = zoneName, coalition = coalitionId }
+end
+
+function CTLDZoneManager:_parseDOZ(name) return _parseSimpleZone("DOZ", name) end
+function CTLDZoneManager:_parseWPZ(name) return _parseSimpleZone("WPZ", name) end
+
 -- ============================================================
 -- Discovery
 -- ============================================================
@@ -400,6 +436,60 @@ function CTLDZoneManager:_discoverLGZ()
     end
 end
 
+function CTLDZoneManager:_discoverDOZ()
+    if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
+    for _, zd in pairs(env.mission.triggers.zones) do
+        local name = zd.name or ""
+        if string.sub(name, 1, 4) == "DOZ_" then
+            local parsed, err = self:_parseDOZ(name)
+            if not parsed then
+                ctld.utils.log("WARN", "CTLDZoneManager: cannot parse DOZ '%s': %s", name, tostring(err))
+            elseif not self._troopZones[parsed.zoneName] then
+                local zone = CTLDTroopZone:new({
+                    dcsName   = name,
+                    zoneName  = parsed.zoneName,
+                    coalition = parsed.coalition,
+                    center    = _buildCenter(zd),
+                    radius    = zd.radius or 500,
+                    verticies = zd.verticies or nil,
+                    isDropoff = true,
+                    active    = true,
+                })
+                self._troopZones[parsed.zoneName] = zone
+                ctld.utils.log("INFO", "CTLDZoneManager: DOZ '%s' coalition=%d",
+                    parsed.zoneName, parsed.coalition)
+            end
+        end
+    end
+end
+
+function CTLDZoneManager:_discoverWPZ()
+    if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
+    for _, zd in pairs(env.mission.triggers.zones) do
+        local name = zd.name or ""
+        if string.sub(name, 1, 4) == "WPZ_" then
+            local parsed, err = self:_parseWPZ(name)
+            if not parsed then
+                ctld.utils.log("WARN", "CTLDZoneManager: cannot parse WPZ '%s': %s", name, tostring(err))
+            elseif not self._troopZones[parsed.zoneName] then
+                local zone = CTLDTroopZone:new({
+                    dcsName    = name,
+                    zoneName   = parsed.zoneName,
+                    coalition  = parsed.coalition,
+                    center     = _buildCenter(zd),
+                    radius     = zd.radius or 500,
+                    verticies  = zd.verticies or nil,
+                    isWaypoint = true,
+                    active     = true,
+                })
+                self._troopZones[parsed.zoneName] = zone
+                ctld.utils.log("INFO", "CTLDZoneManager: WPZ '%s' coalition=%d",
+                    parsed.zoneName, parsed.coalition)
+            end
+        end
+    end
+end
+
 -- ============================================================
 -- Legacy fallback
 -- ============================================================
@@ -428,7 +518,7 @@ function CTLDZoneManager:_loadLegacyZones()
         end
     end
 
-    -- dropOffZones → CTLDTroopZone (no pickup, no flag — RTB marker)
+    -- dropOffZones → CTLDTroopZone (AI auto-drop marker)
     for _, zd in pairs(ctld.gs("dropOffZones") or {}) do
         local trig = trigger.misc.getZone(zd[1])
         if trig and not self._troopZones[zd[1]] then
@@ -438,16 +528,17 @@ function CTLDZoneManager:_loadLegacyZones()
                 smoke = _TROOP_SMOKE_COLOR[n] or -1
             end
             self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName = zd[1], zoneName = zd[1],
+                dcsName   = zd[1], zoneName = zd[1],
                 coalition = tonumber(zd[3]) or 0,
                 center    = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
                 radius    = trig.radius,
+                isDropoff = true,
                 smoke     = smoke, active = true,
             })
         end
     end
 
-    -- wpZones → CTLDTroopZone (waypoint marker)
+    -- wpZones → CTLDTroopZone (waypoint: troops march to center)
     for _, zd in pairs(ctld.gs("wpZones") or {}) do
         local trig = trigger.misc.getZone(zd[1])
         if trig and not self._troopZones[zd[1]] then
@@ -457,12 +548,13 @@ function CTLDZoneManager:_loadLegacyZones()
                 smoke = _TROOP_SMOKE_COLOR[n] or -1
             end
             self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName = zd[1], zoneName = zd[1],
-                coalition = tonumber(zd[4]) or 0,
-                center    = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
-                radius    = trig.radius,
-                smoke     = smoke,
-                active    = (zd[3] == "yes" or zd[3] == 1),
+                dcsName    = zd[1], zoneName = zd[1],
+                coalition  = tonumber(zd[4]) or 0,
+                center     = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
+                radius     = trig.radius,
+                isWaypoint = true,
+                smoke      = smoke,
+                active     = (zd[3] == "yes" or zd[3] == 1),
             })
         end
     end
@@ -682,6 +774,37 @@ function CTLDZoneManager:getTroopZoneForUnit(unitName)
     return self:getTroopZoneAtPoint(unit:getPoint(), unit:getCoalition())
 end
 
+--- Return the active WPZ zone containing point for the given coalition, or nil.
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getWaypointZoneAt(point, coalition)
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasWaypoint()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            return zone
+        end
+    end
+    return nil
+end
+
+--- Return the active DOZ zone containing point for the given coalition, or nil.
+-- Used by AI transport auto-drop logic.
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getDropoffZoneAt(point, coalition)
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasDropoff()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            return zone
+        end
+    end
+    return nil
+end
+
 -- ============================================================
 -- Query API — LogisticZones
 -- ============================================================
@@ -857,6 +980,16 @@ function CTLDZoneManager:_validateZoneNames()
             local parsed, err = self:_parseTRZ(name)
             if not parsed then
                 errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
+            end
+        elseif string.sub(name, 1, 4) == "DOZ_" then
+            local parsed, err = self:_parseDOZ(name)
+            if not parsed then
+                errors[#errors + 1] = "  DOZ ERROR '" .. name .. "': " .. tostring(err)
+            end
+        elseif string.sub(name, 1, 4) == "WPZ_" then
+            local parsed, err = self:_parseWPZ(name)
+            if not parsed then
+                errors[#errors + 1] = "  WPZ ERROR '" .. name .. "': " .. tostring(err)
             end
         elseif string.sub(name, 1, 4) == "LGZ_" then
             local parsed = self:_parseLGZ(name)

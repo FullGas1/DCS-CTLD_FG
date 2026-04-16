@@ -564,6 +564,35 @@ function CTLDTroopManager:deploy(unit)
             -- Signal: CTLDJtacManager will handle laser attribution when built
             ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s'", dcsGroup:getName())
         end
+
+        -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
+        local wpzZone = CTLDZoneManager.getInstance():getWaypointZoneAt(pt, group.coalitionId)
+        if wpzZone then
+            local dest    = wpzZone:getCenter()
+            local wpFrom  = ctld.utils.buildWP("TroopManager.deploy.WPZ", pt,   'Off Road', 50)
+            local wpDest  = ctld.utils.buildWP("TroopManager.deploy.WPZ", dest, 'Off Road', 50)
+            if wpFrom and wpDest then
+                local mission = {
+                    id = 'Mission',
+                    params = { route = { points = { wpFrom, wpDest } } },
+                }
+                local grpName = dcsGroup:getName()
+                -- Delay 2 s: DCS group controller may be empty immediately after spawn
+                timer.scheduleFunction(function(arg)
+                    local grp = Group.getByName(arg.grpName)
+                    if not grp or not grp:isExist() then return end
+                    local ctrl = grp:getController()
+                    ctrl:setOption(AI.Option.Ground.id.ALARM_STATE,
+                                   AI.Option.Ground.val.ALARM_STATE.AUTO)
+                    ctrl:setOption(AI.Option.Ground.id.ROE,
+                                   AI.Option.Ground.val.ROE.OPEN_FIRE)
+                    ctrl:setTask(arg.mission)
+                end, { grpName = grpName, mission = mission }, timer.getTime() + 2)
+                ctld.utils.log("INFO",
+                    "deploy: WPZ '%s' — group '%s' ordered to march to zone center",
+                    wpzZone.zoneName, grpName)
+            end
+        end
     end
 
     -- Confirm message
@@ -1069,16 +1098,18 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    -- One "Load Troops from <zone>" per TRZ accessible to this coalition
+    -- One "Load Troops from <zone>" per pickup-capable zone accessible to this coalition
     local zones = CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)
     for _, zone in ipairs(zones) do
-        local zName = zone.name
-        menu:addCommand({ root, troopSub },
-            string.format(ctld.tr("Load from %s"), zName),
-            function(arg)
-                CTLDTroopManager.getInstance():loadFromZone(arg.unitName, arg.zoneName)
-            end,
-            { unitName = playerObj.unitName, zoneName = zName })
+        if zone:hasPickup() then
+            local zName = zone.name
+            menu:addCommand({ root, troopSub },
+                string.format(ctld.tr("Load from %s"), zName),
+                function(arg)
+                    CTLDTroopManager.getInstance():loadFromZone(arg.unitName, arg.zoneName)
+                end,
+                { unitName = playerObj.unitName, zoneName = zName })
+        end
     end
 
     -- Parachute Troops: only if canParachute=true for this unit type
