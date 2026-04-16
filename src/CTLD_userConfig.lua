@@ -929,3 +929,25 @@ local _cfg = CTLDConfig.get()
 --     "MQ",      -- MQ-9 Reaper drone
 --     "RQ",      -- RQ-1A Predator drone
 -- }
+
+-- ============================================================
+-- AUTO-START
+-- Boots all CTLD singletons after config is applied.
+-- Set ctld.dontInitialize = true in your mission script BEFORE
+-- loading CTLD_Next.lua if you need to call ctld.initialize()
+-- manually (e.g. to run additional setup between loading and starting).
+-- ============================================================
+
+---@diagnostic disable-next-line: lowercase-global
+function ctld.initialize()
+    ctld.utils.initLog()
+    CTLDPlayerManager.getInstance()
+    CTLDCoreManager.getInstance()
+    ctld.utils.log("INFO", "CTLD initialized.")
+end
+
+if ctld.dontInitialize then
+    ctld.utils.log("INFO", "CTLD auto-start skipped (ctld.dontInitialize=true). Call ctld.initialize() manually.")
+else
+    ctld.initialize()
+end
