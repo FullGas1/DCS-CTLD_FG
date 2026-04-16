@@ -1,7 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ==================================================================
+-- ====================================================================================================
 -- Start : lib/class.lua
 ---@diagnostic disable
 -- class.lua
@@ -41,7 +41,7 @@ function class(base)
 end
 
 -- End : lib/class.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_config.lua
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
@@ -1191,7 +1191,7 @@ CTLDConfig.reset()  -- class method (dot notation)
 ]] --
 
 -- End : CTLD_config.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_i18n.lua
 --[[
     CTLD — Internationalization class (CTLDi18n)
@@ -1412,7 +1412,7 @@ end
 --]]
 
 -- End : CTLD_i18n.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
@@ -1714,7 +1714,7 @@ ctld.i18n["en"]["RECON"] = "RECON"
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
 
 -- End : CTLD_i18n_en.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
@@ -2010,7 +2010,7 @@ ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
 ctld.i18n["fr"]["→ Next Page"] = ""
 
 -- End : CTLD_i18n_fr.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
@@ -2307,7 +2307,7 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 ctld.i18n["es"]["→ Next Page"] = ""
 
 -- End : CTLD_i18n_es.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
 --[[
     CTLD — Korean dictionary
@@ -2606,7 +2606,7 @@ ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
 
 -- End : CTLD_i18n_ko.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_utils.lua
 ---@diagnostic disable
 -- CTLD_utils.lua
@@ -4415,7 +4415,7 @@ function ctld.logError(fmt, ...)
 end
 
 -- End : CTLD_utils.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_menu.lua
 ---@diagnostic disable
 -- CTLD_menu.lua
@@ -4944,7 +4944,7 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
 end
 
 -- End : CTLD_menu.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : lib/CTLD_objectRegistry.lua
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
@@ -5369,7 +5369,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
 end
 
 -- End : lib/CTLD_objectRegistry.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : lib/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
@@ -5424,7 +5424,7 @@ CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
 
 -- End : lib/CTLDParachuteEffect.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
@@ -5849,7 +5849,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 
 
 -- End : CTLD_sceneManager.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_zone.lua
 -- ============================================================
 -- CTLD_zone.lua
@@ -6729,7 +6729,7 @@ function CTLDZoneManager:_validateZoneNames()
 end
 
 -- End : CTLD_zone.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_troop.lua
 -- ============================================================
 -- CTLD_troop.lua
@@ -8121,7 +8121,7 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
 end
 
 -- End : CTLD_troop.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_crate.lua
 -- ============================================================
 -- CTLD_crate.lua
@@ -9321,7 +9321,7 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
 end
 
 -- End : CTLD_crate.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_vehicle.lua
 -- ============================================================
 -- CTLD_vehicle.lua
@@ -10188,7 +10188,7 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
 end
 
 -- End : CTLD_vehicle.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_fob.lua
 -- ============================================================
 -- CTLD_fob.lua
@@ -10672,7 +10672,7 @@ function CTLDFOBManager:listFOBs(transport)
 end
 
 -- End : CTLD_fob.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_aasystem.lua
 -- ============================================================
 -- CTLD_aasystem.lua
@@ -11372,7 +11372,7 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
 end
 
 -- End : CTLD_aasystem.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_beacon.lua
 -- ============================================================
 -- CTLD_beacon.lua
@@ -12191,7 +12191,7 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
 end
 
 -- End : CTLD_beacon.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_recon.lua
 -- ============================================================
 -- CTLD_recon.lua
@@ -13071,7 +13071,7 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
 end
 
 -- End : CTLD_recon.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_jtac.lua
 -- ============================================================
 -- CTLD_jtac.lua
@@ -14155,7 +14155,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
 end
 
 -- End : CTLD_jtac.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_player.lua
 ---@diagnostic disable
 -- ============================================================
@@ -14502,7 +14502,7 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 end
 
 -- End : CTLD_player.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
@@ -14908,7 +14908,7 @@ function CTLDCoreManager:_isJTACGroup(group)
 end
 
 -- End : CTLD_core.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : scenes/CTLD_farpScene.lua
 ---@diagnostic disable
 -- CTLD_farpScene.lua
@@ -15012,7 +15012,7 @@ farpScene.steps = {
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
 
 -- End : scenes/CTLD_farpScene.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : scenes/CTLD_fobScene.lua
 ---@diagnostic disable
 -- ============================================================
@@ -15115,7 +15115,7 @@ fobScene.steps = {
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
 
 -- End : scenes/CTLD_fobScene.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : scenes/CTLD_mineFieldScene.lua
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
@@ -15383,7 +15383,7 @@ end
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
 
 -- End : scenes/CTLD_mineFieldScene.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : compat/legacy_api.lua
 -- ============================================================
 -- src/compat/legacy_api.lua
@@ -15565,7 +15565,7 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
 end
 
 -- End : compat/legacy_api.lua
--- ==================================================================
+-- ====================================================================================================
 -- Start : CTLD_userConfig.lua
 -- ============================================================
 -- CTLD_userConfig.lua

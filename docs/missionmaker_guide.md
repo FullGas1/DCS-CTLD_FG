@@ -287,58 +287,13 @@ ctld.i18n_overrides = {
 
 Overrides are applied at startup on top of the built-in dictionaries. You can override any language independently of the active language selector.
 
-### Translator audit API
-
-Two functions are available in `CTLD_i18n.lua` to audit dictionary completeness without running a full DCS mission. They are intended for translators and CI pipelines.
-
-#### `ctld.i18n_audit(language)`
-
-Compares a single language dictionary against the EN reference.
-
-Returns a table:
-
-```lua
-{
-    version_match  = bool,   -- true if lang version == EN version
-    en_version     = string, -- EN translation_version value
-    lang_version   = string, -- target language translation_version value
-    missing        = {},     -- keys present in EN but absent in the target lang
-    untranslated   = {},     -- keys present in both dicts with identical values
-}
-```
-
-Returns `nil, errorMessage` if the language code is unknown.
-
-#### `ctld.i18n_auditAll()`
-
-Runs `ctld.i18n_audit()` for every loaded non-English language and returns a table keyed by language code:
-
-```lua
-{ fr = { ... }, es = { ... }, ko = { ... } }
-```
-
-#### Usage example
-
-A ready-to-use snippet is commented out at the bottom of `src/CTLD_i18n.lua`. Uncomment it, run it as a DO SCRIPT trigger after CTLD_Next.lua loads, and read the output in `DCS.log`.
-
-The output format is:
-
-```
-=== i18n audit: lang=fr  EN_v=1.8  lang_v=1.8  version_match=true
-  MISSING (0):
-  UNTRANSLATED (2):
-    ~ Standard Group
-    ~ Anti Tank
-```
-
 ### Adding a new language
 
 1. Create `src/CTLD_i18n_XX.lua` following the English file as a template.
-2. Add `CTLD_i18n_XX.lua` to `tools/merger_V2/listToMerge.txt` (after the other dict files).
-3. Rerun `tools/merger_V2/generate_loader.ps1` to update the dev loader.
-4. Activate the new language in `src/CTLD_i18n.lua`.
-5. Run `tools/merger_V2/generate_i18n_dicts.ps1` to check for missing keys.
-6. Use `ctld.i18n_auditAll()` in-mission to verify completeness.
+2. Add `CTLD_i18n_XX.lua` to `merger_V2/listToMerge.txt` (after the other dict files).
+3. Rerun `merger_V2/generate_loader.cmd` to update the dev loader.
+4. Activate the new language in `CTLD_i18n.lua`.
+5. Run `merger_V2/generate_i18n_dicts.ps1` to check for missing keys.
 
 ---
 
@@ -449,127 +404,128 @@ CTLD reads all trigger zone names at mission start, parses those that match a kn
 
 ### 4.2 Zone types and schemas
 
+Two zone prefixes are recognised by CTLD and auto-discovered from DCS trigger zone names:
+
 | Prefix | Zone type | Schema |
 |---|---|---|
-| `PKZ` | Pickup zone (troops) | `PKZ_name_smoke_limit_active_side` |
-| `DOZ` | Drop-off zone | `DOZ_name_smoke_side` |
-| `WPZ` | Waypoint zone | `WPZ_name_smoke_active_side` |
-| `EXZ` | Extract zone | `EXZ_name_smoke` |
-| `LGZ` | Logistic zone | `LGZ_name_side` |
+| `TRZ` | Troop zone (pickup and/or extract objective) | `TRZ_name_[R/B/N]_[stock]_[flag]_[target]` |
+| `LGZ` | Logistic zone (crate/vehicle services) | `LGZ_name_[R/B/N]` |
 
-**Parameter values:**
+**Coalition parameter (`R|B|N`):**
 
-| Parameter | Values |
+| Value | Coalition |
 |---|---|
-| `smoke` | `-1` none · `0` green · `1` red · `2` white · `3` orange · `4` blue |
-| `limit` | `-1` unlimited · or any integer ≥ 1 |
-| `active` | `1` active · `0` inactive at start |
-| `side` | `0` both · `1` red · `2` blue |
+| `R` | RED only |
+| `B` | BLUE only |
+| `N` | Neutral |
+| *(omit)* | All coalitions |
 
-> **Uniqueness:** two zones of the same prefix cannot share the same `name`. CTLD will report a conflict at startup.
+> **Uniqueness:** two zones of the same prefix cannot share the same `name`.
 
 ---
 
-### 4.3 PKZ — Pickup zone (troops only)
+### 4.3 TRZ — Troop zone
 
-Players must land inside a pickup zone to load troops into their aircraft. The zone has a group limit: once depleted, no more troops can be loaded from it until groups are returned (unload inside the zone) or the counter is reset by a mission trigger.
+A troop zone combines pickup and/or extract-objective functions in a single trigger zone. Fields are **position-based** and all optional after the name.
 
-**Schema:** `PKZ_name_smoke_limit_active_side`
+**Schema:** `TRZ_name_[R/B/N]_[stock]_[flag]_[target]`
 
-| Example name | Meaning |
-|---|---|
-| `PKZ_base1_0_-1_1_2` | Pickup zone "base1", green smoke, unlimited, active, blue only |
-| `PKZ_fob2_-1_5_1_0` | Pickup zone "fob2", no smoke, max 5 groups, active, both sides |
-| `PKZ_staging_1_10_0_1` | Pickup zone "staging", red smoke, max 10 groups, **inactive at start**, red only |
-
-> An inactive zone (`active=0`) can be activated at runtime via a DCS trigger calling:
-> ```lua
-> CTLDZoneManager.getInstance():setZoneActive("staging", "pickup", true)
-> ```
-
----
-
-### 4.4 DOZ — Drop-off zone
-
-Marks a designated drop-off area. Triggers automatic troop unload for AI transport aircraft that land inside. Human players see a smoke signal marking the zone.
-
-**Schema:** `DOZ_name_smoke_side`
-
-| Example name | Meaning |
-|---|---|
-| `DOZ_objective1_0_2` | Drop-off "objective1", green smoke, blue only |
-| `DOZ_frontline_-1_0` | Drop-off "frontline", no smoke, both sides |
-
----
-
-### 4.5 WPZ — Waypoint zone
-
-When troops are deployed (fast-rope or unload) at a point that falls **inside** an active waypoint zone, they automatically march toward the **centre** of the zone instead of searching for the nearest enemy. Use this to direct freshly deployed troops toward a tactical objective.
-
-**Schema:** `WPZ_name_smoke_active_side`
-
-| Example name | Meaning |
-|---|---|
-| `WPZ_hill47_3_1_2` | Waypoint zone "hill47", orange smoke, active, blue only |
-| `WPZ_bridge_-1_0_0` | Waypoint zone "bridge", no smoke, inactive at start, both sides |
-
-> Activate or deactivate a waypoint zone at runtime to redirect troops during a mission phase:
-> ```lua
-> CTLDZoneManager.getInstance():setZoneActive("bridge", "waypoint", true)
-> ```
-
----
-
-### 4.6 EXZ — Extract zone
-
-An extract zone silently **counts** the troops dropped inside it and stores the total in a DCS flag, instead of spawning them into combat. Use this as a mission scoring or phase-trigger mechanism.
-
-**Schema:** `EXZ_name_smoke`
-
-**Flag name:** automatically generated as `NAME_FLG` (uppercased).
-
-| Example name | DCS flag created | Meaning |
+| Field | Type | Description |
 |---|---|---|
-| `EXZ_recup1_-1` | `RECUP1_FLG` | Extract zone "recup1", no smoke. Flag counts evacuated troops. |
-| `EXZ_cas2_0` | `CAS2_FLG` | Extract zone "cas2", green smoke. |
+| `name` | string | Zone identifier — no underscores |
+| `R / B / N` | letter | Coalition restriction (omit = all) |
+| `stock` | integer | Max pickup groups: `0` = unlimited, `>0` = limited, *omit* = no pickup (extract-only) |
+| `flag` | string | DCS flag name to increment when troops are deployed here — no underscores |
+| `target` | integer | Troop count that marks the objective complete |
 
-> In the Mission Editor, use a **ONCE** condition trigger: `Flag RECUP1_FLG >= 20` to fire an action when 20 troops have been evacuated.
+**Parser rules (left-to-right, greedy):**
 
-> The flag starts at 0 when the mission loads. Each troop dropped in the zone increments it by 1.
-
----
-
-### 4.7 LGZ — Logistic zone
-
-Defines a logistics base. Players must be inside a logistic zone to spawn crates from the F10 menu. Logistic zone resources are **unlimited** (only rate-limited: one crate every 40 seconds per player). The zone radius is set directly in the DCS trigger zone editor.
-
-**Schema:** `LGZ_name_side`
+1. First field after name that is `R`, `B`, or `N` → coalition
+2. First number after that → stock
+3. First non-number string after that → flag name
+4. First number after flag → target
 
 | Example name | Meaning |
 |---|---|
-| `LGZ_depot1_2` | Logistic zone "depot1", blue only |
-| `LGZ_farp_main_0` | Logistic zone "farp_main"… **INVALID** — `_` is forbidden inside `name`. Use `LGZ_farpmain_0` instead. |
+| `TRZ_base1_B_0` | BLUE pickup zone "base1", unlimited stock |
+| `TRZ_fob2_B_5` | BLUE pickup zone "fob2", max 5 groups |
+| `TRZ_staging_R_10` | RED pickup zone "staging", max 10 groups |
+| `TRZ_lz1_B_0_OBJ1_20` | BLUE pickup + extract: flag "OBJ1" counts troops, objective at 20 |
+| `TRZ_shared` | All-coalition pickup zone, unlimited stock |
+
+> **Smoke signals:** troop zone smoke is configured globally via `troopZoneSmokeColor` config, not per zone name.
+> **Zone activation:** zones are active at mission start. Activate or deactivate at runtime: `CTLDZoneManager.getInstance():activate("base1")` / `:deactivate("base1")`.
+
+---
+
+### 4.4 LGZ — Logistic zone
+
+Defines a logistics base. Players must be inside a logistic zone to spawn crates from the F10 menu. Resources are unlimited (rate-limited to one crate per 40 seconds per player). Zone radius is set in the DCS trigger zone editor.
+
+**Schema:** `LGZ_name_[R|B|N]`
+
+| Example name | Meaning |
+|---|---|
+| `LGZ_depot1_B` | Logistic zone "depot1", BLUE only |
+| `LGZ_farmmain_R` | Logistic zone "farmmain", RED only |
+| `LGZ_shared` | Logistic zone open to all coalitions |
+
+> **Rule:** `_` is forbidden inside `name`. Use `farmmain` not `farp_main`.
 
 > **FOBs** deployed during the mission automatically register as logistic zones — no configuration needed.
 
 ---
 
-### 4.8 Startup validation report
+### 4.5 Legacy zone configuration (backward compatibility)
 
-At mission start, CTLD checks all trigger zone names and produces a **single merged report** if any issues are found. The report appears as an in-game message (visible in the Mission Editor when running a test) and is written to the DCS log.
+Missions using the classic CTLD v1 approach (zone names in config tables, not DCS trigger name parsing) are still supported. Declare zones in `CTLD_userConfig.lua` using the config tables below. The `_` character is allowed in zone names here — these are plain DCS trigger zone names, not parsed schemas.
 
-Example report:
+**Pickup zones** (`pickupZones`):
+
+```lua
+-- { "DCS zone name", "smoke color", limit, "active", side }
+-- smoke color: "none"|"green"|"red"|"white"|"orange"|"blue"
+-- limit: -1 = unlimited, or any integer >= 1
+-- active: "yes" | "no"
+-- side: 0 = both, 1 = RED, 2 = BLUE
+ctld.pickupZones = {
+    { "pickzone1",  "blue",  -1, "yes", 0 },
+    { "pickzone2",  "red",   -1, "yes", 2 },
+    { "USS Tarawa", "blue",  10, "yes", 2 },  -- ship unit name also accepted
+}
 ```
-[CTLD] Zone name validation report — 2 issue(s):
-  ERROR PKZ_base1_blue_X_1_2          expected 6 fields (prefix_name_smoke_limit_active_side), got 6
-  ERROR EXZ_recup1_-1                 duplicate name 'recup1' for prefix EXZ (flag conflict: RECUP1_FLG)
+
+**Drop-off zones** (`dropOffZones`):
+
+```lua
+-- { "DCS zone name", "smoke color", side }
+ctld.dropOffZones = {
+    { "dropzone1", "green", 2 },
+    { "dropzone2", "none",  0 },
+}
 ```
 
-Fix the names in the Mission Editor and re-run. No scripting needed.
+**Waypoint zones** (`wpZones`) — deployed troops march toward the zone centre:
+
+```lua
+-- { "DCS zone name", "smoke color", "active", side }
+ctld.wpZones = {
+    { "wpzone1", "green", "yes", 2 },
+}
+```
+
+**Logistic units** (`logisticUnits`) — crate services tied to a DCS unit or static:
+
+```lua
+-- { "unit or static name", ... }
+ctld.logisticUnits = { "logistic1", "logistic2" }
+```
+
+> Legacy zones and TRZ/LGZ auto-discovered zones coexist without conflict. A zone already registered from TRZ/LGZ discovery is never overwritten by legacy config.
 
 ---
 
-### 4.9 Debug log (developers / mission testers)
+### 4.6 Debug log (developers / mission testers)
 
 Enable the dedicated CTLD log file to isolate CTLD messages from the DCS standard log:
 
@@ -591,12 +547,12 @@ CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log 
 
 ### Overview
 
-CTLD transports infantry teams between pickup zones (PKZ) and combat areas. The full cycle is:
+CTLD transports infantry teams between pickup zones (TRZ) and combat areas. The full cycle is:
 
 ```
-PKZ (load) → aircraft → combat area (fast-rope / drop)
-                      → EXZ (extraction zone, flag count only)
-                      → PKZ (return to base, restores pool)
+TRZ (load) → aircraft → combat area (fast-rope / drop)
+                      → TRZ with flag (extract objective, counts troops)
+                      → TRZ (return to base, restores pool)
 ```
 
 Troops are **never** physically on board the aircraft as DCS units — they are held in memory until deployed.
@@ -605,7 +561,7 @@ Troops are **never** physically on board the aircraft as DCS units — they are 
 
 ### F10 menu — "Troop Transport"
 
-The menu appears automatically for all transport-capable aircraft inside or near a PKZ zone.
+The menu appears automatically for all transport-capable aircraft (types listed in `unitActions` config).
 
 ```
 Troop Transport
@@ -622,8 +578,8 @@ Troop Transport
 | Condition | Action |
 |---|---|
 | On ground + friendly dropped group nearby + no troops onboard | Extract group from combat |
-| Has troops onboard + inside a PKZ zone | Return troops to base (restores zone pool) |
-| Has troops onboard + not in PKZ | Fast-rope (if conditions met) or drop into combat / EXZ |
+| Has troops onboard + inside a TRZ pickup zone | Return troops to base (restores zone pool) |
+| Has troops onboard + not in TRZ | Fast-rope (if conditions met) or drop into combat / extract zone |
 
 ---
 
@@ -708,11 +664,11 @@ If conditions are not met while airborne, CTLD refuses deployment and shows an e
 
 ---
 
-### Extract zones (EXZ)
+### Extract objective zones
 
-When troops are deployed inside an EXZ zone, **no DCS group is spawned**. Instead, the troop count is added to the zone's DCS flag. Use this to score evacuations or trigger mission phases.
+When troops are deployed inside a TRZ that has a `flag` defined, **no DCS group is spawned**. Instead, the troop count is added to the zone's DCS flag. Use this to score evacuations or trigger mission phases.
 
-See [§4.6 EXZ](#46-exz--extract-zone) for zone naming and flag conventions.
+See [§4.3 TRZ](#43-trz--troop-zone) for zone naming and flag conventions.
 
 ---
 
@@ -1097,7 +1053,7 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 | `enableCrates` | `true` | Enable the crate system |
 | `enableAllCrates` | `true` | Add "Get All Crates" shortcut entries |
 | `crateWaitTime` | `40` | Cooldown (s) between crate spawns per player |
-| `minimumDeployDistance` | `1000` | Min distance (m) from a PKZ to unpack |
+| `minimumDeployDistance` | `1000` | Min distance (m) from a friendly pickup zone to unpack |
 | `forceCrateToBeMoved` | `true` | Crate must be moved ≥ 1 m before unpack |
 | `maximumDistanceLogistic` | `200` | Max distance (m) from logistics unit to interact |
 
@@ -1178,7 +1134,7 @@ A FOB is a deployable forward base built from crates. Once built, it automatical
 1. Player loads `cratesRequiredForFOB` FOB crates (weight 1001–1003 by default) and flies to the desired location.
 2. Unpack is triggered from the F10 menu. CTLD checks that all required crates are within 750 m of each other and that the position is ≥ `fobMinDistanceFromZones` from existing zones.
 3. The FOB scene plays (structures spawn sequentially over `buildTimeFOB` seconds).
-4. When complete: a radio beacon is automatically placed at the FOB centroid, the area registers as a LGZ, and (if `troopPickupAtFOB=true`) as a PKZ.
+4. When complete: a radio beacon is automatically placed at the FOB centroid, the area registers as a LGZ, and (if `troopPickupAtFOB=true`) as a troop pickup zone.
 **Activation:** F10 → Crate Commands → Unpack Crate(s) (when FOB crates are nearby)
 
 ### 12.3 FOB destruction
