@@ -1780,3 +1780,26 @@ function ctld.utils.calcDropPosition(transport, descentRate)
 
     return { x = spawnX, y = spawnY, z = spawnZ }, descentTime
 end
+
+-- =====================================================================
+-- Convenience log shorthands — route through ctld.utils.log.
+-- These are used throughout src/ modules (CTLD_menu.lua etc.).
+-- =====================================================================
+
+---@param fmt string
+---@param ... any
+function ctld.logInfo(fmt, ...)
+    ctld.utils.log("INFO", fmt, ...)
+end
+
+---@param fmt string
+---@param ... any
+function ctld.logWarning(fmt, ...)
+    ctld.utils.log("WARNING", fmt, ...)
+end
+
+---@param fmt string
+---@param ... any
+function ctld.logError(fmt, ...)
+    ctld.utils.log("ERROR", fmt, ...)
+end
