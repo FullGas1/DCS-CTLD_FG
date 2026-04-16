@@ -594,17 +594,15 @@ function CTLDTroopManager:deploy(unit)
         end
     end
 
-    -- Confirm message
-    local method = (canFastRope and self:_isInAir(unit)) and "fast-ropped" or "dropped"
-    local dest   = exzZone
-        and ctld.tr("into %1", exzZone.zoneName)
-        or  ctld.tr("into combat")
-    trigger.action.outTextForCoalition(group.coalitionId,
-        ctld.tr("%1 %2 [%3] from %4 %5.",
-            self:_callsign(unit), method, group.templateName, unit:getTypeName(), dest), 10)
-
     self._inTransit[unitName] = nil
-    self:_updateWeight(unitName)
+    pcall(self._updateWeight, self, unitName)
+
+    -- Confirm message
+    local method = (canFastRope and self:_isInAir(unit)) and "fast-roped" or "dropped"
+    local dest   = exzZone and ctld.tr("into %1", exzZone.zoneName) or ctld.tr("into combat")
+    trigger.action.outTextForGroup(unit:getGroup():getID(),
+        ctld.tr("%1 [%2] %3.", method, group.templateName, dest), 10)
+
     return true
 end
 
@@ -628,8 +626,8 @@ function CTLDTroopManager:returnToBase(unit, zone)
         return false
     end
 
-    -- Increment zone limit (troops return to pool)
-    if zone.limit >= 0 then
+    -- Increment zone limit (troops return to pool; nil = unlimited, skip)
+    if zone.limit and zone.limit >= 0 then
         zone.limit = zone.limit + group.unitTotal
         if zone.flagName then
             trigger.action.setUserFlag(zone.flagName, zone.limit)
@@ -640,10 +638,10 @@ function CTLDTroopManager:returnToBase(unit, zone)
         unitName, group.templateName, zone.zoneName)
 
     self._inTransit[unitName] = nil
-    self:_updateWeight(unitName)
+    pcall(self._updateWeight, self, unitName)
 
     trigger.action.outTextForGroup(unit:getGroup():getID(),
-        ctld.tr("Dropped troops back to base."), 10)
+        ctld.tr("Troops returned to base."), 10)
     return true
 end
 
