@@ -80,10 +80,13 @@ ctld_test._total     = 0
 
 --- Log to both env.info and CTLD.log.
 local function _log(msg)
-    env.info("[CTLD_TEST] " .. msg)
-    -- Also write through ctld.utils if available
+    -- Route through ctld.utils.log when available — it writes to both env.info and CTLD.log.
+    -- Direct env.info is only used as fallback (before ctld.utils is loaded) to avoid
+    -- duplicate lines in dcs.log.
     if ctld.utils and ctld.utils.log then
         ctld.utils.log("TEST", msg)
+    else
+        env.info("[CTLD_TEST] " .. msg)
     end
 end
 

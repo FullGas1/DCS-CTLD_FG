@@ -977,7 +977,9 @@ function CTLDConfig:load()
         end
         return true, report
     else
-        env.info("CTLDConfig: No YAML config data found in ctld.yamlConfigDatas")
+        if self.settings["debug"] then
+            env.info("CTLDConfig: No YAML config data found in ctld.yamlConfigDatas")
+        end
     end
 
     -- Temporary: Loading old ctld settings variables for backward compatibility
