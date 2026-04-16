@@ -231,3 +231,89 @@ CTLDVehicleSpawner.getInstance():packVehicle(transportName, vehicleName, playerO
 
 The F10 "Pack Vehicle" submenu is populated automatically when the transport
 lands near a packable vehicle.
+
+---
+
+## 8. Internationalisation (i18n)
+
+### 8.1 How it works
+
+- All user-facing strings are declared via `ctld.tr("English key")`.
+- The active language is set in `src/CTLD_i18n.lua` (`ctld.i18n_lang`).
+- Dictionaries live in separate files: `CTLD_i18n_en.lua`, `CTLD_i18n_fr.lua`,
+  `CTLD_i18n_es.lua`, `CTLD_i18n_ko.lua`.
+- Fallback chain: **active lang → EN → key itself** (never returns nil/empty).
+
+### 8.2 Adding a new key
+
+1. Add `ctld.tr("My new text")` in the source file.
+2. Add the entry to `src/CTLD_i18n_en.lua` (key = value for EN).
+3. Bump `translation_version` in `CTLD_i18n_en.lua`.
+4. Run `tools/merger_V2/generate_i18n_dicts.ps1` — it propagates the new key
+   (with EN value as placeholder) to all other language files and regenerates
+   the merged loader.
+5. Translators fill in the placeholder values in their language file.
+
+### 8.3 Adding a new language
+
+1. Copy `src/CTLD_i18n_en.lua` to `src/CTLD_i18n_XX.lua`.
+2. Translate all values (keep keys identical to EN).
+3. Add `CTLD_i18n_XX.lua` to `tools/merger_V2/listToMerge.txt`.
+4. Add `ctld.i18n_lang = "XX"` as an option in `src/CTLD_i18n.lua`.
+5. Regenerate: run `generate_i18n_dicts.ps1`.
+
+### 8.4 Translator audit API
+
+These functions let scripts and tests detect gaps between EN and a target language
+without writing to `env.*`.
+
+**`ctld.i18n_audit(language)`**
+
+```lua
+---@param  language string  Language code, e.g. "fr"
+---@return table|nil result  { version_match=bool, en_version=str,
+--                             lang_version=str, missing={}, untranslated={} }
+---@return string|nil err    Non-nil when the language is unknown
+local result, err = ctld.i18n_audit("fr")
+if err then
+    -- language not loaded
+else
+    if not result.version_match then
+        -- EN bumped; FR needs update
+    end
+    -- result.missing      : keys present in EN but absent in FR
+    -- result.untranslated : keys where FR value == EN value (not translated)
+end
+```
+
+**`ctld.i18n_auditAll()`**
+
+Runs `ctld.i18n_audit()` on every loaded non-EN language.
+
+```lua
+local results = ctld.i18n_auditAll()
+-- results["fr"], results["es"], results["ko"] — each is an audit result table
+for lang, r in pairs(results) do
+    print(lang, "#missing=" .. #r.missing, "#untranslated=" .. #r.untranslated)
+end
+```
+
+**`ctld.i18n_check(language, verbose)`** *(legacy — DCS only)*
+
+Logs errors and warnings directly to `env.*`. Not suitable for assertions.
+Use `ctld.i18n_audit()` in tests and scripts.
+
+### 8.5 Mission-maker overrides
+
+Translators and mission makers can override individual entries via
+`CTLD_userConfig.lua`:
+
+```lua
+ctld.i18n_overrides = {
+    fr = {
+        ["Troops loaded"] = "Soldats embarqués",
+    }
+}
+```
+
+Overrides are applied once at startup by `CTLDi18n:_init()`.

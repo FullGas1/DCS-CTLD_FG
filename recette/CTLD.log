@@ -1,8 +1,13 @@
-[CTLD] Log started : 2026-04-16 00:36:36
-[CTLD][TEST] START  [F-102] CTLDConfig singleton reset + fresh defaults
-[CTLD][TEST]   OK     pre-reset: mutation is 99  [99 == 99]
-[CTLD][TEST]   OK     post-reset: numberOfTroops restored to default 10  [10 == 10]
-[CTLD][TEST]   OK     post-reset: maximumDistanceLogistic restored to 200  [200 == 200]
-[CTLD][TEST]   OK     post-reset: buildTimeFOB restored to 120  [120 == 120]
-[CTLD][TEST]   OK     fresh instance isLoaded == true after load()  [true == true]
-[CTLD][TEST] END    [F-102] CTLDConfig singleton reset + fresh defaults — 5/5 passed  →  OK
+[CTLD] Log started : 2026-04-16 10:29:20
+[CTLD][TEST] START  [F-105] CTLDi18n — ES and KO dictionary completeness audit
+[CTLD][TEST]   OK     es: no error  [nil]
+[CTLD][TEST]   OK     es: audit returns a table
+[CTLD][TEST]   OK     es version matches EN (EN=1.8, es=1.8)  [true == true]
+[CTLD][TEST]   OK     es has no missing keys (0 found)
+[CTLD][TEST]   OK     es has no untranslated keys (0 found)
+[CTLD][TEST]   OK     ko: no error  [nil]
+[CTLD][TEST]   OK     ko: audit returns a table
+[CTLD][TEST]   OK     ko version matches EN (EN=1.8, ko=1.8)  [true == true]
+[CTLD][TEST]   OK     ko has no missing keys (0 found)
+[CTLD][TEST]   OK     ko has no untranslated keys (0 found)
+[CTLD][TEST] END    [F-105] CTLDi18n — ES and KO dictionary completeness audit — 10/10 passed  →  OK

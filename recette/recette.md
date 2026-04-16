@@ -121,10 +121,17 @@ La mission de test doit contenir :
 | U-87 | ctld.gs() shortcut | Config | 3 clés connues + clé inconnue → nil | ✅ PASS 4/4 | — |
 | U-88 | CTLDConfig.to_type() | Config | bool/int/float/string/quotes | ✅ PASS 8/8 | — |
 | U-89 | CTLDConfig.parseYAML() | Config | k/v simple, types, dotted keys, multi-line, empty | ✅ PASS 9/9 | — |
+| U-90 | CTLDi18n — audit() exists | i18n | ctld.i18n_audit + ctld.i18n_auditAll existent et sont appelables | ✅ PASS 4/4 | — |
+| U-91 | CTLDi18n — audit() structure | i18n | audit("fr") → table avec version_match, en_version, lang_version, missing, untranslated | ✅ PASS 8/8 | — |
+| U-92 | CTLDi18n — audit() lang inconnue | i18n | audit("zz") → nil + string d'erreur contenant le code langue | ✅ PASS 4/4 | — |
+| U-93 | CTLDi18n — audit() détecte clé manquante | i18n | mock: supprimer clé FR → missing contient la clé, untranslated ne la contient pas | ✅ PASS 4/4 | — |
+| U-94 | CTLDi18n — audit() détecte clé non traduite | i18n | mock: FR[key]=EN[key] → untranslated contient la clé, missing ne la contient pas | ✅ PASS 4/4 | — |
+| U-95 | CTLDi18n — audit() détecte version mismatch | i18n | mock: FR version="0.0" → version_match=false ; restore → version_match=true | ✅ PASS 5/5 | — |
+| U-96 | CTLDi18n — auditAll() | i18n | fr+es+ko présents, "en" absent, chaque entrée a la structure attendue | ✅ PASS 14/14 | — |
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-102)
+## Section F — Tests fonctionnels (F-01 à F-105)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -233,6 +240,9 @@ La mission de test doit contenir :
 | F-100 | spawnCrate — VISUAL CHECK | Q1 | 2 statics réels (load + dynamic) ~30/60 m devant hélico, StaticObject.getByName ✅, OnCrateSpawned×2 | ✅ PASS 14/14 visual ✅ [2026-04-15] | — |
 | F-101 | CTLDConfig userConfig override | Config | ctld.yamlConfigDatas → 3 settings overridés, 1 non-overridé intact, report string | ✅ PASS 6/6 | — |
 | F-102 | CTLDConfig singleton reset + fresh defaults | Config | reset _instance → fresh load → defaults restaurés, isLoaded=true | ✅ PASS 5/5 | — |
+| F-103 | CTLDi18n — ctld.tr() fallback chain | i18n | FR→EN→key, paramètres %1/%2, langue inconnue, clé inconnue | ✅ PASS 6/6 | — |
+| F-104 | CTLDi18n — audit complet FR | i18n | audit("fr") : version_match, 0 missing (untranslated intentionnels loggés, pas d'échec) | ✅ PASS 4/4 | — |
+| F-105 | CTLDi18n — audit complet ES+KO | i18n | audit("es") + audit("ko") : version_match, 0 missing, untranslated loggés | ✅ PASS 10/10 | — |
 
 ---
 
@@ -274,7 +284,8 @@ La mission de test doit contenir :
 - **FD** : 5 unitaires + 2 fonctionnels = **7 cas** ✅ PASS (U-76→U-80 + F-88→F-89 109/109 ✅) [2026-04-14]
 - **Q1** : 3 unitaires + 7 fonctionnels = **10 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-100 100/100 ✅) [2026-04-15]
 - **Config** : 6 unitaires + 2 fonctionnels = **8 cas** ✅ PASS (U-84→U-89 46/46 + F-101→F-102 11/11 ✅) [2026-04-16]
-- **Total** : **182 cas** — 851/851 PASS ✅
+- **i18n** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-90→U-96 43/43 + F-103→F-105 20/20 ✅) [2026-04-16]
+- **Total** : **192 cas** — 914/914 PASS ✅
 
 ---
 
@@ -283,7 +294,7 @@ La mission de test doit contenir :
 | Module | Fichier source | Priorité | Notes |
 | --- | --- | --- | --- |
 | ~~**CTLD_config.lua**~~ | ~~`src/CTLD_config.lua`~~ | ~~Basse~~ | ✅ Recette complète [2026-04-16] — U-84→U-89 + F-101→F-102 |
-| **CTLD_i18n.lua** | `src/CTLD_i18n.lua` + `CTLD_i18n_en.lua` | Basse | tester ctld.tr() fallback EN, langue inconnue, clé manquante |
+| ~~**CTLD_i18n.lua**~~ | ~~`src/CTLD_i18n.lua` + `CTLD_i18n_en.lua`~~ | ~~Basse~~ | ✅ Recette complète [2026-04-16] — U-90→U-96 + F-103→F-105 |
 | ~~**CTLD_farpScene.lua**~~ | ~~`src/scenes/CTLD_farpScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-91 22/22 PASS (bugfix stepsDatas→steps) |
 | ~~**CTLD_fobScene.lua**~~ | ~~`src/scenes/CTLD_fobScene.lua`~~ | ~~Moyenne~~ | ✅ Recette complète [2026-04-14] — F-90 18/18 PASS |
 | ~~**Feature D — LoadableGroups**~~ | ~~`src/CTLD_troop.lua`~~ | ~~Haute~~ | ✅ Recette complète [2026-04-14] — U-76→U-80 + F-88→F-89 |

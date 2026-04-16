@@ -103,6 +103,52 @@ ctld.i18n_translate = ctld.tr
 -- Dictionary integrity checker
 -- =====================================================================
 
+--- Audit a language dictionary against EN.
+--- Returns a structured result table suitable for assertions in tests or scripts.
+--- Does NOT write to env.* — callers decide how to display/log the result.
+---@param language string Language code to audit (e.g. "fr")
+---@return table|nil result  { version_match=bool, en_version=str, lang_version=str, missing={}, untranslated={} }
+---@return string|nil err    non-nil when the language is unknown
+function ctld.i18n_audit(language)
+    local english = ctld.i18n["en"]
+    local tocheck = ctld.i18n[language]
+    if not tocheck then
+        return nil, string.format("CTLDi18n.audit: language '%s' not found", tostring(language))
+    end
+    local enVer   = english.translation_version or "?"
+    local langVer = tocheck.translation_version or "?"
+    local result  = {
+        version_match = (enVer == langVer),
+        en_version    = enVer,
+        lang_version  = langVer,
+        missing       = {},
+        untranslated  = {},
+    }
+    for key, enVal in pairs(english) do
+        if key ~= "translation_version" then
+            local langVal = tocheck[key]
+            if langVal == nil then
+                result.missing[#result.missing + 1] = key
+            elseif langVal == enVal then
+                result.untranslated[#result.untranslated + 1] = key
+            end
+        end
+    end
+    return result
+end
+
+--- Audit all non-English dictionaries in one call.
+--- @return table  { [lang] = audit_result, ... }  one entry per loaded non-EN language
+function ctld.i18n_auditAll()
+    local results = {}
+    for lang in pairs(ctld.i18n) do
+        if lang ~= "en" then
+            results[lang] = ctld.i18n_audit(lang)
+        end
+    end
+    return results
+end
+
 --- Check that a language dictionary is complete and version-compatible with EN.
 --- Logs errors for missing keys and warnings for untranslated entries.
 ---@param language string Language code to check (e.g. "fr")
@@ -139,3 +185,33 @@ function ctld.i18n_check(language, verbose)
         end
     end
 end
+
+-- =====================================================================
+-- Translator audit helper — call from a DO SCRIPT trigger (dev/QA only)
+-- =====================================================================
+--[[
+-- Run after CTLD_Next.lua to get a per-language gap report in DCS.log:
+--
+--   local results = ctld.i18n_auditAll()
+--   for lang, r in pairs(results) do
+--       local lines = { string.format(
+--           "=== i18n audit: lang=%s  EN_v=%s  lang_v=%s  version_match=%s",
+--           lang, r.en_version, r.lang_version, tostring(r.version_match)) }
+--       if #r.missing > 0 then
+--           lines[#lines+1] = string.format("  MISSING (%d):", #r.missing)
+--           for _, k in ipairs(r.missing) do
+--               lines[#lines+1] = "    - " .. k
+--           end
+--       end
+--       if #r.untranslated > 0 then
+--           lines[#lines+1] = string.format("  UNTRANSLATED (%d):", #r.untranslated)
+--           for _, k in ipairs(r.untranslated) do
+--               lines[#lines+1] = "    ~ " .. k
+--           end
+--       end
+--       if #r.missing == 0 and #r.untranslated == 0 then
+--           lines[#lines+1] = "  All entries translated."
+--       end
+--       env.info(table.concat(lines, "\n"))
+--   end
+--]]

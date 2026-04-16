@@ -108,15 +108,36 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `fastRopeMaximumHeight` | `18.28` | Max height (m) for fast-rope insertion |
 | `spawnRPGWithCoalition` | `true` | Spawn a friendly RPG unit with coalition forces |
 | `spawnStinger` | `false` | Spawn a Stinger/Igla soldier with groups of 6+ |
+| `allowRandomAiTeamPickups` | `false` | Allow AI transports to randomly pick up infantry teams at pickup zones |
+| `nbLimitSpawnedTroops` | `{0,0}` | Cumulative troop cap per coalition `{RED, BLUE}` — `0` = unlimited (Lua table) |
+
+#### Infantry weight simulation
+
+CTLD calculates group weight to check whether a troop group fits inside a transport (see `unitLoadLimits`). Each soldier's weight is randomised ±10–20 % around `SOLDIER_WEIGHT`, then role-specific kit is added.
+
+| Parameter | Default | Description |
+|---|---|---|
+| `SOLDIER_WEIGHT` | `80` | Base body weight per soldier (kg) |
+| `KIT_WEIGHT` | `20` | Helmet + backpack per soldier (kg) |
+| `RIFLE_WEIGHT` | `5` | Standard infantryman rifle kit (kg) |
+| `MANPAD_WEIGHT` | `18` | AA soldier MANPAD tube (kg) |
+| `RPG_WEIGHT` | `7.6` | AT soldier RPG + rocket (kg) |
+| `MG_WEIGHT` | `10` | Machine-gunner weapon + 200-round belt (kg) |
+| `MORTAR_WEIGHT` | `26` | Mortar crew tube + shells (kg) |
+| `JTAC_WEIGHT` | `15` | JTAC laser + radio + binoculars (kg) |
 
 #### FOB
 
 | Parameter | Default | Description |
 |---|---|---|
 | `enabledFOBBuilding` | `true` | Allow FOB construction from crates |
-| `cratesRequiredForFOB` | `3` | Number of large crates to build a FOB |
+| `cratesRequiredForFOB` | `3` | Number of large crates to build a FOB (small crates count as ⅓ each) |
 | `troopPickupAtFOB` | `true` | Allow troop pickup at built FOBs |
 | `buildTimeFOB` | `120` | FOB construction time (seconds) |
+| `fobMinDistanceFromZones` | `500` | Minimum distance (m) from any logistic zone at which a FOB may be deployed |
+| `fobLogisticZoneRadius` | `150` | Radius (m) of the logistic zone created around a deployed FOB |
+| `fobDestructionThreshold` | `0.5` | Fraction of scene objects destroyed before FOB is considered lost (0.0–1.0) |
+| `fobTroopPickupRadius` | `150` | Radius (m) within which troops can board at a FOB |
 | `crateWaitTime` | `40` | Cooldown between crate spawns (seconds) |
 
 #### Vehicles & packing
@@ -124,8 +145,9 @@ Each line follows the pattern `ctld.parameterName: value`.
 | Parameter | Default | Description |
 |---|---|---|
 | `enablePackingVehicles` | `true` | Allow vehicles to be packed back into crates |
-| `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports |
-| `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports |
+| `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports (Lua table) |
+| `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports (Lua table) |
+| `vehiclesWeight` | `{...}` | Weight (kg) per vehicle DCS type, used for transport capacity checks (Lua table) |
 
 #### AA systems
 
@@ -133,8 +155,8 @@ Each line follows the pattern `ctld.parameterName: value`.
 |---|---|---|
 | `AASystemLimitBLUE` | `20` | Max active AA systems for BLUE |
 | `AASystemLimitRED` | `20` | Max active AA systems for RED |
-| `AASystemCrateStacking` | `false` | Allow multiple crate sets to add extra launchers |
-| `aaLaunchers` | `3` | Default number of launchers per AA system |
+| `AASystemCrateStacking` | `false` | Allow multiple crate sets to add extra launchers (N×crates → N×launchers) |
+| `aaLaunchers` | `3` | Default number of launchers per AA system when not specified in the template |
 
 #### Beacons
 
@@ -142,7 +164,8 @@ Each line follows the pattern `ctld.parameterName: value`.
 |---|---|---|
 | `enabledRadioBeaconDrop` | `true` | Allow beacon deployment |
 | `deployedBeaconBattery` | `30` | Beacon battery life (minutes) |
-| `radioSound` | `"beacon.ogg"` | Sound file for beacon (must be added to mission) |
+| `radioSound` | `"beacon.ogg"` | Sound file for beacon (must be added to the mission .miz) |
+| `radioSoundFC3` | `"beaconsilent.ogg"` | Silent beacon file for FC3 aircraft |
 
 #### JTAC
 
@@ -152,9 +175,18 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `JTAC_LIMIT_RED` | `10` | Max JTAC crates for RED |
 | `JTAC_dropEnabled` | `true` | Allow JTAC crate spawn from F10 |
 | `JTAC_maxDistance` | `10000` | JTAC line-of-sight range (metres) |
-| `JTAC_lock` | `"all"` | Lock target type: `"vehicle"`, `"troop"`, or `"all"` |
+| `JTAC_lock` | `"all"` | Target filter: `"vehicle"` \| `"troop"` \| `"all"` |
 | `JTAC_allowStandbyMode` | `true` | Allow toggling lasing on/off |
+| `JTAC_laseSpotCorrections` | `true` | Lead moving targets — accounts for wind and target speed |
 | `JTAC_allow9Line` | `true` | Allow 9-line requests |
+| `JTAC_allowSmokeRequest` | `true` | Allow smoke-on-target requests |
+| `JTAC_smokeOn_RED` | `false` | Enable smoke marking for RED JTACs |
+| `JTAC_smokeOn_BLUE` | `false` | Enable smoke marking for BLUE JTACs |
+| `JTAC_smokeColour_RED` | `4` | RED JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue |
+| `JTAC_smokeColour_BLUE` | `1` | BLUE JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue |
+| `JTAC_smokeMarginOfError` | `50` | Max smoke placement error (metres) |
+| `jtacDroneRadius` | `1000` | Orbit radius (m) for drone JTAC units |
+| `jtacDroneAltitude` | `7000` | Orbit altitude (m) for drone JTAC units |
 
 ##### Pre-placed JTAC groups (auto-detection)
 
@@ -255,13 +287,58 @@ ctld.i18n_overrides = {
 
 Overrides are applied at startup on top of the built-in dictionaries. You can override any language independently of the active language selector.
 
+### Translator audit API
+
+Two functions are available in `CTLD_i18n.lua` to audit dictionary completeness without running a full DCS mission. They are intended for translators and CI pipelines.
+
+#### `ctld.i18n_audit(language)`
+
+Compares a single language dictionary against the EN reference.
+
+Returns a table:
+
+```lua
+{
+    version_match  = bool,   -- true if lang version == EN version
+    en_version     = string, -- EN translation_version value
+    lang_version   = string, -- target language translation_version value
+    missing        = {},     -- keys present in EN but absent in the target lang
+    untranslated   = {},     -- keys present in both dicts with identical values
+}
+```
+
+Returns `nil, errorMessage` if the language code is unknown.
+
+#### `ctld.i18n_auditAll()`
+
+Runs `ctld.i18n_audit()` for every loaded non-English language and returns a table keyed by language code:
+
+```lua
+{ fr = { ... }, es = { ... }, ko = { ... } }
+```
+
+#### Usage example
+
+A ready-to-use snippet is commented out at the bottom of `src/CTLD_i18n.lua`. Uncomment it, run it as a DO SCRIPT trigger after CTLD_Next.lua loads, and read the output in `DCS.log`.
+
+The output format is:
+
+```
+=== i18n audit: lang=fr  EN_v=1.8  lang_v=1.8  version_match=true
+  MISSING (0):
+  UNTRANSLATED (2):
+    ~ Standard Group
+    ~ Anti Tank
+```
+
 ### Adding a new language
 
 1. Create `src/CTLD_i18n_XX.lua` following the English file as a template.
-2. Add `CTLD_i18n_XX.lua` to `merger_V2/listToMerge.txt` (after the other dict files).
-3. Rerun `merger_V2/generate_loader.cmd` to update the dev loader.
-4. Activate the new language in `CTLD_i18n.lua`.
-5. Run `merger_V2/generate_i18n_dicts.ps1` to check for missing keys.
+2. Add `CTLD_i18n_XX.lua` to `tools/merger_V2/listToMerge.txt` (after the other dict files).
+3. Rerun `tools/merger_V2/generate_loader.ps1` to update the dev loader.
+4. Activate the new language in `src/CTLD_i18n.lua`.
+5. Run `tools/merger_V2/generate_i18n_dicts.ps1` to check for missing keys.
+6. Use `ctld.i18n_auditAll()` in-mission to verify completeness.
 
 ---
 

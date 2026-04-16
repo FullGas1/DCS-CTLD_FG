@@ -383,7 +383,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Player (`CTLD_player.lua`) | ✅ | ✅ | ✅ | 100% | 7/7 PASS [2026-04-07] |
 | mineFieldScene | ✅ | ✅ | ✅ | 100% | U-74→U-75 + F-83→F-87, 40/40 PASS visual ✅ [2026-04-09] — quinconce + setLandMineAuto + showMinefieldOnF10Map |
 | Scenes fob/farp | ✅ | ✅ | ✅ | 100% | F-90/F-91 visual ✅ [2026-04-14] |
-| i18n | ✅ | ✅ | N/A | — | outillage générateur ✅ |
+| i18n | ✅ | ✅ | ✅ | 100% | U-90→U-96 + F-103→F-105, 63/63 PASS [2026-04-16] — ctld.i18n_audit/auditAll, fallback chain, completeness FR/ES/KO |
 | ObjectRegistry (`lib/CTLD_objectRegistry.lua`) | ✅ | ✅ | ✅ | 100% | U-54→U-56 43/43 PASS [2026-04-08] |
 | Feature A (parachute) | ✅ | ✅ | ✅ | 100% | F-57→F-64 33/33 PASS [2026-04-08] |
 | Feature B (slingload) | ✅ | ✅ | ✅ | 100% | F-65→F-71 22/22 PASS [2026-04-08] |
