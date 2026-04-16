@@ -16523,7 +16523,7 @@ function ctld.initialize()
     CTLDFOBManager.getInstance()
     CTLDBeaconManager.getInstance()   -- registers "beacons" section
     CTLDReconManager.getInstance()    -- registers "recon" section
-    CTLDJTACManager.getInstance()     -- registers "jtac" section
+    CTLDJTACManager.get()             -- registers "jtac" section
     CTLDCrateAssemblyManager.getInstance()
     CTLDCoreManager.getInstance()     -- INIT-B (MM crates) + INIT-C (MM JTACs)
 
