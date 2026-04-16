@@ -29,6 +29,8 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [1] SYSTEM — Global switches and display options
     -- ═══════════════════════════════════════════════════════════
+    self.settings["debug"]                                = false -- if true, enables verbose logging to CTLD.log (requires non-sanitized DCS)
+    self.settings["ctldLogPath"]                          = ""    -- override log file path (default: DCS Saved Games folder); empty = default
     self.settings["CTLD_ctldStatusF10"]                   = true  -- enables F10 CTLD Status menus
     self.settings["staticBugWorkaround"]                  = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                      = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below

@@ -22,6 +22,15 @@ ctld.yamlConfigDatas = [[
 # General
 # ============================================================
 
+# Enable verbose debug logging to CTLD.log.
+# Requires a non-sanitized DCS installation (io + lfs must be available).
+# Leave false in production missions.
+# ctld.debug: false
+
+# Override the log file path (CTLD.log location).
+# Leave empty to use the default DCS Saved Games folder.
+# ctld.ctldLogPath:
+
 # Enable the CTLD status entry in the F10 menu.
 # ctld.CTLD_ctldStatusF10: true
 
