@@ -16673,6 +16673,7 @@ local _cfg = CTLDConfig.get()
 
 ---@diagnostic disable-next-line: lowercase-global
 function ctld.initialize()
+    CTLDConfig.get():load()
     ctld.utils.initLog()
 
     -- Boot all domain managers first so they can register their menu sections.
