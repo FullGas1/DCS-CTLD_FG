@@ -7347,8 +7347,8 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         countryId    = unit:getCountry(),
     })
 
-    -- Decrement zone limit and update DCS flag
-    if zone.limit > 0 then
+    -- Decrement zone limit and update DCS flag (limit=nil means unlimited)
+    if zone.limit and zone.limit > 0 then
         zone.limit = zone.limit - 1
         if zone.flagName then
             trigger.action.setUserFlag(zone.flagName, zone.limit)
