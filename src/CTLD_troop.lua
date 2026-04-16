@@ -489,13 +489,13 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         end
     end
 
-    self:_updateWeight(unitName)
-
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("Loaded: %1 (%2 troops).", template.name, template.total), 10)
 
     ctld.utils.log("INFO", "loadFromZone: '%s' loaded '%s' (%d units, %.0f kg)",
         unitName, template.name, template.total, weight)
+
+    pcall(self._updateWeight, self, unitName)
     return true
 end
 
