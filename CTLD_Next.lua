@@ -7968,7 +7968,7 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
     local zones = CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)
     for _, zone in ipairs(zones) do
         if zone:hasPickup() then
-            local zName = zone.name
+            local zName = zone.zoneName
             menu:addCommand({ root, troopSub },
                 string.format(ctld.tr("Load from %s"), zName),
                 function(arg)
