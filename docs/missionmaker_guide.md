@@ -404,14 +404,16 @@ CTLD reads all trigger zone names at mission start, parses those that match a kn
 
 ### 4.2 Zone types and schemas
 
-Two zone prefixes are recognised by CTLD and auto-discovered from DCS trigger zone names:
+Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger zone names:
 
 | Prefix | Zone type | Schema |
 |---|---|---|
-| `TRZ` | Troop zone (pickup and/or extract objective) | `TRZ_name_[R/B/N]_[stock]_[flag]_[target]` |
-| `LGZ` | Logistic zone (crate/vehicle services) | `LGZ_name_[R/B/N]` |
+| `TRZ` | Troop zone — pickup and/or extract objective | `TRZ_name_[R/B/N]_[stock]_[flag]_[target]` |
+| `DOZ` | AI drop-off zone — AI transport auto-deploys troops here | `DOZ_name_[R/B/N]` |
+| `WPZ` | Waypoint zone — troops deployed inside march to zone centre | `WPZ_name_[R/B/N]` |
+| `LGZ` | Logistic zone — crate and vehicle services | `LGZ_name_[R/B/N]` |
 
-**Coalition parameter (`R|B|N`):**
+**Coalition parameter (`R/B/N`):**
 
 | Value | Coalition |
 |---|---|
@@ -426,7 +428,7 @@ Two zone prefixes are recognised by CTLD and auto-discovered from DCS trigger zo
 
 ### 4.3 TRZ — Troop zone
 
-A troop zone combines pickup and/or extract-objective functions in a single trigger zone. Fields are **position-based** and all optional after the name.
+A troop zone provides **player pickup** and/or **extract-objective** functions. Fields are position-based and all optional after the name.
 
 **Schema:** `TRZ_name_[R/B/N]_[stock]_[flag]_[target]`
 
@@ -434,35 +436,63 @@ A troop zone combines pickup and/or extract-objective functions in a single trig
 |---|---|---|
 | `name` | string | Zone identifier — no underscores |
 | `R / B / N` | letter | Coalition restriction (omit = all) |
-| `stock` | integer | Max pickup groups: `0` = unlimited, `>0` = limited, *omit* = no pickup (extract-only) |
-| `flag` | string | DCS flag name to increment when troops are deployed here — no underscores |
+| `stock` | integer | Max pickup groups: `0` = unlimited, `>0` = limited, *omit* = no pickup |
+| `flag` | string | DCS flag name incremented when troops are deployed here — no underscores |
 | `target` | integer | Troop count that marks the objective complete |
 
 **Parser rules (left-to-right, greedy):**
 
 1. First field after name that is `R`, `B`, or `N` → coalition
-2. First number after that → stock
-3. First non-number string after that → flag name
+2. First number → stock
+3. First non-number string → flag name
 4. First number after flag → target
 
 | Example name | Meaning |
 |---|---|
 | `TRZ_base1_B_0` | BLUE pickup zone "base1", unlimited stock |
 | `TRZ_fob2_B_5` | BLUE pickup zone "fob2", max 5 groups |
-| `TRZ_staging_R_10` | RED pickup zone "staging", max 10 groups |
-| `TRZ_lz1_B_0_OBJ1_20` | BLUE pickup + extract: flag "OBJ1" counts troops, objective at 20 |
+| `TRZ_lz1_B_0_dropCtr_1` | BLUE pickup + extract: flag "dropCtr" incremented at deploy, objective at 1 |
 | `TRZ_shared` | All-coalition pickup zone, unlimited stock |
 
 > **Smoke signals:** troop zone smoke is configured globally via `troopZoneSmokeColor` config, not per zone name.
-> **Zone activation:** zones are active at mission start. Activate or deactivate at runtime: `CTLDZoneManager.getInstance():activate("base1")` / `:deactivate("base1")`.
 
 ---
 
-### 4.4 LGZ — Logistic zone
+### 4.4 DOZ — AI drop-off zone
+
+When a CTLD-managed AI transport lands inside a DOZ, it automatically deploys its troops as a combat group. Human players are not affected.
+
+**Schema:** `DOZ_name_[R/B/N]`
+
+| Example name | Meaning |
+|---|---|
+| `DOZ_obj1_B` | BLUE AI drop-off point "obj1" |
+| `DOZ_frontline` | All-coalition AI drop-off point |
+
+> **Note:** DOZ zones are reserved for future AI transport support. They are discovered and registered at startup but have no effect on human players.
+
+---
+
+### 4.5 WPZ — Waypoint zone
+
+When troops are deployed (fast-rope or ground drop) at a point that falls **inside** an active WPZ zone, they automatically march toward the **centre** of the zone instead of searching for the nearest enemy.
+
+**Schema:** `WPZ_name_[R/B/N]`
+
+| Example name | Meaning |
+|---|---|
+| `WPZ_hill47_B` | BLUE waypoint zone "hill47" |
+| `WPZ_bridge` | All-coalition waypoint zone |
+
+> WPZ zones do **not** appear in the F10 load menu — they act silently at deploy time.
+
+---
+
+### 4.6 LGZ — Logistic zone
 
 Defines a logistics base. Players must be inside a logistic zone to spawn crates from the F10 menu. Resources are unlimited (rate-limited to one crate per 40 seconds per player). Zone radius is set in the DCS trigger zone editor.
 
-**Schema:** `LGZ_name_[R|B|N]`
+**Schema:** `LGZ_name_[R/B/N]`
 
 | Example name | Meaning |
 |---|---|
@@ -476,7 +506,7 @@ Defines a logistics base. Players must be inside a logistic zone to spawn crates
 
 ---
 
-### 4.5 Legacy zone configuration (backward compatibility)
+### 4.7 Legacy zone configuration (backward compatibility)
 
 Missions using the classic CTLD v1 approach (zone names in config tables, not DCS trigger name parsing) are still supported. Declare zones in `CTLD_userConfig.lua` using the config tables below. The `_` character is allowed in zone names here — these are plain DCS trigger zone names, not parsed schemas.
 
@@ -495,7 +525,7 @@ ctld.pickupZones = {
 }
 ```
 
-**Drop-off zones** (`dropOffZones`):
+**Drop-off zones** (`dropOffZones`) — AI auto-deploy points:
 
 ```lua
 -- { "DCS zone name", "smoke color", side }
@@ -521,11 +551,11 @@ ctld.wpZones = {
 ctld.logisticUnits = { "logistic1", "logistic2" }
 ```
 
-> Legacy zones and TRZ/LGZ auto-discovered zones coexist without conflict. A zone already registered from TRZ/LGZ discovery is never overwritten by legacy config.
+> Legacy zones and auto-discovered zones (TRZ/DOZ/WPZ/LGZ) coexist without conflict. A zone already registered from trigger name discovery is never overwritten by legacy config.
 
 ---
 
-### 4.6 Debug log (developers / mission testers)
+### 4.8 Debug log (developers / mission testers)
 
 Enable the dedicated CTLD log file to isolate CTLD messages from the DCS standard log:
 
