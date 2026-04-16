@@ -121,6 +121,7 @@ end
 function CTLDTroopManager:init()
     self._inTransit        = {}              -- [unitName] = CTLDTroopGroup (LOADED or EXTRACTED)
     self._droppedGroups    = { [1]={}, [2]={} }  -- [coalition] = { groupName, ... }
+    self._droppedTemplates = {}              -- [groupName] = templateKey (for re-deploy after extract)
     self._parachuteEffect  = CTLDNullParachuteEffect:new()
     self._templates        = {}              -- mutable runtime list (standard + custom)
     self:_registerTemplates()
@@ -558,6 +559,7 @@ function CTLDTroopManager:deploy(unit)
 
         group:deploy(dcsGroup)
         table.insert(self._droppedGroups[group.coalitionId], dcsGroup:getName())
+        self._droppedTemplates[dcsGroup:getName()] = group.templateKey
 
         if group.hasJtac then
             -- Signal: CTLDJtacManager will handle laser attribution when built
@@ -690,7 +692,7 @@ function CTLDTroopManager:extract(unit)
     local hasJtac = nearest.groupName:lower():find("jtac") ~= nil
 
     self._inTransit[unitName] = CTLDTroopGroup:new({
-        templateKey  = nil,   -- extracted group has no template descriptor
+        templateKey  = self._droppedTemplates[nearest.groupName],
         templateName = nearest.groupName,
         unitTotal    = groupSize,
         weight       = weight,
@@ -888,6 +890,7 @@ function CTLDTroopManager:_removeFromDropped(coalition, groupName)
     for i, name in ipairs(list) do
         if name == groupName then
             table.remove(list, i)
+            self._droppedTemplates[groupName] = nil
             return
         end
     end
