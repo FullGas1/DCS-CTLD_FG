@@ -1,334 +1,225 @@
 # TroopZones Architecture Specification
 
 **Status**: Validated
-**Date**: 2026-03-28
-**Version**: 1.0
+**Date**: 2026-04-20
+**Version**: 2.0
 
 ## Overview
 
-Unified TroopZone architecture replacing separate PickupZones and ExtractZones systems with a single, flexible zone type supporting both troop pickup/dropoff and mission objectives.
+Unified TroopZone architecture replacing separate PickupZones and ExtractZones systems with a single, flexible zone type supporting troop pickup, mission extraction objectives, or both (mixed).
 
 ## Naming Convention
 
 ```
-TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
+TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>
 ```
 
-### Components
+**All 5 fields are required.** The parser rejects any name with missing or invalid fields.
 
-| Position | Field | Type | Required | Description |
-|----------|-------|------|----------|-------------|
-| 1 | `TRZ_` | Prefix | ✅ Yes | Zone type identifier |
-| 2 | `zoneName` | Alphanumeric | ✅ Yes | Zone identifier (no underscores, use CamelCase or hyphens) |
-| 3 | `R\|B\|N` | Coalition | ❌ Optional | **R**=RED, **B**=BLUE, **N**=NEUTRAL |
-| 4 | `pickMaxStock` | Number | ❌ Optional | Troop pickup stock (0=infinite) |
-| 5 | `flag` | String | ❌ Optional | DCS flag name for mission objective |
-| 6 | `dropMaxTarget` | Number | ❌ Optional | Soldiers required for objective completion |
+### Field Reference
 
-### Parsing Rules
+| Position | Field | Type | Values | Description |
+|----------|-------|------|--------|-------------|
+| 1 | `TRZ_` | Prefix | literal | Zone type identifier |
+| 2 | `name` | String | any (not a reserved word) | Zone identifier — no underscores |
+| 3 | `coalition` | Enum | `A` `R` `B` `N` | **A**=all, **R**=RED, **B**=BLUE, **N**=NEUTRAL |
+| 4 | `stock` | Integer 0–999 | `0`=no pickup, `1–998`=limited, `999`=unlimited | Troop boarding capacity |
+| 5 | `flag` | String | DCS flag name or `nil` | Objective flag to increment on extract; `nil`=no objective |
+| 6 | `target` | Integer ≥0 | `0`=no win condition, `N≥1`=soldier threshold | Soldiers needed to complete objective |
 
-- **Strict order**: Coalition → maxStock → flag → target
-- **Type detection**: Number before flag = maxStock, number after flag = target
-- **Coalition abbreviation**: Single letter (R/B/N) expanded to full coalition constant
+### Reserved Words
+
+These words cannot be used as `name` or (implicitly) are parsed with special meaning:
+`nil`, `A`, `R`, `B`, `N`
+
+### Stock Semantics
+
+| Name value | Meaning | Internal `pickMaxStock` |
+|------------|---------|------------------------|
+| `0` | Zone has no pickup capability | `nil` |
+| `1–998` | Limited stock (decrements on load) | `1–998` |
+| `999` | Unlimited pickup | `0` |
+
+> Use `999` for unlimited pickup — NOT `0`. `0` means "this zone cannot board troops."
+
+### Flag Semantics
+
+| Name value | Meaning | Internal `objectiveFlag` |
+|------------|---------|--------------------------|
+| `nil` | No objective flag | `nil` |
+| any string | DCS flag name, incremented by soldier count on extract | the string |
+
+### Target Semantics
+
+| Name value | Meaning | Internal `objectiveTarget` |
+|------------|---------|---------------------------|
+| `0` | No win threshold defined | `nil` |
+| `N≥1` | Soldier count required for objective completion | `N` |
+
+> CTLD only increments the flag. The mission maker defines the win condition in DCS Editor using a trigger `"if flag >= target → victory"`.
+
+## Zone Behavior
+
+A TRZ can act as:
+- **Pickup zone** (`stock > 0`): troops can board here; boarding decrements stock.
+- **Extract zone** (`flag ≠ nil`): troops deployed here increment the objective flag.
+- **Mixed zone** (both): supports both boarding and objective extract.
+- **Inert zone** (`stock=0`, `flag=nil`): parsed but no functional capability — useful as named marker.
 
 ## Examples
 
-| Zone Name | Zone Type | pickMaxStock | Objective | dropMaxTarget | Description |
-|-----------|-----------|--------------|-----------|---------------|-------------|
-| `TRZ_Base_B_50` | Pickup | 50 | - | - | BLUE pickup zone with 50 troops |
-| `TRZ_Airfield_N_0` | Pickup | ∞ | - | - | NEUTRAL infinite pickup |
-| `TRZ_Exfil_B_objRescue_100` | Extract | - | objRescue | 100 | BLUE extract zone, 100 soldiers for win |
-| `TRZ_FOB_B_30_objSecure_50` | Mixed | 30 | objSecure | 50 | BLUE pickup (30) + objective (50) |
-| `TRZ_Combat_R` | None | - | - | - | RED zone (no functionality) |
+| Zone Name | Type | Boarding | Objective | Description |
+|-----------|------|----------|-----------|-------------|
+| `TRZ_base_B_50_nil_0` | Pickup | 50 soldiers | — | BLUE pickup, limited to 50 |
+| `TRZ_depot_A_999_nil_0` | Pickup ∞ | unlimited | — | All-coalition unlimited pickup |
+| `TRZ_exfil_R_0_rescue_0` | Extract | — | flag `rescue` | RED extract, no threshold |
+| `TRZ_lz_B_0_secure_100` | Extract | — | flag `secure`, 100 soldiers | BLUE extract with win condition |
+| `TRZ_fob_N_30_defend_50` | Mixed | 30 soldiers | flag `defend`, 50 soldiers | NEUTRAL mixed zone |
+| `TRZ_marker_B_0_nil_0` | Inert | — | — | BLUE named marker, no function |
 
-## Use Cases
+### Annotated Example: `TRZ_fob_N_30_defend_50`
 
-### 1. Pickup Zone (Standard Stock)
 ```
-TRZ_MainBase_B_100
-```
-- Coalition: BLUE
-- Stock: 100 troops
-- Behavior: Load decrements stock, unload RTB restores stock + shows message
-
-### 2. Pickup Zone (Infinite Stock)
-```
-TRZ_Airfield_N_0
-```
-- Coalition: NEUTRAL
-- Stock: Infinite (0)
-- Behavior: Unlimited loading
-
-### 3. Extract Zone (Mission Objective)
-```
-TRZ_ExfilAlpha_B_objRescue_100
-```
-- Coalition: BLUE
-- Objective: flag "objRescue", target 100 soldiers
-- Behavior: Deploy increments flag by soldier count
-- Win condition: Mission Maker sets DCS trigger "if flag >= 100 → victory"
-
-### 4. Mixed Zone (Pickup + Objective)
-```
-TRZ_FOBCharlie_B_30_objSecure_50
-```
-- Coalition: BLUE
-- Stock: 30 troops (pickup)
-- Objective: flag "objSecure", target 50 soldiers
-- Behavior: Supports both load (stock) and deploy (objective)
-
-### 5. Combat Deploy (No Zone)
-```
-(no zone)
-```
-- Behavior: Deploy troops anywhere on map, no flag increment, no message
-
-## Flag Incrementation
-
-### Current Behavior (Verified)
-
-**Source**: `source/CTLD_core.lua:1648-1652`
-
-```lua
-local _droppedCount = trigger.misc.getUserFlag(_extractZone.flag)
-_droppedCount = (#_onboard.troops.units) + _droppedCount  -- Count SOLDIERS
-trigger.action.setUserFlag(_extractZone.flag, _droppedCount)
+TRZ  _  fob  _  N   _  30     _  defend  _  50
+ │       │      │      │          │          │
+ │       │      │      │          │          └─ target: 50 soldiers needed for objective
+ │       │      │      │          └──────────── flag: "defend" (DCS flag name)
+ │       │      │      └─────────────────────── stock: 30 troops max (limited)
+ │       │      └────────────────────────────── coalition: NEUTRAL
+ │       └───────────────────────────────────── name: "fob"
+ └───────────────────────────────────────────── prefix TRZ
 ```
 
-**Mode**: **+N per soldiers** (not per group, not per operation)
+### Annotated Example: `TRZ_depot_A_999_nil_0`
 
-### Implementation
+```
+TRZ  _  depot  _  A   _  999      _  nil     _  0
+                          │            │          │
+                          │            │          └─ target: 0 → no win condition
+                          │            └──────────── flag: "nil" → no objective
+                          └───────────────────────── stock: 999 → unlimited pickup
+```
 
-```lua
-function CTLDTroopZone:incrementObjective(soldierCount)
-    if not self.objectiveFlag then
-        return false
-    end
+### Annotated Example: `TRZ_lz_B_0_secure_100`
 
-    local currentValue = trigger.misc.getUserFlag(self.objectiveFlag)
-    local newValue = currentValue + soldierCount  -- +N soldiers
-
-    trigger.action.setUserFlag(self.objectiveFlag, newValue)
-
-    -- Log progress if target defined
-    if self.objectiveTarget then
-        local progress = string.format(" (%d/%d)", newValue, self.objectiveTarget)
-
-        if newValue >= self.objectiveTarget then
-            ctld.utils.log("info", string.format(
-                "OBJECTIVE COMPLETE: Flag '%s' reached target %d",
-                self.objectiveFlag, self.objectiveTarget
-            ))
-        end
-    end
-
-    return true, currentValue, newValue
-end
+```
+TRZ  _  lz  _  B    _  0         _  secure  _  100
+                        │                        │
+                        │                        └─ target: 100 soldiers needed
+                        └──────────────────────── stock: 0 → no pickup (extract-only)
 ```
 
 ## Data Structure
 
-### CTLDTroopZone Class
+### CTLDTroopZone Fields (after parsing + construction)
 
 ```lua
-CTLDTroopZone = {
-    -- Identification
-    fullName = "TRZ_FOB_B_30_objSecure_50",
-    zoneName = "FOB",
+-- Identification
+zone.dcsName         = "TRZ_fob_N_30_defend_50"  -- full DCS zone name
+zone.zoneName        = "fob"                       -- name field
 
-    -- Coalition
-    coalition = coalition.side.BLUE,  -- 0=NEUTRAL, 1=RED, 2=BLUE
+-- Coalition
+zone.coalition       = coalition.side.NEUTRAL      -- 0=all, 1=RED, 2=BLUE, 3=NEUTRAL
 
-    -- Stock management (pickup)
-    pickMaxStock = 30,         -- nil = no pickup
-    pickCurrentStock = 30,     -- Decrements on load, 0 = infinite
+-- Stock management (pickup)
+zone.pickMaxStock    = 30        -- nil = no pickup; 0 = unlimited
+zone.pickCurrentStock= 30        -- current remaining (decrements on load)
 
-    -- Mission objective (extract)
-    objectiveFlag = "objSecure",      -- nil = no objective
-    objectiveTarget = 50,             -- nil = no defined target
+-- Mission objective (extract)
+zone.objectiveFlag   = "defend"  -- nil = no objective
+zone.objectiveTarget = 50        -- nil = no defined threshold
 
-    -- Trigger zone data
-    triggerZone = DCS_TriggerZone,
-    position = {x, y, z},
-    radius = 500,
+-- Geometry
+zone.center  = { x, y, z }
+zone.radius  = 500               -- metres (circular) or nil (polygonal)
+zone.verticies = { ... } or nil  -- polygon corners
 
-    -- Visuals
-    smoke = true,
-    smokeColor = trigger.smokeColor.Blue,
-
-    -- State
-    active = true
-}
+-- Visuals / state
+zone.smoke   = trigger.smokeColor.Green or -1
+zone.active  = true
 ```
 
-### Methods
+### Key Methods
 
 ```lua
--- Check if zone allows troop loading
-function CTLDTroopZone:canLoadTroops()
-    return self.pickMaxStock == 0 or
-           (self.pickCurrentStock and self.pickCurrentStock > 0)
-end
-
--- Check if zone has mission objective
-function CTLDTroopZone:hasObjective()
-    return self.objectiveFlag ~= nil
-end
-
--- Check if zone is RTB destination
-function CTLDTroopZone:isRTBDestination()
-    return self.pickMaxStock ~= nil
-end
-
--- Decrement stock on load
-function CTLDTroopZone:decrementStock(count)
-    if self.pickMaxStock == 0 then return end  -- Infinite
-    if not self.pickCurrentStock then return end
-
-    self.pickCurrentStock = math.max(0, self.pickCurrentStock - count)
-end
-
--- Increment objective flag
-function CTLDTroopZone:incrementObjective(soldierCount)
-    -- See implementation above
-end
+zone:hasPickup()    -- true if pickMaxStock ~= nil
+zone:hasExtract()   -- true if objectiveFlag ~= nil
+zone:isInZone(pt)   -- true if point is inside zone (circular or polygon)
+zone:consumeStock(n)   -- decrement pickCurrentStock by n (noop if unlimited)
+zone:restoreStock(n)   -- restore pickCurrentStock by n (noop if unlimited)
+zone:incrementObjective(n)  -- add n to DCS flag objectiveFlag
 ```
 
-## Mission Initialization
+## F10 Menu Behavior
 
-### Automatic Zone Detection
+- **In flight**: "Troop Commands" submenu is empty (no options shown).
+- **On ground, in a TRZ with pickup**: "Load from `<zoneName>`" appears.
+- **On ground, troops onboard**: "Unload / Extract" appears.
+- **On ground, no TRZ**: no load options shown.
+
+On `S_EVENT_LAND` / `S_EVENT_TAKEOFF`, the menu branch is rebuilt dynamically based on the player's current position and cargo state.
+
+## Flag Incrementation
+
+On extract (troops deployed in a zone with `objectiveFlag`):
 
 ```lua
-function CTLDZoneManager:scanMissionTroopZones()
-    local detectedZones = {}
-
-    for _, triggerZone in pairs(env.mission.triggers.zones) do
-        local zoneName = triggerZone.name
-
-        if string.sub(zoneName, 1, 4) == "TRZ_" then
-            local parsed, error = self:parseTroopZoneName(zoneName)
-
-            if parsed then
-                local troopZone = CTLDTroopZone:new({
-                    fullName = parsed.fullName,
-                    zoneName = parsed.zoneName,
-                    coalition = parsed.coalition,
-
-                    pickMaxStock = parsed.maxStock,
-                    pickCurrentStock = parsed.maxStock,
-
-                    objectiveFlag = parsed.objectiveFlag,
-                    objectiveTarget = parsed.objectiveTarget,
-
-                    triggerZone = triggerZone,
-                    position = {x = triggerZone.x, y = triggerZone.y, z = triggerZone.z},
-                    radius = triggerZone.radius,
-
-                    smoke = true,
-                    smokeColor = trigger.smokeColor.Green,
-                    active = true
-                })
-
-                -- Initialize DCS flag if objective
-                if troopZone.objectiveFlag then
-                    trigger.action.setUserFlag(troopZone.objectiveFlag, 0)
-                end
-
-                table.insert(detectedZones, troopZone)
-            end
-        end
-    end
-
-    return detectedZones
-end
+local current = trigger.misc.getUserFlag(zone.objectiveFlag)
+trigger.action.setUserFlag(zone.objectiveFlag, current + soldierCount)
 ```
 
-## Events
+Mode: **+N per soldiers** (not per group, not per operation).
 
-### OnTroopsDeployed
+CTLD never sets the flag back to 0 at mission start — the mission maker is responsible for flag initialization in the DCS Mission Editor if needed.
 
-```lua
-EventDispatcher:publish("OnTroopsDeployed", {
-    troops = {
-        groupTemplate = "Standard Group",
-        soldierCount = 12,
-        units = {...},
-        spawnedGroup = Group#001
-    },
-    transport = Unit#123,
-    player = "PlayerName",
-    method = "menu_ctld" | "parachute" | "fast_rope",
+## Priority: Extract Before RTB
 
-    destination = {
-        type = "troop_zone_rtb"        -- Unload in stock zone (RTB)
-             | "troop_zone_objective"   -- Deploy in objective zone
-             | "combat",                -- Deploy outside zone
+When a player unloads troops, the zone type is evaluated **in this order**:
 
-        troopZone = CTLDTroopZone#001 or nil,
+1. If in a TRZ with `objectiveFlag` → **extract** (deploy troops, increment flag)
+2. If in a TRZ with pickup only → **RTB** (troops return, stock restored)
+3. Otherwise → **combat deploy** (troops deployed, no flag, no stock change)
 
-        -- Objective info (if type = troop_zone_objective)
-        objectiveFlagIncremented = true,
-        objectiveFlagName = "objRescue",
-        objectiveFlagValueBefore = 38,
-        objectiveFlagValueAfter = 50,      -- 38 + 12 soldiers
-        objectiveTarget = 100,             -- Target for win
-        objectiveProgress = "50/100"       -- Human-readable progress
-    },
+This ensures a mixed zone correctly triggers the objective when used as an extract point.
 
-    position = {x, y, z},
-    timestamp = timer.getAbsTime()
-})
-```
+## Parser Validation
 
-## Mission Maker Workflow
+The `_parseTRZ` function returns `nil, errorMessage` for any of these:
 
-### Creating Extract Zone with Objective
-
-1. **Create DCS trigger zone**: `TRZ_ExfilBravo_B_objRescue_50`
-
-2. **Flag auto-initialization**: CTLD initializes flag `objRescue` to 0 at mission start
-
-3. **Automatic incrementation**: Each soldier extracted → flag +1
-
-4. **Victory trigger** (DCS Mission Editor):
-   ```
-   CONDITION: Flag "objRescue" >= 50
-   ACTION: End Mission BLUE Victory
-   MESSAGE: "50 soldiers rescued successfully!"
-   ```
-
-### Responsibility Separation
-
-- **CTLD**: Increments flag based on soldiers extracted
-- **Mission Maker**: Defines victory condition via DCS triggers
+| Violation | Error message |
+|-----------|--------------|
+| Prefix ≠ TRZ | `"not a TRZ"` |
+| Missing or empty name | `"missing zoneName"` |
+| Name is reserved word | `"zoneName cannot be a reserved word: <word>"` |
+| Missing coalition | `"missing coalition (A|R|B|N)"` |
+| Coalition not A/R/B/N | `"invalid coalition '<x>' — expected A, R, B or N"` |
+| Stock missing / non-integer / out of 0–999 | `"invalid stock '<x>' — expected integer 0-999 ..."` |
+| Flag is a number | `"flag must be a string or 'nil', not a number"` |
+| Target missing / negative / non-integer | `"invalid target '<x>' — expected integer ≥0 ..."` |
 
 ## Migration from Legacy System
 
-### Legacy Conventions
+### Legacy conventions (source/ only — do not use in new missions)
 
-- `PKZ_Name_Max` → Pickup zones
-- `createExtractZone("name", flagNumber, smoke)` → Extract zones
+- `PKZ_Name_Max` → pickup zones
+- Separate extract zones via `createExtractZone()`
 
-### New Convention
+### New convention
 
-- `TRZ_Name_R_Max` → Pickup zone RED
-- `TRZ_Name_B_flagName_Target` → Extract zone BLUE
+All zones use `TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>`.
 
-**No automatic conversion**: Mission Maker must manually rename zones.
+**No automatic conversion** — mission makers must rename zones manually.
 
-## Validation
+### Old vs New Stock Semantics
 
-- ✅ Convention `TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]`
-- ✅ Coalition abbreviation (R/B/N)
-- ✅ Strict order: number before flag = stock, number after = target
-- ✅ Flag incrementation: +N soldiers (verified in existing code)
-- ✅ Target in zone name (auto-documentation, DCS triggers for win)
-- ✅ Unified structure replaces PickupZone + ExtractZone
-- ✅ Automatic parsing of trigger zones at startup
-- ✅ Event OnTroopsDeployed with unified destination
+| Old meaning | Old value | New value |
+|-------------|-----------|-----------|
+| Unlimited pickup | `0` | `999` |
+| No pickup | (field absent) | `0` |
+| Limited (N) | `N` | `N` (unchanged) |
 
 ## References
 
-- Memory: `project_troops_zones_architecture.md`
-- Analysis: `project_troops_system_analysis.md`
-- Events: `CTLD_Events.md`
+- Source: `src/CTLD_zone.lua` — `CTLDZoneManager:_parseTRZ()`
+- Guide: `docs/missionmaker_guide.md` §4 TroopZones
+- Tests: `recette/U-08/test.lua` (valid), `recette/U-09/test.lua` (invalid)

@@ -221,6 +221,30 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
+--- DCS S_EVENT_LAND handler — rebuild troop menu section for landing unit.
+-- Delayed 1 s: S_EVENT_LAND fires before the aircraft has fully settled,
+-- so _isInAir() may still return true at the exact moment of the event.
+function CTLDPlayerManager:onLand(event)
+    local unit = event and event.initiator
+    if not unit then return end
+    local unitName  = unit:getName()
+    local playerObj = self._players[unitName]
+    if not playerObj then return end
+    local captured = playerObj
+    timer.scheduleFunction(function()
+        CTLDTroopManager.getInstance():refreshMenuSection(captured)
+    end, nil, timer.getTime() + 1)
+end
+
+--- DCS S_EVENT_TAKEOFF handler — rebuild troop menu section for departing unit.
+function CTLDPlayerManager:onTakeoff(event)
+    local unit = event and event.initiator
+    if not unit then return end
+    local playerObj = self._players[unit:getName()]
+    if not playerObj then return end
+    CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+end
+
 --- Register a menu section contributed by a manager.
 -- Called by each manager in its own init(), before any player enters a unit.
 -- sectionDef = {

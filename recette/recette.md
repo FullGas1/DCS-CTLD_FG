@@ -31,7 +31,7 @@
 
 La mission de test doit contenir :
 - Au moins un appareil joueur BLUE (slot occupé ou coalition)
-- Zones DCS nommées : `TRZ_alpha_B_10`, `TRZ_beta_R_0_obj1_5`, `LGZ_base_B`
+- Zones DCS nommées : `TRZ_alpha_B_10_nil_0`, `TRZ_beta_R_999_obj1_5`, `LGZ_base_B`
 - Un static objet de type cargo (pour F-01)
 - Un groupe nommé `jtac_test` ou contenant "jtac" (pour F-02, F-09 à F-11)
 
@@ -48,8 +48,8 @@ La mission de test doit contenir :
 | U-05 | CTLDDCSEventBridge — singleton + register + route | C1 | Singleton unique, register enregistre, onEvent dispatche vers le bon handler | ✅ PASS 9/9 | 4 min |
 | U-06 | CTLDPlayerTracker — getPlayerByUnit / isPlayerUnit | C1 | Index byUnit : retrouver playerName depuis unitName | ✅ PASS 6/6 | 4 min |
 | U-07 | CTLDPlayerTracker — getUnitByPlayer / getAllPlayers | C1 | Index byPlayer : retrouver unitName + coalition depuis playerName | ✅ PASS 11/11 | 4 min |
-| U-08 | CTLDZoneManager._parseTRZ — formats valides | M1 | Parser TRZ : minimal, coalition, stock, flag, target | ✅ PASS 24/24 | 5 min |
-| U-09 | CTLDZoneManager._parseTRZ — formats invalides | M1 | Parser TRZ : erreurs retournées sur noms invalides | ✅ PASS 11/11 | 3 min |
+| U-08 | CTLDZoneManager._parseTRZ — formats valides | M1 | Parser TRZ strict 5 champs : pickup limité/illimité, extract-only, extract+cible, mixte, coalition A | ✅ PASS 40/40 | 5 min |
+| U-09 | CTLDZoneManager._parseTRZ — formats invalides | M1 | Parser TRZ strict : mauvais préfixe, champs manquants, coalition invalide, stock hors plage, flag numérique, target négatif, zoneName réservé | ✅ PASS 39/39 | 3 min |
 | U-10 | CTLDZoneManager._parseLGZ — formats valides et invalides | M1 | Parser LGZ : noms bien formés et malformés | ✅ PASS 14/14 | 3 min |
 | U-11 | CTLDTroopZone.isInZone — circulaire | M1 | Point dedans / dehors sur zone circulaire | ✅ PASS 7/7 | 3 min |
 | U-12 | CTLDTroopZone consumeStock / restoreStock | M1 | Stock limité + stock illimité (pickMaxStock==0) | ✅ PASS 15/15 | 4 min |

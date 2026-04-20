@@ -1,8 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ====================================================================================================
--- Start : lib/class.lua
+-- ===== Start : lib/class.lua =====
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -39,10 +38,9 @@ function class(base)
     end
     return cls
 end
+-- ===== End   : lib/class.lua =====
 
--- End : lib/class.lua
--- ====================================================================================================
--- Start : CTLD_config.lua
+-- ===== Start : CTLD_config.lua =====
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -1189,10 +1187,9 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
+-- ===== End   : CTLD_config.lua =====
 
--- End : CTLD_config.lua
--- ====================================================================================================
--- Start : CTLD_i18n.lua
+-- ===== Start : CTLD_i18n.lua =====
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1410,10 +1407,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
+-- ===== End   : CTLD_i18n.lua =====
 
--- End : CTLD_i18n.lua
--- ====================================================================================================
--- Start : CTLD_i18n_en.lua
+-- ===== Start : CTLD_i18n_en.lua =====
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1712,10 +1708,9 @@ ctld.i18n["en"]["RECON"] = "RECON"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+-- ===== End   : CTLD_i18n_en.lua =====
 
--- End : CTLD_i18n_en.lua
--- ====================================================================================================
--- Start : CTLD_i18n_fr.lua
+-- ===== Start : CTLD_i18n_fr.lua =====
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2008,10 +2003,9 @@ ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
+-- ===== End   : CTLD_i18n_fr.lua =====
 
--- End : CTLD_i18n_fr.lua
--- ====================================================================================================
--- Start : CTLD_i18n_es.lua
+-- ===== Start : CTLD_i18n_es.lua =====
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2305,10 +2299,9 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
+-- ===== End   : CTLD_i18n_es.lua =====
 
--- End : CTLD_i18n_es.lua
--- ====================================================================================================
--- Start : CTLD_i18n_ko.lua
+-- ===== Start : CTLD_i18n_ko.lua =====
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2604,10 +2597,9 @@ ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
 ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
 ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
+-- ===== End   : CTLD_i18n_ko.lua =====
 
--- End : CTLD_i18n_ko.lua
--- ====================================================================================================
--- Start : CTLD_utils.lua
+-- ===== Start : CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4413,10 +4405,9 @@ end
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
+-- ===== End   : CTLD_utils.lua =====
 
--- End : CTLD_utils.lua
--- ====================================================================================================
--- Start : CTLD_menu.lua
+-- ===== Start : CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -4942,10 +4933,9 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
+-- ===== End   : CTLD_menu.lua =====
 
--- End : CTLD_menu.lua
--- ====================================================================================================
--- Start : lib/CTLD_objectRegistry.lua
+-- ===== Start : lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5367,10 +5357,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
+-- ===== End   : lib/CTLD_objectRegistry.lua =====
 
--- End : lib/CTLD_objectRegistry.lua
--- ====================================================================================================
--- Start : lib/CTLDParachuteEffect.lua
+-- ===== Start : lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5422,10 +5411,9 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
+-- ===== End   : lib/CTLDParachuteEffect.lua =====
 
--- End : lib/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : CTLD_sceneManager.lua
+-- ===== Start : CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -5847,10 +5835,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
+-- ===== End   : CTLD_sceneManager.lua =====
 
--- End : CTLD_sceneManager.lua
--- ====================================================================================================
--- Start : CTLD_zone.lua
+-- ===== Start : CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -5865,10 +5852,10 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 -- Zone naming conventions:
 --
 --   TRZ  (TroopZone) — troops pickup / extract / mixed
---     TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
---     Position-based parsing: R|B|N first, then number = stock,
---     then string = flag, then number = target.
---     0 stock = unlimited pickup.
+--     TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   (all 5 fields required)
+--     stock  : 0=no pickup, 1-998=limited, 999=unlimited
+--     flag   : DCS flag name (string) or reserved word "nil"
+--     target : 0=no win condition, N≥1=soldier threshold
 --
 --   LGZ  (LogisticZone) — crate/vehicle services
 --     LGZ_name_[R|B|N]
@@ -6147,49 +6134,69 @@ end
 -- TRZ parser
 -- ============================================================
 
--- Parse TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
+-- Parse TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   strict positional, all 5 fields required.
+-- stock  : integer 0-999  — 0=no pickup (nil), 999=unlimited (internal 0), 1-998=limited
+-- flag   : string or reserved word "nil" (= no objective flag)
+-- target : integer ≥0     — 0=no win condition (nil), N≥1=soldier threshold
 -- Returns a table on success, nil + error string on failure.
 function CTLDZoneManager:_parseTRZ(name)
     local parts = _split(name, "_")
     if parts[1] ~= "TRZ" then return nil, "not a TRZ" end
+
+    -- field 2: zoneName (required, not a reserved word)
     local zoneName = parts[2]
-    if not zoneName then return nil, "missing zoneName" end
-
-    local coalitionId = 0
-    local stock, flag, target = nil, nil, nil
-    local i = 3
-
-    -- 1. Optional coalition R|B|N
-    if parts[i] == "R" or parts[i] == "B" or parts[i] == "N" then
-        if     parts[i] == "R" then coalitionId = coalition.side.RED
-        elseif parts[i] == "B" then coalitionId = coalition.side.BLUE
-        else                        coalitionId = coalition.side.NEUTRAL end
-        i = i + 1
+    if not zoneName or zoneName == "" then return nil, "missing zoneName" end
+    local _reserved = { ["nil"]=true, A=true, R=true, B=true, N=true }
+    if _reserved[zoneName] then
+        return nil, "zoneName cannot be a reserved word: " .. zoneName
     end
 
-    -- 2. Optional pickMaxStock (number before flag)
-    if parts[i] and tonumber(parts[i]) then
-        stock = tonumber(parts[i])
-        i = i + 1
+    -- field 3: coalition (required — A=all, R=RED, B=BLUE, N=NEUTRAL)
+    local coalStr = parts[3]
+    if not coalStr then return nil, "missing coalition (A|R|B|N)" end
+    local coalitionId
+    if     coalStr == "A" then coalitionId = 0
+    elseif coalStr == "R" then coalitionId = coalition.side.RED
+    elseif coalStr == "B" then coalitionId = coalition.side.BLUE
+    elseif coalStr == "N" then coalitionId = coalition.side.NEUTRAL
+    else return nil, "invalid coalition '" .. coalStr .. "' — expected A, R, B or N" end
+
+    -- field 4: stock (required, integer 0-999)
+    local stockStr = parts[4]
+    local stockRaw = tonumber(stockStr)
+    if not stockRaw or math.floor(stockRaw) ~= stockRaw or stockRaw < 0 or stockRaw > 999 then
+        return nil, "invalid stock '" .. tostring(stockStr) .. "' — expected integer 0-999 (0=no pickup, 999=unlimited)"
+    end
+    local pickMaxStock
+    if     stockRaw == 0   then pickMaxStock = nil  -- no pickup capability
+    elseif stockRaw == 999 then pickMaxStock = 0    -- unlimited (internal 0)
+    else                        pickMaxStock = stockRaw
     end
 
-    -- 3. Optional objectiveFlag (string, not a number)
-    if parts[i] and not tonumber(parts[i]) then
-        flag = parts[i]
-        i = i + 1
+    -- field 5: flag (required, string or reserved word "nil")
+    local flagStr = parts[5]
+    if not flagStr then return nil, "missing flag (DCS flag name or 'nil')" end
+    if tonumber(flagStr) then
+        return nil, "flag must be a string or 'nil', not a number"
     end
+    local objectiveFlag
+    if flagStr ~= "nil" then objectiveFlag = flagStr end
 
-    -- 4. Optional dropMaxTarget (number after flag)
-    if parts[i] and tonumber(parts[i]) then
-        target = tonumber(parts[i])
+    -- field 6: target (required, integer ≥0)
+    local targetStr = parts[6]
+    local targetRaw = tonumber(targetStr)
+    if not targetRaw or math.floor(targetRaw) ~= targetRaw or targetRaw < 0 then
+        return nil, "invalid target '" .. tostring(targetStr) .. "' — expected integer ≥0 (0=no win condition)"
     end
+    local objectiveTarget
+    if targetRaw > 0 then objectiveTarget = targetRaw end
 
     return {
-        zoneName       = zoneName,
-        coalition      = coalitionId,
-        pickMaxStock   = stock,
-        objectiveFlag  = flag,
-        objectiveTarget= target,
+        zoneName        = zoneName,
+        coalition       = coalitionId,
+        pickMaxStock    = pickMaxStock,
+        objectiveFlag   = objectiveFlag,
+        objectiveTarget = objectiveTarget,
     }
 end
 
@@ -6860,10 +6867,9 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
+-- ===== End   : CTLD_zone.lua =====
 
--- End : CTLD_zone.lua
--- ====================================================================================================
--- Start : CTLD_troop.lua
+-- ===== Start : CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -6916,7 +6922,7 @@ function CTLDTroopGroup:init(data)
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
--- @param dcsGroup Group|nil  spawned DCS group (nil for EXZ silent drops)
+-- @param dcsGroup Group|nil  spawned DCS group (nil for objective-zone silent drops)
 function CTLDTroopGroup:deploy(dcsGroup)
     self.state    = CTLDTroopGroup.STATE.DEPLOYED
     self.dcsGroup = dcsGroup
@@ -7273,7 +7279,7 @@ end
 -- loadFromZone
 -- ============================================================
 
--- Loads a troop template onto unit from the PKZ zone the unit is currently in.
+-- Loads a troop template onto unit from the TRZ pickup zone the unit is currently in.
 -- @param unit      DCS Unit object
 -- @param zone      CtldZone (zoneType == "pickup")
 -- @param template  entry from ctld.gs("loadableGroups") (must have _dbKey, total, hasJtac set)
@@ -7297,6 +7303,13 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         return false
     end
 
+    -- Position check: unit must be inside the zone
+    if not zone:isInZone(unit:getPoint()) then
+        trigger.action.outTextForGroup(unit:getGroup():getID(),
+            ctld.tr("You must land inside the pickup zone to load troops."), 10)
+        return false
+    end
+
     -- Zone active check
     if not zone.active then
         trigger.action.outTextForGroup(unit:getGroup():getID(),
@@ -7304,8 +7317,8 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         return false
     end
 
-    -- Zone limit check (0 = depleted; -1 = unlimited)
-    if zone.limit == 0 then
+    -- Zone stock check (TRZ native: pickCurrentStock; 0=unlimited if pickMaxStock==0)
+    if zone:hasPickup() and zone.pickMaxStock ~= 0 and zone.pickCurrentStock < template.total then
         trigger.action.outTextForGroup(unit:getGroup():getID(),
             ctld.tr("This pickup zone is empty."), 10)
         return false
@@ -7348,13 +7361,8 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         countryId    = unit:getCountry(),
     })
 
-    -- Decrement zone limit and update DCS flag (limit=nil means unlimited)
-    if zone.limit and zone.limit > 0 then
-        zone.limit = zone.limit - 1
-        if zone.flagName then
-            trigger.action.setUserFlag(zone.flagName, zone.limit)
-        end
-    end
+    -- Consume pickup stock (TRZ native API; no-op for unlimited zones)
+    zone:consumeStock(template.total)
 
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("Loaded: %1 (%2 troops).", template.name, template.total), 10)
@@ -7371,7 +7379,7 @@ end
 -- ============================================================
 
 -- Deploys troops from unit into combat (fast-rope if conditions met, else ground drop).
--- If inside an EXZ zone: troops are counted only (flag increment), no DCS group spawned.
+-- If inside a TRZ with objectiveFlag: troops are counted only (flag increment), no DCS group spawned.
 -- @param unit  DCS Unit object
 -- @return bool
 function CTLDTroopManager:deploy(unit)
@@ -7397,13 +7405,13 @@ function CTLDTroopManager:deploy(unit)
     local pt  = unit:getPoint()
     local hdg = ctld.utils.getHeadingInRadians("TroopManager.deploy", unit, true)
 
-    -- EXZ zone check (extract zone: count troops silently, no DCS group spawn)
+    -- TRZ objective check: if zone has objectiveFlag, count troops silently (no DCS group spawn)
     local exzZone = CTLDZoneManager.getInstance():isUnitInZone(unitName, "extract")
     if exzZone then
         local current = trigger.misc.getUserFlag(exzZone.objectiveFlag) or 0
         trigger.action.setUserFlag(exzZone.objectiveFlag, current + group.unitTotal)
         group:deploy(nil)
-        ctld.utils.log("INFO", "deploy: %d troops sent to EXZ '%s' (flag %s = %d)",
+        ctld.utils.log("INFO", "deploy: %d troops sent to objective TRZ '%s' (flag %s = %d)",
             group.unitTotal, exzZone.zoneName, exzZone.objectiveFlag, current + group.unitTotal)
     else
         -- Compute circle radius: safe distance from aircraft + config offset
@@ -7475,7 +7483,7 @@ function CTLDTroopManager:deploy(unit)
 end
 
 -- ============================================================
--- returnToBase (PKZ zone: troops returned to zone pool)
+-- returnToBase (TRZ pickup zone: troops returned to zone stock)
 -- ============================================================
 
 -- Returns troops to the pickup zone the unit is currently in.
@@ -7494,15 +7502,10 @@ function CTLDTroopManager:returnToBase(unit, zone)
         return false
     end
 
-    -- Increment zone limit (troops return to pool; nil = unlimited, skip)
-    if zone.limit and zone.limit >= 0 then
-        zone.limit = zone.limit + group.unitTotal
-        if zone.flagName then
-            trigger.action.setUserFlag(zone.flagName, zone.limit)
-        end
-    end
+    -- Restore pickup stock (TRZ native API; no-op for unlimited zones)
+    zone:restoreStock(group.unitTotal)
 
-    ctld.utils.log("INFO", "returnToBase: '%s' returned [%s] to PKZ '%s'",
+    ctld.utils.log("INFO", "returnToBase: '%s' returned [%s] to TRZ '%s'",
         unitName, group.templateName, zone.zoneName)
 
     self._inTransit[unitName] = nil
@@ -7774,8 +7777,9 @@ end
 
 -- "Unload / Extract Troops" button:
 --   On ground + nearest dropped group + no troops → extract
---   Has troops + in PKZ                           → returnToBase
---   Has troops + not in PKZ                       → deploy
+--   Has troops + in TRZ pickup-only               → returnToBase
+--   Has troops + in TRZ with objectiveFlag        → deploy (flag incremented)
+--   Has troops + not in any TRZ                   → deploy to combat
 function CTLDTroopManager:_menuUnloadOrExtract(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
@@ -7791,13 +7795,20 @@ function CTLDTroopManager:_menuUnloadOrExtract(unit)
         end
     end
 
-    -- Has troops: return to base if in PKZ, otherwise deploy
+    -- Has troops: TRZ with objectiveFlag takes priority over pickup-only TRZ.
+    -- Mixed TRZ (hasPickup + hasExtract) → deploy to increment objective flag.
+    -- Pickup-only TRZ → returnToBase to restore pickup stock.
     if self:hasTroops(unitName) then
-        local pkzZone = zm:isUnitInZone(unitName, "pickup")
-        if pkzZone then
-            self:returnToBase(unit, pkzZone)
-        else
+        local exzZone = zm:isUnitInZone(unitName, "extract")
+        if exzZone then
             self:deploy(unit)
+        else
+            local pkzZone = zm:isUnitInZone(unitName, "pickup")
+            if pkzZone then
+                self:returnToBase(unit, pkzZone)
+            else
+                self:deploy(unit)
+            end
         end
         return
     end
@@ -7952,9 +7963,8 @@ end
 -- F10 Menu section
 -- ============================================================
 
---- Build the "Troop Commands" F10 submenu for a player.
--- Added only when the unit type has troops capability in unitActions.
--- Per-zone load commands are generated from TRZ zones matching player coalition.
+--- Build the "Troop Commands" F10 submenu for a player (called once at spawn).
+-- Creates the submenu container then delegates to refreshMenuSection for content.
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDTroopManager:buildMenuSection(playerObj, menu)
@@ -7964,85 +7974,119 @@ function CTLDTroopManager:buildMenuSection(playerObj, menu)
 
     local root     = ctld.tr("CTLD")
     local troopSub = ctld.tr("Troop Commands")
+    -- Create the container node (idempotent). Content is populated by refreshMenuSection.
     menu:addSubMenu({ root }, troopSub, { order = 20 })
+    self:refreshMenuSection(playerObj)
+end
 
-    -- Unload / Extract always available
-    menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
-        function(arg)
-            local u = Unit.getByName(arg.unitName)
-            if not u then return end
-            CTLDTroopManager.getInstance():_menuUnloadOrExtract(u)
-        end,
-        { unitName = playerObj.unitName })
+--- Rebuild the "Troop Commands" menu branch for playerObj.
+-- Called on S_EVENT_LAND and S_EVENT_TAKEOFF to reflect the player's current
+-- state (in air / on ground / zone membership).
+-- @param playerObj CTLDPlayer
+function CTLDTroopManager:refreshMenuSection(playerObj)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.troops) then return end
 
-    -- Filter templates applicable to this aircraft and coalition
-    local limit = self:_transportLimit(playerObj.typeName)
-    local validTmpls = {}
-    for _, tmpl in ipairs(self._templates) do
-        local sideOk = (tmpl.side == nil or tmpl.side == playerObj.coalition)
-        local sizeOk = (tmpl.total <= limit)
-        if not tmpl.disabled and sideOk and sizeOk then
-            table.insert(validTmpls, tmpl)
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root     = ctld.tr("CTLD")
+    local troopSub = ctld.tr("Troop Commands")
+
+    -- Clear dynamic content; the "Troop Commands" submenu container is preserved.
+    menu:clearBranch({ root, troopSub })
+
+    local unit  = Unit.getByName(playerObj.unitName)
+    local inAir = not unit or self:_isInAir(unit)
+
+    if not inAir and unit then
+        local pt = unit:getPoint()
+
+        -- "Unload / Extract" — ground only
+        local hasTroops   = self:hasTroops(playerObj.unitName)
+        local hasNearby   = self:_findNearestDropped(unit, playerObj.coalition) ~= nil
+        if hasTroops or hasNearby then
+            menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
+                function(arg)
+                    local u = Unit.getByName(arg.unitName)
+                    if not u then return end
+                    CTLDTroopManager.getInstance():_menuUnloadOrExtract(u)
+                end,
+                { unitName = playerObj.unitName })
         end
-    end
 
-    -- One sub-menu per pickup-capable zone, listing available templates
-    local zones = CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)
-    for _, zone in ipairs(zones) do
-        if zone:hasPickup() then
-            local zName    = zone.zoneName
-            local zoneSub  = string.format(ctld.tr("Load from %s"), zName)
-            menu:addSubMenu({ root, troopSub }, zoneSub)
-            for _, tmpl in ipairs(validTmpls) do
-                local capturedTmpl  = tmpl
-                local capturedZName = zName
-                menu:addCommand({ root, troopSub, zoneSub },
-                    ctld.tr("Load ") .. tmpl.name,
-                    function(arg)
-                        local u = Unit.getByName(arg.unitName)
-                        if not u then return end
-                        local z = CTLDZoneManager.getInstance():getTroopZone(arg.zoneName)
-                        if not z then
-                            trigger.action.outTextForGroup(u:getGroup():getID(),
-                                ctld.tr("Zone not found."), 10)
-                            return
-                        end
-                        CTLDTroopManager.getInstance():loadFromZone(u, z, arg.tmpl)
-                    end,
-                    { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
+        -- "Load from X" — one submenu per TRZ the player is physically inside
+        local limit = self:_transportLimit(playerObj.typeName)
+
+        for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
+            if zone:hasPickup() and zone:isInZone(pt) then
+                local zName   = zone.zoneName
+                local zoneSub = string.format(ctld.tr("Load from %s"), zName)
+                -- Stock available in this zone (unlimited if pickMaxStock==0)
+                local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
+                menu:addSubMenu({ root, troopSub }, zoneSub)
+                for _, tmpl in ipairs(self._templates) do
+                    local sideOk  = (tmpl.side == nil or tmpl.side == playerObj.coalition)
+                    local sizeOk  = (tmpl.total <= limit)
+                    local stockOk = (tmpl.total <= zoneStock)
+                    if not tmpl.disabled and sideOk and sizeOk and stockOk then
+                        local capturedTmpl  = tmpl
+                        local capturedZName = zName
+                        menu:addCommand({ root, troopSub, zoneSub },
+                            ctld.tr("Load ") .. tmpl.name,
+                            function(arg)
+                                local u = Unit.getByName(arg.unitName)
+                                if not u then return end
+                                local z = CTLDZoneManager.getInstance():getTroopZone(arg.zoneName)
+                                if not z then
+                                    trigger.action.outTextForGroup(u:getGroup():getID(),
+                                        ctld.tr("Zone not found."), 10)
+                                    return
+                                end
+                                CTLDTroopManager.getInstance():loadFromZone(u, z, arg.tmpl)
+                            end,
+                            { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
+                    end
+                end
             end
         end
-    end
 
-    -- Check troops onboard
-    menu:addCommand({ root, troopSub }, ctld.tr("Check Troops Onboard"),
-        function(arg)
-            local u = Unit.getByName(arg.unitName)
-            if not u then return end
-            local tm    = CTLDTroopManager.getInstance()
-            local group = tm._inTransit[arg.unitName]
-            if group then
-                trigger.action.outTextForGroup(u:getGroup():getID(),
-                    ctld.tr("Onboard: %1 (%2 troops)", group.templateName, group.unitTotal), 10)
-            else
-                trigger.action.outTextForGroup(u:getGroup():getID(),
-                    ctld.tr("No troops onboard."), 10)
-            end
-        end,
-        { unitName = playerObj.unitName })
-
-    -- Parachute Troops: only if canParachute=true for this unit type
-    local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
-    if acts2 and acts2.canParachute then
-        menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
+        -- "Check Troops Onboard"
+        menu:addCommand({ root, troopSub }, ctld.tr("Check Troops Onboard"),
             function(arg)
-                local transport = Unit.getByName(arg.unitName)
-                if not transport then return end
-                CTLDTroopManager.getInstance():parachuteTroops(transport, arg)
+                local u = Unit.getByName(arg.unitName)
+                if not u then return end
+                local tm    = CTLDTroopManager.getInstance()
+                local group = tm._inTransit[arg.unitName]
+                if group then
+                    trigger.action.outTextForGroup(u:getGroup():getID(),
+                        ctld.tr("Onboard: %1 (%2 troops)", group.templateName, group.unitTotal), 10)
+                else
+                    trigger.action.outTextForGroup(u:getGroup():getID(),
+                        ctld.tr("No troops onboard."), 10)
+                end
             end,
-            { unitName = playerObj.unitName, groupId = playerObj.groupId,
-              coalition = playerObj.coalition })
+            { unitName = playerObj.unitName })
+
+        -- "Parachute Troops" — if capable
+        local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
+        if acts2 and acts2.canParachute then
+            menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
+                function(arg)
+                    local transport = Unit.getByName(arg.unitName)
+                    if not transport then return end
+                    CTLDTroopManager.getInstance():parachuteTroops(transport, arg)
+                end,
+                { unitName = playerObj.unitName, groupId = playerObj.groupId,
+                  coalition = playerObj.coalition })
+        end
     end
+
+    menu:refresh()
+    ctld.utils.log("INFO", "CTLDTroopManager:refreshMenuSection — unit=%s inAir=%s",
+        playerObj.unitName, tostring(inAir))
 end
 
 -- ============================================================
@@ -8336,10 +8380,9 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
+-- ===== End   : CTLD_troop.lua =====
 
--- End : CTLD_troop.lua
--- ====================================================================================================
--- Start : CTLD_crate.lua
+-- ===== Start : CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -9536,10 +9579,9 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
+-- ===== End   : CTLD_crate.lua =====
 
--- End : CTLD_crate.lua
--- ====================================================================================================
--- Start : CTLD_vehicle.lua
+-- ===== Start : CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -10403,10 +10445,9 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
+-- ===== End   : CTLD_vehicle.lua =====
 
--- End : CTLD_vehicle.lua
--- ====================================================================================================
--- Start : CTLD_fob.lua
+-- ===== Start : CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -10887,10 +10928,9 @@ function CTLDFOBManager:listFOBs(transport)
 
     ctld.utils.displayMessageToGroup(transport, msg, 20)
 end
+-- ===== End   : CTLD_fob.lua =====
 
--- End : CTLD_fob.lua
--- ====================================================================================================
--- Start : CTLD_aasystem.lua
+-- ===== Start : CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -11587,10 +11627,9 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
+-- ===== End   : CTLD_aasystem.lua =====
 
--- End : CTLD_aasystem.lua
--- ====================================================================================================
--- Start : CTLD_beacon.lua
+-- ===== Start : CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -12406,10 +12445,9 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
+-- ===== End   : CTLD_beacon.lua =====
 
--- End : CTLD_beacon.lua
--- ====================================================================================================
--- Start : CTLD_recon.lua
+-- ===== Start : CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -13286,10 +13324,9 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
+-- ===== End   : CTLD_recon.lua =====
 
--- End : CTLD_recon.lua
--- ====================================================================================================
--- Start : CTLD_jtac.lua
+-- ===== Start : CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -14370,10 +14407,9 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
+-- ===== End   : CTLD_jtac.lua =====
 
--- End : CTLD_jtac.lua
--- ====================================================================================================
--- Start : CTLD_player.lua
+-- ===== Start : CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -14597,6 +14633,30 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
+--- DCS S_EVENT_LAND handler — rebuild troop menu section for landing unit.
+-- Delayed 1 s: S_EVENT_LAND fires before the aircraft has fully settled,
+-- so _isInAir() may still return true at the exact moment of the event.
+function CTLDPlayerManager:onLand(event)
+    local unit = event and event.initiator
+    if not unit then return end
+    local unitName  = unit:getName()
+    local playerObj = self._players[unitName]
+    if not playerObj then return end
+    local captured = playerObj
+    timer.scheduleFunction(function()
+        CTLDTroopManager.getInstance():refreshMenuSection(captured)
+    end, nil, timer.getTime() + 1)
+end
+
+--- DCS S_EVENT_TAKEOFF handler — rebuild troop menu section for departing unit.
+function CTLDPlayerManager:onTakeoff(event)
+    local unit = event and event.initiator
+    if not unit then return end
+    local playerObj = self._players[unit:getName()]
+    if not playerObj then return end
+    CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+end
+
 --- Register a menu section contributed by a manager.
 -- Called by each manager in its own init(), before any player enters a unit.
 -- sectionDef = {
@@ -14717,10 +14777,9 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
+-- ===== End   : CTLD_player.lua =====
 
--- End : CTLD_player.lua
--- ====================================================================================================
--- Start : CTLD_core.lua
+-- ===== Start : CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -15051,6 +15110,10 @@ function CTLDCoreManager:init()
     bridge:register(CTLDCrateManager.getInstance(), world.event.S_EVENT_BIRTH, "onBirth")
     bridge:register(CTLDJTACManager.get(),          world.event.S_EVENT_BIRTH, "onBirth")
 
+    -- Register land/takeoff for dynamic troop menu rebuild
+    bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
+    bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
+
     -- INIT-B: detect cargo statics placed by the mission maker
     self:_initMMCrates()
 
@@ -15123,10 +15186,9 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
+-- ===== End   : CTLD_core.lua =====
 
--- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
+-- ===== Start : scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -15227,10 +15289,9 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+-- ===== End   : scenes/CTLD_farpScene.lua =====
 
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
+-- ===== Start : scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -15330,10 +15391,9 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+-- ===== End   : scenes/CTLD_fobScene.lua =====
 
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
+-- ===== Start : scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -15598,10 +15658,9 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+-- ===== End   : scenes/CTLD_mineFieldScene.lua =====
 
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : compat/legacy_api.lua
+-- ===== Start : compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -15780,10 +15839,9 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
+-- ===== End   : compat/legacy_api.lua =====
 
--- End : compat/legacy_api.lua
--- ====================================================================================================
--- Start : CTLD_userConfig.lua
+-- ===== Start : CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -16757,5 +16815,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+-- ===== End   : CTLD_userConfig.lua =====
 
--- End : CTLD_userConfig.lua

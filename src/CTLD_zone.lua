@@ -12,10 +12,10 @@
 -- Zone naming conventions:
 --
 --   TRZ  (TroopZone) — troops pickup / extract / mixed
---     TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
---     Position-based parsing: R|B|N first, then number = stock,
---     then string = flag, then number = target.
---     0 stock = unlimited pickup.
+--     TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   (all 5 fields required)
+--     stock  : 0=no pickup, 1-998=limited, 999=unlimited
+--     flag   : DCS flag name (string) or reserved word "nil"
+--     target : 0=no win condition, N≥1=soldier threshold
 --
 --   LGZ  (LogisticZone) — crate/vehicle services
 --     LGZ_name_[R|B|N]
@@ -294,49 +294,69 @@ end
 -- TRZ parser
 -- ============================================================
 
--- Parse TRZ_zoneName_[R|B|N]_[pickMaxStock]_[flag]_[dropMaxTarget]
+-- Parse TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   strict positional, all 5 fields required.
+-- stock  : integer 0-999  — 0=no pickup (nil), 999=unlimited (internal 0), 1-998=limited
+-- flag   : string or reserved word "nil" (= no objective flag)
+-- target : integer ≥0     — 0=no win condition (nil), N≥1=soldier threshold
 -- Returns a table on success, nil + error string on failure.
 function CTLDZoneManager:_parseTRZ(name)
     local parts = _split(name, "_")
     if parts[1] ~= "TRZ" then return nil, "not a TRZ" end
+
+    -- field 2: zoneName (required, not a reserved word)
     local zoneName = parts[2]
-    if not zoneName then return nil, "missing zoneName" end
-
-    local coalitionId = 0
-    local stock, flag, target = nil, nil, nil
-    local i = 3
-
-    -- 1. Optional coalition R|B|N
-    if parts[i] == "R" or parts[i] == "B" or parts[i] == "N" then
-        if     parts[i] == "R" then coalitionId = coalition.side.RED
-        elseif parts[i] == "B" then coalitionId = coalition.side.BLUE
-        else                        coalitionId = coalition.side.NEUTRAL end
-        i = i + 1
+    if not zoneName or zoneName == "" then return nil, "missing zoneName" end
+    local _reserved = { ["nil"]=true, A=true, R=true, B=true, N=true }
+    if _reserved[zoneName] then
+        return nil, "zoneName cannot be a reserved word: " .. zoneName
     end
 
-    -- 2. Optional pickMaxStock (number before flag)
-    if parts[i] and tonumber(parts[i]) then
-        stock = tonumber(parts[i])
-        i = i + 1
+    -- field 3: coalition (required — A=all, R=RED, B=BLUE, N=NEUTRAL)
+    local coalStr = parts[3]
+    if not coalStr then return nil, "missing coalition (A|R|B|N)" end
+    local coalitionId
+    if     coalStr == "A" then coalitionId = 0
+    elseif coalStr == "R" then coalitionId = coalition.side.RED
+    elseif coalStr == "B" then coalitionId = coalition.side.BLUE
+    elseif coalStr == "N" then coalitionId = coalition.side.NEUTRAL
+    else return nil, "invalid coalition '" .. coalStr .. "' — expected A, R, B or N" end
+
+    -- field 4: stock (required, integer 0-999)
+    local stockStr = parts[4]
+    local stockRaw = tonumber(stockStr)
+    if not stockRaw or math.floor(stockRaw) ~= stockRaw or stockRaw < 0 or stockRaw > 999 then
+        return nil, "invalid stock '" .. tostring(stockStr) .. "' — expected integer 0-999 (0=no pickup, 999=unlimited)"
+    end
+    local pickMaxStock
+    if     stockRaw == 0   then pickMaxStock = nil  -- no pickup capability
+    elseif stockRaw == 999 then pickMaxStock = 0    -- unlimited (internal 0)
+    else                        pickMaxStock = stockRaw
     end
 
-    -- 3. Optional objectiveFlag (string, not a number)
-    if parts[i] and not tonumber(parts[i]) then
-        flag = parts[i]
-        i = i + 1
+    -- field 5: flag (required, string or reserved word "nil")
+    local flagStr = parts[5]
+    if not flagStr then return nil, "missing flag (DCS flag name or 'nil')" end
+    if tonumber(flagStr) then
+        return nil, "flag must be a string or 'nil', not a number"
     end
+    local objectiveFlag
+    if flagStr ~= "nil" then objectiveFlag = flagStr end
 
-    -- 4. Optional dropMaxTarget (number after flag)
-    if parts[i] and tonumber(parts[i]) then
-        target = tonumber(parts[i])
+    -- field 6: target (required, integer ≥0)
+    local targetStr = parts[6]
+    local targetRaw = tonumber(targetStr)
+    if not targetRaw or math.floor(targetRaw) ~= targetRaw or targetRaw < 0 then
+        return nil, "invalid target '" .. tostring(targetStr) .. "' — expected integer ≥0 (0=no win condition)"
     end
+    local objectiveTarget
+    if targetRaw > 0 then objectiveTarget = targetRaw end
 
     return {
-        zoneName       = zoneName,
-        coalition      = coalitionId,
-        pickMaxStock   = stock,
-        objectiveFlag  = flag,
-        objectiveTarget= target,
+        zoneName        = zoneName,
+        coalition       = coalitionId,
+        pickMaxStock    = pickMaxStock,
+        objectiveFlag   = objectiveFlag,
+        objectiveTarget = objectiveTarget,
     }
 end
 

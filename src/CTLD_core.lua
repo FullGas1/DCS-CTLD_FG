@@ -328,6 +328,10 @@ function CTLDCoreManager:init()
     bridge:register(CTLDCrateManager.getInstance(), world.event.S_EVENT_BIRTH, "onBirth")
     bridge:register(CTLDJTACManager.get(),          world.event.S_EVENT_BIRTH, "onBirth")
 
+    -- Register land/takeoff for dynamic troop menu rebuild
+    bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
+    bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
+
     -- INIT-B: detect cargo statics placed by the mission maker
     self:_initMMCrates()
 

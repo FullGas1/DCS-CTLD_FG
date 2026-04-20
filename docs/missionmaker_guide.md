@@ -408,19 +408,20 @@ Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger z
 
 | Prefix | Zone type | Schema |
 |---|---|---|
-| `TRZ` | Troop zone — pickup and/or extract objective | `TRZ_name_[R/B/N]_[stock]_[flag]_[target]` |
+| `TRZ` | Troop zone — pickup and/or extract objective | `TRZ_name_A/R/B/N_stock_flag_target` — **all 5 fields required** |
 | `DOZ` | AI drop-off zone — AI transport auto-deploys troops here | `DOZ_name_[R/B/N]` |
 | `WPZ` | Waypoint zone — troops deployed inside march to zone centre | `WPZ_name_[R/B/N]` |
 | `LGZ` | Logistic zone — crate and vehicle services | `LGZ_name_[R/B/N]` |
 
-**Coalition parameter (`R/B/N`):**
+**Coalition parameter:**
 
 | Value | Coalition |
 |---|---|
+| `A` | All coalitions (TRZ only) |
 | `R` | RED only |
 | `B` | BLUE only |
 | `N` | Neutral |
-| *(omit)* | All coalitions |
+| *(omit)* | All coalitions (DOZ/WPZ/LGZ only — TRZ requires explicit `A`) |
 
 > **Uniqueness:** two zones of the same prefix cannot share the same `name`.
 
@@ -428,32 +429,95 @@ Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger z
 
 ### 4.3 TRZ — Troop zone
 
-A troop zone provides **player pickup** and/or **extract-objective** functions. Fields are position-based and all optional after the name.
+A troop zone provides **player pickup** and/or **extract-objective** functions.
 
-**Schema:** `TRZ_name_[R/B/N]_[stock]_[flag]_[target]`
+**All 5 fields are required.** The parser rejects any TRZ name that has missing or invalid fields — a warning is written to `CTLD.log` and the zone is ignored.
 
-| Field | Type | Description |
+**Schema:** `TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>`
+
+| Field | Position | Type | Values | Meaning |
+|---|---|---|---|---|
+| `name` | 2 | string | any (no underscores, not a reserved word) | Zone identifier used in logs and F10 menus |
+| `coalition` | 3 | letter | `A` `R` `B` `N` | Who can interact: **A**=all, **R**=RED, **B**=BLUE, **N**=NEUTRAL |
+| `stock` | 4 | integer 0–999 | `0`=no pickup · `1–998`=limited · `999`=unlimited | Troop boarding capacity |
+| `flag` | 5 | string | DCS flag name or `nil` | Flag incremented by soldier count on extract; `nil` = no objective |
+| `target` | 6 | integer ≥0 | `0`=no threshold · `N≥1`=soldier count goal | Win condition threshold (checked by DCS triggers, not CTLD) |
+
+> **Reserved words** — forbidden as `name` or `flag`: `nil`, `A`, `R`, `B`, `N`.
+
+---
+
+#### Stock values explained
+
+| Name value | Pickup capability | What the player sees |
 |---|---|---|
-| `name` | string | Zone identifier — no underscores |
-| `R / B / N` | letter | Coalition restriction (omit = all) |
-| `stock` | integer | Max pickup groups: `0` = unlimited, `>0` = limited, *omit* = no pickup |
-| `flag` | string | DCS flag name incremented when troops are deployed here — no underscores |
-| `target` | integer | Troop count that marks the objective complete |
+| `0` | **None** — no pickup | No "Load from" entry in the F10 menu |
+| `1–998` | Limited — decrements on each load | "Load from `<name>` (N remaining)" |
+| `999` | **Unlimited** — never exhausted | "Load from `<name>`" |
 
-**Parser rules (left-to-right, greedy):**
+> Use `999` for unlimited pickup — **not** `0`. `0` means no pickup capability.
 
-1. First field after name that is `R`, `B`, or `N` → coalition
-2. First number → stock
-3. First non-number string → flag name
-4. First number after flag → target
+#### Flag / target values explained
 
-| Example name | Meaning |
-|---|---|
-| `TRZ_base1_B_0` | BLUE pickup zone "base1", unlimited stock |
-| `TRZ_fob2_B_5` | BLUE pickup zone "fob2", max 5 groups |
-| `TRZ_lz1_B_0_dropCtr_1` | BLUE pickup + extract: flag "dropCtr" incremented at deploy, objective at 1 |
-| `TRZ_shared` | All-coalition pickup zone, unlimited stock |
+| Flag value | Target value | Behaviour |
+|---|---|---|
+| `nil` | any | Zone has no objective. Troops deployed here spawn as a DCS ground group. |
+| a flag name | `0` | Objective is active, no defined threshold. Flag is incremented by soldier count. No win condition checked by CTLD. |
+| a flag name | `N≥1` | Objective with threshold. CTLD increments the flag; the mission maker defines the DCS victory trigger `if flag >= N`. |
 
+---
+
+#### Examples
+
+| Zone name | Coalition | Stock | Flag | Target | Zone type |
+|---|---|---|---|---|---|
+| `TRZ_base_B_50_nil_0` | BLUE | 50 (limited) | — | — | **Pickup** — 50 soldiers, restock on RTB |
+| `TRZ_depot_A_999_nil_0` | All | unlimited | — | — | **Pickup** — unlimited, all coalitions |
+| `TRZ_exfil_B_0_rescue_0` | BLUE | no pickup | `rescue` | no threshold | **Extract-only** — troops deployed here increment flag `rescue` |
+| `TRZ_lz_R_0_secure_100` | RED | no pickup | `secure` | 100 soldiers | **Extract with win condition** — RED objective at 100 soldiers |
+| `TRZ_fob_N_20_defend_50` | NEUTRAL | 20 (limited) | `defend` | 50 soldiers | **Mixed** — pickup (20) + extract objective |
+| `TRZ_marker_B_0_nil_0` | BLUE | no pickup | — | — | **Inert** — BLUE named marker, no function |
+
+---
+
+#### Annotated example: `TRZ_fob_N_20_defend_50`
+
+```
+TRZ  _  fob  _  N   _  20     _  defend  _  50
+ │      │       │      │          │          │
+ │      │       │      │          │          └─ target : 50 soldiers complete the objective
+ │      │       │      │          └──────────── flag   : "defend" (DCS flag name)
+ │      │       │      └─────────────────────── stock  : 20 troops max (limited pickup)
+ │      │       └────────────────────────────── coalition: NEUTRAL
+ │      └────────────────────────────────────── name   : "fob"
+ └───────────────────────────────────────────── prefix TRZ
+```
+
+#### Annotated example: `TRZ_depot_A_999_nil_0`
+
+```
+TRZ  _  depot  _  A   _  999      _  nil     _  0
+                           │           │          │
+                           │           │          └─ target : 0 → no win condition
+                           │           └──────────── flag   : "nil" → no objective
+                           └──────────────────────── stock  : 999 → unlimited pickup
+```
+
+#### Annotated example: `TRZ_lz_R_0_secure_100`
+
+```
+TRZ  _  lz  _  R    _  0         _  secure  _  100
+                        │                        │
+                        │                        └─ target : 100 soldiers needed
+                        └──────────────────────── stock  : 0 → extract-only (no pickup)
+```
+
+---
+
+> **Extract-only zone** (`stock=0`): `hasPickup() = false`. No "Load from" entry in the F10 menu. Only serves as an objective trigger when troops are deployed inside.
+>
+> **Mixed zone** (stock>0 + flag≠nil): supports both boarding and objective scoring. When a player lands inside with troops, **the objective takes priority**: the flag is incremented and **no** DCS group is spawned. RTB (stock restore) is triggered only in pickup-only zones.
+>
 > **Smoke signals:** troop zone smoke is configured globally via `troopZoneSmokeColor` config, not per zone name.
 
 ---
@@ -598,24 +662,28 @@ The menu appears automatically for all transport-capable aircraft (types listed 
 
 ```
 CTLD
-  └── Troop Commands
-        ├── Unload / Extract Troops     ← context-sensitive (see below)
-        ├── Load from <zone1>           ← one sub-menu per active TRZ pickup zone
+  └── Troop Commands                   ← empty while in flight; rebuilt on landing/takeoff
+        ├── Unload / Extract Troops    ← visible on ground only (context-sensitive, see below)
+        ├── Load from <zone1>          ← one sub-menu per TRZ pickup zone the player is inside
         │     ├── Load Standard Group
         │     ├── Load Anti Air
         │     └── ...                  ← templates filtered by aircraft capacity
-        ├── Load from <zone2>
+        ├── Load from <zone2>          ← only shown if player is also inside zone2
         │     └── ...
         └── Check Troops Onboard       ← shows loaded template name and count
 ```
+
+> The "Load from" entries reflect the player's **current position**: only TRZ pickup zones the aircraft is physically inside appear. The menu is rebuilt automatically on landing and takeoff. Overlapping zones all appear simultaneously.
 
 **"Unload / Extract Troops" behaviour (priority order):**
 
 | Aircraft state | Action |
 |---|---|
+| In flight | Button not shown |
 | On ground + friendly dropped group ≤ `maxExtractDistance` m + no troops onboard | Extract group from combat |
-| Has troops onboard + inside a TRZ pickup zone | Return troops to base (restores zone pool) |
-| Has troops onboard + not in TRZ | Fast-rope (if conditions met) or ground drop into combat |
+| Has troops onboard + inside a TRZ with `flag` (objective zone) | Deploy troops → flag incremented (no DCS group spawned if extract-only) |
+| Has troops onboard + inside a TRZ pickup-only (no flag) | Return troops to base (restores zone stock) |
+| Has troops onboard + not in any TRZ | Fast-rope (if conditions met) or ground drop into combat |
 | In air + no troops + dropped group nearby | Show "Land near troops to extract them (Xm away)" |
 | None of the above | "No troops onboard and no extractable troops nearby" |
 

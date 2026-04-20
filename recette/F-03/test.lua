@@ -7,8 +7,10 @@
 --           Les zones chargées doivent être accessibles via getTroopZone().
 --
 -- DEPENDENCY mission martyr :
---   - Zones DCS nommées TRZ_alpha_B_10 et TRZ_beta_R_0_obj1_5
+--   - Zones DCS nommées TRZ_alpha_B_10_nil_0 et TRZ_beta_R_999_obj1_5
 --     définies dans les triggers de la mission.
+--   Convention stricte 5 champs : TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>
+--   stock=999 → illimité (interne 0) ; stock=0 → pas de pickup
 -- ============================================================
 
 -- Purge CTLD.log
@@ -63,16 +65,16 @@ else
     ctld_test.assert(true, "INFO: TRZ_alpha_B_10 absent de la mission martyr (skip)")
 end
 
--- Test spécifique si la mission martyr a TRZ_beta_R_0_obj1_5 :
+-- Test spécifique si la mission martyr a TRZ_beta_R_999_obj1_5 :
 local zBeta = zm:getTroopZone("beta")
 if zBeta then
     ctld_test.assertNotNil(zBeta, "zone TRZ 'beta' chargée")
-    ctld_test.assertEqual(zBeta.pickMaxStock,    0,      "zone 'beta' pickMaxStock == 0 (illimité)")
+    ctld_test.assertEqual(zBeta.pickMaxStock,    0,      "zone 'beta' pickMaxStock == 0 (illimité interne)")
     ctld_test.assertEqual(zBeta.objectiveFlag,   "obj1", "zone 'beta' objectiveFlag == 'obj1'")
     ctld_test.assertEqual(zBeta.objectiveTarget, 5,      "zone 'beta' objectiveTarget == 5")
     ctld_test.assertEqual(zBeta.coalition, coalition.side.RED, "zone 'beta' coalition RED")
 else
-    ctld_test.assert(true, "INFO: TRZ_beta_R_0_obj1_5 absent de la mission martyr (skip)")
+    ctld_test.assert(true, "INFO: TRZ_beta_R_999_obj1_5 absent de la mission martyr (skip)")
 end
 
 ctld_test.finish()

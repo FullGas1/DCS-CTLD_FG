@@ -1,13 +1,3 @@
-[CTLD] Log started : 2026-04-16 10:29:20
-[CTLD][TEST] START  [F-105] CTLDi18n — ES and KO dictionary completeness audit
-[CTLD][TEST]   OK     es: no error  [nil]
-[CTLD][TEST]   OK     es: audit returns a table
-[CTLD][TEST]   OK     es version matches EN (EN=1.8, es=1.8)  [true == true]
-[CTLD][TEST]   OK     es has no missing keys (0 found)
-[CTLD][TEST]   OK     es has no untranslated keys (0 found)
-[CTLD][TEST]   OK     ko: no error  [nil]
-[CTLD][TEST]   OK     ko: audit returns a table
-[CTLD][TEST]   OK     ko version matches EN (EN=1.8, ko=1.8)  [true == true]
-[CTLD][TEST]   OK     ko has no missing keys (0 found)
-[CTLD][TEST]   OK     ko has no untranslated keys (0 found)
-[CTLD][TEST] END    [F-105] CTLDi18n — ES and KO dictionary completeness audit — 10/10 passed  →  OK
+[REFRESH] forcing refreshMenuSection for Batumi_UH-1H_0-1
+[REFRESH] done — inAir=false
+[REFRESH] hasTroops=true
