@@ -340,14 +340,15 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
         return
     end
 
-    local forceMoved = ctld.gs("forceCrateToBeMoved") == true
-    local nearby     = self:getCratesInRange(transport:getPoint(), 300)
+    local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
-    -- Group unpackable ground crates by descriptor.unit
+    -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
     for _, crate in ipairs(nearby) do
-        if crate:canUnpack(forceMoved) and crate.descriptor and crate.descriptor.unit then
+        if crate:isOnGround() and crate.canBeUnpacked
+            and crate.descriptor and crate.descriptor.unit
+        then
             local ut = crate.descriptor.unit
             if not byUnit[ut] then
                 byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -377,19 +378,30 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     local mgr      = CTLDCrateManager.getInstance()
                     local forceMv  = ctld.gs("forceCrateToBeMoved") == true
                     local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
-                    local toUnpack = {}
+                    -- Collect crates: enforce forceCrateToBeMoved at action time
+                    local toUnpack    = {}
+                    local blockedMove = 0
                     for _, c in ipairs(nearC) do
-                        if c:canUnpack(forceMv)
+                        if c:isOnGround() and c.canBeUnpacked
                             and c.descriptor
                             and c.descriptor.unit == arg.unitType
                         then
-                            table.insert(toUnpack, c)
-                            if #toUnpack >= arg.cratesRequired then break end
+                            if forceMv and not c.hasMoved then
+                                blockedMove = blockedMove + 1
+                            else
+                                table.insert(toUnpack, c)
+                                if #toUnpack >= arg.cratesRequired then break end
+                            end
                         end
                     end
                     if #toUnpack < arg.cratesRequired then
-                        trigger.action.outTextForGroup(gid,
-                            ctld.tr("Not enough crates nearby to unpack!"), 10)
+                        if blockedMove > 0 then
+                            trigger.action.outTextForGroup(gid,
+                                ctld.tr("You must move this crate before unpacking it!"), 10)
+                        else
+                            trigger.action.outTextForGroup(gid,
+                                ctld.tr("Not enough crates nearby to unpack!"), 10)
+                        end
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
