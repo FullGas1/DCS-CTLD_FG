@@ -309,7 +309,6 @@ ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
-ctld.i18n["es"]["You must move this crate before unpacking it!"] = "¡Debes mover esta caja antes de desempaquetarla!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
 --- Check Cargo summary

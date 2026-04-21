@@ -375,33 +375,22 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                             ctld.tr("You must land before unpacking crates!"), 10)
                         return
                     end
-                    local mgr      = CTLDCrateManager.getInstance()
-                    local forceMv  = ctld.gs("forceCrateToBeMoved") == true
-                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
-                    -- Collect crates: enforce forceCrateToBeMoved at action time
-                    local toUnpack    = {}
-                    local blockedMove = 0
+                    local mgr   = CTLDCrateManager.getInstance()
+                    local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                    -- Collect crates: forceCrateToBeMoved does not apply to unpack
+                    local toUnpack = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
                             and c.descriptor
                             and c.descriptor.unit == arg.unitType
                         then
-                            if forceMv and not c.hasMoved then
-                                blockedMove = blockedMove + 1
-                            else
-                                table.insert(toUnpack, c)
-                                if #toUnpack >= arg.cratesRequired then break end
-                            end
+                            table.insert(toUnpack, c)
+                            if #toUnpack >= arg.cratesRequired then break end
                         end
                     end
                     if #toUnpack < arg.cratesRequired then
-                        if blockedMove > 0 then
-                            trigger.action.outTextForGroup(gid,
-                                ctld.tr("You must move this crate before unpacking it!"), 10)
-                        else
-                            trigger.action.outTextForGroup(gid,
-                                ctld.tr("Not enough crates nearby to unpack!"), 10)
-                        end
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("Not enough crates nearby to unpack!"), 10)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end

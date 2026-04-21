@@ -1726,7 +1726,6 @@ ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
-ctld.i18n["en"]["You must move this crate before unpacking it!"] = "You must move this crate before unpacking it!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
 --- Check Cargo summary
@@ -2056,7 +2055,6 @@ ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
 ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
-ctld.i18n["fr"]["You must move this crate before unpacking it!"] = "Vous devez déplacer cette caisse avant de la déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
 
 --- Check Cargo summary
@@ -2387,7 +2385,6 @@ ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
-ctld.i18n["es"]["You must move this crate before unpacking it!"] = "¡Debes mover esta caja antes de desempaquetarla!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
 --- Check Cargo summary
@@ -2723,7 +2720,6 @@ ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
-ctld.i18n["ko"]["You must move this crate before unpacking it!"] = "풀기 전에 이 화물을 이동시켜야 합니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
 
 --- Check Cargo summary
@@ -8905,33 +8901,22 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                             ctld.tr("You must land before unpacking crates!"), 10)
                         return
                     end
-                    local mgr      = CTLDCrateManager.getInstance()
-                    local forceMv  = ctld.gs("forceCrateToBeMoved") == true
-                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
-                    -- Collect crates: enforce forceCrateToBeMoved at action time
-                    local toUnpack    = {}
-                    local blockedMove = 0
+                    local mgr   = CTLDCrateManager.getInstance()
+                    local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                    -- Collect crates: forceCrateToBeMoved does not apply to unpack
+                    local toUnpack = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
                             and c.descriptor
                             and c.descriptor.unit == arg.unitType
                         then
-                            if forceMv and not c.hasMoved then
-                                blockedMove = blockedMove + 1
-                            else
-                                table.insert(toUnpack, c)
-                                if #toUnpack >= arg.cratesRequired then break end
-                            end
+                            table.insert(toUnpack, c)
+                            if #toUnpack >= arg.cratesRequired then break end
                         end
                     end
                     if #toUnpack < arg.cratesRequired then
-                        if blockedMove > 0 then
-                            trigger.action.outTextForGroup(gid,
-                                ctld.tr("You must move this crate before unpacking it!"), 10)
-                        else
-                            trigger.action.outTextForGroup(gid,
-                                ctld.tr("Not enough crates nearby to unpack!"), 10)
-                        end
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("Not enough crates nearby to unpack!"), 10)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
