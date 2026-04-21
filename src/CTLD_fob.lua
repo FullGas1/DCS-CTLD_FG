@@ -209,7 +209,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
         trigger.action.outTextForGroup(gid,
             string.format(
                 ctld.tr("fobNotEnoughCrates",
-                    "FOB needs %d crate(s) within 750 m — only %d found."),
+                    "FOB needs %d crate(s) within 750 m - only %d found."),
                 required, collected.total), 15)
         return
     end
