@@ -310,7 +310,7 @@ ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2�
 
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
-ctld.i18n["ko"]["%1 crate(s) onboard (%2 kg)"] = "%1개 크레이트 탑재 중 (%2 kg)"
+ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2개 크레이트 탑재 중 (%3 kg)"
 ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg)"
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 

@@ -1722,7 +1722,7 @@ ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped
 
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
-ctld.i18n["en"]["%1 crate(s) onboard (%2 kg)"] = "%1 crate(s) onboard (%2 kg)"
+ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
 ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
@@ -2043,7 +2043,7 @@ ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) dépos
 
 --- Check Cargo summary
 ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison à bord."
-ctld.i18n["fr"]["%1 crate(s) onboard (%2 kg)"] = "%1 caisse(s) en soute (%2 kg)"
+ctld.i18n["fr"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1 : %2 caisse(s) en soute (%3 kg)"
 ctld.i18n["fr"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldat(s) en soute (%2 kg)"
 ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 kg"
 
@@ -2365,7 +2365,7 @@ ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(
 
 --- Check Cargo summary
 ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
-ctld.i18n["es"]["%1 crate(s) onboard (%2 kg)"] = "%1 caja(s) a bordo (%2 kg)"
+ctld.i18n["es"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 caja(s) a bordo (%3 kg)"
 ctld.i18n["es"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldado(s) a bordo (%2 kg)"
 ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 
@@ -2692,7 +2692,7 @@ ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2�
 
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
-ctld.i18n["ko"]["%1 crate(s) onboard (%2 kg)"] = "%1개 크레이트 탑재 중 (%2 kg)"
+ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2개 크레이트 탑재 중 (%3 kg)"
 ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg)"
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 
@@ -15146,12 +15146,13 @@ function CTLDPlayerManager:buildMenu(playerObj)
             local lines     = {}
             local total     = 0
 
-            -- Crates loaded on this transport — grouped by type
-            local crateMgr  = CTLDCrateManager.getInstance()
+            -- Crates loaded on this transport — grouped by descriptor.desc
+            -- Compare by unit name, not object identity (DCS userdata equality is unreliable)
+            local crateMgr   = CTLDCrateManager.getInstance()
             local crateCount = {}   -- desc → { count, totalWeight }
-            local crateOrder = {}   -- preserve insertion order
+            local crateOrder = {}   -- preserve insertion order for deterministic output
             for _, c in pairs(crateMgr.crates) do
-                if c:isLoaded() and c.loadedBy == transport then
+                if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == unitName then
                     local desc   = (c.descriptor and c.descriptor.desc) or "?"
                     local weight = (c.descriptor and c.descriptor.weight) or 0
                     if not crateCount[desc] then
@@ -15164,9 +15165,9 @@ function CTLDPlayerManager:buildMenu(playerObj)
                 end
             end
             for _, desc in ipairs(crateOrder) do
-                local info  = crateCount[desc]
-                local label = (info.count > 1) and (desc .. " (x" .. info.count .. ")") or desc
-                table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", label, info.totalWeight))
+                local info = crateCount[desc]
+                table.insert(lines,
+                    ctld.tr("%1: %2 crate(s) onboard (%3 kg)", desc, info.count, info.totalWeight))
             end
 
             -- Troops loaded on this transport

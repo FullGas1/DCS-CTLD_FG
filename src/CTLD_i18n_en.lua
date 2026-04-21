@@ -310,7 +310,7 @@ ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped
 
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
-ctld.i18n["en"]["%1 crate(s) onboard (%2 kg)"] = "%1 crate(s) onboard (%2 kg)"
+ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
 ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
