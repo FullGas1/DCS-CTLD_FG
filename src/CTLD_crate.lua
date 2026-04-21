@@ -305,14 +305,14 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     menu:refresh()
 end
 
---- Refresh the "Unpack Any Crate" submenu for a single player by unit name.
+--- Refresh the "Unpack Crate" submenu for a single player by unit name.
 -- @param unitName string
 function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
     if playerObj then self:refreshUnpackSection(playerObj) end
 end
 
---- Rebuild the "Unpack Any Crate" dynamic submenu for playerObj.
+--- Rebuild the "Unpack Crate" dynamic submenu for playerObj.
 -- Lists assembleable crate sets (count >= cratesRequired) within 300 m.
 -- Each entry spawns the vehicle at unpack time.
 -- Called on land, crate spawn, crate cleared.
@@ -328,7 +328,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local root      = ctld.tr("CTLD")
     local cratesSub = ctld.tr("Crate Commands")
-    local unpackSub = ctld.tr("Unpack Any Crate")
+    local unpackSub = ctld.tr("Unpack Crate")
 
     menu:clearBranch({ root, cratesSub, unpackSub })
 
@@ -1477,7 +1477,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    local unpackSub = ctld.tr("Unpack Any Crate")
+    local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
     self:refreshUnpackSection(playerObj)
 

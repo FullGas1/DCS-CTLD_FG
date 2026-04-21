@@ -308,8 +308,8 @@ ctld.i18n["ko"]["No crates on board to drop."] = "내릴 화물이 없습니다.
 ctld.i18n["ko"]["You must land before dropping crates!"] = "화물을 내리기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2시 방향에 내려졌습니다"
 
---- Unpack Any Crate submenu
-ctld.i18n["ko"]["Unpack Any Crate"] = "화물 풀기"
+--- Unpack Crate submenu
+ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
 ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"

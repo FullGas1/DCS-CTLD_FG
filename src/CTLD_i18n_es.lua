@@ -303,8 +303,8 @@ ctld.i18n["es"]["No crates on board to drop."] = "No hay cajas a bordo para solt
 ctld.i18n["es"]["You must land before dropping crates!"] = "¡Debes aterrizar antes de soltar las cajas!"
 ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(s) a tu %2 en punto"
 
---- Unpack Any Crate submenu
-ctld.i18n["es"]["Unpack Any Crate"] = "Desempaquetar cajas"
+--- Unpack Crate submenu
+ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"

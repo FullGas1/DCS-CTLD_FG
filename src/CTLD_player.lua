@@ -141,6 +141,8 @@ function CTLDPlayerManager:init()
         if not playerObj then return end
         if p.crate then playerObj:addLoadedCrate(p.crate) end
         self:refreshForUnit(playerObj.unitName)
+        -- Crate is now inside the aircraft: remove it from the Unpack menu immediately
+        CTLDCrateManager.getInstance():refreshUnpackSectionForUnit(p.carrierUnitName)
     end)
 
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")

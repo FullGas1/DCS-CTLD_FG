@@ -308,8 +308,8 @@ ctld.i18n["en"]["No crates on board to drop."] = "No crates on board to drop."
 ctld.i18n["en"]["You must land before dropping crates!"] = "You must land before dropping crates!"
 ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped at your %2 o'clock"
 
---- Unpack Any Crate submenu
-ctld.i18n["en"]["Unpack Any Crate"] = "Unpack Any Crate"
+--- Unpack Crate submenu
+ctld.i18n["en"]["Unpack Crate"] = "Unpack Crate"
 ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"

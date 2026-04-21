@@ -1720,8 +1720,8 @@ ctld.i18n["en"]["No crates on board to drop."] = "No crates on board to drop."
 ctld.i18n["en"]["You must land before dropping crates!"] = "You must land before dropping crates!"
 ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped at your %2 o'clock"
 
---- Unpack Any Crate submenu
-ctld.i18n["en"]["Unpack Any Crate"] = "Unpack Any Crate"
+--- Unpack Crate submenu
+ctld.i18n["en"]["Unpack Crate"] = "Unpack Crate"
 ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
@@ -2062,8 +2062,8 @@ ctld.i18n["fr"]["No crates on board to drop."] = "Aucune caisse à bord à dépo
 ctld.i18n["fr"]["You must land before dropping crates!"] = "Vous devez atterrir avant de déposer les caisses !"
 ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) déposée(s) à vos %2 heures"
 
---- Unpack Any Crate submenu
-ctld.i18n["fr"]["Unpack Any Crate"] = "Déballer caisses"
+--- Unpack Crate submenu
+ctld.i18n["fr"]["Unpack Crate"] = "Déballer caisses"
 ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
 ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
@@ -2405,8 +2405,8 @@ ctld.i18n["es"]["No crates on board to drop."] = "No hay cajas a bordo para solt
 ctld.i18n["es"]["You must land before dropping crates!"] = "¡Debes aterrizar antes de soltar las cajas!"
 ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(s) a tu %2 en punto"
 
---- Unpack Any Crate submenu
-ctld.i18n["es"]["Unpack Any Crate"] = "Desempaquetar cajas"
+--- Unpack Crate submenu
+ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
@@ -2753,8 +2753,8 @@ ctld.i18n["ko"]["No crates on board to drop."] = "내릴 화물이 없습니다.
 ctld.i18n["ko"]["You must land before dropping crates!"] = "화물을 내리기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2시 방향에 내려졌습니다"
 
---- Unpack Any Crate submenu
-ctld.i18n["ko"]["Unpack Any Crate"] = "화물 풀기"
+--- Unpack Crate submenu
+ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
 ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
@@ -8883,14 +8883,14 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     menu:refresh()
 end
 
---- Refresh the "Unpack Any Crate" submenu for a single player by unit name.
+--- Refresh the "Unpack Crate" submenu for a single player by unit name.
 -- @param unitName string
 function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
     if playerObj then self:refreshUnpackSection(playerObj) end
 end
 
---- Rebuild the "Unpack Any Crate" dynamic submenu for playerObj.
+--- Rebuild the "Unpack Crate" dynamic submenu for playerObj.
 -- Lists assembleable crate sets (count >= cratesRequired) within 300 m.
 -- Each entry spawns the vehicle at unpack time.
 -- Called on land, crate spawn, crate cleared.
@@ -8906,7 +8906,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local root      = ctld.tr("CTLD")
     local cratesSub = ctld.tr("Crate Commands")
-    local unpackSub = ctld.tr("Unpack Any Crate")
+    local unpackSub = ctld.tr("Unpack Crate")
 
     menu:clearBranch({ root, cratesSub, unpackSub })
 
@@ -10055,7 +10055,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    local unpackSub = ctld.tr("Unpack Any Crate")
+    local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
     self:refreshUnpackSection(playerObj)
 
@@ -10592,6 +10592,12 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- Destroy DCS unit (virtual load — unit disappears from map)
     if vehicle.unit and vehicle.unit:isExist() then
         vehicle.unit:destroy()
+        EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+            vehicleType = vehicle.vehicleType,
+            position    = unitPos,
+            reason      = "loaded",
+            timestamp   = timer.getAbsTime(),
+        })
     end
 
     -- Update reverse lookup
@@ -15346,6 +15352,8 @@ function CTLDPlayerManager:init()
         if not playerObj then return end
         if p.crate then playerObj:addLoadedCrate(p.crate) end
         self:refreshForUnit(playerObj.unitName)
+        -- Crate is now inside the aircraft: remove it from the Unpack menu immediately
+        CTLDCrateManager.getInstance():refreshUnpackSectionForUnit(p.carrierUnitName)
     end)
 
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")

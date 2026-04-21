@@ -324,6 +324,12 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- Destroy DCS unit (virtual load — unit disappears from map)
     if vehicle.unit and vehicle.unit:isExist() then
         vehicle.unit:destroy()
+        EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+            vehicleType = vehicle.vehicleType,
+            position    = unitPos,
+            reason      = "loaded",
+            timestamp   = timer.getAbsTime(),
+        })
     end
 
     -- Update reverse lookup
