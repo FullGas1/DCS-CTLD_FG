@@ -8980,14 +8980,14 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local hasFobCrates = false
+    local fobSmallCount = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
             if FOB_SENTINELS[ut] then
-                hasFobCrates = true
+                fobSmallCount = fobSmallCount + 1
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -9076,9 +9076,11 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     end
 
     -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
-    if hasFobCrates then
+    if fobSmallCount > 0 then
         hasAny = true
-        menu:addCommand({ root, cratesSub, unpackSub }, ctld.tr("Build FOB"),
+        local fobRequired = (ctld.gs("cratesRequiredForFOB") or 3) * 3
+        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobSmallCount, fobRequired)
+        menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
             function(arg)
                 local t = Unit.getByName(arg.unitName)
                 if not (t and t:isExist()) then return end
