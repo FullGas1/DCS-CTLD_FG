@@ -77,7 +77,7 @@ end
 ctld_test.assert(has({root}),                                             "Root CTLD present")
 -- No transport sections
 ctld_test.assert(not has({root, ctld.tr("Troop Commands")}),             "Troop Commands absent (isTransport=false)")
-ctld_test.assert(not has({root, ctld.tr("Spawn Crates")}),               "Spawn Crates absent (isTransport=false)")
+ctld_test.assert(not has({root, ctld.tr("Request Equipment")}),               "Request Equipment absent (isTransport=false)")
 ctld_test.assert(not has({root, ctld.tr("Crate Commands")}),             "Crate Commands absent (isTransport=false)")
 ctld_test.assert(not has({root, ctld.tr("Smoke")}),                      "Smoke absent (isTransport=false)")
 ctld_test.assert(not has({root, ctld.tr("Radio Beacons")}),              "Radio Beacons absent (isTransport=false)")

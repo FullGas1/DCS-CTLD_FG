@@ -1,7 +1,8 @@
----@meta
+﻿---@meta
 ---@diagnostic disable
 
--- ===== Start : lib/class.lua =====
+-- ====================================================================================================
+-- Start : lib/class.lua
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -38,9 +39,10 @@ function class(base)
     end
     return cls
 end
--- ===== End   : lib/class.lua =====
 
--- ===== Start : CTLD_config.lua =====
+-- End : lib/class.lua
+-- ====================================================================================================
+-- Start : CTLD_config.lua
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -1187,9 +1189,10 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
--- ===== End   : CTLD_config.lua =====
 
--- ===== Start : CTLD_i18n.lua =====
+-- End : CTLD_config.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n.lua
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1407,9 +1410,10 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
--- ===== End   : CTLD_i18n.lua =====
 
--- ===== Start : CTLD_i18n_en.lua =====
+-- End : CTLD_i18n.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1706,11 +1710,17 @@ ctld.i18n["en"]["RECON"] = "RECON"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 
+--- Request Equipment spawn messages
+ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
+ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
+ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
--- ===== End   : CTLD_i18n_en.lua =====
 
--- ===== Start : CTLD_i18n_fr.lua =====
+-- End : CTLD_i18n_en.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2001,11 +2011,17 @@ ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
 -- STALE: ctld.i18n["fr"]["START autoRefresh targets in LOS"] = "Lancer suivi automatique des cibles"
 -- STALE: ctld.i18n["fr"]["STOP autoRefresh targets in LOS"] = "Stopper suivi automatique des cibles"
 
+--- Request Equipment spawn messages
+ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
+ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
+ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_fr.lua =====
 
--- ===== Start : CTLD_i18n_es.lua =====
+-- End : CTLD_i18n_fr.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2297,11 +2313,17 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
 
+--- Request Equipment spawn messages
+ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
+ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
+ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_es.lua =====
 
--- ===== Start : CTLD_i18n_ko.lua =====
+-- End : CTLD_i18n_es.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_ko.lua
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2597,9 +2619,15 @@ ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
 ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
 ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
--- ===== End   : CTLD_i18n_ko.lua =====
 
--- ===== Start : CTLD_utils.lua =====
+--- Request Equipment spawn messages
+ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
+ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
+
+-- End : CTLD_i18n_ko.lua
+-- ====================================================================================================
+-- Start : CTLD_utils.lua
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4405,9 +4433,10 @@ end
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
--- ===== End   : CTLD_utils.lua =====
 
--- ===== Start : CTLD_menu.lua =====
+-- End : CTLD_utils.lua
+-- ====================================================================================================
+-- Start : CTLD_menu.lua
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -4933,9 +4962,10 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
--- ===== End   : CTLD_menu.lua =====
 
--- ===== Start : lib/CTLD_objectRegistry.lua =====
+-- End : CTLD_menu.lua
+-- ====================================================================================================
+-- Start : lib/CTLD_objectRegistry.lua
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5357,9 +5387,10 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
--- ===== End   : lib/CTLD_objectRegistry.lua =====
 
--- ===== Start : lib/CTLDParachuteEffect.lua =====
+-- End : lib/CTLD_objectRegistry.lua
+-- ====================================================================================================
+-- Start : lib/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5411,9 +5442,10 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
--- ===== End   : lib/CTLDParachuteEffect.lua =====
 
--- ===== Start : CTLD_sceneManager.lua =====
+-- End : lib/CTLDParachuteEffect.lua
+-- ====================================================================================================
+-- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -5835,9 +5867,10 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ===== End   : CTLD_sceneManager.lua =====
 
--- ===== Start : CTLD_zone.lua =====
+-- End : CTLD_sceneManager.lua
+-- ====================================================================================================
+-- Start : CTLD_zone.lua
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -6867,9 +6900,10 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
--- ===== End   : CTLD_zone.lua =====
 
--- ===== Start : CTLD_troop.lua =====
+-- End : CTLD_zone.lua
+-- ====================================================================================================
+-- Start : CTLD_troop.lua
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8380,9 +8414,10 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
--- ===== End   : CTLD_troop.lua =====
 
--- ===== Start : CTLD_crate.lua =====
+-- End : CTLD_troop.lua
+-- ====================================================================================================
+-- Start : CTLD_crate.lua
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -9319,7 +9354,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 end
 
 --- Returns true if the unit type name is a JTAC-type unit.
--- Used to filter JTAC crates from the Spawn Crates menu when JTAC_dropEnabled = false.
+-- Used to filter JTAC crates from the Request Equipment menu when JTAC_dropEnabled = false.
 -- Matches known JTAC unit type names (case-insensitive substring).
 local _jtacUnitTypes = { "hummer", "skp-11", "jtac" }
 function CTLDCrateManager:_isJTACUnitType(unitType)
@@ -9331,10 +9366,10 @@ function CTLDCrateManager:_isJTACUnitType(unitType)
     return false
 end
 
---- Build "Spawn Crates" + "Crate Commands" F10 submenus for a player.
+--- Build "Request Equipment" + "Crate Commands" F10 submenus for a player.
 -- Requires enableCrates = true (configKey gate) AND unitActions.crates = true.
 -- Sub-entries:
---   Spawn Crates → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
+--   Request Equipment → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
 --   Crate Commands → Load/Drop/Unpack/List
 --                  → List FOBs         if enabledFOBBuilding
 --                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
@@ -9347,10 +9382,10 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 
     local root      = ctld.tr("CTLD")
     local jtacOk    = ctld.gs("JTAC_dropEnabled") == true
-    local spawnSub  = ctld.tr("Spawn Crates")
+    local spawnSub  = ctld.tr("Request Equipment")
     menu:addSubMenu({ root }, spawnSub, { order = 40 })
 
-    -- Spawn Crates: per LGZ × per category × per crate
+    -- Request Equipment: per LGZ × per category × per crate
     local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
 
@@ -9365,10 +9400,30 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
-                            CTLDCrateManager.getInstance():spawnCrate(
-                                self:findDescriptorByTypeName(arg.unit),
-                                CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName),
-                                arg.coalition, arg.unitName, "menu_ctld")
+                            local transport = Unit.getByName(arg.unitName)
+                            if not (transport and transport:isExist()) then return end
+                            if ctld.utils.inAir(transport) then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("You must be landed to request a crate."), 10)
+                                return
+                            end
+                            local lgz = CTLDZoneManager.getInstance():getLogisticZoneForUnit(arg.unitName)
+                            if not lgz then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
+                                return
+                            end
+                            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                            local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
+                            local pos       = spawnInfo.positions[1]
+                            local mgr       = CTLDCrateManager.getInstance()
+                            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+                            local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
+                            if spawned then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
+                                        descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                            end
                         end,
                         { unit = crate.unit, weight = crate.weight,
                           zoneName = lgzName, unitName = playerObj.unitName,
@@ -9579,9 +9634,10 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
--- ===== End   : CTLD_crate.lua =====
 
--- ===== Start : CTLD_vehicle.lua =====
+-- End : CTLD_crate.lua
+-- ====================================================================================================
+-- Start : CTLD_vehicle.lua
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -10445,9 +10501,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
--- ===== End   : CTLD_vehicle.lua =====
 
--- ===== Start : CTLD_fob.lua =====
+-- End : CTLD_vehicle.lua
+-- ====================================================================================================
+-- Start : CTLD_fob.lua
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -10928,9 +10985,10 @@ function CTLDFOBManager:listFOBs(transport)
 
     ctld.utils.displayMessageToGroup(transport, msg, 20)
 end
--- ===== End   : CTLD_fob.lua =====
 
--- ===== Start : CTLD_aasystem.lua =====
+-- End : CTLD_fob.lua
+-- ====================================================================================================
+-- Start : CTLD_aasystem.lua
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -11627,9 +11685,10 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
--- ===== End   : CTLD_aasystem.lua =====
 
--- ===== Start : CTLD_beacon.lua =====
+-- End : CTLD_aasystem.lua
+-- ====================================================================================================
+-- Start : CTLD_beacon.lua
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -12445,9 +12504,10 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
--- ===== End   : CTLD_beacon.lua =====
 
--- ===== Start : CTLD_recon.lua =====
+-- End : CTLD_beacon.lua
+-- ====================================================================================================
+-- Start : CTLD_recon.lua
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -13324,9 +13384,10 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
--- ===== End   : CTLD_recon.lua =====
 
--- ===== Start : CTLD_jtac.lua =====
+-- End : CTLD_recon.lua
+-- ====================================================================================================
+-- Start : CTLD_jtac.lua
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -14407,9 +14468,10 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
--- ===== End   : CTLD_jtac.lua =====
 
--- ===== Start : CTLD_player.lua =====
+-- End : CTLD_jtac.lua
+-- ====================================================================================================
+-- Start : CTLD_player.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -14777,9 +14839,10 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
--- ===== End   : CTLD_player.lua =====
 
--- ===== Start : CTLD_core.lua =====
+-- End : CTLD_player.lua
+-- ====================================================================================================
+-- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -15186,9 +15249,10 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
--- ===== End   : CTLD_core.lua =====
 
--- ===== Start : scenes/CTLD_farpScene.lua =====
+-- End : CTLD_core.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_farpScene.lua
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -15289,9 +15353,10 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
--- ===== End   : scenes/CTLD_farpScene.lua =====
 
--- ===== Start : scenes/CTLD_fobScene.lua =====
+-- End : scenes/CTLD_farpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_fobScene.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -15391,9 +15456,10 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
--- ===== End   : scenes/CTLD_fobScene.lua =====
 
--- ===== Start : scenes/CTLD_mineFieldScene.lua =====
+-- End : scenes/CTLD_fobScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_mineFieldScene.lua
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -15658,9 +15724,10 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
--- ===== End   : scenes/CTLD_mineFieldScene.lua =====
 
--- ===== Start : compat/legacy_api.lua =====
+-- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : compat/legacy_api.lua
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -15839,9 +15906,10 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
--- ===== End   : compat/legacy_api.lua =====
 
--- ===== Start : CTLD_userConfig.lua =====
+-- End : compat/legacy_api.lua
+-- ====================================================================================================
+-- Start : CTLD_userConfig.lua
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -16815,5 +16883,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
--- ===== End   : CTLD_userConfig.lua =====
 
+-- End : CTLD_userConfig.lua

@@ -289,5 +289,10 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
 
+--- Request Equipment spawn messages
+ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
+ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
+ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""

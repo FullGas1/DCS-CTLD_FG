@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- F-49 : enableCrates=false → no Spawn Crates / Crate Commands; Smoke + Beacons still present
+-- F-49 : enableCrates=false → no Request Equipment / Crate Commands; Smoke + Beacons still present
 -- Module  : R5 (CTLD_player.lua + tous managers)
 -- Objectif: Quand enableCrates=false, les sections Crate sont absentes mais Smoke/Beacons restent.
 do local f=io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log","w") if f then f:close() end end
@@ -19,7 +19,7 @@ dofile(SRC.."CTLD_recon.lua")
 dofile(SRC.."CTLD_jtac.lua")
 dofile(SRC.."CTLD_player.lua")
 
-ctld_test.start("F-49", "enableCrates=false — Spawn Crates + Crate Commands absent, Smoke + Beacons present")
+ctld_test.start("F-49", "enableCrates=false — Request Equipment + Crate Commands absent, Smoke + Beacons present")
 
 -- Reset all singletons
 CTLDPlayerManager._instance  = nil
@@ -74,7 +74,7 @@ local function has(path)
     return menu and menu:_getNode(path) ~= nil
 end
 
-ctld_test.assert(not has({root, ctld.tr("Spawn Crates")}),    "Spawn Crates absent (enableCrates=false)")
+ctld_test.assert(not has({root, ctld.tr("Request Equipment")}),    "Request Equipment absent (enableCrates=false)")
 ctld_test.assert(not has({root, ctld.tr("Crate Commands")}),  "Crate Commands absent (enableCrates=false)")
 ctld_test.assert(has({root, ctld.tr("Smoke")}),               "Smoke present (enableSmokeDrop=true)")
 ctld_test.assert(has({root, ctld.tr("Radio Beacons")}),       "Radio Beacons present (enabledRadioBeaconDrop=true)")

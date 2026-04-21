@@ -79,7 +79,7 @@ end
 
 ctld_test.assert(has({root}),                             "Root CTLD submenu")
 ctld_test.assert(has({root, ctld.tr("Troop Commands")}),  "Troop Commands (troops=true)")
-ctld_test.assert(has({root, ctld.tr("Spawn Crates")}),    "Spawn Crates (enableCrates)")
+ctld_test.assert(has({root, ctld.tr("Request Equipment")}),    "Request Equipment (enableCrates)")
 ctld_test.assert(has({root, ctld.tr("Crate Commands")}),  "Crate Commands (enableCrates)")
 ctld_test.assert(has({root, ctld.tr("Smoke")}),           "Smoke (enableSmokeDrop)")
 ctld_test.assert(has({root, ctld.tr("Radio Beacons")}),   "Radio Beacons (enabledRadioBeaconDrop)")

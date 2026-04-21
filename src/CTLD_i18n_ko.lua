@@ -293,3 +293,8 @@ ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
 ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
 ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
+
+--- Request Equipment spawn messages
+ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
+ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."

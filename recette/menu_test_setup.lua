@@ -79,7 +79,7 @@ local function _sectionStubs()
             local acts=(ctld.gs("unitActions") or {})[p.typeName]
             if not (p.isTransport and acts and acts.crates) then return end
             local root=ctld.tr("CTLD")
-            m:addSubMenu({root}, ctld.tr("Spawn Crates"),   {order=40})
+            m:addSubMenu({root}, ctld.tr("Request Equipment"),   {order=40})
             m:addSubMenu({root}, ctld.tr("Crate Commands"), {order=50})
             if ctld.gs("enabledFOBBuilding") then
                 m:addCommand({root,ctld.tr("Crate Commands")},ctld.tr("List FOBs"),function()end,{})

@@ -75,7 +75,7 @@ end
 
 ctld_test.assert(has({root, ctld.tr("Vehicle Commands")}),   "Vehicle Commands present (canCarryVehicles=true)")
 ctld_test.assert(has({root, ctld.tr("Troop Commands")}),     "Troop Commands present (isTransport=true)")
-ctld_test.assert(has({root, ctld.tr("Spawn Crates")}),       "Spawn Crates present (enableCrates=true)")
+ctld_test.assert(has({root, ctld.tr("Request Equipment")}),       "Request Equipment present (enableCrates=true)")
 
 ctld.gs = _origGs
 ctld_test.finish()

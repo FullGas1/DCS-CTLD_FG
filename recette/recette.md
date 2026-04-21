@@ -183,7 +183,7 @@ La mission de test doit contenir :
 | F-46 | Double refresh() idempotent | R5 | Deuxième refresh() → menu identique — VISUAL CHECK | ✅ PASS (visual) | — |
 | F-47 | Enable FOB + clearBranch + pagination | R5 | FOB activé + Pack Vehicles 11 items → 9+NextPage — VISUAL CHECK | ✅ PASS (visual) | — |
 | F-48 | buildMenu() tous flags true — toutes sections | R5 | isTransport=true, canCarryVehicles=false : 8 sections + Pack Vehicle présents | ✅ PASS 10/10 | — |
-| F-49 | enableCrates=false → Spawn Crates + Crate Commands absent | R5 | Smoke + Beacons + Troops toujours présents | ✅ PASS 5/5 | — |
+| F-49 | enableCrates=false → Request Equipment + Crate Commands absent | R5 | Smoke + Beacons + Troops toujours présents | ✅ PASS 5/5 | — |
 | F-50 | enabledRadioBeaconDrop=false → Radio Beacons absent | R5 | Toutes autres sections présentes | ✅ PASS 5/5 | — |
 | F-51 | reconF10Menu=false → RECON absent | R5 | Toutes autres sections présentes | ✅ PASS 4/4 | — |
 | F-52 | JTAC_jtacStatusF10=false → JTAC absent | R5 | Toutes autres sections présentes | ✅ PASS 4/4 | — |

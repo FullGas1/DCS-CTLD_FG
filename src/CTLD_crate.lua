@@ -934,7 +934,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 end
 
 --- Returns true if the unit type name is a JTAC-type unit.
--- Used to filter JTAC crates from the Spawn Crates menu when JTAC_dropEnabled = false.
+-- Used to filter JTAC crates from the Request Equipment menu when JTAC_dropEnabled = false.
 -- Matches known JTAC unit type names (case-insensitive substring).
 local _jtacUnitTypes = { "hummer", "skp-11", "jtac" }
 function CTLDCrateManager:_isJTACUnitType(unitType)
@@ -946,10 +946,10 @@ function CTLDCrateManager:_isJTACUnitType(unitType)
     return false
 end
 
---- Build "Spawn Crates" + "Crate Commands" F10 submenus for a player.
+--- Build "Request Equipment" + "Crate Commands" F10 submenus for a player.
 -- Requires enableCrates = true (configKey gate) AND unitActions.crates = true.
 -- Sub-entries:
---   Spawn Crates → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
+--   Request Equipment → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
 --   Crate Commands → Load/Drop/Unpack/List
 --                  → List FOBs         if enabledFOBBuilding
 --                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
@@ -962,10 +962,10 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 
     local root      = ctld.tr("CTLD")
     local jtacOk    = ctld.gs("JTAC_dropEnabled") == true
-    local spawnSub  = ctld.tr("Spawn Crates")
+    local spawnSub  = ctld.tr("Request Equipment")
     menu:addSubMenu({ root }, spawnSub, { order = 40 })
 
-    -- Spawn Crates: per LGZ × per category × per crate
+    -- Request Equipment: per LGZ × per category × per crate
     local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
 
@@ -980,10 +980,30 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
-                            CTLDCrateManager.getInstance():spawnCrate(
-                                self:findDescriptorByTypeName(arg.unit),
-                                CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName),
-                                arg.coalition, arg.unitName, "menu_ctld")
+                            local transport = Unit.getByName(arg.unitName)
+                            if not (transport and transport:isExist()) then return end
+                            if ctld.utils.inAir(transport) then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("You must be landed to request a crate."), 10)
+                                return
+                            end
+                            local lgz = CTLDZoneManager.getInstance():getLogisticZoneForUnit(arg.unitName)
+                            if not lgz then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
+                                return
+                            end
+                            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                            local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
+                            local pos       = spawnInfo.positions[1]
+                            local mgr       = CTLDCrateManager.getInstance()
+                            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+                            local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
+                            if spawned then
+                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                                    ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
+                                        descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                            end
                         end,
                         { unit = crate.unit, weight = crate.weight,
                           zoneName = lgzName, unitName = playerObj.unitName,

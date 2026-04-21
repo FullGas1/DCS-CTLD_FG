@@ -73,7 +73,7 @@ local function has(path)
 end
 
 ctld_test.assert(not has({root, ctld.tr("Radio Beacons")}),  "Radio Beacons absent (enabledRadioBeaconDrop=false)")
-ctld_test.assert(has({root, ctld.tr("Spawn Crates")}),       "Spawn Crates present (enableCrates=true)")
+ctld_test.assert(has({root, ctld.tr("Request Equipment")}),       "Request Equipment present (enableCrates=true)")
 ctld_test.assert(has({root, ctld.tr("Crate Commands")}),     "Crate Commands present (enableCrates=true)")
 ctld_test.assert(has({root, ctld.tr("Smoke")}),              "Smoke present (enableSmokeDrop=true)")
 ctld_test.assert(has({root, ctld.tr("RECON")}),              "RECON present (reconF10Menu=true)")

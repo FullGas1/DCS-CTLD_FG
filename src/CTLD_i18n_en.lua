@@ -294,5 +294,10 @@ ctld.i18n["en"]["RECON"] = "RECON"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 
+--- Request Equipment spawn messages
+ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
+ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
+ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
