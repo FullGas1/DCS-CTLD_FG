@@ -1465,7 +1465,7 @@ ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on 
 ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
 ctld.i18n["en"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB deployment blocked: move at least %1 m away from existing logistic zone."
-ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke."] = "%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke."
+ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."
 ctld.i18n["en"]["MQ-9 Repear - JTAC"] = "MQ-9 Repear - JTAC"
 ctld.i18n["en"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
 ctld.i18n["en"]["MLRS"] = "MLRS"
@@ -1825,7 +1825,7 @@ ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre
 ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
 ctld.i18n["fr"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Deploiement FOB bloque : eloignez-vous d'au moins %1 m d'une zone logistique."
-ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Pret dans %3 secondes. Position marquee par fumee."
+ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Pret dans %3 secondes."
 ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["fr"]["MLRS"] = ""
@@ -2186,7 +2186,7 @@ ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en 
 ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
 ctld.i18n["es"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Despliegue de FOB bloqueado: alejate al menos %1 m de una zona logistica."
-ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke."] = "%1 comenzo a construir un FOB (%2 caja(s)). Listo en %3 segundos. Posicion marcada con humo."
+ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 comenzo a construir un FOB (%2 caja(s)). Listo en %3 segundos."
 ctld.i18n["es"]["MQ-9 Repear - JTAC"] = "JTAC MQ-9 Repear"
 ctld.i18n["es"]["RQ-1A Predator - JTAC"] = "JTAC RQ-1A Predator"
 ctld.i18n["es"]["MLRS"] = "MLRS - Artilleria de cohetes"
@@ -2548,7 +2548,7 @@ ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치�
 ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
-ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). %3초 후 완료. 위치가 연막으로 표시됩니다."
+ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). %3초 후 완료."
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["ko"]["MLRS"] = ""
@@ -11585,9 +11585,8 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local self_ref    = self
 
     -- Visual feedback
-    trigger.action.smoke(centroid, trigger.smokeColor.Green)
     trigger.action.outTextForCoalition(coalitionId,
-        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke.",
+        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds.",
             player, #cratesUsed, buildTime), 10)
 
     -- Schedule scene spawn

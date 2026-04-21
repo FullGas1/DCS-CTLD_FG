@@ -247,9 +247,8 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local self_ref    = self
 
     -- Visual feedback
-    trigger.action.smoke(centroid, trigger.smokeColor.Green)
     trigger.action.outTextForCoalition(coalitionId,
-        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke.",
+        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds.",
             player, #cratesUsed, buildTime), 10)
 
     -- Schedule scene spawn
