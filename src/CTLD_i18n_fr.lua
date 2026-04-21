@@ -310,6 +310,12 @@ ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
 
+--- Pack Vehicle submenu
+ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
+ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"
+ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
+ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
+
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
 ctld.i18n["fr"]["No crates within 300m."] = "Aucune caisse dans un rayon de 300m."

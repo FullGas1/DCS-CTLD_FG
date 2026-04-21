@@ -417,6 +417,10 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                                 country     = cId,
                             },
                             spawnPos)
+                        -- Refresh pack menu so newly spawned vehicle is immediately packable
+                        timer.scheduleFunction(function()
+                            CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(arg.unitName)
+                        end, nil, timer.getTime() + 0.5)
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -1532,27 +1536,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     if ctld.gs("enablePackingVehicles") == true then
         local packSub   = ctld.tr("Pack Vehicle")
         menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })
-        local transport = Unit.getByName(playerObj.unitName)
-        if transport and transport:isExist() then
-            local packable = CTLDVehicleSpawner.getInstance():findPackableVehicles(transport)
-            if #packable == 0 then
-                menu:addCommand({ root, cratesSub, packSub }, ctld.tr("No packable vehicles nearby"),
-                    function() end, {})
-            else
-                for _, v in ipairs(packable) do
-                    menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
-                        function(arg)
-                            CTLDVehicleSpawner.getInstance():packVehicle(
-                                arg.transportName, arg.packableUnitName, arg)
-                        end,
-                        { transportName   = playerObj.unitName,
-                          packableUnitName = v.unitName,
-                          groupId          = playerObj.groupId,
-                          unitName         = playerObj.unitName,
-                          coalition        = playerObj.coalition })
-                end
-            end
-        end
+        CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
     end
 
     -- Parachute Crates: only if canParachute=true for this unit type

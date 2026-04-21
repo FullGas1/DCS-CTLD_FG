@@ -1728,6 +1728,12 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
+--- Pack Vehicle submenu
+ctld.i18n["en"]["Land to pack vehicles"] = "Land to pack vehicles"
+ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
+ctld.i18n["en"]["Vehicle no longer exists."] = "Vehicle no longer exists."
+ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle type."
+
 --- List Nearby Crates
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
 ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."
@@ -2063,6 +2069,12 @@ ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
+
+--- Pack Vehicle submenu
+ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
+ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"
+ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
+ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
@@ -2400,6 +2412,12 @@ ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas comple
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
+
+--- Pack Vehicle submenu
+ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehículos"
+ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetables cercanos"
+ctld.i18n["es"]["Vehicle no longer exists."] = "El vehículo ya no existe."
+ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehículo."
 
 --- List Nearby Crates
 ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
@@ -2742,6 +2760,12 @@ ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 �
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
+
+--- Pack Vehicle submenu
+ctld.i18n["ko"]["Land to pack vehicles"] = "차량을 포장하려면 착륙하세요"
+ctld.i18n["ko"]["No packable vehicles nearby"] = "근처에 포장 가능한 차량 없음"
+ctld.i18n["ko"]["Vehicle no longer exists."] = "차량이 더 이상 존재하지 않습니다."
+ctld.i18n["ko"]["Cannot pack this vehicle type."] = "이 유형의 차량은 포장할 수 없습니다."
 
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
@@ -8971,6 +8995,10 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                                 country     = cId,
                             },
                             spawnPos)
+                        -- Refresh pack menu so newly spawned vehicle is immediately packable
+                        timer.scheduleFunction(function()
+                            CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(arg.unitName)
+                        end, nil, timer.getTime() + 0.5)
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -10086,27 +10114,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     if ctld.gs("enablePackingVehicles") == true then
         local packSub   = ctld.tr("Pack Vehicle")
         menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })
-        local transport = Unit.getByName(playerObj.unitName)
-        if transport and transport:isExist() then
-            local packable = CTLDVehicleSpawner.getInstance():findPackableVehicles(transport)
-            if #packable == 0 then
-                menu:addCommand({ root, cratesSub, packSub }, ctld.tr("No packable vehicles nearby"),
-                    function() end, {})
-            else
-                for _, v in ipairs(packable) do
-                    menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
-                        function(arg)
-                            CTLDVehicleSpawner.getInstance():packVehicle(
-                                arg.transportName, arg.packableUnitName, arg)
-                        end,
-                        { transportName   = playerObj.unitName,
-                          packableUnitName = v.unitName,
-                          groupId          = playerObj.groupId,
-                          unitName         = playerObj.unitName,
-                          coalition        = playerObj.coalition })
-                end
-            end
-        end
+        CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
     end
 
     -- Parachute Crates: only if canParachute=true for this unit type
@@ -11075,6 +11083,59 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     })
 
     CTLDPlayerManager.getInstance():refreshForUnit(transportUnitName)
+end
+
+--- Refresh the "Pack Vehicle" submenu for a single player by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshPackSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshPackSection(playerObj) end
+end
+
+--- Rebuild the "Pack Vehicle" dynamic submenu for playerObj.
+-- Scans for packable ground vehicles within maximumDistancePackableUnitsSearch.
+-- Called on menu build, on land, and after vehicle spawn (unpack).
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshPackSection(playerObj)
+    if ctld.gs("enablePackingVehicles") ~= true then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local packSub   = ctld.tr("Pack Vehicle")
+
+    menu:clearBranch({ root, cratesSub, packSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("Land to pack vehicles"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local packable = self:findPackableVehicles(transport)
+    if #packable == 0 then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("No packable vehicles nearby"), function() end, {})
+    else
+        for _, v in ipairs(packable) do
+            menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
+                function(arg)
+                    CTLDVehicleSpawner.getInstance():packVehicle(
+                        arg.transportName, arg.packableUnitName, arg)
+                end,
+                { transportName    = playerObj.unitName,
+                  packableUnitName = v.unitName,
+                  groupId          = playerObj.groupId,
+                  unitName         = playerObj.unitName,
+                  coalition        = playerObj.coalition })
+        end
+    end
+    menu:refresh()
 end
 
 --- Build the "Vehicle Commands" F10 submenu for a player.
@@ -15316,6 +15377,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
     end, nil, timer.getTime() + 1)
 end
 

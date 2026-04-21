@@ -316,6 +316,12 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
+--- Pack Vehicle submenu
+ctld.i18n["en"]["Land to pack vehicles"] = "Land to pack vehicles"
+ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
+ctld.i18n["en"]["Vehicle no longer exists."] = "Vehicle no longer exists."
+ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle type."
+
 --- List Nearby Crates
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
 ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."

@@ -235,6 +235,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
     end, nil, timer.getTime() + 1)
 end
 

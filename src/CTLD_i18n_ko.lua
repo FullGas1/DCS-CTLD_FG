@@ -316,6 +316,12 @@ ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 �
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
 
+--- Pack Vehicle submenu
+ctld.i18n["ko"]["Land to pack vehicles"] = "차량을 포장하려면 착륙하세요"
+ctld.i18n["ko"]["No packable vehicles nearby"] = "근처에 포장 가능한 차량 없음"
+ctld.i18n["ko"]["Vehicle no longer exists."] = "차량이 더 이상 존재하지 않습니다."
+ctld.i18n["ko"]["Cannot pack this vehicle type."] = "이 유형의 차량은 포장할 수 없습니다."
+
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
 ctld.i18n["ko"]["No crates within 300m."] = "300m 이내에 화물 없음."
