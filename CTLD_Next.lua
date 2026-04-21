@@ -1725,6 +1725,7 @@ ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
+ctld.i18n["en"]["%1 crates have been brought out at your %2 o'clock"] = "%1 crates have been brought out at your %2 o'clock"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
@@ -2040,6 +2041,7 @@ ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 k
 ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
 ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
 ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"
+ctld.i18n["fr"]["%1 crates have been brought out at your %2 o'clock"] = "%1 caisses ont été apportées à vos %2 heures"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
@@ -2356,6 +2358,7 @@ ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
 ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
 ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
+ctld.i18n["es"]["%1 crates have been brought out at your %2 o'clock"] = "%1 cajas han sido preparadas a tu %2 en punto"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
@@ -2677,6 +2680,7 @@ ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
+ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
 -- ===== End: CTLD_i18n_ko.lua =====
 
 -- ===== Start: CTLD_utils.lua =====
@@ -9633,7 +9637,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         for category, crates in pairs(spawnableCrates) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
             for _, crate in ipairs(crates) do
-                local sideOk   = (crate.side == nil) or (crate.side == playerObj.coalition)
+                local sideOk    = (crate.side == nil) or (crate.side == playerObj.coalition)
                 local crateJtac = self:_isJTACUnitType(crate.unit)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
@@ -9651,20 +9655,48 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                     ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
                                 return
                             end
-                            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-                            local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
-                            local pos       = spawnInfo.positions[1]
-                            local mgr       = CTLDCrateManager.getInstance()
-                            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
-                            local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
-                            if spawned then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
-                                    ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
-                                        descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                            local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                            local mgr      = CTLDCrateManager.getInstance()
+                            local gid      = transport:getGroup():getID()
+
+                            if arg.multiple then
+                                -- "All crates" entry: spawn one crate per weight in the list
+                                local n         = #arg.multiple
+                                local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, n, safeDist)
+                                local spawned   = 0
+                                for i, weight in ipairs(arg.multiple) do
+                                    local descriptor = mgr:findDescriptorByWeight(weight)
+                                    local pos        = spawnInfo.positions[i]
+                                    if descriptor and pos then
+                                        if mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld") then
+                                            spawned = spawned + 1
+                                        end
+                                    end
+                                end
+                                if spawned > 0 then
+                                    trigger.action.outTextForGroup(gid,
+                                        ctld.tr("%1 crates have been brought out at your %2 o'clock",
+                                            spawned, spawnInfo.clock), 20)
+                                end
+                            else
+                                -- Single crate entry
+                                local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
+                                local pos        = spawnInfo.positions[1]
+                                local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+                                if descriptor then
+                                    local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
+                                    if spawned then
+                                        trigger.action.outTextForGroup(gid,
+                                            ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
+                                                descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                                    end
+                                end
                             end
                         end,
-                        { unit = crate.unit, weight = crate.weight,
-                          zoneName = lgzName, unitName = playerObj.unitName,
+                        { unit     = crate.unit,
+                          multiple = crate.multiple,
+                          zoneName = lgzName,
+                          unitName = playerObj.unitName,
                           coalition = playerObj.coalition })
                 end
             end
@@ -15005,15 +15037,27 @@ function CTLDPlayerManager:buildMenu(playerObj)
             local lines     = {}
             local total     = 0
 
-            -- Crates loaded on this transport
-            local crateMgr = CTLDCrateManager.getInstance()
+            -- Crates loaded on this transport — grouped by type
+            local crateMgr  = CTLDCrateManager.getInstance()
+            local crateCount = {}   -- desc → { count, totalWeight }
+            local crateOrder = {}   -- preserve insertion order
             for _, c in pairs(crateMgr.crates) do
                 if c:isLoaded() and c.loadedBy == transport then
                     local desc   = (c.descriptor and c.descriptor.desc) or "?"
                     local weight = (c.descriptor and c.descriptor.weight) or 0
-                    table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", desc, weight))
+                    if not crateCount[desc] then
+                        crateCount[desc] = { count = 0, totalWeight = 0 }
+                        table.insert(crateOrder, desc)
+                    end
+                    crateCount[desc].count       = crateCount[desc].count + 1
+                    crateCount[desc].totalWeight = crateCount[desc].totalWeight + weight
                     total = total + weight
                 end
+            end
+            for _, desc in ipairs(crateOrder) do
+                local info  = crateCount[desc]
+                local label = (info.count > 1) and (desc .. " (x" .. info.count .. ")") or desc
+                table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", label, info.totalWeight))
             end
 
             -- Troops loaded on this transport

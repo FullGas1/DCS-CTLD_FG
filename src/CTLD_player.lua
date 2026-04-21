@@ -300,15 +300,27 @@ function CTLDPlayerManager:buildMenu(playerObj)
             local lines     = {}
             local total     = 0
 
-            -- Crates loaded on this transport
-            local crateMgr = CTLDCrateManager.getInstance()
+            -- Crates loaded on this transport — grouped by type
+            local crateMgr  = CTLDCrateManager.getInstance()
+            local crateCount = {}   -- desc → { count, totalWeight }
+            local crateOrder = {}   -- preserve insertion order
             for _, c in pairs(crateMgr.crates) do
                 if c:isLoaded() and c.loadedBy == transport then
                     local desc   = (c.descriptor and c.descriptor.desc) or "?"
                     local weight = (c.descriptor and c.descriptor.weight) or 0
-                    table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", desc, weight))
+                    if not crateCount[desc] then
+                        crateCount[desc] = { count = 0, totalWeight = 0 }
+                        table.insert(crateOrder, desc)
+                    end
+                    crateCount[desc].count       = crateCount[desc].count + 1
+                    crateCount[desc].totalWeight = crateCount[desc].totalWeight + weight
                     total = total + weight
                 end
+            end
+            for _, desc in ipairs(crateOrder) do
+                local info  = crateCount[desc]
+                local label = (info.count > 1) and (desc .. " (x" .. info.count .. ")") or desc
+                table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", label, info.totalWeight))
             end
 
             -- Troops loaded on this transport

@@ -1168,7 +1168,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         for category, crates in pairs(spawnableCrates) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
             for _, crate in ipairs(crates) do
-                local sideOk   = (crate.side == nil) or (crate.side == playerObj.coalition)
+                local sideOk    = (crate.side == nil) or (crate.side == playerObj.coalition)
                 local crateJtac = self:_isJTACUnitType(crate.unit)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
@@ -1186,20 +1186,48 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                     ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
                                 return
                             end
-                            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-                            local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
-                            local pos       = spawnInfo.positions[1]
-                            local mgr       = CTLDCrateManager.getInstance()
-                            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
-                            local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
-                            if spawned then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
-                                    ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
-                                        descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                            local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                            local mgr      = CTLDCrateManager.getInstance()
+                            local gid      = transport:getGroup():getID()
+
+                            if arg.multiple then
+                                -- "All crates" entry: spawn one crate per weight in the list
+                                local n         = #arg.multiple
+                                local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, n, safeDist)
+                                local spawned   = 0
+                                for i, weight in ipairs(arg.multiple) do
+                                    local descriptor = mgr:findDescriptorByWeight(weight)
+                                    local pos        = spawnInfo.positions[i]
+                                    if descriptor and pos then
+                                        if mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld") then
+                                            spawned = spawned + 1
+                                        end
+                                    end
+                                end
+                                if spawned > 0 then
+                                    trigger.action.outTextForGroup(gid,
+                                        ctld.tr("%1 crates have been brought out at your %2 o'clock",
+                                            spawned, spawnInfo.clock), 20)
+                                end
+                            else
+                                -- Single crate entry
+                                local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
+                                local pos        = spawnInfo.positions[1]
+                                local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+                                if descriptor then
+                                    local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
+                                    if spawned then
+                                        trigger.action.outTextForGroup(gid,
+                                            ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
+                                                descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                                    end
+                                end
                             end
                         end,
-                        { unit = crate.unit, weight = crate.weight,
-                          zoneName = lgzName, unitName = playerObj.unitName,
+                        { unit     = crate.unit,
+                          multiple = crate.multiple,
+                          zoneName = lgzName,
+                          unitName = playerObj.unitName,
                           coalition = playerObj.coalition })
                 end
             end
