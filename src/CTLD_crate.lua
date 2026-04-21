@@ -342,23 +342,34 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
+    -- FOB sentinels ("FOB" / "FOB-SMALL"): handled by CTLDFOBManager, not spawned as vehicles.
+    local FOB_SENTINELS = { ["FOB"] = true, ["FOB-SMALL"] = true }
+
     -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
+    -- FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
+    local hasFobCrates = false
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
-            if not byUnit[ut] then
-                byUnit[ut] = { count = 0, descriptor = crate.descriptor }
-                table.insert(unitOrder, ut)
+            if FOB_SENTINELS[ut] then
+                hasFobCrates = true
+            else
+                if not byUnit[ut] then
+                    byUnit[ut] = { count = 0, descriptor = crate.descriptor }
+                    table.insert(unitOrder, ut)
+                end
+                byUnit[ut].count = byUnit[ut].count + 1
             end
-            byUnit[ut].count = byUnit[ut].count + 1
         end
     end
 
     local hasAny = false
+
+    -- Standard vehicle unpack entries (non-FOB)
     for _, ut in ipairs(unitOrder) do
         local info     = byUnit[ut]
         local required = info.descriptor.cratesRequired or 1
@@ -423,14 +434,26 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
                 end,
                 {
-                    unitName      = playerObj.unitName,
-                    groupId       = playerObj.groupId,
-                    coalition     = playerObj.coalition,
-                    unitType      = ut,
+                    unitName       = playerObj.unitName,
+                    groupId        = playerObj.groupId,
+                    coalition      = playerObj.coalition,
+                    unitType       = ut,
                     cratesRequired = required,
-                    descriptor    = info.descriptor,
+                    descriptor     = info.descriptor,
                 })
         end
+    end
+
+    -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
+    if hasFobCrates then
+        hasAny = true
+        menu:addCommand({ root, cratesSub, unpackSub }, ctld.tr("Build FOB"),
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                CTLDFOBManager.getInstance():unpackFOBCrates(t, arg.unitName)
+            end,
+            { unitName = playerObj.unitName })
     end
 
     if not hasAny then
