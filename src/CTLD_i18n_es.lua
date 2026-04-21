@@ -298,6 +298,12 @@ ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo d
 ctld.i18n["es"]["No crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
 ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
 
+--- Check Cargo summary
+ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
+ctld.i18n["es"]["%1 crate(s) onboard (%2 kg)"] = "%1 caja(s) a bordo (%2 kg)"
+ctld.i18n["es"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldado(s) a bordo (%2 kg)"
+ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
+
 --- Request Equipment spawn messages
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
 ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"

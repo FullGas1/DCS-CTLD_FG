@@ -303,6 +303,12 @@ ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 �
 ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
 ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
 
+--- Check Cargo summary
+ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
+ctld.i18n["ko"]["%1 crate(s) onboard (%2 kg)"] = "%1개 크레이트 탑재 중 (%2 kg)"
+ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg)"
+ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
+
 --- Request Equipment spawn messages
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"

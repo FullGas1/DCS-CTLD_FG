@@ -286,16 +286,47 @@ function CTLDPlayerManager:buildMenu(playerObj)
         return
     end
 
-    local root  = ctld.tr("CTLD")
-    local gid   = playerObj.groupId
+    local root     = ctld.tr("CTLD")
+    local gid      = playerObj.groupId
+    local unitName = playerObj.unitName
 
     -- Root submenu "CTLD" at F1 slot (order 10)
     menu:addSubMenu({}, root, { order = 10 })
 
-    -- "Check Cargo" — always present regardless of transport type
+    -- "Check Cargo" — queries crates and troops loaded on this transport
     menu:addCommand({ root }, ctld.tr("Check Cargo"),
         function()
-            trigger.action.outTextForGroup(gid, ctld.tr("No cargo on board."), 10)
+            local transport = Unit.getByName(unitName)
+            local lines     = {}
+            local total     = 0
+
+            -- Crates loaded on this transport
+            local crateMgr = CTLDCrateManager.getInstance()
+            for _, c in pairs(crateMgr.crates) do
+                if c:isLoaded() and c.loadedBy == transport then
+                    local desc   = (c.descriptor and c.descriptor.desc) or "?"
+                    local weight = (c.descriptor and c.descriptor.weight) or 0
+                    table.insert(lines, ctld.tr("%1 crate(s) onboard (%2 kg)", desc, weight))
+                    total = total + weight
+                end
+            end
+
+            -- Troops loaded on this transport
+            local troopMgr = CTLDTroopManager.getInstance()
+            local tGroup   = troopMgr:getInTransit(unitName)
+            if tGroup then
+                table.insert(lines, ctld.tr("%1 troop(s) onboard (%2 kg)", tGroup.unitTotal, tGroup.weight))
+                total = total + tGroup.weight
+            end
+
+            local msg
+            if #lines == 0 then
+                msg = ctld.tr("No cargo on board.")
+            else
+                table.insert(lines, ctld.tr("Total cargo weight: %1 kg", total))
+                msg = table.concat(lines, "\n")
+            end
+            trigger.action.outTextForGroup(gid, msg, 10)
         end, {})
 
     -- Registered sections sorted by order field
