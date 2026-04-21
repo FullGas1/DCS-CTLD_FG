@@ -716,17 +716,39 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
 end
 
 --- Spawn N crates in a straight line from a transport unit.
--- All crates share the same axis direction so they never scatter randomly.
--- Used for "All crates" menu requests and pack() results.
+-- The axis direction is chosen randomly within the front sector for standard
+-- units, or within the rear sector for native-cargo-capable units, so that
+-- successive multi-crate spawns land at different angles and do not overlap.
+--   Front sector : [-45°, +45°]  relative to unit heading (axisOffsetDeg 315..45)
+--   Rear  sector : [135°, 225°]  relative to unit heading (axisOffsetDeg 135..225)
 --
--- @param descriptors  table   ordered list of descriptor tables (one entry per crate to spawn)
--- @param transport    Unit    the requesting / packing transport unit
+-- @param descriptors  table   ordered list of descriptor tables (one per crate)
+-- @param transport    Unit    the requesting/packing transport unit
 -- @param coalitionId  number  coalition.side.*
 -- @param spawnedBy    string  unit name for attribution
 -- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
--- @param axisOffsetDeg number degrees from unit forward heading (0=12h ahead, 180=6h behind)
 -- @return number spawned count, table spawnInfo {positions, clock, distance}
-function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod, axisOffsetDeg)
+function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod)
+    -- Detect native-cargo-capable (rear-ramp) transport
+    local typeLower  = string.lower(transport:getTypeName())
+    local vList      = (ctld.gs and ctld.gs("vehicleTransportEnabled")) or {}
+    local isDynamic  = false
+    for _, name in ipairs(vList) do
+        if string.find(typeLower, string.lower(name), 1, true) then
+            isDynamic = true; break
+        end
+    end
+
+    -- Random axis within the appropriate sector (degrees relative to unit forward)
+    local axisOffsetDeg
+    if isDynamic then
+        axisOffsetDeg = ctld.utils.RandomReal("spawnCratesAligned", 135, 225)  -- rear sector
+    else
+        -- Front sector wraps: pick randomly in [-45, +45], then normalise to [0, 360)
+        local raw = ctld.utils.RandomReal("spawnCratesAligned", -45, 45)
+        axisOffsetDeg = (raw + 360) % 360
+    end
+
     local safeDist  = (ctld.utils.getSecureDistanceFromUnit(transport:getName()) or 10) + 5
     local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
     local n         = #descriptors
@@ -1219,9 +1241,6 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                             local mgr      = CTLDCrateManager.getInstance()
                             local gid      = transport:getGroup():getID()
 
-                            -- Axis: ahead (0°) for standard spawn, behind (180°) for slingload
-                            local axisOffsetDeg = ctld.gs("slingLoad") and 180 or 0
-
                             if arg.multiple then
                                 -- "All crates" entry: resolve descriptors then spawn aligned
                                 local descriptors = {}
@@ -1231,7 +1250,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                 end
                                 local spawned, spawnInfo = mgr:spawnCratesAligned(
                                     descriptors, transport, arg.coalition, arg.unitName,
-                                    CTLDCrate.SPAWN_METHOD.MENU_CTLD, axisOffsetDeg)
+                                    CTLDCrate.SPAWN_METHOD.MENU_CTLD)
                                 if spawned > 0 then
                                     trigger.action.outTextForGroup(gid,
                                         ctld.tr("%1 crates have been brought out at your %2 o'clock",

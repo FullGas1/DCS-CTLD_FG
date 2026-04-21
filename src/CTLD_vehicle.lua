@@ -790,15 +790,14 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
 
     packableUnit:destroy()
 
-    -- Spawn crates aligned in a straight line: ahead for standard units,
-    -- behind (6h) for sling-load capable units that load from the rear ramp.
-    local axisOffsetDeg = isDynamic and 180 or 0
-    local descriptors   = {}
+    -- Spawn crates in a straight line; spawnCratesAligned picks a random axis
+    -- within the front sector (standard) or rear sector (native-cargo-capable).
+    local descriptors = {}
     for _ = 1, cratesReq do table.insert(descriptors, descriptor) end
     CTLDCrateManager.getInstance():spawnCratesAligned(
         descriptors, transport, coa,
         playerObj and playerObj.unitName or nil,
-        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, axisOffsetDeg)
+        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK)
 
     trigger.action.outTextForGroup(playerObj.groupId,
         string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)
