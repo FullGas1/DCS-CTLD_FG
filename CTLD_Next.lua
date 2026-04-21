@@ -9108,66 +9108,63 @@ end
 -- @param countryId   number|nil    DCS country id; if nil, derived from coalition
 -- @param modelKey    string|nil    key in spawnableCratesModels ("load"|"sling"|"dynamic"); auto if nil
 -- @return CTLDCrate or nil
+--- Create one DCS static cargo object and return its name and handle.
+-- Shared by spawnCrate (new crate) and _spawnStatic (crate returning to ground).
+-- @param weight      number   cargo mass in kg
+-- @param position    vec3     world position {x, y, z}
+-- @param coalitionId number   coalition.side.*
+-- @param countryId   number|nil  DCS country id; derived from coalitionId if nil
+-- @param modelKey    string|nil  key in spawnableCratesModels; auto if nil
+-- @return string name, StaticObject|nil  (nil if dynAddStatic failed)
+function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId, modelKey)
+    local models = ctld.gs("spawnableCratesModels") or {}
+    local key    = modelKey or (ctld.gs("slingLoad") and "sling" or "load")
+    local model  = models[key] or models["load"] or {}
+
+    local cId = countryId
+    if not cId then
+        cId = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    end
+
+    local uid  = ctld.utils.getNextUniqId()
+    local name = string.format("CTLD_Crate_%d", uid)
+    local data = {
+        name     = name,
+        x        = position.x,
+        y        = position.z,   -- dynAddStatic maps y → DCS world-Z axis
+        heading  = 0,
+        type     = model.type     or "ammo_cargo",
+        canCargo = model.canCargo or false,
+        mass     = weight,
+        country  = cId,
+        dead     = false,
+    }
+    if model.shape_name then data.shape_name = model.shape_name end
+
+    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:_spawnStatic", data) end)
+    if not ok then
+        _log("CTLDCrateManager:_spawnStatic - dynAddStatic failed: " .. tostring(err), "WARNING")
+        return name, nil
+    end
+    return name, StaticObject.getByName(name)
+end
+
 function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey)
     if not (descriptor and position) then
         _log("CTLDCrateManager:spawnCrate - missing descriptor or position", "WARNING")
         return nil
     end
 
-    -- Choose static model
-    local models = ctld.gs("spawnableCratesModels") or {}
-    local key = modelKey
-    if not key then
-        key = ctld.gs("slingLoad") and "sling" or "load"
-    end
-    local model = models[key] or models["load"] or {}
-
-    -- Generate unique name
-    local uid = ctld.utils.getNextUniqId()
-    local crateName = string.format("CTLD_Crate_%d", uid)
-
-    -- Resolve country id (numeric DCS country id)
-    local cId = countryId
-    if not cId then
-        if coalitionId == coalition.side.RED then
-            cId = country.id.RUSSIA
-        else
-            cId = country.id.USA
-        end
-    end
-
-    -- Build DCS static data — mirrors ctld.spawnCrateStatic / dynAddStatic format:
-    --   x/y = world x/z, mass triggers category="Cargos", country required by dynAddStatic
-    local hdg = 0
-    local data = {
-        name     = crateName,
-        x        = position.x,
-        y        = position.z,   -- dynAddStatic maps y → DCS z-axis
-        heading  = hdg,
-        type     = model.type     or "ammo_cargo",
-        canCargo = model.canCargo or false,
-        mass     = descriptor.weight,
-        country  = cId,
-        dead     = false,
-    }
-    if model.shape_name then data.shape_name = model.shape_name end
-    -- category derived from mass by dynAddStatic: if mass → "Cargos"
-    -- (no need to set explicitly — dynAddStatic handles it)
-
-    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:spawnCrate", data) end)
-    if not ok then
-        _log("CTLDCrateManager:spawnCrate - dynAddStatic failed: " .. tostring(err), "WARNING")
-        return nil
-    end
-
-    local dcsStatic = StaticObject.getByName(crateName)
+    local crateName, dcsStatic = self:_spawnStatic(
+        descriptor.weight, position, coalitionId, countryId, modelKey)
+    if not dcsStatic then return nil end
 
     local crate = CTLDCrate:new({
         crateName   = crateName,
         descriptor  = descriptor,
         spawnMethod = spawnMethod or CTLDCrate.SPAWN_METHOD.CRATE_SPAWN,
         position    = position,
-        heading     = hdg,
+        heading     = 0,
         coalition   = coalitionId,
         spawnedBy   = spawnedBy,
         dcsStatic   = dcsStatic,
@@ -9188,44 +9185,19 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
     return crate
 end
 
---- Recreate the DCS static object for a crate that was loaded (static destroyed on load).
--- Generates a new unique static name, spawns the static, and re-indexes the crate
--- in self.crates under the new name. Updates crate.crateName and crate.dcsStatic.
+--- Recreate the DCS static for a crate returning to ground (static was destroyed on load).
+-- Generates a new unique name, re-indexes self.crates, updates crate.crateName/dcsStatic.
 -- @param crate    CTLDCrate
--- @param position vec3   where to place the static
--- @return bool  true on success
+-- @param position vec3
+-- @return bool
 function CTLDCrateManager:_respawnStatic(crate, position)
-    local models = ctld.gs("spawnableCratesModels") or {}
-    local key    = ctld.gs("slingLoad") and "sling" or "load"
-    local model  = models[key] or models["load"] or {}
-    local cId    = (crate.coalition == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    local newName, dcsStatic = self:_spawnStatic(
+        crate.descriptor.weight, position, crate.coalition)
+    if not dcsStatic then return false end
 
-    local uid     = ctld.utils.getNextUniqId()
-    local newName = string.format("CTLD_Crate_%d", uid)
-    local data = {
-        name     = newName,
-        x        = position.x,
-        y        = position.z,
-        heading  = 0,
-        type     = model.type     or "ammo_cargo",
-        canCargo = model.canCargo or false,
-        mass     = crate.descriptor.weight,
-        country  = cId,
-        dead     = false,
-    }
-    if model.shape_name then data.shape_name = model.shape_name end
-
-    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:_respawnStatic", data) end)
-    if not ok then
-        _log("CTLDCrateManager:_respawnStatic - dynAddStatic failed: " .. tostring(err), "WARNING")
-        return false
-    end
-
-    -- Re-index crate under its new DCS static name
-    local oldName = crate.crateName
-    self.crates[oldName] = nil
+    self.crates[crate.crateName] = nil
     crate.crateName = newName
-    crate.dcsStatic = StaticObject.getByName(newName)
+    crate.dcsStatic = dcsStatic
     self.crates[newName] = crate
     return true
 end
