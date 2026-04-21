@@ -303,6 +303,11 @@ ctld.i18n["en"]["Maximum number of crates are on board!"] = "Maximum number of c
 ctld.i18n["en"]["No crates within 50m to load!"] = "No crates within 50m to load!"
 ctld.i18n["en"]["Loaded %1 crate!"] = "Loaded %1 crate!"
 
+--- Drop Crate(s)
+ctld.i18n["en"]["No crates on board to drop."] = "No crates on board to drop."
+ctld.i18n["en"]["You must land before dropping crates!"] = "You must land before dropping crates!"
+ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped at your %2 o'clock"
+
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1 crate(s) onboard (%2 kg)"] = "%1 crate(s) onboard (%2 kg)"

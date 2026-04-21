@@ -502,31 +502,10 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
     -- Spawn position: directly below transport on terrain
     local spawnPos = { x = pos.x, y = groundH, z = pos.z }
     crate.inTransitOnSlingload = false
-    crate:unload(spawnPos)
-    -- TODO: re-spawn DCS static at spawnPos (requires coalition.addStaticObject — pending Hoggit verification)
-
+    -- unloadCrate: transitions state, respawns static, publishes OnCrateUnloaded + OnCrateSpawned
+    self:unloadCrate(crate.crateName, spawnPos, "slingload_release")
     trigger.action.outTextForGroup(playerObj.groupId,
         string.format(ctld.tr("%s crate safely released."), crate.descriptor.desc), 10)
-    self:_publish("OnCrateUnloaded", {
-        crate           = crate,
-        crateName       = crate.crateName,
-        position        = spawnPos,
-        coalition       = crate.coalition,
-        method          = "slingload_release",
-        trigger         = "slingload_release",
-        timestamp       = timer.getAbsTime(),
-    })
-    -- Crate is back on the ground: notify nearby players it is loadable.
-    self:_publish("OnCrateSpawned", {
-        crate      = crate,
-        crateName  = crate.crateName,
-        position   = spawnPos,
-        coalition  = crate.coalition,
-        descriptor = crate.descriptor,
-        spawnedBy  = nil,
-        spawnMethod = "slingload_release",
-        timestamp  = timer.getAbsTime(),
-    })
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
 end
 
@@ -715,6 +694,48 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
     return crate
 end
 
+--- Recreate the DCS static object for a crate that was loaded (static destroyed on load).
+-- Generates a new unique static name, spawns the static, and re-indexes the crate
+-- in self.crates under the new name. Updates crate.crateName and crate.dcsStatic.
+-- @param crate    CTLDCrate
+-- @param position vec3   where to place the static
+-- @return bool  true on success
+function CTLDCrateManager:_respawnStatic(crate, position)
+    local models = ctld.gs("spawnableCratesModels") or {}
+    local key    = ctld.gs("slingLoad") and "sling" or "load"
+    local model  = models[key] or models["load"] or {}
+    local cId    = (crate.coalition == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+
+    local uid     = ctld.utils.getNextUniqId()
+    local newName = string.format("CTLD_Crate_%d", uid)
+    local data = {
+        name     = newName,
+        x        = position.x,
+        y        = position.z,
+        heading  = 0,
+        type     = model.type     or "ammo_cargo",
+        canCargo = model.canCargo or false,
+        mass     = crate.descriptor.weight,
+        country  = cId,
+        dead     = false,
+    }
+    if model.shape_name then data.shape_name = model.shape_name end
+
+    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:_respawnStatic", data) end)
+    if not ok then
+        _log("CTLDCrateManager:_respawnStatic - dynAddStatic failed: " .. tostring(err), "WARNING")
+        return false
+    end
+
+    -- Re-index crate under its new DCS static name
+    local oldName = crate.crateName
+    self.crates[oldName] = nil
+    crate.crateName = newName
+    crate.dcsStatic = StaticObject.getByName(newName)
+    self.crates[newName] = crate
+    return true
+end
+
 --- Spawn N crates in a straight line from a transport unit.
 -- The axis direction is chosen randomly within the front sector for standard
 -- units, or within the rear sector for native-cargo-capable units, so that
@@ -879,9 +900,13 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
     local crate = self.crates[crateName]
     if not crate then return end
     crate:unload(position)
+    -- Recreate DCS static on the ground (was destroyed when loaded)
+    self:_respawnStatic(crate, position)
+    -- Use the updated crateName (may have changed in _respawnStatic)
+    local newName = crate.crateName
     self:_publish("OnCrateUnloaded", {
         crate           = crate,
-        crateName       = crateName,
+        crateName       = newName,
         position        = position,
         coalition       = crate.coalition,
         method          = method or "menu_ctld",
@@ -890,7 +915,7 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
     -- Crate returned to ground: notify nearby players it is loadable again.
     self:_publish("OnCrateSpawned", {
         crate      = crate,
-        crateName  = crateName,
+        crateName  = newName,
         position   = position,
         coalition  = crate.coalition,
         descriptor = crate.descriptor,
@@ -1291,7 +1316,56 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     self:refreshLoadCrateSection(playerObj)
 
     menu:addCommand({ root, cratesSub }, ctld.tr("Drop Crate(s)"),
-        function(arg) ctld.utils.log("INFO", "Drop Crate(s) for " .. tostring(arg.unitName)) end,
+        function(arg)
+            local t = Unit.getByName(arg.unitName)
+            if not (t and t:isExist()) then return end
+            local gid = t:getGroup():getID()
+            if ctld.utils.inAir(t) then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("You must land before dropping crates!"), 10)
+                return
+            end
+            -- Collect all crates loaded on this transport
+            local mgr     = CTLDCrateManager.getInstance()
+            local loaded  = {}
+            for _, c in pairs(mgr.crates) do
+                if c:isLoaded() and c.loadedBy == t then
+                    table.insert(loaded, c)
+                end
+            end
+            if #loaded == 0 then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("No crates on board to drop."), 10)
+                return
+            end
+            -- Compute aligned drop positions (one per crate)
+            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+            local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
+            local typeLower = string.lower(t:getTypeName())
+            local vList     = (ctld.gs and ctld.gs("vehicleTransportEnabled")) or {}
+            local isDynamic = false
+            for _, name in ipairs(vList) do
+                if string.find(typeLower, string.lower(name), 1, true) then
+                    isDynamic = true; break
+                end
+            end
+            local axis
+            if isDynamic then
+                axis = ctld.utils.RandomReal("dropCrates", 135, 225)
+            else
+                axis = (ctld.utils.RandomReal("dropCrates", -45, 45) + 360) % 360
+            end
+            local spawnInfo = ctld.utils.getSpawnObjectPositions(t, #loaded, safeDist, spacing, axis)
+            for i, c in ipairs(loaded) do
+                local pos = spawnInfo.positions[i]
+                if pos then
+                    local groundY = land.getHeight({ x = pos.x, y = pos.z })
+                    mgr:unloadCrate(c.crateName, { x = pos.x, y = groundY, z = pos.z }, "drop")
+                end
+            end
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("%1 crate(s) dropped at your %2 o'clock", #loaded, spawnInfo.clock), 10)
+        end,
         { unitName = playerObj.unitName })
 
     menu:addCommand({ root, cratesSub }, ctld.tr("Unpack Any Crate"),

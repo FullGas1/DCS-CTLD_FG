@@ -297,6 +297,11 @@ ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de c
 ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
 ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
 
+--- Drop Crate(s)
+ctld.i18n["fr"]["No crates on board to drop."] = "Aucune caisse à bord à déposer."
+ctld.i18n["fr"]["You must land before dropping crates!"] = "Vous devez atterrir avant de déposer les caisses !"
+ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) déposée(s) à vos %2 heures"
+
 --- Check Cargo summary
 ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison à bord."
 ctld.i18n["fr"]["%1 crate(s) onboard (%2 kg)"] = "%1 caisse(s) en soute (%2 kg)"

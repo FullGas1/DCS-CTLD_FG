@@ -303,6 +303,11 @@ ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 �
 ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
 ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
 
+--- Drop Crate(s)
+ctld.i18n["ko"]["No crates on board to drop."] = "내릴 화물이 없습니다."
+ctld.i18n["ko"]["You must land before dropping crates!"] = "화물을 내리기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2시 방향에 내려졌습니다"
+
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
 ctld.i18n["ko"]["%1 crate(s) onboard (%2 kg)"] = "%1개 크레이트 탑재 중 (%2 kg)"
