@@ -889,7 +889,7 @@ Hover pickup is enabled by `enableHoverSlingload = true` (default). To hook a cr
 
 If the helicopter drifts out of range the countdown resets. Once the timer reaches zero, the crate is automatically attached and the on-screen message confirms the hook.
 
-`enableHoverSlingload = false` disables the hover countdown entirely. Crates can still be loaded via the F10 "Load Nearby Crate(s)" menu entry if `loadCrateFromMenu = true`.
+`enableHoverSlingload = false` disables the hover countdown entirely. Crates can still be loaded via the F10 "Load Crate" menu entry if `loadCrateFromMenu = true`.
 
 ### 7.3 Carrying and dropping
 
@@ -1134,8 +1134,8 @@ ctld.spawnCrateAtZone("M1043 HMMWV Armament", "LGZ_depot1", coalition.side.BLUE)
 **Utility:** Attaches a nearby crate to the transport so it can be carried.
 **How it works:** Two methods available depending on config:
 - **Hover pickup** (`enableHoverSlingload=true`): hover 7.5–12 m above the crate for `hoverTime` seconds. Countdown shown on screen.
-- **Menu pickup** (`loadCrateFromMenu=true`): F10 → Crate Commands → Load Nearby Crate(s).
-**Activation:** Hover above crate OR F10 → Crate Commands → Load Nearby Crate(s)
+- **Menu pickup** (`loadCrateFromMenu=true`): F10 → Crate Commands → Load Crate.
+**Activation:** Hover above crate OR F10 → Crate Commands → Load Crate
 
 #### Unload crate
 **Utility:** Places the carried crate on the ground at the current position.

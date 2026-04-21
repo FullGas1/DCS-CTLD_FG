@@ -1710,6 +1710,15 @@ ctld.i18n["en"]["RECON"] = "RECON"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 
+--- Load Crate submenu
+ctld.i18n["en"]["Load Crate"] = "Load Crate"
+ctld.i18n["en"]["Land to load crates"] = "Land to load crates"
+ctld.i18n["en"]["No crates within 50m"] = "No crates within 50m"
+ctld.i18n["en"]["You must land before you can load a crate!"] = "You must land before you can load a crate!"
+ctld.i18n["en"]["Maximum number of crates are on board!"] = "Maximum number of crates are on board!"
+ctld.i18n["en"]["No crates within 50m to load!"] = "No crates within 50m to load!"
+ctld.i18n["en"]["Loaded %1 crate!"] = "Loaded %1 crate!"
+
 --- Request Equipment spawn messages
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
@@ -2010,6 +2019,15 @@ ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
 -- STALE: ctld.i18n["fr"]["Hide targets in LOS"] = "Effacer marques sur carte F10"
 -- STALE: ctld.i18n["fr"]["START autoRefresh targets in LOS"] = "Lancer suivi automatique des cibles"
 -- STALE: ctld.i18n["fr"]["STOP autoRefresh targets in LOS"] = "Stopper suivi automatique des cibles"
+
+--- Load Crate submenu
+ctld.i18n["fr"]["Load Crate"] = "Charger caisse"
+ctld.i18n["fr"]["Land to load crates"] = "Atterrissez pour charger une caisse"
+ctld.i18n["fr"]["No crates within 50m"] = "Aucune caisse dans 50 m"
+ctld.i18n["fr"]["You must land before you can load a crate!"] = "Vous devez atterrir avant de pouvoir charger une caisse !"
+ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses à bord !"
+ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
+ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
 
 --- Request Equipment spawn messages
 ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
@@ -2312,6 +2330,15 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 -- STALE: ctld.i18n["es"]["Hide targets in LOS"] = "Borrar marcas del mapa F10"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
+
+--- Load Crate submenu
+ctld.i18n["es"]["Load Crate"] = "Cargar caja"
+ctld.i18n["es"]["Land to load crates"] = "Aterriza para cargar una caja"
+ctld.i18n["es"]["No crates within 50m"] = "No hay cajas en 50 m"
+ctld.i18n["es"]["You must land before you can load a crate!"] = "¡Debes aterrizar antes de poder cargar una caja!"
+ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo de cajas a bordo!"
+ctld.i18n["es"]["No crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
+ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
 
 --- Request Equipment spawn messages
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
@@ -2619,6 +2646,15 @@ ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
 ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
 ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
+
+--- Load Crate submenu
+ctld.i18n["ko"]["Load Crate"] = "화물 적재"
+ctld.i18n["ko"]["Land to load crates"] = "착륙 후 화물 적재 가능"
+ctld.i18n["ko"]["No crates within 50m"] = "50m 내 화물 없음"
+ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
+ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
+ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
 
 --- Request Equipment spawn messages
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
@@ -8593,12 +8629,133 @@ function CTLDCrateManager.getInstance()
         local pm = CTLDPlayerManager.getInstance()
         pm:registerMenuSection({ key = "crates", manager = _cmInstance, method = "buildMenuSection",  configKey = "enableCrates",    order = 40 })
         pm:registerMenuSection({ key = "smoke",  manager = _cmInstance, method = "buildSmokeSection", configKey = "enableSmokeDrop", order = 80 })
+        -- Refresh "Load Crate" submenu for all players near a crate when it appears or disappears.
+        local ed = EventDispatcher.getInstance()
+        ed:subscribe("OnCrateSpawned", function(payload)
+            CTLDCrateManager.getInstance():_refreshNearbyPlayers(payload.position)
+        end)
+        ed:subscribe("OnCrateCleared", function(payload)
+            CTLDCrateManager.getInstance():_refreshNearbyPlayers(payload.position)
+        end)
         -- Feature B: start hover-slingload polling (1s tick)
         timer.scheduleFunction(function()
             CTLDCrateManager.getInstance():checkHoverStatus()
         end, {}, timer.getTime() + 1)
     end
     return _cmInstance
+end
+
+--- Refresh the "Load Crate" submenu for all players within 200 m of a position.
+-- Called on OnCrateSpawned and OnCrateCleared so every nearby transport sees
+-- the current list regardless of who triggered the action.
+-- @param position vec3  reference point (crate position)
+function CTLDCrateManager:_refreshNearbyPlayers(position)
+    if not position then return end
+    local pm = CTLDPlayerManager.getInstance()
+    for unitName in pairs(pm._players) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() then
+            if ctld.utils.getDistance("_refreshNearbyPlayers", unit:getPoint(), position) <= 200 then
+                self:refreshLoadCrateSectionForUnit(unitName)
+            end
+        end
+    end
+end
+
+--- Refresh the "Load Crate" submenu for a single player looked up by unit name.
+-- @param unitName string
+function CTLDCrateManager:refreshLoadCrateSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshLoadCrateSection(playerObj) end
+end
+
+--- Rebuild the "Load Crate" dynamic submenu for playerObj.
+-- Groups available crates within 50 m by descriptor type with count.
+-- Called on land, crate spawn, crate cleared, and after each load action.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshLoadCrateSection(playerObj)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.crates) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local loadSub   = ctld.tr("Load Crate")
+
+    menu:clearBranch({ root, cratesSub, loadSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, cratesSub, loadSub },
+            ctld.tr("Land to load crates"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    -- Group nearby crates (50 m) by descriptor type
+    local nearby = self:getCratesInRange(transport:getPoint(), 50)
+    local byType = {}   -- [desc] = { count, descriptor }
+    for _, crate in ipairs(nearby) do
+        local desc = crate.descriptor and crate.descriptor.desc or "Unknown"
+        if not byType[desc] then
+            byType[desc] = { count = 0, descriptor = crate.descriptor }
+        end
+        byType[desc].count = byType[desc].count + 1
+    end
+
+    if not next(byType) then
+        menu:addCommand({ root, cratesSub, loadSub },
+            ctld.tr("No crates within 50m"), function() end, {})
+    else
+        for desc, data in pairs(byType) do
+            local label = string.format("%s (%d)", desc, data.count)
+            menu:addCommand({ root, cratesSub, loadSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(t:getGroup():getID(),
+                            ctld.tr("You must land before you can load a crate!"), 10)
+                        return
+                    end
+                    local limits   = ctld.gs("internalCargoLimits") or {}
+                    local capacity = limits[t:getTypeName()] or 1
+                    local onboard  = 0
+                    local mgr = CTLDCrateManager.getInstance()
+                    for _, c in pairs(mgr.crates) do
+                        if c:isLoaded() and c.loadedBy == t then onboard = onboard + 1 end
+                    end
+                    if onboard >= capacity then
+                        trigger.action.outTextForGroup(t:getGroup():getID(),
+                            ctld.tr("Maximum number of crates are on board!"), 10)
+                        return
+                    end
+                    local candidates = mgr:getCratesInRange(t:getPoint(), 50)
+                    local best, bestDist = nil, math.huge
+                    for _, c in ipairs(candidates) do
+                        if c.descriptor and c.descriptor.desc == arg.crateDesc then
+                            local d = ctld.utils.getDistance("loadCrate", t:getPoint(), c.position)
+                            if d < bestDist then bestDist = d; best = c end
+                        end
+                    end
+                    if not best then
+                        trigger.action.outTextForGroup(t:getGroup():getID(),
+                            ctld.tr("No crates within 50m to load!"), 10)
+                        mgr:refreshLoadCrateSectionForUnit(arg.unitName)
+                        return
+                    end
+                    mgr:loadCrate(best.crateName, t)
+                    trigger.action.outTextForGroup(t:getGroup():getID(),
+                        ctld.tr("Loaded %1 crate!", best.descriptor.desc), 10)
+                end,
+                { unitName = playerObj.unitName, crateDesc = desc })
+        end
+    end
+    menu:refresh()
 end
 
 --- Replace the parachute visual effect handler.
@@ -8814,6 +8971,17 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
         trigger         = "slingload_release",
         timestamp       = timer.getAbsTime(),
     })
+    -- Crate is back on the ground: notify nearby players it is loadable.
+    self:_publish("OnCrateSpawned", {
+        crate      = crate,
+        crateName  = crate.crateName,
+        position   = spawnPos,
+        coalition  = crate.coalition,
+        descriptor = crate.descriptor,
+        spawnedBy  = nil,
+        spawnMethod = "slingload_release",
+        timestamp  = timer.getAbsTime(),
+    })
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
 end
 
@@ -8838,6 +9006,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
 
     if agl > 40.0 then
         -- Too high: crate destroyed on impact
+        local lostPos = crate.position
         crate:destroy()
         self:_unregister(crate.crateName)
         trigger.action.outTextForGroup(playerObj.groupId,
@@ -8849,6 +9018,14 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
             transport = transport,
             trigger   = "slingload_cut_impact",
             timestamp = timer.getAbsTime(),
+        })
+        self:_publish("OnCrateCleared", {
+            crateName  = crate.crateName,
+            position   = lostPos,
+            coalition  = crate.coalition,
+            descriptor = crate.descriptor,
+            reason     = "destroyed",
+            timestamp  = timer.getAbsTime(),
         })
     else
         -- Drop with inertia drift (reuses FA calcDropPosition, descentRate=0 → immediate land)
@@ -8865,6 +9042,17 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
             method          = "slingload_cut",
             trigger         = "slingload_cut",
             timestamp       = timer.getAbsTime(),
+        })
+        -- Crate landed: notify nearby players it is loadable.
+        self:_publish("OnCrateSpawned", {
+            crate      = crate,
+            crateName  = crate.crateName,
+            position   = landPos,
+            coalition  = crate.coalition,
+            descriptor = crate.descriptor,
+            spawnedBy  = nil,
+            spawnMethod = "slingload_cut",
+            timestamp  = timer.getAbsTime(),
         })
     end
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
@@ -9065,7 +9253,9 @@ function CTLDCrateManager:loadCrate(crateName, transport)
         _log("CTLDCrateManager:loadCrate - crate not on ground: " .. crateName, "WARNING")
         return
     end
+    local pos = crate.position   -- capture before state change
     crate:load(transport)
+    crate:destroy()              -- remove DCS static from ground
     self:_publish("OnCrateLoaded", {
         crate           = crate,
         crateName       = crateName,
@@ -9073,6 +9263,14 @@ function CTLDCrateManager:loadCrate(crateName, transport)
         coalition       = crate.coalition,
         descriptor      = crate.descriptor,
         timestamp       = timer.getAbsTime(),
+    })
+    self:_publish("OnCrateCleared", {
+        crateName  = crateName,
+        position   = pos,
+        coalition  = crate.coalition,
+        descriptor = crate.descriptor,
+        reason     = "loaded",
+        timestamp  = timer.getAbsTime(),
     })
 end
 
@@ -9094,6 +9292,17 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
         method          = method or "menu_ctld",
         timestamp       = timer.getAbsTime(),
     })
+    -- Crate returned to ground: notify nearby players it is loadable again.
+    self:_publish("OnCrateSpawned", {
+        crate      = crate,
+        crateName  = crateName,
+        position   = position,
+        coalition  = crate.coalition,
+        descriptor = crate.descriptor,
+        spawnedBy  = nil,
+        spawnMethod = "unload",
+        timestamp  = timer.getAbsTime(),
+    })
 end
 
 --- Unpack a crate (contents deployed).
@@ -9109,15 +9318,24 @@ function CTLDCrateManager:unpackCrate(crateName, unpacker)
         _log("CTLDCrateManager:unpackCrate - crate not on ground: " .. crateName, "WARNING")
         return
     end
+    local pos = crate.position   -- capture before state change
     crate:unpack()
     self:_publish("OnCrateUnpacked", {
         crate           = crate,
         crateName       = crateName,
         descriptor      = crate.descriptor,
-        position        = crate.position,
+        position        = pos,
         coalition       = crate.coalition,
         carrierUnitName = unpacker and unpacker:getName() or nil,
         timestamp       = timer.getAbsTime(),
+    })
+    self:_publish("OnCrateCleared", {
+        crateName  = crateName,
+        position   = pos,
+        coalition  = crate.coalition,
+        descriptor = crate.descriptor,
+        reason     = "unpacked",
+        timestamp  = timer.getAbsTime(),
     })
     crate:destroy()
     self:_unregister(crateName)
@@ -9128,8 +9346,19 @@ end
 function CTLDCrateManager:destroyCrate(crateName)
     local crate = self.crates[crateName]
     if not crate then return end
+    local pos  = crate.position
+    local coal = crate.coalition
+    local desc = crate.descriptor
     crate:destroy()
     self:_unregister(crateName)
+    self:_publish("OnCrateCleared", {
+        crateName  = crateName,
+        position   = pos,
+        coalition  = coal,
+        descriptor = desc,
+        reason     = "destroyed",
+        timestamp  = timer.getAbsTime(),
+    })
 end
 
 --- Find a CTLD descriptor by the DCS unit field (vehicle typeName for pack lookup).
@@ -9437,9 +9666,9 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     local cratesSub = ctld.tr("Crate Commands")
     menu:addSubMenu({ root }, cratesSub, { order = 50 })
 
-    menu:addCommand({ root, cratesSub }, ctld.tr("Load Nearby Crate(s)"),
-        function(arg) ctld.utils.log("INFO", "Load Nearby Crate(s) for " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName })
+    local loadSub = ctld.tr("Load Crate")
+    menu:addSubMenu({ root, cratesSub }, loadSub, { order = 10 })
+    self:refreshLoadCrateSection(playerObj)
 
     menu:addCommand({ root, cratesSub }, ctld.tr("Drop Crate(s)"),
         function(arg) ctld.utils.log("INFO", "Drop Crate(s) for " .. tostring(arg.unitName)) end,
@@ -14707,6 +14936,7 @@ function CTLDPlayerManager:onLand(event)
     local captured = playerObj
     timer.scheduleFunction(function()
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
+        CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
     end, nil, timer.getTime() + 1)
 end
 

@@ -294,6 +294,15 @@ ctld.i18n["en"]["RECON"] = "RECON"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 
+--- Load Crate submenu
+ctld.i18n["en"]["Load Crate"] = "Load Crate"
+ctld.i18n["en"]["Land to load crates"] = "Land to load crates"
+ctld.i18n["en"]["No crates within 50m"] = "No crates within 50m"
+ctld.i18n["en"]["You must land before you can load a crate!"] = "You must land before you can load a crate!"
+ctld.i18n["en"]["Maximum number of crates are on board!"] = "Maximum number of crates are on board!"
+ctld.i18n["en"]["No crates within 50m to load!"] = "No crates within 50m to load!"
+ctld.i18n["en"]["Loaded %1 crate!"] = "Loaded %1 crate!"
+
 --- Request Equipment spawn messages
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"

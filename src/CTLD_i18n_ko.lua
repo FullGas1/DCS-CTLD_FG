@@ -294,6 +294,15 @@ ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
 ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
 
+--- Load Crate submenu
+ctld.i18n["ko"]["Load Crate"] = "화물 적재"
+ctld.i18n["ko"]["Land to load crates"] = "착륙 후 화물 적재 가능"
+ctld.i18n["ko"]["No crates within 50m"] = "50m 내 화물 없음"
+ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
+ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
+ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
+
 --- Request Equipment spawn messages
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"

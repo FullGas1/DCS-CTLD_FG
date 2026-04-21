@@ -289,6 +289,15 @@ ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
 
+--- Load Crate submenu
+ctld.i18n["es"]["Load Crate"] = "Cargar caja"
+ctld.i18n["es"]["Land to load crates"] = "Aterriza para cargar una caja"
+ctld.i18n["es"]["No crates within 50m"] = "No hay cajas en 50 m"
+ctld.i18n["es"]["You must land before you can load a crate!"] = "¡Debes aterrizar antes de poder cargar una caja!"
+ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo de cajas a bordo!"
+ctld.i18n["es"]["No crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
+ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
+
 --- Request Equipment spawn messages
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
 ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
