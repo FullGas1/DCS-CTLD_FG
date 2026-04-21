@@ -5860,7 +5860,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 --   LGZ  (LogisticZone) — crate/vehicle services
 --     LGZ_name_[R|B|N]
 --
--- Legacy fallback: missions using the old PKZ/DOZ/WPZ/EXZ prefix
+-- Legacy fallback: missions using the old PKZ/IAZ/WPZ/EXZ prefix
 -- or the ctld.gs config tables (pickupZones, dropOffZones, wpZones,
 -- logisticUnits) are loaded after TRZ/LGZ discovery; existing entries
 -- are never overwritten.
@@ -5904,7 +5904,7 @@ function CTLDTroopZone:init(data)
 
     -- WPZ: troops deployed inside march to zone center
     self.isWaypoint = data.isWaypoint or false
-    -- DOZ: AI transport landing here auto-deploys its troops
+    -- IAZ: AI transport landing here auto-deploys its troops
     self.isDropoff  = data.isDropoff  or false
 
     self.smoke  = (data.smoke ~= nil) and data.smoke or -1
@@ -5926,7 +5926,7 @@ function CTLDTroopZone:hasWaypoint()
     return self.isWaypoint == true
 end
 
---- True if this zone is an AI auto-drop point (DOZ).
+--- True if this zone is an AI auto-drop point (IAZ).
 function CTLDTroopZone:hasDropoff()
     return self.isDropoff == true
 end
@@ -6091,7 +6091,7 @@ function CTLDZoneManager:init()
 
     self:_validateZoneNames()
     self:_discoverTRZ()
-    self:_discoverDOZ()
+    self:_discoverIAZ()
     self:_discoverWPZ()
     self:_discoverLGZ()
     self:_loadLegacyZones()
@@ -6212,7 +6212,7 @@ function CTLDZoneManager:_parseLGZ(name)
     return { name = lgzName, coalition = coalitionId }
 end
 
--- Parse DOZ_name_[R|B|N]  (AI auto-drop zone)
+-- Parse IAZ_name_[R|B|N]  (AI auto-drop zone)
 -- Parse WPZ_name_[R|B|N]  (waypoint zone — troops march to center)
 -- Shared logic: prefix must match, second field = zoneName, optional third = coalition.
 local function _parseSimpleZone(prefix, name)
@@ -6227,7 +6227,7 @@ local function _parseSimpleZone(prefix, name)
     return { zoneName = zoneName, coalition = coalitionId }
 end
 
-function CTLDZoneManager:_parseDOZ(name) return _parseSimpleZone("DOZ", name) end
+function CTLDZoneManager:_parseIAZ(name) return _parseSimpleZone("IAZ", name) end
 function CTLDZoneManager:_parseWPZ(name) return _parseSimpleZone("WPZ", name) end
 
 -- ============================================================
@@ -6296,14 +6296,14 @@ function CTLDZoneManager:_discoverLGZ()
     end
 end
 
-function CTLDZoneManager:_discoverDOZ()
+function CTLDZoneManager:_discoverIAZ()
     if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
     for _, zd in pairs(env.mission.triggers.zones) do
         local name = zd.name or ""
-        if string.sub(name, 1, 4) == "DOZ_" then
-            local parsed, err = self:_parseDOZ(name)
+        if string.sub(name, 1, 4) == "IAZ_" then
+            local parsed, err = self:_parseIAZ(name)
             if not parsed then
-                ctld.utils.log("WARN", "CTLDZoneManager: cannot parse DOZ '%s': %s", name, tostring(err))
+                ctld.utils.log("WARN", "CTLDZoneManager: cannot parse IAZ '%s': %s", name, tostring(err))
             elseif not self._troopZones[parsed.zoneName] then
                 local zone = CTLDTroopZone:new({
                     dcsName   = name,
@@ -6316,7 +6316,7 @@ function CTLDZoneManager:_discoverDOZ()
                     active    = true,
                 })
                 self._troopZones[parsed.zoneName] = zone
-                ctld.utils.log("INFO", "CTLDZoneManager: DOZ '%s' coalition=%d",
+                ctld.utils.log("INFO", "CTLDZoneManager: IAZ '%s' coalition=%d",
                     parsed.zoneName, parsed.coalition)
             end
         end
@@ -6649,7 +6649,7 @@ function CTLDZoneManager:getWaypointZoneAt(point, coalition)
     return nil
 end
 
---- Return the active DOZ zone containing point for the given coalition, or nil.
+--- Return the active IAZ zone containing point for the given coalition, or nil.
 -- Used by AI transport auto-drop logic.
 -- @param point     vec3
 -- @param coalition number  (coalition.side.* — 0 = accept all)
@@ -6841,10 +6841,10 @@ function CTLDZoneManager:_validateZoneNames()
             if not parsed then
                 errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
             end
-        elseif string.sub(name, 1, 4) == "DOZ_" then
-            local parsed, err = self:_parseDOZ(name)
+        elseif string.sub(name, 1, 4) == "IAZ_" then
+            local parsed, err = self:_parseIAZ(name)
             if not parsed then
-                errors[#errors + 1] = "  DOZ ERROR '" .. name .. "': " .. tostring(err)
+                errors[#errors + 1] = "  IAZ ERROR '" .. name .. "': " .. tostring(err)
             end
         elseif string.sub(name, 1, 4) == "WPZ_" then
             local parsed, err = self:_parseWPZ(name)

@@ -409,7 +409,7 @@ Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger z
 | Prefix | Zone type | Schema |
 |---|---|---|
 | `TRZ` | Troop zone — pickup and/or extract objective | `TRZ_name_A/R/B/N_stock_flag_target` — **all 5 fields required** |
-| `DOZ` | AI drop-off zone — AI transport auto-deploys troops here | `DOZ_name_[R/B/N]` |
+| `IAZ` | AI drop-off zone — AI transport auto-deploys troops here | `IAZ_name_[R/B/N]` |
 | `WPZ` | Waypoint zone — troops deployed inside march to zone centre | `WPZ_name_[R/B/N]` |
 | `LGZ` | Logistic zone — crate and vehicle services | `LGZ_name_[R/B/N]` |
 
@@ -421,7 +421,7 @@ Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger z
 | `R` | RED only |
 | `B` | BLUE only |
 | `N` | Neutral |
-| *(omit)* | All coalitions (DOZ/WPZ/LGZ only — TRZ requires explicit `A`) |
+| *(omit)* | All coalitions (IAZ/WPZ/LGZ only — TRZ requires explicit `A`) |
 
 > **Uniqueness:** two zones of the same prefix cannot share the same `name`.
 
@@ -522,18 +522,18 @@ TRZ  _  lz  _  R    _  0         _  secure  _  100
 
 ---
 
-### 4.4 DOZ — AI drop-off zone
+### 4.4 IAZ — AI drop-off zone
 
-When a CTLD-managed AI transport lands inside a DOZ, it automatically deploys its troops as a combat group. Human players are not affected.
+When a CTLD-managed AI transport lands inside a IAZ, it automatically deploys its troops as a combat group. Human players are not affected.
 
-**Schema:** `DOZ_name_[R/B/N]`
+**Schema:** `IAZ_name_[R/B/N]`
 
 | Example name | Meaning |
 |---|---|
-| `DOZ_obj1_B` | BLUE AI drop-off point "obj1" |
-| `DOZ_frontline` | All-coalition AI drop-off point |
+| `IAZ_obj1_B` | BLUE AI drop-off point "obj1" |
+| `IAZ_frontline` | All-coalition AI drop-off point |
 
-> **Note:** DOZ zones are reserved for future AI transport support. They are discovered and registered at startup but have no effect on human players.
+> **Note:** IAZ zones are reserved for future AI transport support. They are discovered and registered at startup but have no effect on human players.
 
 ---
 
@@ -615,7 +615,7 @@ ctld.wpZones = {
 ctld.logisticUnits = { "logistic1", "logistic2" }
 ```
 
-> Legacy zones and auto-discovered zones (TRZ/DOZ/WPZ/LGZ) coexist without conflict. A zone already registered from trigger name discovery is never overwritten by legacy config.
+> Legacy zones and auto-discovered zones (TRZ/IAZ/WPZ/LGZ) coexist without conflict. A zone already registered from trigger name discovery is never overwritten by legacy config.
 
 ---
 

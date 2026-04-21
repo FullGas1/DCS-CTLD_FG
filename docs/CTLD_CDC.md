@@ -490,7 +490,7 @@ Le séparateur de champs est `_`. **Aucun champ ne peut contenir `_`** (règle �
 | Préfixe | Type | Schéma de nommage |
 |---|---|---|
 | `PKZ` | pickupZone (troupes) | `PKZ_name_smoke_limit_active_side` |
-| `DOZ` | dropOffZone | `DOZ_name_smoke_side` |
+| `IAZ` | dropOffZone | `IAZ_name_smoke_side` |
 | `WPZ` | wpZone (waypoint) | `WPZ_name_smoke_active_side` |
 | `EXZ` | extractZone | `EXZ_name_smoke` |
 | `LGZ` | logisticZone | `LGZ_name_side` |
