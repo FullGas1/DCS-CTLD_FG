@@ -417,10 +417,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                                 country     = cId,
                             },
                             spawnPos)
-                        -- Refresh pack menu so newly spawned vehicle is immediately packable
-                        timer.scheduleFunction(function()
-                            CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(arg.unitName)
-                        end, nil, timer.getTime() + 0.5)
+                        -- Pack menu refresh is handled automatically via OnGroundUnitSpawned event
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)

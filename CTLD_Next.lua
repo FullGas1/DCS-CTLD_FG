@@ -8995,10 +8995,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                                 country     = cId,
                             },
                             spawnPos)
-                        -- Refresh pack menu so newly spawned vehicle is immediately packable
-                        timer.scheduleFunction(function()
-                            CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(arg.unitName)
-                        end, nil, timer.getTime() + 0.5)
+                        -- Pack menu refresh is handled automatically via OnGroundUnitSpawned event
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -10413,6 +10410,25 @@ function CTLDVehicleSpawner:init()
         return t + 3
     end, nil, timer.getTime() + 3)
 
+    -- Auto-refresh Pack Vehicle menu when ground units appear or disappear nearby
+    local ed = EventDispatcher.getInstance()
+    ed:subscribe("OnGroundUnitSpawned", function(payload)
+        if payload and payload.position then
+            CTLDVehicleSpawner.getInstance():_refreshNearbyPackPlayers(payload.position)
+        end
+    end)
+    ed:subscribe("OnGroundUnitRemoved", function(payload)
+        if payload and payload.position then
+            CTLDVehicleSpawner.getInstance():_refreshNearbyPackPlayers(payload.position)
+        end
+    end)
+    -- Request Vehicle also triggers a pack-menu refresh (vehicle appears on ground)
+    ed:subscribe("OnVehicleSpawnedForTransport", function(payload)
+        if payload and payload.position then
+            CTLDVehicleSpawner.getInstance():_refreshNearbyPackPlayers(payload.position)
+        end
+    end)
+
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
 end
 
@@ -10835,6 +10851,12 @@ function CTLDVehicleSpawner:onDead(event)
         durationAlive = timer.getTime() - spawnedAt,
         timestamp     = timer.getAbsTime(),
     })
+    EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+        vehicleType = vehicle.vehicleType,
+        position    = pos,
+        reason      = "dead",
+        timestamp   = timer.getAbsTime(),
+    })
 
     ctld.utils.log("INFO", string.format(
         "CTLDVehicleSpawner: vehicle %s (%s) dead",
@@ -10945,15 +10967,16 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     end, {}, timer.getTime() + descentTime)
 end
 
---- Spawn a vehicle at an explicit world position (used by parachute drop).
--- @param spawnData  table   vehicle spawn descriptor
--- @param position   vec3    world position {x, y, z}
-function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
+--- Low-level ground unit factory.
+-- Calls coalition.addGroup and publishes OnGroundUnitSpawned so that
+-- nearby Pack Vehicle menus refresh automatically.
+-- @param spawnData  table  { vehicleType, groupName, unitName, coalitionId, country }
+-- @param position   vec3   world position {x, y, z}
+function CTLDVehicleSpawner:_spawnGroundUnit(spawnData, position)
     if not spawnData then return end
-    local coalitionId = spawnData.coalitionId or 2
-    local country     = spawnData.country or coalitionId
+    local cId     = spawnData.country or spawnData.coalitionId or 2
     local unitDef = {
-        name    = spawnData.groupName or (spawnData.vehicleType .. "_parachute_" .. timer.getAbsTime()),
+        name    = spawnData.groupName or (spawnData.vehicleType .. "_spawn_" .. timer.getAbsTime()),
         task    = "Ground Nothing",
         units   = {{
             type    = spawnData.vehicleType,
@@ -10963,7 +10986,40 @@ function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
             heading = 0,
         }},
     }
-    coalition.addGroup(country, Group.Category.GROUND, unitDef)
+    local ok, err = pcall(coalition.addGroup, cId, Group.Category.GROUND, unitDef)
+    if not ok then
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:_spawnGroundUnit - addGroup failed: " .. tostring(err))
+        return
+    end
+    EventDispatcher.getInstance():publish("OnGroundUnitSpawned", {
+        vehicleType = spawnData.vehicleType,
+        position    = position,
+        coalitionId = spawnData.coalitionId or 2,
+        timestamp   = timer.getAbsTime(),
+    })
+end
+
+--- Spawn a vehicle at an explicit world position (used by unpack and parachute drop).
+-- @param spawnData  table   vehicle spawn descriptor
+-- @param position   vec3    world position {x, y, z}
+function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
+    self:_spawnGroundUnit(spawnData, position)
+end
+
+--- Refresh Pack Vehicle menus for all players within maximumDistancePackableUnitsSearch of a position.
+-- @param position vec3
+function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
+    if not position then return end
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local pm      = CTLDPlayerManager.getInstance()
+    for unitName in pairs(pm._players) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() then
+            if ctld.utils.getDistance("_refreshNearbyPackPlayers", unit:getPoint(), position) <= maxDist then
+                self:refreshPackSectionForUnit(unitName)
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -11058,8 +11114,15 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     local coa          = transport:getCoalition()
     local cId          = transport:getCountry()
     local tPos         = transport:getPoint()
+    local packPos      = packableUnit:getPoint()   -- capture before destroy
 
     packableUnit:destroy()
+    EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+        vehicleType = packableUnit:getTypeName(),
+        position    = packPos,
+        reason      = "packed",
+        timestamp   = timer.getAbsTime(),
+    })
 
     -- Spawn crates in a straight line; spawnCratesAligned picks a random axis
     -- within the front sector (standard) or rear sector (native-cargo-capable).
