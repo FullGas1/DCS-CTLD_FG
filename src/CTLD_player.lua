@@ -234,6 +234,7 @@ function CTLDPlayerManager:onLand(event)
     timer.scheduleFunction(function()
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
+        CTLDCrateManager.getInstance():refreshUnpackSection(captured)
     end, nil, timer.getTime() + 1)
 end
 

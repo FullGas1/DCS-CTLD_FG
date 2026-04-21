@@ -1720,6 +1720,14 @@ ctld.i18n["en"]["No crates on board to drop."] = "No crates on board to drop."
 ctld.i18n["en"]["You must land before dropping crates!"] = "You must land before dropping crates!"
 ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped at your %2 o'clock"
 
+--- Unpack Any Crate submenu
+ctld.i18n["en"]["Unpack Any Crate"] = "Unpack Any Crate"
+ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
+ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
+ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
+ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
+ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
+
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
@@ -2040,6 +2048,14 @@ ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
 ctld.i18n["fr"]["No crates on board to drop."] = "Aucune caisse à bord à déposer."
 ctld.i18n["fr"]["You must land before dropping crates!"] = "Vous devez atterrir avant de déposer les caisses !"
 ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) déposée(s) à vos %2 heures"
+
+--- Unpack Any Crate submenu
+ctld.i18n["fr"]["Unpack Any Crate"] = "Déballer caisses"
+ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
+ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
+ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
+ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
+ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
 
 --- Check Cargo summary
 ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison à bord."
@@ -2362,6 +2378,14 @@ ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
 ctld.i18n["es"]["No crates on board to drop."] = "No hay cajas a bordo para soltar."
 ctld.i18n["es"]["You must land before dropping crates!"] = "¡Debes aterrizar antes de soltar las cajas!"
 ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(s) a tu %2 en punto"
+
+--- Unpack Any Crate submenu
+ctld.i18n["es"]["Unpack Any Crate"] = "Desempaquetar cajas"
+ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
+ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
+ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
+ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
+ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
 --- Check Cargo summary
 ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
@@ -2689,6 +2713,14 @@ ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
 ctld.i18n["ko"]["No crates on board to drop."] = "내릴 화물이 없습니다."
 ctld.i18n["ko"]["You must land before dropping crates!"] = "화물을 내리기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2시 방향에 내려졌습니다"
+
+--- Unpack Any Crate submenu
+ctld.i18n["ko"]["Unpack Any Crate"] = "화물 풀기"
+ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
+ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
+ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
+ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
+ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
 
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
@@ -8694,8 +8726,10 @@ function CTLDCrateManager:_refreshNearbyPlayers(position)
     for unitName in pairs(pm._players) do
         local unit = Unit.getByName(unitName)
         if unit and unit:isExist() then
-            if ctld.utils.getDistance("_refreshNearbyPlayers", unit:getPoint(), position) <= 200 then
+            local dist = ctld.utils.getDistance("_refreshNearbyPlayers", unit:getPoint(), position)
+            if dist <= 300 then
                 self:refreshLoadCrateSectionForUnit(unitName)
+                self:refreshUnpackSectionForUnit(unitName)
             end
         end
     end
@@ -8793,6 +8827,139 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                 end,
                 { unitName = playerObj.unitName, crateDesc = desc })
         end
+    end
+    menu:refresh()
+end
+
+--- Refresh the "Unpack Any Crate" submenu for a single player by unit name.
+-- @param unitName string
+function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshUnpackSection(playerObj) end
+end
+
+--- Rebuild the "Unpack Any Crate" dynamic submenu for playerObj.
+-- Lists assembleable crate sets (count >= cratesRequired) within 300 m.
+-- Each entry spawns the vehicle at unpack time.
+-- Called on land, crate spawn, crate cleared.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshUnpackSection(playerObj)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.crates) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local unpackSub = ctld.tr("Unpack Any Crate")
+
+    menu:clearBranch({ root, cratesSub, unpackSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, cratesSub, unpackSub },
+            ctld.tr("Land to unpack crates"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local forceMoved = ctld.gs("forceCrateToBeMoved") == true
+    local nearby     = self:getCratesInRange(transport:getPoint(), 300)
+
+    -- Group unpackable ground crates by descriptor.unit
+    local byUnit    = {}   -- [unitType] = { count, descriptor }
+    local unitOrder = {}
+    for _, crate in ipairs(nearby) do
+        if crate:canUnpack(forceMoved) and crate.descriptor and crate.descriptor.unit then
+            local ut = crate.descriptor.unit
+            if not byUnit[ut] then
+                byUnit[ut] = { count = 0, descriptor = crate.descriptor }
+                table.insert(unitOrder, ut)
+            end
+            byUnit[ut].count = byUnit[ut].count + 1
+        end
+    end
+
+    local hasAny = false
+    for _, ut in ipairs(unitOrder) do
+        local info     = byUnit[ut]
+        local required = info.descriptor.cratesRequired or 1
+        if info.count >= required then
+            hasAny = true
+            local label = string.format("%s (%d/%d)", info.descriptor.desc, info.count, required)
+            menu:addCommand({ root, cratesSub, unpackSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local gid = t:getGroup():getID()
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("You must land before unpacking crates!"), 10)
+                        return
+                    end
+                    local mgr      = CTLDCrateManager.getInstance()
+                    local forceMv  = ctld.gs("forceCrateToBeMoved") == true
+                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
+                    local toUnpack = {}
+                    for _, c in ipairs(nearC) do
+                        if c:canUnpack(forceMv)
+                            and c.descriptor
+                            and c.descriptor.unit == arg.unitType
+                        then
+                            table.insert(toUnpack, c)
+                            if #toUnpack >= arg.cratesRequired then break end
+                        end
+                    end
+                    if #toUnpack < arg.cratesRequired then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("Not enough crates nearby to unpack!"), 10)
+                        mgr:refreshUnpackSectionForUnit(arg.unitName)
+                        return
+                    end
+                    -- Spawn position = first crate position
+                    local spawnPos = { x = toUnpack[1].position.x,
+                                       y = toUnpack[1].position.y,
+                                       z = toUnpack[1].position.z }
+                    -- Unpack each crate in assembly
+                    for _, c in ipairs(toUnpack) do
+                        mgr:unpackCrate(c.crateName, t)
+                    end
+                    -- Spawn the vehicle
+                    local desc = arg.descriptor
+                    if desc and desc.unit then
+                        local coa = arg.coalition
+                        local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+                        local uid = ctld.utils.getNextUniqId()
+                        CTLDVehicleSpawner.getInstance():spawnVehicleAt(
+                            {
+                                vehicleType = desc.unit,
+                                groupName   = string.format("CTLD_UNP_%d", uid),
+                                unitName    = string.format("CTLD_UNP_%d", uid),
+                                coalitionId = coa,
+                                country     = cId,
+                            },
+                            spawnPos)
+                    end
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
+                end,
+                {
+                    unitName      = playerObj.unitName,
+                    groupId       = playerObj.groupId,
+                    coalition     = playerObj.coalition,
+                    unitType      = ut,
+                    cratesRequired = required,
+                    descriptor    = info.descriptor,
+                })
+        end
+    end
+
+    if not hasAny then
+        menu:addCommand({ root, cratesSub, unpackSub },
+            ctld.tr("No complete crate sets nearby"), function() end, {})
     end
     menu:refresh()
 end
@@ -9795,7 +9962,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             local mgr     = CTLDCrateManager.getInstance()
             local loaded  = {}
             for _, c in pairs(mgr.crates) do
-                if c:isLoaded() and c.loadedBy == t then
+                if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == t:getName() then
                     table.insert(loaded, c)
                 end
             end
@@ -9834,9 +10001,9 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    menu:addCommand({ root, cratesSub }, ctld.tr("Unpack Any Crate"),
-        function(arg) ctld.utils.log("INFO", "Unpack Any Crate for " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName })
+    local unpackSub = ctld.tr("Unpack Any Crate")
+    menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
+    self:refreshUnpackSection(playerObj)
 
     menu:addCommand({ root, cratesSub }, ctld.tr("List Nearby Crates"),
         function(arg) ctld.utils.log("INFO", "List Nearby Crates for " .. tostring(arg.unitName)) end,
@@ -15080,6 +15247,7 @@ function CTLDPlayerManager:onLand(event)
     timer.scheduleFunction(function()
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
+        CTLDCrateManager.getInstance():refreshUnpackSection(captured)
     end, nil, timer.getTime() + 1)
 end
 
