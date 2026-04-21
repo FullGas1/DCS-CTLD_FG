@@ -774,7 +774,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate - Small"),                unit = "FOB-SMALL" }, -- Builds a FOB! - requires 3 * ctld.cratesRequiredForFOB
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB-SMALL" }, -- Builds a FOB! - requires 3 * ctld.cratesRequiredForFOB
 
         },
         ["Artillery"] = {

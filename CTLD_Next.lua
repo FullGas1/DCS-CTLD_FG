@@ -817,7 +817,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate - Small"),                unit = "FOB-SMALL" }, -- Builds a FOB! - requires 3 * ctld.cratesRequiredForFOB
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB-SMALL" }, -- Builds a FOB! - requires 3 * ctld.cratesRequiredForFOB
 
         },
         ["Artillery"] = {
@@ -1463,7 +1463,7 @@ ctld.i18n["en"]["SKP-11 - JTAC"] = "SKP-11 - JTAC"
 ctld.i18n["en"]["Ural-375 Ammo Truck"] = "Ural-375 Ammo Truck"
 ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
-ctld.i18n["en"]["FOB Crate - Small"] = "FOB Crate - Small"
+ctld.i18n["en"]["FOB Crate"] = "FOB Crate"
 ctld.i18n["en"]["MQ-9 Repear - JTAC"] = "MQ-9 Repear - JTAC"
 ctld.i18n["en"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
 ctld.i18n["en"]["MLRS"] = "MLRS"
@@ -1818,7 +1818,7 @@ ctld.i18n["fr"]["SKP-11 - JTAC"] = ""
 ctld.i18n["fr"]["Ural-375 Ammo Truck"] = ""
 ctld.i18n["fr"]["KAMAZ Ammo Truck"] = ""
 ctld.i18n["fr"]["EWR Radar"] = ""
-ctld.i18n["fr"]["FOB Crate - Small"] = ""
+ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
 ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["fr"]["MLRS"] = ""
@@ -2174,7 +2174,7 @@ ctld.i18n["es"]["SKP-11 - JTAC"] = "JTAC SKP-11"
 ctld.i18n["es"]["Ural-375 Ammo Truck"] = "Camión Ural-375 de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
-ctld.i18n["es"]["FOB Crate - Small"] = "Caja FOB - Pequeña"
+ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
 ctld.i18n["es"]["MQ-9 Repear - JTAC"] = "JTAC MQ-9 Repear"
 ctld.i18n["es"]["RQ-1A Predator - JTAC"] = "JTAC RQ-1A Predator"
 ctld.i18n["es"]["MLRS"] = "MLRS - Artilleria de cohetes"
@@ -2531,7 +2531,7 @@ ctld.i18n["ko"]["SKP-11 - JTAC"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
-ctld.i18n["ko"]["FOB Crate - Small"] = "FOB 화물 - 小"
+ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["ko"]["MLRS"] = ""
