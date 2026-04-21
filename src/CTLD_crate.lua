@@ -1481,7 +1481,46 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     self:refreshUnpackSection(playerObj)
 
     menu:addCommand({ root, cratesSub }, ctld.tr("List Nearby Crates"),
-        function(arg) ctld.utils.log("INFO", "List Nearby Crates for " .. tostring(arg.unitName)) end,
+        function(arg)
+            local t = Unit.getByName(arg.unitName)
+            if not (t and t:isExist()) then return end
+            local gid  = t:getGroup():getID()
+            local mgr  = CTLDCrateManager.getInstance()
+            local nearby = mgr:getCratesInRange(t:getPoint(), 300)
+
+            -- Group by descriptor.unit (or desc for crates with no vehicle)
+            local byUnit    = {}   -- [key] = { desc, count, required }
+            local unitOrder = {}
+            for _, c in ipairs(nearby) do
+                if c.descriptor then
+                    local key      = c.descriptor.unit or c.descriptor.desc or "?"
+                    local desc     = c.descriptor.desc or key
+                    local required = c.descriptor.cratesRequired or 1
+                    if not byUnit[key] then
+                        byUnit[key] = { desc = desc, count = 0, required = required }
+                        table.insert(unitOrder, key)
+                    end
+                    byUnit[key].count = byUnit[key].count + 1
+                end
+            end
+
+            if #unitOrder == 0 then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("No crates within 300m."), 10)
+                return
+            end
+
+            local lines = { ctld.tr("Crates within 300m:") }
+            for _, key in ipairs(unitOrder) do
+                local info = byUnit[key]
+                if info.count >= info.required then
+                    table.insert(lines, ctld.tr("  %1: %2/%3 — READY", info.desc, info.count, info.required))
+                else
+                    table.insert(lines, ctld.tr("  %1: %2/%3 — incomplete", info.desc, info.count, info.required))
+                end
+            end
+            trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
+        end,
         { unitName = playerObj.unitName })
 
     if ctld.gs("enabledFOBBuilding") == true then

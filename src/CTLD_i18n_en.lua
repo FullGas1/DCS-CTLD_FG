@@ -316,6 +316,13 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
+--- List Nearby Crates
+ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
+ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."
+ctld.i18n["en"]["Crates within 300m:"] = "Crates within 300m:"
+ctld.i18n["en"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — READY"
+ctld.i18n["en"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incomplete"
+
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"

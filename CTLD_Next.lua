@@ -1728,6 +1728,13 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
+--- List Nearby Crates
+ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
+ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."
+ctld.i18n["en"]["Crates within 300m:"] = "Crates within 300m:"
+ctld.i18n["en"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — READY"
+ctld.i18n["en"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incomplete"
+
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
@@ -2056,6 +2063,13 @@ ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
+
+--- List Nearby Crates
+ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
+ctld.i18n["fr"]["No crates within 300m."] = "Aucune caisse dans un rayon de 300m."
+ctld.i18n["fr"]["Crates within 300m:"] = "Caisses dans un rayon de 300m :"
+ctld.i18n["fr"]["  %1: %2/%3 — READY"] = "  %1 : %2/%3 — PRÊT"
+ctld.i18n["fr"]["  %1: %2/%3 — incomplete"] = "  %1 : %2/%3 — incomplet"
 
 --- Check Cargo summary
 ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison à bord."
@@ -2386,6 +2400,13 @@ ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas comple
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
+
+--- List Nearby Crates
+ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
+ctld.i18n["es"]["No crates within 300m."] = "No hay cajas en un radio de 300m."
+ctld.i18n["es"]["Crates within 300m:"] = "Cajas en un radio de 300m:"
+ctld.i18n["es"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — LISTA"
+ctld.i18n["es"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incompleta"
 
 --- Check Cargo summary
 ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
@@ -2721,6 +2742,13 @@ ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 �
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
+
+--- List Nearby Crates
+ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
+ctld.i18n["ko"]["No crates within 300m."] = "300m 이내에 화물 없음."
+ctld.i18n["ko"]["Crates within 300m:"] = "300m 이내 화물:"
+ctld.i18n["ko"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — 준비됨"
+ctld.i18n["ko"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — 불완전"
 
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
@@ -10007,7 +10035,46 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     self:refreshUnpackSection(playerObj)
 
     menu:addCommand({ root, cratesSub }, ctld.tr("List Nearby Crates"),
-        function(arg) ctld.utils.log("INFO", "List Nearby Crates for " .. tostring(arg.unitName)) end,
+        function(arg)
+            local t = Unit.getByName(arg.unitName)
+            if not (t and t:isExist()) then return end
+            local gid  = t:getGroup():getID()
+            local mgr  = CTLDCrateManager.getInstance()
+            local nearby = mgr:getCratesInRange(t:getPoint(), 300)
+
+            -- Group by descriptor.unit (or desc for crates with no vehicle)
+            local byUnit    = {}   -- [key] = { desc, count, required }
+            local unitOrder = {}
+            for _, c in ipairs(nearby) do
+                if c.descriptor then
+                    local key      = c.descriptor.unit or c.descriptor.desc or "?"
+                    local desc     = c.descriptor.desc or key
+                    local required = c.descriptor.cratesRequired or 1
+                    if not byUnit[key] then
+                        byUnit[key] = { desc = desc, count = 0, required = required }
+                        table.insert(unitOrder, key)
+                    end
+                    byUnit[key].count = byUnit[key].count + 1
+                end
+            end
+
+            if #unitOrder == 0 then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("No crates within 300m."), 10)
+                return
+            end
+
+            local lines = { ctld.tr("Crates within 300m:") }
+            for _, key in ipairs(unitOrder) do
+                local info = byUnit[key]
+                if info.count >= info.required then
+                    table.insert(lines, ctld.tr("  %1: %2/%3 — READY", info.desc, info.count, info.required))
+                else
+                    table.insert(lines, ctld.tr("  %1: %2/%3 — incomplete", info.desc, info.count, info.required))
+                end
+            end
+            trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
+        end,
         { unitName = playerObj.unitName })
 
     if ctld.gs("enabledFOBBuilding") == true then

@@ -316,6 +316,13 @@ ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 �
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
 
+--- List Nearby Crates
+ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
+ctld.i18n["ko"]["No crates within 300m."] = "300m 이내에 화물 없음."
+ctld.i18n["ko"]["Crates within 300m:"] = "300m 이내 화물:"
+ctld.i18n["ko"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — 준비됨"
+ctld.i18n["ko"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — 불완전"
+
 --- Check Cargo summary
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
 ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2개 크레이트 탑재 중 (%3 kg)"

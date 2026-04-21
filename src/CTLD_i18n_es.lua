@@ -311,6 +311,13 @@ ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar a
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
+--- List Nearby Crates
+ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
+ctld.i18n["es"]["No crates within 300m."] = "No hay cajas en un radio de 300m."
+ctld.i18n["es"]["Crates within 300m:"] = "Cajas en un radio de 300m:"
+ctld.i18n["es"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — LISTA"
+ctld.i18n["es"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incompleta"
+
 --- Check Cargo summary
 ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
 ctld.i18n["es"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 caja(s) a bordo (%3 kg)"
