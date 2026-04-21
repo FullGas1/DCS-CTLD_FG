@@ -1679,23 +1679,28 @@ end
 --   - CTLDSceneManager: step.axis positioning (random-axis object placement within a scene)
 --
 -- @param unit         DCS Unit object (requesting aircraft / scene trigger unit)
--- @param n            Number of positions to compute
--- @param safeDistance Distance to first position in meters (varies by aircraft size)
--- @param spacing      Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param n              Number of positions to compute
+-- @param safeDistance   Distance to first position in meters (varies by aircraft size)
+-- @param spacing        Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param axisOffsetDeg  Fixed axis angle in degrees relative to unit heading (nil = random 0-360).
+--                       0 = straight ahead (12 o'clock), 180 = straight behind (6 o'clock).
+--                       Pass a fixed value to align multiple crates in a predictable line.
 -- @return table { positions = {{x,z}, ...}, clock = "1".."12", distance = safeDistance }
 --
 -- Clock convention: 0° ahead = 12 o'clock, 90° right = 3 o'clock, 180° behind = 6 o'clock.
 -- ====================================================================================================
 
-function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing)
+function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axisOffsetDeg)
     n        = n or 1
     spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
 
     local unitPos = unit:getPoint()
     local unitHdg = ctld.utils.getHeadingInRadians("getSpawnObjectPositions", unit, true)
 
-    -- Single random axis for the whole wave: full 360° relative to unit heading
-    local axisOffsetDeg = ctld.utils.RandomReal("getSpawnObjectPositions", 0, 360)
+    -- Use provided axis or pick a random one (single axis for the whole wave)
+    if axisOffsetDeg == nil then
+        axisOffsetDeg = ctld.utils.RandomReal("getSpawnObjectPositions", 0, 360)
+    end
 
     local positions = {}
     for i = 1, n do

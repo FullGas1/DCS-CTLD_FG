@@ -790,24 +790,15 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
 
     packableUnit:destroy()
 
-    for i = 1, cratesReq do
-        local angle
-        if isDynamic then
-            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
-                hdg + math.pi - math.pi / 4, hdg + math.pi + math.pi / 4)
-        else
-            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
-                hdg - math.pi / 4, hdg + math.pi / 4)
-        end
-        local dist = offset + i * 5
-        local px = tPos.x + math.cos(angle) * dist
-        local pz = tPos.z + math.sin(angle) * dist
-        local py = land.getHeight({ x = px, y = pz })
-        CTLDCrateManager.getInstance():spawnCrate(
-            descriptor, { x = px, y = py, z = pz },
-            coa, playerObj and playerObj.unitName or nil,
-            CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, cId, modelKey)
-    end
+    -- Spawn crates aligned in a straight line: ahead for standard units,
+    -- behind (6h) for sling-load capable units that load from the rear ramp.
+    local axisOffsetDeg = isDynamic and 180 or 0
+    local descriptors   = {}
+    for _ = 1, cratesReq do table.insert(descriptors, descriptor) end
+    CTLDCrateManager.getInstance():spawnCratesAligned(
+        descriptors, transport, coa,
+        playerObj and playerObj.unitName or nil,
+        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, axisOffsetDeg)
 
     trigger.action.outTextForGroup(playerObj.groupId,
         string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)

@@ -4365,23 +4365,28 @@ end
 --   - CTLDSceneManager: step.axis positioning (random-axis object placement within a scene)
 --
 -- @param unit         DCS Unit object (requesting aircraft / scene trigger unit)
--- @param n            Number of positions to compute
--- @param safeDistance Distance to first position in meters (varies by aircraft size)
--- @param spacing      Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param n              Number of positions to compute
+-- @param safeDistance   Distance to first position in meters (varies by aircraft size)
+-- @param spacing        Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param axisOffsetDeg  Fixed axis angle in degrees relative to unit heading (nil = random 0-360).
+--                       0 = straight ahead (12 o'clock), 180 = straight behind (6 o'clock).
+--                       Pass a fixed value to align multiple crates in a predictable line.
 -- @return table { positions = {{x,z}, ...}, clock = "1".."12", distance = safeDistance }
 --
 -- Clock convention: 0° ahead = 12 o'clock, 90° right = 3 o'clock, 180° behind = 6 o'clock.
 -- ====================================================================================================
 
-function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing)
+function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axisOffsetDeg)
     n        = n or 1
     spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
 
     local unitPos = unit:getPoint()
     local unitHdg = ctld.utils.getHeadingInRadians("getSpawnObjectPositions", unit, true)
 
-    -- Single random axis for the whole wave: full 360° relative to unit heading
-    local axisOffsetDeg = ctld.utils.RandomReal("getSpawnObjectPositions", 0, 360)
+    -- Use provided axis or pick a random one (single axis for the whole wave)
+    if axisOffsetDeg == nil then
+        axisOffsetDeg = ctld.utils.RandomReal("getSpawnObjectPositions", 0, 360)
+    end
 
     local positions = {}
     for i = 1, n do
@@ -8510,6 +8515,7 @@ CTLDCrate.SPAWN_METHOD = {
     CRATE_SPAWN   = "crate_spawn",
     VEHICLE_PACK  = "vehicle_pack",
     MISSION_MAKER = "mission_maker",
+    MENU_CTLD     = "menu_ctld",
 }
 
 --- Constructor.
@@ -9183,6 +9189,34 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
     return crate
 end
 
+--- Spawn N crates in a straight line from a transport unit.
+-- All crates share the same axis direction so they never scatter randomly.
+-- Used for "All crates" menu requests and pack() results.
+--
+-- @param descriptors  table   ordered list of descriptor tables (one entry per crate to spawn)
+-- @param transport    Unit    the requesting / packing transport unit
+-- @param coalitionId  number  coalition.side.*
+-- @param spawnedBy    string  unit name for attribution
+-- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
+-- @param axisOffsetDeg number degrees from unit forward heading (0=12h ahead, 180=6h behind)
+-- @return number spawned count, table spawnInfo {positions, clock, distance}
+function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod, axisOffsetDeg)
+    local safeDist  = (ctld.utils.getSecureDistanceFromUnit(transport:getName()) or 10) + 5
+    local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
+    local n         = #descriptors
+    local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, n, safeDist, spacing, axisOffsetDeg)
+    local spawned   = 0
+    for i, descriptor in ipairs(descriptors) do
+        local pos = spawnInfo.positions[i]
+        if descriptor and pos then
+            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod) then
+                spawned = spawned + 1
+            end
+        end
+    end
+    return spawned, spawnInfo
+end
+
 --- Register a crate pre-placed by the mission maker (called from INIT-B).
 -- @param obj  StaticObject  DCS cargo static (already filtered: isExist + Category==6 + Cargos==true)
 -- @param desc table         result of obj:getDesc()
@@ -9659,32 +9693,32 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                             local mgr      = CTLDCrateManager.getInstance()
                             local gid      = transport:getGroup():getID()
 
+                            -- Axis: ahead (0°) for standard spawn, behind (180°) for slingload
+                            local axisOffsetDeg = ctld.gs("slingLoad") and 180 or 0
+
                             if arg.multiple then
-                                -- "All crates" entry: spawn one crate per weight in the list
-                                local n         = #arg.multiple
-                                local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, n, safeDist)
-                                local spawned   = 0
-                                for i, weight in ipairs(arg.multiple) do
-                                    local descriptor = mgr:findDescriptorByWeight(weight)
-                                    local pos        = spawnInfo.positions[i]
-                                    if descriptor and pos then
-                                        if mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld") then
-                                            spawned = spawned + 1
-                                        end
-                                    end
+                                -- "All crates" entry: resolve descriptors then spawn aligned
+                                local descriptors = {}
+                                for _, weight in ipairs(arg.multiple) do
+                                    local d = mgr:findDescriptorByWeight(weight)
+                                    if d then table.insert(descriptors, d) end
                                 end
+                                local spawned, spawnInfo = mgr:spawnCratesAligned(
+                                    descriptors, transport, arg.coalition, arg.unitName,
+                                    CTLDCrate.SPAWN_METHOD.MENU_CTLD, axisOffsetDeg)
                                 if spawned > 0 then
                                     trigger.action.outTextForGroup(gid,
                                         ctld.tr("%1 crates have been brought out at your %2 o'clock",
                                             spawned, spawnInfo.clock), 20)
                                 end
                             else
-                                -- Single crate entry
+                                -- Single crate entry (random axis = nil → random clock reported)
                                 local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
                                 local pos        = spawnInfo.positions[1]
                                 local descriptor = mgr:findDescriptorByTypeName(arg.unit)
                                 if descriptor then
-                                    local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName, "menu_ctld")
+                                    local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
+                                        CTLDCrate.SPAWN_METHOD.MENU_CTLD)
                                     if spawned then
                                         trigger.action.outTextForGroup(gid,
                                             ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
@@ -10699,24 +10733,15 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
 
     packableUnit:destroy()
 
-    for i = 1, cratesReq do
-        local angle
-        if isDynamic then
-            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
-                hdg + math.pi - math.pi / 4, hdg + math.pi + math.pi / 4)
-        else
-            angle = ctld.utils.RandomReal("CTLDVehicleSpawner:packVehicle",
-                hdg - math.pi / 4, hdg + math.pi / 4)
-        end
-        local dist = offset + i * 5
-        local px = tPos.x + math.cos(angle) * dist
-        local pz = tPos.z + math.sin(angle) * dist
-        local py = land.getHeight({ x = px, y = pz })
-        CTLDCrateManager.getInstance():spawnCrate(
-            descriptor, { x = px, y = py, z = pz },
-            coa, playerObj and playerObj.unitName or nil,
-            CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, cId, modelKey)
-    end
+    -- Spawn crates aligned in a straight line: ahead for standard units,
+    -- behind (6h) for sling-load capable units that load from the rear ramp.
+    local axisOffsetDeg = isDynamic and 180 or 0
+    local descriptors   = {}
+    for _ = 1, cratesReq do table.insert(descriptors, descriptor) end
+    CTLDCrateManager.getInstance():spawnCratesAligned(
+        descriptors, transport, coa,
+        playerObj and playerObj.unitName or nil,
+        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK, axisOffsetDeg)
 
     trigger.action.outTextForGroup(playerObj.groupId,
         string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)
