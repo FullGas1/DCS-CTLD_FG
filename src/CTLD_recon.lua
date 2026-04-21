@@ -138,6 +138,35 @@ function CTLDReconRenderer.drawShipIcon(pos, markId, color)
         color, 1, true, "")
 end
 
+--- FOB icon: filled square (fortification) + vertical mast from top-centre.
+-- Uses 2 sub-elements (slots markId*10+1 and markId*10+2).
+-- @param pos      vec3
+-- @param markId   number
+-- @param color    {r,g,b,a}
+-- @param coalId   number  coalition that sees this mark (-1=all, 1=RED, 2=BLUE)
+-- @param label    string  mark text label
+function CTLDReconRenderer.drawFOBIcon(pos, markId, color, coalId, label)
+    local s    = 50
+    local hs   = s / 2
+    local fill = { color[1], color[2], color[3], 0.25 }
+    local p    = { x = pos.x, y = 0, z = pos.z }
+    trigger.action.rectToAll(coalId, markId * 10 + 1,
+        { x = pos.x - hs, y = 0, z = pos.z - hs },
+        { x = pos.x + hs, y = 0, z = pos.z + hs },
+        color, fill, 2, true, label or "FOB")
+    trigger.action.lineToAll(coalId, markId * 10 + 2,
+        { x = pos.x, y = 0, z = pos.z + hs },
+        { x = pos.x, y = 0, z = pos.z + hs + 40 },
+        color, 2, true, "")
+end
+
+--- Remove a FOB icon (2 sub-elements).
+-- @param markId number
+function CTLDReconRenderer.removeFOBIcon(markId)
+    trigger.action.removeMark(markId * 10 + 1)
+    trigger.action.removeMark(markId * 10 + 2)
+end
+
 --- Dispatch icon creation to the correct draw function.
 -- @param target table  { position, layer }
 -- @param markId number
@@ -858,6 +887,23 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
                 end
             end,
             { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
+    end
+
+    -- FOB layer toggles (managed by CTLDFOBManager)
+    menu:addCommand({ root, reconSub }, ctld.tr("Toggle Friendly FOB Layer"),
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if unit then CTLDFOBManager.getInstance():toggleFriendlyFOBLayer(unit, arg.playerName) end
+        end,
+        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+
+    if ctld.gs("enableEnemyFOBRecon") == true then
+        menu:addCommand({ root, reconSub }, ctld.tr("Toggle Enemy FOB Layer"),
+            function(arg)
+                local unit = Unit.getByName(arg.unitName)
+                if unit then CTLDFOBManager.getInstance():toggleEnemyFOBLayer(unit, arg.playerName) end
+            end,
+            { unitName = playerObj.unitName, playerName = playerObj.unitName })
     end
 
     menu:addCommand({ root, reconSub }, ctld.tr("START autoRefresh"),

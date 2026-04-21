@@ -262,6 +262,18 @@ ctld.i18n["ko"]["RECON"] = ""
 -- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = ""
 -- STALE: ctld.i18n["ko"]["STOP autoRefresh targets in LOS"] = ""
 
+--- FOBs List menu + FOB layer toggles
+ctld.i18n["ko"]["FOBs List"] = "FOB 목록"
+ctld.i18n["ko"]["List active FOBs"] = "활성 FOB 나열"
+ctld.i18n["ko"]["No active FOBs."] = "활성 FOB 없음."
+ctld.i18n["ko"]["FOB Positions:"] = "FOB 위치:"
+ctld.i18n["ko"]["Toggle Friendly FOB Layer"] = "아군 FOB 레이어 토글"
+ctld.i18n["ko"]["Toggle Enemy FOB Layer"] = "적군 FOB 레이어 토글"
+ctld.i18n["ko"]["Friendly FOB layer: OFF"] = "아군 FOB 레이어: OFF"
+ctld.i18n["ko"]["Friendly FOB layer: ON (%1 FOB(s))"] = "아군 FOB 레이어: ON (%1 개)"
+ctld.i18n["ko"]["Enemy FOB layer: OFF"] = "적군 FOB 레이어: OFF"
+ctld.i18n["ko"]["Enemy FOB layer: ON (%1 FOB(s))"] = "적군 FOB 레이어: ON (%1 개)"
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["ko"]["→ Next Page"] = ""
 ctld.i18n["ko"]["2K22 Tunguska - All crates"] = ""

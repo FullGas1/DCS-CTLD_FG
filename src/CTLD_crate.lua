@@ -1524,16 +1524,6 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    if ctld.gs("enabledFOBBuilding") == true then
-        menu:addCommand({ root, cratesSub }, ctld.tr("List FOBs"),
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                CTLDFOBManager.getInstance():listFOBs(t)
-            end,
-            { unitName = playerObj.unitName })
-    end
-
     if ctld.gs("enablePackingVehicles") == true then
         local packSub   = ctld.tr("Pack Vehicle")
         menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })

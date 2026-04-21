@@ -84,15 +84,45 @@ function CTLDFOBManager.getInstance()
     return CTLDFOBManager._instance
 end
 
+-- FOB layer mark ID counter (starts at 8000 to avoid collision with CTLDReconManager)
+local _fobMarkCounter = 8000
+
+local function _nextFobMark()
+    _fobMarkCounter = _fobMarkCounter + 1
+    return _fobMarkCounter
+end
+
 function CTLDFOBManager:init()
-    self._fobs        = {}   -- fobId  → CTLDFOB
-    self._fobCount    = 0
-    self._objectToFOB = {}   -- DCS object name → fobId  (reverse lookup for onDead)
+    self._fobs          = {}   -- fobId  → CTLDFOB
+    self._fobCount      = 0
+    self._objectToFOB   = {}   -- DCS object name → fobId  (reverse lookup for onDead)
+    -- FOB layer marks: _fobMarks[player][tag][fobId] = markId
+    -- tag = "friendly" | "enemy"
+    self._fobMarks      = {}
+    -- Layer visibility state: _fobLayerOn[player][tag] = bool
+    self._fobLayerOn    = {}
 
     local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
     if ok and bridge then
         bridge:register(self, world.event.S_EVENT_DEAD, "onDead")
     end
+
+    -- Refresh FOB layers when FOBs appear or disappear
+    local ed = EventDispatcher.getInstance()
+    ed:subscribe("OnFOBDeployed", function(payload)
+        CTLDFOBManager.getInstance():_refreshAllFOBLayers()
+    end)
+    ed:subscribe("OnFOBDestroyed", function(payload)
+        CTLDFOBManager.getInstance():_refreshAllFOBLayers()
+    end)
+
+    CTLDPlayerManager.getInstance():registerMenuSection({
+        key       = "fobs",
+        manager   = self,
+        method    = "buildMenuSection",
+        configKey = "enabledFOBBuilding",
+        order     = 60,
+    })
 
     ctld.utils.log("INFO", "CTLDFOBManager: init complete")
 end
@@ -446,35 +476,191 @@ function CTLDFOBManager:isInFOBTroopZone(point, coalitionId)
     return false
 end
 
---- Display active FOB positions to the transport's group.
+--- Display active (alive) FOB positions to the transport's group.
+-- Shows: name, coords, integrity%, beacon freqs if present.
+-- Destroyed FOBs are silently omitted.
 -- @param transport DCS Unit
 function CTLDFOBManager:listFOBs(transport)
     local coalitionId = transport:getCoalition()
-    local fobs        = self:getFOBsForCoalition(coalitionId)
+    local gid         = transport:getGroup():getID()
+    local all         = self:getFOBsForCoalition(coalitionId)
+
+    -- Keep only alive FOBs
+    local fobs = {}
+    for _, fob in ipairs(all) do
+        if fob:isAlive() then fobs[#fobs + 1] = fob end
+    end
 
     if #fobs == 0 then
-        ctld.utils.displayMessageToGroup(transport,
-            ctld.tr("fobNoActive", "Sorry, there are no active FOBs!"), 20)
+        trigger.action.outTextForGroup(gid, ctld.tr("No active FOBs."), 15)
         return
     end
 
-    local msg = ctld.tr("fobPositions", "FOB Positions:")
+    local lines = { ctld.tr("FOB Positions:") }
     for _, fob in ipairs(fobs) do
         local lat, lon = coord.LOtoLL(fob.position)
         local latLon   = ctld.utils.tostringLL(
             "CTLDFOBManager:listFOBs", lat, lon, 3, ctld.gs("location_DMS") or false)
-
-        local line = string.format("\nFOB @ %s", latLon)
-
+        local integrity = string.format("%.0f%%", fob:getIntegrityPercent() * 100)
+        local line      = string.format("  %s — %s — %s", fob.name or fob.fobId, latLon, integrity)
         if fob.beacon then
-            line = line .. string.format(" — %.2f kHz / %.2f MHz / %.2f MHz",
+            line = line .. string.format(
+                "\n    VHF %.1f kHz / UHF %.1f MHz / FM %.1f MHz",
                 fob.beacon.vhf / 1000,
                 fob.beacon.uhf / 1000000,
                 fob.beacon.fm  / 1000000)
         end
-
-        msg = msg .. line
+        lines[#lines + 1] = line
     end
+    trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 20)
+end
 
-    ctld.utils.displayMessageToGroup(transport, msg, 20)
+-- ============================================================
+-- FOB Layer (F10 map marks)
+-- ============================================================
+
+-- Colors: friendly blue, friendly red, enemy (inverted), semi-transparent
+local _FOB_COLOR = {
+    [coalition.side.BLUE] = { 0.20, 0.50, 1.00, 1.0 },
+    [coalition.side.RED]  = { 1.00, 0.30, 0.20, 1.0 },
+}
+local _FOB_ENEMY_COLOR = {
+    [coalition.side.BLUE] = { 1.00, 0.30, 0.20, 0.85 },
+    [coalition.side.RED]  = { 0.20, 0.50, 1.00, 0.85 },
+}
+
+--- Draw FOB mark icons for one coalition set, visible only to demandingCoa.
+-- @param player       string
+-- @param tag          string   "friendly"|"enemy"
+-- @param fobList      table    array of CTLDFOB (alive only)
+-- @param color        table    {r,g,b,a}
+-- @param demandingCoa number   coalition.side.* of the requesting player
+function CTLDFOBManager:_drawFOBMarks(player, tag, fobList, color, demandingCoa)
+    if not self._fobMarks[player] then self._fobMarks[player] = {} end
+    if not self._fobMarks[player][tag] then self._fobMarks[player][tag] = {} end
+    local marks = self._fobMarks[player][tag]
+
+    for _, fob in ipairs(fobList) do
+        local mid = _nextFobMark()
+        marks[fob.fobId] = mid
+        CTLDReconRenderer.drawFOBIcon(fob.position, mid, color, demandingCoa,
+            fob.name or fob.fobId)
+    end
+end
+
+--- Remove all FOB mark icons for player+tag.
+function CTLDFOBManager:_clearFOBMarks(player, tag)
+    if not self._fobMarks[player] then return end
+    local marks = self._fobMarks[player][tag]
+    if not marks then return end
+    for _, mid in pairs(marks) do
+        CTLDReconRenderer.removeFOBIcon(mid)
+    end
+    self._fobMarks[player][tag] = {}
+end
+
+--- Toggle the friendly FOB layer for a player.
+-- @param transport DCS Unit
+-- @param player    string
+function CTLDFOBManager:toggleFriendlyFOBLayer(transport, player)
+    if not self._fobLayerOn[player] then self._fobLayerOn[player] = {} end
+    local coa = transport:getCoalition()
+    local gid = transport:getGroup():getID()
+    local tag = "friendly"
+
+    if self._fobLayerOn[player][tag] then
+        self:_clearFOBMarks(player, tag)
+        self._fobLayerOn[player][tag] = false
+        trigger.action.outTextForGroup(gid, ctld.tr("Friendly FOB layer: OFF"), 8)
+    else
+        local fobList = {}
+        for _, fob in ipairs(self:getFOBsForCoalition(coa)) do
+            if fob:isAlive() then fobList[#fobList + 1] = fob end
+        end
+        self:_drawFOBMarks(player, tag, fobList, _FOB_COLOR[coa] or _FOB_COLOR[2], coa)
+        self._fobLayerOn[player][tag] = true
+        trigger.action.outTextForGroup(gid,
+            ctld.tr("Friendly FOB layer: ON (%1 FOB(s))", #fobList), 8)
+    end
+end
+
+--- Toggle the enemy FOB layer for a player.
+-- Gated by config enableEnemyFOBRecon.
+-- @param transport DCS Unit
+-- @param player    string
+function CTLDFOBManager:toggleEnemyFOBLayer(transport, player)
+    if ctld.gs("enableEnemyFOBRecon") ~= true then return end
+    if not self._fobLayerOn[player] then self._fobLayerOn[player] = {} end
+    local coa    = transport:getCoalition()
+    local gid    = transport:getGroup():getID()
+    local tag    = "enemy"
+    local eneCoa = (coa == coalition.side.BLUE) and coalition.side.RED or coalition.side.BLUE
+
+    if self._fobLayerOn[player][tag] then
+        self:_clearFOBMarks(player, tag)
+        self._fobLayerOn[player][tag] = false
+        trigger.action.outTextForGroup(gid, ctld.tr("Enemy FOB layer: OFF"), 8)
+    else
+        local fobList = {}
+        for _, fob in ipairs(self:getFOBsForCoalition(eneCoa)) do
+            if fob:isAlive() then fobList[#fobList + 1] = fob end
+        end
+        self:_drawFOBMarks(player, tag, fobList,
+            _FOB_ENEMY_COLOR[coa] or _FOB_ENEMY_COLOR[2], coa)
+        self._fobLayerOn[player][tag] = true
+        trigger.action.outTextForGroup(gid,
+            ctld.tr("Enemy FOB layer: ON (%1 FOB(s))", #fobList), 8)
+    end
+end
+
+--- Refresh all active FOB layers for all players (called on FOB deployed/destroyed).
+function CTLDFOBManager:_refreshAllFOBLayers()
+    local pm = CTLDPlayerManager.getInstance()
+    for unitName, playerObj in pairs(pm._players) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() and self._fobLayerOn[unitName] then
+            local coa    = unit:getCoalition()
+            local eneCoa = (coa == coalition.side.BLUE) and coalition.side.RED or coalition.side.BLUE
+            if self._fobLayerOn[unitName]["friendly"] then
+                self:_clearFOBMarks(unitName, "friendly")
+                local fobList = {}
+                for _, fob in ipairs(self:getFOBsForCoalition(coa)) do
+                    if fob:isAlive() then fobList[#fobList + 1] = fob end
+                end
+                self:_drawFOBMarks(unitName, "friendly", fobList,
+                    _FOB_COLOR[coa] or _FOB_COLOR[2], coa)
+            end
+            if self._fobLayerOn[unitName]["enemy"] and ctld.gs("enableEnemyFOBRecon") == true then
+                self:_clearFOBMarks(unitName, "enemy")
+                local fobList = {}
+                for _, fob in ipairs(self:getFOBsForCoalition(eneCoa)) do
+                    if fob:isAlive() then fobList[#fobList + 1] = fob end
+                end
+                self:_drawFOBMarks(unitName, "enemy", fobList,
+                    _FOB_ENEMY_COLOR[coa] or _FOB_ENEMY_COLOR[2], coa)
+            end
+        end
+    end
+end
+
+-- ============================================================
+-- F10 Menu section
+-- ============================================================
+
+--- Build the "FOBs List" F10 submenu (CTLD > FOBs List).
+-- Registered with CTLDPlayerManager, gated by enabledFOBBuilding.
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+function CTLDFOBManager:buildMenuSection(playerObj, menu)
+    local root   = ctld.tr("CTLD")
+    local fobSub = ctld.tr("FOBs List")
+    menu:addSubMenu({ root }, fobSub, { order = 60 })
+
+    menu:addCommand({ root, fobSub }, ctld.tr("List active FOBs"),
+        function(arg)
+            local t = Unit.getByName(arg.unitName)
+            if not (t and t:isExist()) then return end
+            CTLDFOBManager.getInstance():listFOBs(t)
+        end,
+        { unitName = playerObj.unitName })
 end

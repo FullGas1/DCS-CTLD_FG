@@ -336,5 +336,17 @@ ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
 ctld.i18n["es"]["%1 crates have been brought out at your %2 o'clock"] = "%1 cajas han sido preparadas a tu %2 en punto"
 
+--- FOBs List menu + FOB layer toggles
+ctld.i18n["es"]["FOBs List"] = "Lista de FOBs"
+ctld.i18n["es"]["List active FOBs"] = "Listar FOBs activos"
+ctld.i18n["es"]["No active FOBs."] = "No hay FOBs activos."
+ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
+ctld.i18n["es"]["Toggle Friendly FOB Layer"] = "Alternar capa FOB amigos"
+ctld.i18n["es"]["Toggle Enemy FOB Layer"] = "Alternar capa FOB enemigos"
+ctld.i18n["es"]["Friendly FOB layer: OFF"] = "Capa FOB amigos: OFF"
+ctld.i18n["es"]["Friendly FOB layer: ON (%1 FOB(s))"] = "Capa FOB amigos: ON (%1 FOB(s))"
+ctld.i18n["es"]["Enemy FOB layer: OFF"] = "Capa FOB enemigos: OFF"
+ctld.i18n["es"]["Enemy FOB layer: ON (%1 FOB(s))"] = "Capa FOB enemigos: ON (%1 FOB(s))"
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""

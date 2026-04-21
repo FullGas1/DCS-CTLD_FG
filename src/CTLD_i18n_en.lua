@@ -341,5 +341,17 @@ ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
 ctld.i18n["en"]["%1 crates have been brought out at your %2 o'clock"] = "%1 crates have been brought out at your %2 o'clock"
 
+--- FOBs List menu + FOB layer toggles
+ctld.i18n["en"]["FOBs List"] = "FOBs List"
+ctld.i18n["en"]["List active FOBs"] = "List active FOBs"
+ctld.i18n["en"]["No active FOBs."] = "No active FOBs."
+ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
+ctld.i18n["en"]["Toggle Friendly FOB Layer"] = "Toggle Friendly FOB Layer"
+ctld.i18n["en"]["Toggle Enemy FOB Layer"] = "Toggle Enemy FOB Layer"
+ctld.i18n["en"]["Friendly FOB layer: OFF"] = "Friendly FOB layer: OFF"
+ctld.i18n["en"]["Friendly FOB layer: ON (%1 FOB(s))"] = "Friendly FOB layer: ON (%1 FOB(s))"
+ctld.i18n["en"]["Enemy FOB layer: OFF"] = "Enemy FOB layer: OFF"
+ctld.i18n["en"]["Enemy FOB layer: ON (%1 FOB(s))"] = "Enemy FOB layer: ON (%1 FOB(s))"
+
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
