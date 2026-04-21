@@ -447,7 +447,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
     if fobSmallCount > 0 then
         hasAny = true
-        local fobRequired = (ctld.gs("cratesRequiredForFOB") or 3) * 3
+        local fobRequired = ctld.gs("cratesRequiredForFOB") or 3
         local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobSmallCount, fobRequired)
         menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
             function(arg)

@@ -141,29 +141,22 @@ local function _computeCentroid(transport)
 end
 
 --- Collect FOB crates on the ground within radius metres of position.
--- Returns { crates=[], bigCount, smallCount, total }.
+-- Each FOB Crate (FOB-SMALL sentinel) counts as 1 unit.
+-- FOB large sentinel not used (large crate drop not implemented).
+-- Returns { crates=[], total }.
 local function _collectFOBCrates(position, coalitionId, radius)
     local cm     = CTLDCrateManager.getInstance()
     local nearby = cm:getCratesInRange(position, radius)
-    local result = { crates = {}, bigCount = 0, smallCount = 0, total = 0 }
+    local result = { crates = {}, total = 0 }
 
     for _, crate in ipairs(nearby) do
         if crate.coalition == coalitionId then
             local unit = crate.descriptor and crate.descriptor.unit
-            if unit == "FOB" then
-                result.bigCount = result.bigCount + 1
-                result.crates[#result.crates + 1] = crate
-            elseif unit == "FOB-SMALL" then
-                result.smallCount = result.smallCount + 1
+            if unit == "FOB" or unit == "FOB-SMALL" then
+                result.total = result.total + 1
                 result.crates[#result.crates + 1] = crate
             end
         end
-    end
-
-    if result.smallCount > 0 then
-        result.total = result.bigCount + result.smallCount / 3.0
-    else
-        result.total = result.bigCount
     end
 
     return result
@@ -209,6 +202,19 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local pos         = transport:getPoint()
     local coalitionId = transport:getCoalition()
 
+    -- Guard: not enough crates (checked first for clearer feedback)
+    local required   = ctld.gs("cratesRequiredForFOB") or 3
+    local collected  = _collectFOBCrates(pos, coalitionId, 750)
+    if collected.total < required then
+        trigger.action.outTextForGroup(gid,
+            string.format(
+                ctld.tr("fobNotEnoughCrates",
+                    "Cannot build FOB!\n\nRequires %d FOB Crate(s). Found: %d.\n\n"
+                    .. "Crates must be within 750 m of each other."),
+                required, collected.total), 20)
+        return
+    end
+
     -- Guard: inside existing logistic zone
     if _isInLogisticZone(pos, coalitionId) then
         trigger.action.outTextForGroup(gid,
@@ -225,21 +231,6 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
                 ctld.tr("fobTooCloseToZone",
                     "FOB deployment blocked: move at least %d m away from existing logistic zone."),
                 minDist), 20)
-        return
-    end
-
-    -- Collect nearby FOB crates
-    local collected  = _collectFOBCrates(pos, coalitionId, 750)
-    local required   = ctld.gs("cratesRequiredForFOB") or 3
-
-    if collected.total < required then
-        trigger.action.outTextForGroup(gid,
-            string.format(
-                ctld.tr("fobNotEnoughCrates",
-                    "Cannot build FOB!\n\nRequires %d large FOB crate(s) "
-                    .. "(3 small = 1 large). Found: %.1f large equivalent.\n\n"
-                    .. "Crates must be within 750 m of each other."),
-                required, collected.total), 20)
         return
     end
 
