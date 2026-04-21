@@ -197,9 +197,11 @@ end
 function CTLDFOBManager:unpackFOBCrates(transport, player)
     if not ctld.gs("enabledFOBBuilding") then return end
 
+    local gid = transport:getGroup():getID()
+
     -- Guard: airborne
     if ctld.utils.inAir(transport) then
-        ctld.utils.displayMessageToGroup(transport,
+        trigger.action.outTextForGroup(gid,
             ctld.tr("fobMustLand", "You must be on the ground to deploy a FOB."), 10)
         return
     end
@@ -209,7 +211,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
 
     -- Guard: inside existing logistic zone
     if _isInLogisticZone(pos, coalitionId) then
-        ctld.utils.displayMessageToGroup(transport,
+        trigger.action.outTextForGroup(gid,
             ctld.tr("fobNoUnpackInZone",
                 "You can't deploy a FOB here! Take it to where it's needed."), 20)
         return
@@ -218,7 +220,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Guard: too close to another zone
     if _isTooCloseToZone(pos, coalitionId) then
         local minDist = ctld.gs("fobMinDistanceFromZones") or 500
-        ctld.utils.displayMessageToGroup(transport,
+        trigger.action.outTextForGroup(gid,
             string.format(
                 ctld.tr("fobTooCloseToZone",
                     "FOB deployment blocked: move at least %d m away from existing logistic zone."),
@@ -231,7 +233,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local required   = ctld.gs("cratesRequiredForFOB") or 3
 
     if collected.total < required then
-        ctld.utils.displayMessageToGroup(transport,
+        trigger.action.outTextForGroup(gid,
             string.format(
                 ctld.tr("fobNotEnoughCrates",
                     "Cannot build FOB!\n\nRequires %d large FOB crate(s) "
