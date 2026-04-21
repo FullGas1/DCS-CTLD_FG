@@ -67,7 +67,7 @@ jobs:
           $outFile  = "CTLD_Next.lua"
 
           # Header (mirrors merger.cmd)
-          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding UTF8
+          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding utf8NoBOM
 
           $warnings = 0
           $merged   = 0
@@ -178,7 +178,7 @@ jobs:
           $srcDir   = "src"
           $outFile  = "CTLD_Next.lua"
 
-          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding UTF8
+          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding utf8NoBOM
 
           $merged = 0
           foreach ($line in (Get-Content $listFile)) {
