@@ -279,10 +279,7 @@ function CTLDConfig:load()
     self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
-    self.settings["cratesRequiredForFOB"]           = 3 -- The amount of crates required to build a FOB. Once built, helis can spawn crates at this outpost to be carried and deployed in another area.
-    -- The large crates can only be loaded and dropped by large aircraft, like the C-130 and listed in ctld.vehicleTransportEnabled
-    -- Small FOB crates can be moved by helicopter. The FOB will require ctld.cratesRequiredForFOB larges crates and small crates are 1/3 of a large fob crate
-    -- To build the FOB entirely out of small crates you will need ctld.cratesRequiredForFOB * 3
+    self.settings["cratesRequiredForFOB"]           = 3 -- Number of FOB Crates required to build a FOB.
     self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
     self.settings["buildTimeFOB"]                   = 120      -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]        = 500      -- minimum distance (m) from existing logistic zones to deploy a FOB
