@@ -322,7 +322,7 @@ function CTLDConfig:load()
     self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
-    self.settings["cratesRequiredForFOB"]           = 3 -- Number of FOB Crates required to build a FOB.
+    self.settings["cratesRequiredForFOB"]           = 1 -- Number of FOB Crates required to build a FOB.
     self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
     self.settings["buildTimeFOB"]                   = 120      -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]        = 500      -- minimum distance (m) from existing logistic zones to deploy a FOB
@@ -11511,7 +11511,7 @@ local function _isTooCloseToZone(position, coalitionId)
     local minDist = ctld.gs("fobMinDistanceFromZones") or 500
     local zm      = CTLDZoneManager.getInstance()
     for _, zone in ipairs(zm:getLogisticZonesForCoalition(coalitionId)) do
-        if ctld.utils.getDistance(position, zone:getCenter()) < minDist then
+        if ctld.utils.getDistance("_isTooCloseToZone", position, zone:getCenter()) < minDist then
             return true
         end
     end

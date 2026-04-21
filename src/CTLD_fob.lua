@@ -173,7 +173,7 @@ local function _isTooCloseToZone(position, coalitionId)
     local minDist = ctld.gs("fobMinDistanceFromZones") or 500
     local zm      = CTLDZoneManager.getInstance()
     for _, zone in ipairs(zm:getLogisticZonesForCoalition(coalitionId)) do
-        if ctld.utils.getDistance(position, zone:getCenter()) < minDist then
+        if ctld.utils.getDistance("_isTooCloseToZone", position, zone:getCenter()) < minDist then
             return true
         end
     end
