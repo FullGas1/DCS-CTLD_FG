@@ -195,7 +195,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Guard: airborne
     if ctld.utils.inAir(transport) then
         trigger.action.outTextForGroup(gid,
-            ctld.tr("fobMustLand", "You must be on the ground to deploy a FOB."), 10)
+            ctld.tr("You must be on the ground to deploy a FOB."), 10)
         return
     end
 
@@ -207,9 +207,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local collected  = _collectFOBCrates(pos, coalitionId, 750)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
-            string.format(
-                ctld.tr("fobNotEnoughCrates",
-                    "FOB needs %d crate(s) within 750 m - only %d found."),
+            ctld.tr("FOB needs %1 crate(s) within 750 m - only %2 found.",
                 required, collected.total), 15)
         return
     end
@@ -217,8 +215,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Guard: inside existing logistic zone
     if _isInLogisticZone(pos, coalitionId) then
         trigger.action.outTextForGroup(gid,
-            ctld.tr("fobNoUnpackInZone",
-                "You can't deploy a FOB here! Take it to where it's needed."), 20)
+            ctld.tr("You can't deploy a FOB here! Take it to where it's needed."), 20)
         return
     end
 
@@ -226,9 +223,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     if _isTooCloseToZone(pos, coalitionId) then
         local minDist = ctld.gs("fobMinDistanceFromZones") or 500
         trigger.action.outTextForGroup(gid,
-            string.format(
-                ctld.tr("fobTooCloseToZone",
-                    "FOB deployment blocked: move at least %d m away from existing logistic zone."),
+            ctld.tr("FOB deployment blocked: move at least %1 m away from existing logistic zone.",
                 minDist), 20)
         return
     end
@@ -254,10 +249,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Visual feedback
     trigger.action.smoke(centroid, trigger.smokeColor.Green)
     trigger.action.outTextForCoalition(coalitionId,
-        string.format(
-            ctld.tr("fobBuildStart",
-                "%s started building a FOB (%d crate(s)). "
-                .. "Ready in %d seconds. Position marked with smoke."),
+        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds. Position marked with smoke.",
             player, #cratesUsed, buildTime), 10)
 
     -- Schedule scene spawn
