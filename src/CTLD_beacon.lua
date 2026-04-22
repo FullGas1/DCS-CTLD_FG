@@ -404,7 +404,7 @@ function CTLDBeaconManager:removeClosestBeacon(transport, player)
     end
 
     if not closest then
-        trigger.action.outText(ctld.tr("beaconNoneInRange", "No Radio Beacons within 500m."), 10)
+        trigger.action.outText(ctld.tr("No Radio Beacons within 500m."), 10)
         return
     end
 
@@ -414,9 +414,8 @@ function CTLDBeaconManager:removeClosestBeacon(transport, player)
     self:_removeBeaconFromLayers(closest)
     self._beacons[closest.beaconName] = nil
 
-    local msg = ctld.tr("beaconRemoved", player .. " removed a Radio Beacon.")
-            .. "\n" .. closest:freqText()
-    trigger.action.outTextForCoalition(coalitionId, msg, 20)
+    trigger.action.outTextForCoalition(coalitionId,
+        ctld.tr("Radio beacon removed - %1", closest:freqText()), 20)
 
     EventDispatcher.getInstance():publish("OnBeaconRemoved", {
         player     = player,
@@ -448,8 +447,8 @@ function CTLDBeaconManager:listBeacons(transport)
         end
     end
     local msg = #lines > 0
-        and (ctld.tr("beaconList", "Radio Beacons:") .. "\n" .. table.concat(lines, "\n"))
-        or   ctld.tr("beaconListEmpty", "No Active Radio Beacons")
+        and (ctld.tr("Radio Beacons:") .. "\n" .. table.concat(lines, "\n"))
+        or   ctld.tr("No Active Radio Beacons")
     trigger.action.outTextForGroup(transport:getGroup():getID(), msg, 20)
 end
 
@@ -484,12 +483,12 @@ function CTLDBeaconManager:toggleLayer(player, transport)
             end
         end
         trigger.action.outTextForGroup(transport:getGroup():getID(),
-            string.format(ctld.tr("beaconLayerOn","Beacon layer enabled. %d beacon(s)."), #beaconsDisplayed), 10)
+            ctld.tr("Beacon layer enabled. %1 beacon(s).", #beaconsDisplayed), 10)
     else
         for _, mark in ipairs(state.marks) do self:_removeMarkId(mark.markId) end
         state.marks = {}
         trigger.action.outTextForGroup(transport:getGroup():getID(),
-            ctld.tr("beaconLayerOff", "Beacon layer disabled."), 10)
+            ctld.tr("Beacon layer disabled."), 10)
     end
 
     EventDispatcher.getInstance():publish("OnBeaconLayerToggled", {
