@@ -15579,6 +15579,18 @@ function CTLDPlayerManager:init()
         CTLDCrateManager.getInstance():refreshUnpackSectionForUnit(p.carrierUnitName)
     end)
 
+    -- When a FOB is deployed, refresh Request Equipment for all grounded players
+    -- who may now be within the new FOB logistic zone.
+    ed:subscribe("OnFOBDeployed", function(_p)
+        local mgr = CTLDCrateManager.getInstance()
+        for _, playerObj in pairs(self._players) do
+            local unit = Unit.getByName(playerObj.unitName)
+            if unit and unit:isExist() and not ctld.utils.inAir(unit) then
+                mgr:refreshRequestEquipmentSection(playerObj)
+            end
+        end
+    end)
+
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
 
