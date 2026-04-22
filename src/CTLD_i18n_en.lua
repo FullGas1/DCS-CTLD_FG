@@ -370,6 +370,8 @@ ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["en"]["Land near logistics to request equipment"] = "Land near logistics to request equipment"
+ctld.i18n["en"]["No logistics in range"] = "No logistics in range"
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "

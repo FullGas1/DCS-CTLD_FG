@@ -1380,18 +1380,42 @@ end
 --                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
-function CTLDCrateManager:buildMenuSection(playerObj, menu)
+--- Rebuild the "Request Equipment" submenu branch for playerObj.
+-- Shows only logistic zones where the player is currently located (cratesPickup).
+-- Called on build, land, and takeoff.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     local unitActions = ctld.gs("unitActions") or {}
     local actions     = unitActions[playerObj.typeName]
     if not (playerObj.isTransport and actions and actions.crates) then return end
 
-    local root      = ctld.tr("CTLD")
-    local jtacOk    = ctld.gs("JTAC_dropEnabled") == true
-    local spawnSub  = ctld.tr("Request Equipment")
-    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
 
-    -- Request Equipment: per LGZ × per category × per crate
-    local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
+    local root     = ctld.tr("CTLD")
+    local spawnSub = ctld.tr("Request Equipment")
+    menu:clearBranch({ root, spawnSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, spawnSub }, ctld.tr("Land near logistics to request equipment"),
+            function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local zm      = CTLDZoneManager.getInstance()
+    local lgZones = zm:getLogisticZonesAtPoint(transport:getPoint(), playerObj.coalition, "cratesPickup")
+
+    if not next(lgZones) then
+        menu:addCommand({ root, spawnSub }, ctld.tr("No logistics in range"),
+            function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local jtacOk       = ctld.gs("JTAC_dropEnabled") == true
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
 
     for _, lgz in ipairs(lgZones) do
@@ -1405,32 +1429,33 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
-                            local transport = Unit.getByName(arg.unitName)
-                            if not (transport and transport:isExist()) then return end
-                            if ctld.utils.inAir(transport) then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                            local t = Unit.getByName(arg.unitName)
+                            if not (t and t:isExist()) then return end
+                            if ctld.utils.inAir(t) then
+                                trigger.action.outTextForGroup(t:getGroup():getID(),
                                     ctld.tr("You must be landed to request a crate."), 10)
                                 return
                             end
-                            local lgz = CTLDZoneManager.getInstance():getLogisticZoneForUnit(arg.unitName)
-                            if not lgz then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                            -- Verify unit is still within the selected zone
+                            local selZone = CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName)
+                            if not (selZone and selZone.active and selZone:isAlive()
+                                    and selZone:isInZone(t:getPoint())) then
+                                trigger.action.outTextForGroup(t:getGroup():getID(),
                                     ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
                                 return
                             end
                             local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
                             local mgr      = CTLDCrateManager.getInstance()
-                            local gid      = transport:getGroup():getID()
+                            local gid      = t:getGroup():getID()
 
                             if arg.multiple then
-                                -- "All crates" entry: resolve descriptors then spawn aligned
                                 local descriptors = {}
                                 for _, weight in ipairs(arg.multiple) do
                                     local d = mgr:findDescriptorByWeight(weight)
                                     if d then table.insert(descriptors, d) end
                                 end
                                 local spawned, spawnInfo = mgr:spawnCratesAligned(
-                                    descriptors, transport, arg.coalition, arg.unitName,
+                                    descriptors, t, arg.coalition, arg.unitName,
                                     CTLDCrate.SPAWN_METHOD.MENU_CTLD)
                                 if spawned > 0 then
                                     trigger.action.outTextForGroup(gid,
@@ -1438,10 +1463,9 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                             spawned, spawnInfo.clock), 20)
                                 end
                             else
-                                -- Single crate entry (random axis = nil → random clock reported)
-                                local mKey       = mgr:_crateModelKey(transport)
-                                local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
-                                local pos        = spawnInfo.positions[1]
+                                local mKey      = mgr:_crateModelKey(t)
+                                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
+                                local pos       = spawnInfo.positions[1]
                                 local descriptor = mgr:findDescriptorByTypeName(arg.unit)
                                 if descriptor then
                                     local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
@@ -1454,15 +1478,27 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                 end
                             end
                         end,
-                        { unit     = crate.unit,
-                          multiple = crate.multiple,
-                          zoneName = lgzName,
-                          unitName = playerObj.unitName,
+                        { unit      = crate.unit,
+                          multiple  = crate.multiple,
+                          zoneName  = lgzName,
+                          unitName  = playerObj.unitName,
                           coalition = playerObj.coalition })
                 end
             end
         end
     end
+    menu:refresh()
+end
+
+function CTLDCrateManager:buildMenuSection(playerObj, menu)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.crates) then return end
+
+    local root     = ctld.tr("CTLD")
+    local spawnSub = ctld.tr("Request Equipment")
+    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    self:refreshRequestEquipmentSection(playerObj)
 
     -- Crate Commands
     local cratesSub = ctld.tr("Crate Commands")

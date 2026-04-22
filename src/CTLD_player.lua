@@ -235,6 +235,7 @@ function CTLDPlayerManager:onLand(event)
     local captured = playerObj
     timer.scheduleFunction(function()
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
+        CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
@@ -248,6 +249,7 @@ function CTLDPlayerManager:onTakeoff(event)
     local playerObj = self._players[unit:getName()]
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
 end
 
 --- Register a menu section contributed by a manager.

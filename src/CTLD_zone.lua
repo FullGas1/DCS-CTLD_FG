@@ -867,6 +867,26 @@ function CTLDZoneManager:getLogisticZoneForUnit(unitName)
     return self:getLogisticZoneAtPoint(unit:getPoint(), unit:getCoalition())
 end
 
+--- Return ALL active logistic zones containing point (not just the first one).
+-- Filters on coalition (0 = any). Optionally filters on a services key.
+-- @param point      vec3
+-- @param coalition  number
+-- @param serviceKey string|nil   e.g. "cratesPickup" — if provided, zone.services[key] must be truthy
+-- @return table  array of CTLDLogisticZone (may be empty)
+function CTLDZoneManager:getLogisticZonesAtPoint(point, coalition, serviceKey)
+    local result = {}
+    for _, zone in pairs(self._logisticZones) do
+        if zone.active and zone:isAlive()
+           and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+           and zone:isInZone(point) then
+            if not serviceKey or (zone.services and zone.services[serviceKey] ~= false) then
+                result[#result + 1] = zone
+            end
+        end
+    end
+    return result
+end
+
 -- ============================================================
 -- Misc helpers
 -- ============================================================

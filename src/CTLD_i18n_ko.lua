@@ -376,6 +376,8 @@ ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["ko"]["Land near logistics to request equipment"] = ""
+ctld.i18n["ko"]["No logistics in range"] = ""
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."

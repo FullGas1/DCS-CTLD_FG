@@ -1784,6 +1784,8 @@ ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["en"]["Land near logistics to request equipment"] = "Land near logistics to request equipment"
+ctld.i18n["en"]["No logistics in range"] = "No logistics in range"
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
@@ -2167,6 +2169,8 @@ ctld.i18n["fr"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldat(s) en soute (%2 kg)"
 ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["fr"]["Land near logistics to request equipment"] = "Atterrissez près d'une logistique pour demander du matériel"
+ctld.i18n["fr"]["No logistics in range"] = "Aucune logistique à portée"
 ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
 ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
 ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"
@@ -2551,6 +2555,8 @@ ctld.i18n["es"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldado(s) a bordo (%2 kg)"
 ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["es"]["Land near logistics to request equipment"] = "Aterriza cerca de la logística para solicitar equipo"
+ctld.i18n["es"]["No logistics in range"] = "Sin logística en rango"
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
 ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
 ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
@@ -2946,6 +2952,8 @@ ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 
 --- Request Equipment spawn messages
+ctld.i18n["ko"]["Land near logistics to request equipment"] = ""
+ctld.i18n["ko"]["No logistics in range"] = ""
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
@@ -7071,6 +7079,26 @@ function CTLDZoneManager:getLogisticZoneForUnit(unitName)
     return self:getLogisticZoneAtPoint(unit:getPoint(), unit:getCoalition())
 end
 
+--- Return ALL active logistic zones containing point (not just the first one).
+-- Filters on coalition (0 = any). Optionally filters on a services key.
+-- @param point      vec3
+-- @param coalition  number
+-- @param serviceKey string|nil   e.g. "cratesPickup" — if provided, zone.services[key] must be truthy
+-- @return table  array of CTLDLogisticZone (may be empty)
+function CTLDZoneManager:getLogisticZonesAtPoint(point, coalition, serviceKey)
+    local result = {}
+    for _, zone in pairs(self._logisticZones) do
+        if zone.active and zone:isAlive()
+           and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+           and zone:isInZone(point) then
+            if not serviceKey or (zone.services and zone.services[serviceKey] ~= false) then
+                result[#result + 1] = zone
+            end
+        end
+    end
+    return result
+end
+
 -- ============================================================
 -- Misc helpers
 -- ============================================================
@@ -10131,18 +10159,42 @@ end
 --                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
-function CTLDCrateManager:buildMenuSection(playerObj, menu)
+--- Rebuild the "Request Equipment" submenu branch for playerObj.
+-- Shows only logistic zones where the player is currently located (cratesPickup).
+-- Called on build, land, and takeoff.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     local unitActions = ctld.gs("unitActions") or {}
     local actions     = unitActions[playerObj.typeName]
     if not (playerObj.isTransport and actions and actions.crates) then return end
 
-    local root      = ctld.tr("CTLD")
-    local jtacOk    = ctld.gs("JTAC_dropEnabled") == true
-    local spawnSub  = ctld.tr("Request Equipment")
-    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
 
-    -- Request Equipment: per LGZ × per category × per crate
-    local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
+    local root     = ctld.tr("CTLD")
+    local spawnSub = ctld.tr("Request Equipment")
+    menu:clearBranch({ root, spawnSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, spawnSub }, ctld.tr("Land near logistics to request equipment"),
+            function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local zm      = CTLDZoneManager.getInstance()
+    local lgZones = zm:getLogisticZonesAtPoint(transport:getPoint(), playerObj.coalition, "cratesPickup")
+
+    if not next(lgZones) then
+        menu:addCommand({ root, spawnSub }, ctld.tr("No logistics in range"),
+            function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local jtacOk       = ctld.gs("JTAC_dropEnabled") == true
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
 
     for _, lgz in ipairs(lgZones) do
@@ -10156,32 +10208,33 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
-                            local transport = Unit.getByName(arg.unitName)
-                            if not (transport and transport:isExist()) then return end
-                            if ctld.utils.inAir(transport) then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                            local t = Unit.getByName(arg.unitName)
+                            if not (t and t:isExist()) then return end
+                            if ctld.utils.inAir(t) then
+                                trigger.action.outTextForGroup(t:getGroup():getID(),
                                     ctld.tr("You must be landed to request a crate."), 10)
                                 return
                             end
-                            local lgz = CTLDZoneManager.getInstance():getLogisticZoneForUnit(arg.unitName)
-                            if not lgz then
-                                trigger.action.outTextForGroup(transport:getGroup():getID(),
+                            -- Verify unit is still within the selected zone
+                            local selZone = CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName)
+                            if not (selZone and selZone.active and selZone:isAlive()
+                                    and selZone:isInZone(t:getPoint())) then
+                                trigger.action.outTextForGroup(t:getGroup():getID(),
                                     ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
                                 return
                             end
                             local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
                             local mgr      = CTLDCrateManager.getInstance()
-                            local gid      = transport:getGroup():getID()
+                            local gid      = t:getGroup():getID()
 
                             if arg.multiple then
-                                -- "All crates" entry: resolve descriptors then spawn aligned
                                 local descriptors = {}
                                 for _, weight in ipairs(arg.multiple) do
                                     local d = mgr:findDescriptorByWeight(weight)
                                     if d then table.insert(descriptors, d) end
                                 end
                                 local spawned, spawnInfo = mgr:spawnCratesAligned(
-                                    descriptors, transport, arg.coalition, arg.unitName,
+                                    descriptors, t, arg.coalition, arg.unitName,
                                     CTLDCrate.SPAWN_METHOD.MENU_CTLD)
                                 if spawned > 0 then
                                     trigger.action.outTextForGroup(gid,
@@ -10189,10 +10242,9 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                             spawned, spawnInfo.clock), 20)
                                 end
                             else
-                                -- Single crate entry (random axis = nil → random clock reported)
-                                local mKey       = mgr:_crateModelKey(transport)
-                                local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
-                                local pos        = spawnInfo.positions[1]
+                                local mKey      = mgr:_crateModelKey(t)
+                                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
+                                local pos       = spawnInfo.positions[1]
                                 local descriptor = mgr:findDescriptorByTypeName(arg.unit)
                                 if descriptor then
                                     local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
@@ -10205,15 +10257,27 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                 end
                             end
                         end,
-                        { unit     = crate.unit,
-                          multiple = crate.multiple,
-                          zoneName = lgzName,
-                          unitName = playerObj.unitName,
+                        { unit      = crate.unit,
+                          multiple  = crate.multiple,
+                          zoneName  = lgzName,
+                          unitName  = playerObj.unitName,
                           coalition = playerObj.coalition })
                 end
             end
         end
     end
+    menu:refresh()
+end
+
+function CTLDCrateManager:buildMenuSection(playerObj, menu)
+    local unitActions = ctld.gs("unitActions") or {}
+    local actions     = unitActions[playerObj.typeName]
+    if not (playerObj.isTransport and actions and actions.crates) then return end
+
+    local root     = ctld.tr("CTLD")
+    local spawnSub = ctld.tr("Request Equipment")
+    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    self:refreshRequestEquipmentSection(playerObj)
 
     -- Crate Commands
     local cratesSub = ctld.tr("Crate Commands")
@@ -15605,6 +15669,7 @@ function CTLDPlayerManager:onLand(event)
     local captured = playerObj
     timer.scheduleFunction(function()
         CTLDTroopManager.getInstance():refreshMenuSection(captured)
+        CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
@@ -15618,6 +15683,7 @@ function CTLDPlayerManager:onTakeoff(event)
     local playerObj = self._players[unit:getName()]
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
 end
 
 --- Register a menu section contributed by a manager.
