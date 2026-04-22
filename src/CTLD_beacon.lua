@@ -368,9 +368,8 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
     self:_startTransmissions(beacon)
 
     -- Notify coalition
-    local msg = ctld.tr("beaconDropped", "Navigation beacon deployed with below frequencies:")
-            .. "\n" .. freqText
-    trigger.action.outTextForCoalition(coalitionId, msg, 20)
+    trigger.action.outTextForCoalition(coalitionId,
+        ctld.tr("Navigation beacon deployed - %1", freqText), 20)
 
     -- Update active layers
     self:_addBeaconToLayers(beacon)
