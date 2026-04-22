@@ -286,7 +286,7 @@ function CTLDConfig:load()
     self.settings["fobLogisticZoneRadius"]          = 150      -- radius (m) of the logistic zone created around a deployed FOB
     self.settings["fobDestructionThreshold"]        = 0.5      -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
     self.settings["fobTroopPickupRadius"]           = 150      -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
-    self.settings["enableEnemyFOBRecon"]            = false    -- if true, players can toggle a F10 layer showing enemy FOB positions
+
 
     -- ═══════════════════════════════════════════════════════════
     -- [FA] PARACHUTE — Virtual parachute drop (Feature A)

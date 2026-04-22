@@ -1397,7 +1397,9 @@ ctld.JTACAutoLaseStop("JTAC_BLUE_1")
 
 ### 15.1 Overview
 
-The recon system allows players to perform LOS-based enemy scanning from their aircraft. Detected units are marked on the F10 map with icons. Players can enable auto-refresh to keep the picture current.
+The recon system allows players to perform LOS-based **enemy** scanning from their aircraft. Detected enemy units are marked on the F10 map with icons. Players can enable auto-refresh to keep the picture current.
+
+> **Scope:** RECON is exclusively reserved for displaying information about **enemy units** detected via Line-of-Sight (LOS) from an allied unit. It must not be used to display friendly assets (FOBs, logistic zones, beacons, etc.) — those are managed by their respective submenus.
 
 ### 15.2 Actions
 

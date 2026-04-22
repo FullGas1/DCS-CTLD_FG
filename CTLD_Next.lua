@@ -1,8 +1,4 @@
----@meta
----@diagnostic disable
-
--- ===== Start : lib/class.lua =====
----@diagnostic disable
+﻿---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
 --
@@ -15,7 +11,7 @@
 -- Inheritance:
 --   Child = class(Parent)        -- Child inherits all Parent methods
 --
--- Singleton pattern (compatible — getInstance() bypasses new()):
+-- Singleton pattern (compatible â€” getInstance() bypasses new()):
 --   MySingleton = class()
 --   local _inst = nil
 --   function MySingleton.getInstance()
@@ -38,11 +34,9 @@ function class(base)
     end
     return cls
 end
--- ===== End   : lib/class.lua =====
 
--- ===== Start : CTLD_config.lua =====
 -- CTLDConfig Singleton Class
--- src version — do not edit source/ original
+-- src version â€” do not edit source/ original
 ctld = ctld or {}
 
 CTLDConfig = {}
@@ -69,9 +63,9 @@ function CTLDConfig:load()
     -- ******************** DEFAULT CONFIGURATION AREA ****************
     -- ****************************************************************
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [1] SYSTEM — Global switches and display options
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [1] SYSTEM â€” Global switches and display options
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["debug"]                                = false -- if true, enables verbose logging to CTLD.log (requires non-sanitized DCS)
     self.settings["ctldLogPath"]                          = ""    -- override log file path (default: DCS Saved Games folder); empty = default
     self.settings["CTLD_ctldStatusF10"]                   = true  -- enables F10 CTLD Status menus
@@ -80,9 +74,9 @@ function CTLDConfig:load()
     self.settings["addPlayerAircraftByType"]              = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
     self.settings["location_DMS"]                         = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [2] TRANSPORTS — Aircraft types and pilot names
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [2] TRANSPORTS â€” Aircraft types and pilot names
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     -- If ctld.addPlayerAircraftByType = True, comment or uncomment lines to allow aircraft's type carry CTLD
     self.settings["aircraftTypeTable"]              = {
@@ -260,9 +254,9 @@ function CTLDConfig:load()
         "transport25",
     }
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [3] CRATES — Crate spawning, hover pickup, sling load, timers
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [3] CRATES â€” Crate spawning, hover pickup, sling load, timers
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["enableCrates"]                         = true  -- if false, Helis will not be able to spawn or unpack crates so will be normal CTTS
     self.settings["enableAllCrates"]                      = true  -- if false, the "all crates" menu items will not be displayed
     self.settings["enableHoverSlingload"]                 = true  -- if false, hover-based slingload pickup is disabled; crates can still be loaded via F10 menu (loadCrateFromMenu)
@@ -282,12 +276,12 @@ function CTLDConfig:load()
     self.settings["maximumHoverHeight"]             = 12.0 -- Highest allowable height for crate hover
     self.settings["maxDistanceFromCrate"]           = 5.5  -- Maximum distance from from crate for hover
     self.settings["hoverTime"]                      = 10   -- Time to hold hover above a crate for loading in seconds
-    self.settings["maxSlingloadSpeed"]              = 50   -- Max speed (m/s) while carrying a slingloaded crate — exceed it and the crate is lost
+    self.settings["maxSlingloadSpeed"]              = 50   -- Max speed (m/s) while carrying a slingloaded crate â€” exceed it and the crate is lost
     -- end of Simulated Sling load configuration
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [4] TROOPS — Infantry loading, fast rope, extraction limits
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [4] TROOPS â€” Infantry loading, fast rope, extraction limits
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["numberOfTroops"]                       = 10                                            -- default number of troops to load on a transport heli or C-130
     -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]              = true                                          -- allows you to drop troops by fast rope
@@ -302,9 +296,9 @@ function CTLDConfig:load()
     self.settings["maximumSearchDistance"]                = 4000                                          -- max distance for troops to search for enemy
     self.settings["maximumMoveDistance"]                  = 2000                                          -- max distance for troops to move from drop point if no enemy is nearby
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [5] VEHICLES — Packable vehicles and transport configuration
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [5] VEHICLES â€” Packable vehicles and transport configuration
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
     self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search for packable units in meters
     self.settings["vehiclesForTransportRED"]              = { "BRDM-2", "BTR_D" }                         -- vehicles to load onto Il-76 - Alternatives {"Strela-1 9P31","BMP-1"}
@@ -316,9 +310,9 @@ function CTLDConfig:load()
         ["M1043 HMMWV Armament"] = 2500
     }
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [6] FOB — Forward Operating Base building and configuration
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [6] FOB â€” Forward Operating Base building and configuration
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
@@ -327,31 +321,31 @@ function CTLDConfig:load()
     self.settings["buildTimeFOB"]                   = 120      -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]        = 500      -- minimum distance (m) from existing logistic zones to deploy a FOB
     self.settings["fobLogisticZoneRadius"]          = 150      -- radius (m) of the logistic zone created around a deployed FOB
-    self.settings["fobDestructionThreshold"]        = 0.5      -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
+    self.settings["fobDestructionThreshold"]        = 0.5      -- fraction of scene objects destroyed before FOB is considered lost (0.0â€“1.0)
     self.settings["fobTroopPickupRadius"]           = 150      -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
-    self.settings["enableEnemyFOBRecon"]            = false    -- if true, players can toggle a F10 layer showing enemy FOB positions
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [FA] PARACHUTE — Virtual parachute drop (Feature A)
-    -- ═══════════════════════════════════════════════════════════
+
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [FA] PARACHUTE â€” Virtual parachute drop (Feature A)
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     -- Minimum altitude AGL (m) required to initiate a parachute drop.
     self.settings["parachuteMinAltitudeCrates"]   = 30    -- m AGL
     self.settings["parachuteMinAltitudeTroops"]   = 50    -- m AGL (safety margin for personnel)
     self.settings["parachuteMinAltitudeVehicles"] = 30    -- m AGL
-    -- Vertical descent speed (m/s) — determines time-to-ground.
+    -- Vertical descent speed (m/s) â€” determines time-to-ground.
     self.settings["parachuteDescentRateCrates"]   = 5     -- m/s
     self.settings["parachuteDescentRateTroops"]   = 5     -- m/s
     self.settings["parachuteDescentRateVehicles"] = 8     -- m/s (heavier load)
     -- Horizontal drift physics.
-    self.settings["parachuteInertiaFactor"]       = 0.3   -- fraction of transport velocity applied as forward drift (0.0–1.0)
+    self.settings["parachuteInertiaFactor"]       = 0.3   -- fraction of transport velocity applied as forward drift (0.0â€“1.0)
     self.settings["parachuteLateralDriftMin"]     = 10    -- m, minimum random lateral drift per unit
     self.settings["parachuteLateralDriftMax"]     = 80    -- m, maximum random lateral drift per unit
     -- Auto-unpack radius for parachuted crates (wider than normal because of dispersion).
     self.settings["autoUnpackRadiusParachute"]    = 1000  -- m
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [7] BEACONS — Radio beacon drop, sounds and battery life
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [7] BEACONS â€” Radio beacon drop, sounds and battery life
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["enabledRadioBeaconDrop"]         = true     -- if its set to false then beacons cannot be dropped by units
     self.settings["radioSound"]                     =
     "beacon.ogg"                                               -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
@@ -359,9 +353,9 @@ function CTLDConfig:load()
     "beaconsilent.ogg"                                         -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
     self.settings["deployedBeaconBattery"]          = 30       -- the battery on deployed beacons will last for this number minutes before needing to be re-deployed
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [8] AA — Anti-Aircraft system limits and crate stacking
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [8] AA â€” Anti-Aircraft system limits and crate stacking
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["aaLaunchers"]                    = 3 -- controls how many launchers to add to the AA systems when its spawned if no amount is specified in the template.
     -- Sets a limit on the number of active AA systems that can be built for RED.
     -- A system is counted as Active if its fully functional and has all parts
@@ -376,9 +370,9 @@ function CTLDConfig:load()
     self.settings["AASystemCrateStacking"]          = false
     --END AA SYSTEM CONFIG ------------------------------------
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [9] JTAC — JTAC crate limits, smoke, lasing and 9-Line
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [9] JTAC â€” JTAC crate limits, smoke, lasing and 9-Line
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["JTAC_LIMIT_RED"]                 = 10    -- max number of JTAC Crates for the RED Side
     self.settings["JTAC_LIMIT_BLUE"]                = 10    -- max number of JTAC Crates for the BLUE Side
     self.settings["JTAC_dropEnabled"]               = true  -- allow JTAC Crate spawn from F10 menu
@@ -403,9 +397,9 @@ function CTLDConfig:load()
     self.settings["JTAC_laseIntervalSeconds"]       = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
     self.settings["JTAC_searchIntervalSeconds"]     = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [10] RECON — Recon menu, LOS search, auto-refresh
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [10] RECON â€” Recon menu, LOS search, auto-refresh
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["reconF10Menu"]                   = true                         -- enables F10 RECON menu
     self.settings["reconMenuName"]                  = ctld.tr("RECON") --name of the CTLD JTAC radio menu
     self.settings["reconRadioAdded"]                = {}                           --stores the groups that have had the radio menu added
@@ -414,14 +408,14 @@ function CTLDConfig:load()
     self.settings["reconAutoRefreshLosTargetMarks"] = false                        -- if true recon LOS marks are automaticaly refreshed on F10 map
     self.settings["reconLastScheduleIdAutoRefresh"] = 0                            -- last schedule ID for auto refresh
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [M10] MINEFIELD — Landmine deployment options
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [M10] MINEFIELD â€” Landmine deployment options
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     self.settings["showMinefieldOnF10Map"]              = true  -- if true, draws a bounding quad on the F10 map when a minefield is deployed
 
-    -- ═══════════════════════════════════════════════════════════
-    -- [11] ZONES — Pickup, drop-off and waypoint zones
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- [11] ZONES â€” Pickup, drop-off and waypoint zones
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
     -- Use any of the predefined names or set your own ones
@@ -487,9 +481,9 @@ function CTLDConfig:load()
         { "wpzone10", "none",   "no",  0 }, -- Both sides as its set to 0
     }
 
-    -- ═══════════════════════════════════════════════════════════
-    -- MISC — Extractable groups, logistics, unit limits and crate templates
-    -- ═══════════════════════════════════════════════════════════
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    -- MISC â€” Extractable groups, logistics, unit limits and crate templates
+    -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     -- *************** Optional Extractable GROUPS *****************
 
@@ -1185,18 +1179,16 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
--- ===== End   : CTLD_config.lua =====
 
--- ===== Start : CTLD_i18n.lua =====
 --[[
-    CTLD — Internationalization class (CTLDi18n)
-    src version — logic only, no dictionary data.
+    CTLD â€” Internationalization class (CTLDi18n)
+    src version â€” logic only, no dictionary data.
 
     Dictionary files (loaded after this file):
-        CTLD_i18n_en.lua  — English reference (keys and EN text)
-        CTLD_i18n_fr.lua  — French
-        CTLD_i18n_es.lua  — Spanish
-        CTLD_i18n_ko.lua  — Korean
+        CTLD_i18n_en.lua  â€” English reference (keys and EN text)
+        CTLD_i18n_fr.lua  â€” French
+        CTLD_i18n_es.lua  â€” Spanish
+        CTLD_i18n_ko.lua  â€” Korean
 
     To add a new language: create CTLD_i18n_XX.lua following the EN template,
     add it to tools/merger_V2/listToMerge.txt, and regenerate the loader.
@@ -1250,7 +1242,7 @@ end
 -- =====================================================================
 
 --- Translate a string to the active language, with optional parameter substitution.
---- Fallback chain: active lang → EN → key itself (never empty, never nil).
+--- Fallback chain: active lang â†’ EN â†’ key itself (never empty, never nil).
 ---@param text string The key to translate (= the English text)
 ---@param ... any Parameters to substitute for %1, %2, ... placeholders
 ---@return string
@@ -1295,7 +1287,7 @@ ctld.i18n_translate = ctld.tr
 
 --- Audit a language dictionary against EN.
 --- Returns a structured result table suitable for assertions in tests or scripts.
---- Does NOT write to env.* — callers decide how to display/log the result.
+--- Does NOT write to env.* â€” callers decide how to display/log the result.
 ---@param language string Language code to audit (e.g. "fr")
 ---@return table|nil result  { version_match=bool, en_version=str, lang_version=str, missing={}, untranslated={} }
 ---@return string|nil err    non-nil when the language is unknown
@@ -1355,7 +1347,7 @@ function ctld.i18n_check(language, verbose)
     local tocheckVersion = tocheck.translation_version
     if englishVersion ~= tocheckVersion then
         env.error(string.format(
-            "CTLDi18n.i18n_check: version mismatch — EN is %s, %s is %s",
+            "CTLDi18n.i18n_check: version mismatch â€” EN is %s, %s is %s",
             englishVersion, language, tocheckVersion))
     end
 
@@ -1377,7 +1369,7 @@ function ctld.i18n_check(language, verbose)
 end
 
 -- =====================================================================
--- Translator audit helper — call from a DO SCRIPT trigger (dev/QA only)
+-- Translator audit helper â€” call from a DO SCRIPT trigger (dev/QA only)
 -- =====================================================================
 --[[
 -- Run after CTLD_Next.lua to get a per-language gap report in DCS.log:
@@ -1405,11 +1397,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
--- ===== End   : CTLD_i18n.lua =====
 
--- ===== Start : CTLD_i18n_en.lua =====
 --[[
-    CTLD — English dictionary (reference)
+    CTLD â€” English dictionary (reference)
     Translation version: 1.7
 
     All values equal their key (English is the reference language).
@@ -1742,8 +1732,8 @@ ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle ty
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
 ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."
 ctld.i18n["en"]["Crates within 300m:"] = "Crates within 300m:"
-ctld.i18n["en"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — READY"
-ctld.i18n["en"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incomplete"
+ctld.i18n["en"]["  %1: %2/%3 â€” READY"] = "  %1: %2/%3 â€” READY"
+ctld.i18n["en"]["  %1: %2/%3 â€” incomplete"] = "  %1: %2/%3 â€” incomplete"
 
 --- Check Cargo summary
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
@@ -1757,25 +1747,17 @@ ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"
 ctld.i18n["en"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "
 ctld.i18n["en"]["%1 crates have been brought out at your %2 o'clock"] = "%1 crates have been brought out at your %2 o'clock"
 
---- FOBs List menu + FOB layer toggles
+--- FOBs List menu
 ctld.i18n["en"]["FOBs List"] = "FOBs List"
 ctld.i18n["en"]["List active FOBs"] = "List active FOBs"
 ctld.i18n["en"]["No active FOBs."] = "No active FOBs."
 ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
-ctld.i18n["en"]["Toggle Friendly FOB Layer"] = "Toggle Friendly FOB Layer"
-ctld.i18n["en"]["Toggle Enemy FOB Layer"] = "Toggle Enemy FOB Layer"
-ctld.i18n["en"]["Friendly FOB layer: OFF"] = "Friendly FOB layer: OFF"
-ctld.i18n["en"]["Friendly FOB layer: ON (%1 FOB(s))"] = "Friendly FOB layer: ON (%1 FOB(s))"
-ctld.i18n["en"]["Enemy FOB layer: OFF"] = "Enemy FOB layer: OFF"
-ctld.i18n["en"]["Enemy FOB layer: ON (%1 FOB(s))"] = "Enemy FOB layer: ON (%1 FOB(s))"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
--- ===== End   : CTLD_i18n_en.lua =====
+ctld.i18n["en"]["â†’ Next Page"] = "â†’ Next Page"
 
--- ===== Start : CTLD_i18n_fr.lua =====
 --[[
-    CTLD — French dictionary
+    CTLD â€” French dictionary
     Translation version: 1.7
 
     Translator: FullGas1
@@ -1789,17 +1771,17 @@ ctld.i18n["fr"].translation_version = "1.8"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
-ctld.i18n["fr"]["Anti Air"] = "Défense aérienne"
+ctld.i18n["fr"]["Anti Air"] = "DÃ©fense aÃ©rienne"
 ctld.i18n["fr"]["Anti Tank"] = "Anti Tank"
 ctld.i18n["fr"]["Mortar Squad"] = "Groupe mortier"
 ctld.i18n["fr"]["JTAC Group"] = "Groupe JTAC"
 ctld.i18n["fr"]["Single JTAC"] = "JTAC seul"
 ctld.i18n["fr"]["2x - Standard Groups"] = "2x - Groupes standards"
-ctld.i18n["fr"]["2x - Anti Air"] = "2x - Défenses aériennes"
+ctld.i18n["fr"]["2x - Anti Air"] = "2x - DÃ©fenses aÃ©riennes"
 ctld.i18n["fr"]["2x - Anti Tank"] = "2x - Anti Tank"
 ctld.i18n["fr"]["2x - Standard Groups + 2x Mortar"] = "2x - Groupes standards + 2x Groupes mortiers"
 ctld.i18n["fr"]["3x - Standard Groups"] = "3x - Groupes standards"
-ctld.i18n["fr"]["3x - Anti Air"] = "3x - Défenses aériennes"
+ctld.i18n["fr"]["3x - Anti Air"] = "3x - DÃ©fenses aÃ©riennes"
 ctld.i18n["fr"]["3x - Anti Tank"] = "3x - Anti Tank"
 ctld.i18n["fr"]["3x - Mortar Squad"] = "3x - Groupes mortiers"
 ctld.i18n["fr"]["5x - Mortar Squad"] = "5x - Groupes mortiers"
@@ -1904,163 +1886,163 @@ ctld.i18n["fr"]["BUK - All crates"] = "BUK - Toutes les caisses"
 ctld.i18n["fr"]["Patriot - All crates"] = "Patriot - Toutes les caisses"
 
 --- mission design error messages
--- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ERREUR : Impossible de trouver le déclencheur appelé %1"
--- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find zone called %1"] = "CTLD.lua ERREUR : Impossible de trouver la zone appelée %1"
--- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find zone or ship called %1"] = "CTLD.lua ERREUR : Impossible de trouver la zone ou le navire appelé %1"
+-- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ERREUR : Impossible de trouver le dÃ©clencheur appelÃ© %1"
+-- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find zone called %1"] = "CTLD.lua ERREUR : Impossible de trouver la zone appelÃ©e %1"
+-- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find zone or ship called %1"] = "CTLD.lua ERREUR : Impossible de trouver la zone ou le navire appelÃ© %1"
 -- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find crate with weight %1"] = "CTLD.lua ERREUR : Impossible de trouver une caisse avec un poids de %1"
 
 --- runtime messages
--- STALE: ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
+-- STALE: ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'Ãªtes pas assez proche de la logistique alliÃ©e pour obtenir une caisse !"
 -- STALE: ctld.i18n["fr"]["No more JTAC Crates Left!"] = "Plus de caisses JTAC disponibles !"
--- STALE: ctld.i18n["fr"]["Sorry you must wait %1 seconds before you can get another crate"] = "Désolé, vous devez attendre %1 secondes avant de pouvoir obtenir une autre caisse"
--- STALE: ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heure"
--- STALE: ctld.i18n["fr"]["%1 fast-ropped troops from %2 into combat"] = "%1 a largué rapidement des troupes de %2 au combat"
--- STALE: ctld.i18n["fr"]["%1 dropped troops from %2 into combat"] = "%1 a largué des troupes de %2 au combat"
--- STALE: ctld.i18n["fr"]["%1 fast-ropped troops from %2 into %3"] = "%1 a largué rapidement des troupes de %2 à %3"
--- STALE: ctld.i18n["fr"]["%1 dropped troops from %2 into %3"] = "%1 a largué des troupes de %2 à %3"
+-- STALE: ctld.i18n["fr"]["Sorry you must wait %1 seconds before you can get another crate"] = "DÃ©solÃ©, vous devez attendre %1 secondes avant de pouvoir obtenir une autre caisse"
+-- STALE: ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a Ã©tÃ© apportÃ©e et se trouve Ã  vos %3 heure"
+-- STALE: ctld.i18n["fr"]["%1 fast-ropped troops from %2 into combat"] = "%1 a larguÃ© rapidement des troupes de %2 au combat"
+-- STALE: ctld.i18n["fr"]["%1 dropped troops from %2 into combat"] = "%1 a larguÃ© des troupes de %2 au combat"
+-- STALE: ctld.i18n["fr"]["%1 fast-ropped troops from %2 into %3"] = "%1 a larguÃ© rapidement des troupes de %2 Ã  %3"
+-- STALE: ctld.i18n["fr"]["%1 dropped troops from %2 into %3"] = "%1 a larguÃ© des troupes de %2 Ã  %3"
 -- STALE: ctld.i18n["fr"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "Trop haut ou trop rapide pour larguer des troupes au combat ! Survolez en dessous de %1 pieds ou atterrissez."
--- STALE: ctld.i18n["fr"]["%1 dropped vehicles from %2 into combat"] = "%1 a largué des véhicules de %2 au combat"
--- STALE: ctld.i18n["fr"]["%1 loaded troops into %2"] = "%1 a chargé des troupes dans %2"
--- STALE: ctld.i18n["fr"]["%1 loaded %2 vehicles into %3"] = "%1 a chargé %2 véhicules dans %3"
--- STALE: ctld.i18n["fr"]["%1 delivered a FOB Crate"] = "%1 a livré une caisse FOB"
--- STALE: ctld.i18n["fr"]["Delivered FOB Crate 60m at 6'oclock to you"] = "Caisse FOB livrée à 60 m à 6 heures de vous"
--- STALE: ctld.i18n["fr"]["FOB Crate dropped back to base"] = "Caisse FOB ramenée à la base"
--- STALE: ctld.i18n["fr"]["FOB Crate Loaded"] = "Caisse FOB chargée"
--- STALE: ctld.i18n["fr"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 a chargé une caisse FOB prête à être livrée !"
--- STALE: ctld.i18n["fr"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "Il n'y a pas d'unités logistiques alliée à proximité pour charger une caisse FOB !"
+-- STALE: ctld.i18n["fr"]["%1 dropped vehicles from %2 into combat"] = "%1 a larguÃ© des vÃ©hicules de %2 au combat"
+-- STALE: ctld.i18n["fr"]["%1 loaded troops into %2"] = "%1 a chargÃ© des troupes dans %2"
+-- STALE: ctld.i18n["fr"]["%1 loaded %2 vehicles into %3"] = "%1 a chargÃ© %2 vÃ©hicules dans %3"
+-- STALE: ctld.i18n["fr"]["%1 delivered a FOB Crate"] = "%1 a livrÃ© une caisse FOB"
+-- STALE: ctld.i18n["fr"]["Delivered FOB Crate 60m at 6'oclock to you"] = "Caisse FOB livrÃ©e Ã  60 m Ã  6 heures de vous"
+-- STALE: ctld.i18n["fr"]["FOB Crate dropped back to base"] = "Caisse FOB ramenÃ©e Ã  la base"
+-- STALE: ctld.i18n["fr"]["FOB Crate Loaded"] = "Caisse FOB chargÃ©e"
+-- STALE: ctld.i18n["fr"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 a chargÃ© une caisse FOB prÃªte Ã  Ãªtre livrÃ©e !"
+-- STALE: ctld.i18n["fr"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "Il n'y a pas d'unitÃ©s logistiques alliÃ©e Ã  proximitÃ© pour charger une caisse FOB !"
 -- STALE: ctld.i18n["fr"]["This area has no more reinforcements available!"] = "Cette zone n'a plus de renforts disponibles !"
--- STALE: ctld.i18n["fr"]["You are not in a pickup zone and no one is nearby to extract"] = "Vous n'êtes pas dans une zone d'embarquement et personne n'est à proximité pour être extrait."
--- STALE: ctld.i18n["fr"]["You are not in a pickup zone"] = "Vous n'êtes pas dans une zone d'embarquement"
--- STALE: ctld.i18n["fr"]["No one to unload"] = "Personne à débarquer"
--- STALE: ctld.i18n["fr"]["Dropped troops back to base"] = "Troupes larguées à la base"
--- STALE: ctld.i18n["fr"]["Dropped vehicles back to base"] = "Véhicules largués à la base"
--- STALE: ctld.i18n["fr"]["You already have troops onboard."] = "Vous avez déjà des troupes à bord."
+-- STALE: ctld.i18n["fr"]["You are not in a pickup zone and no one is nearby to extract"] = "Vous n'Ãªtes pas dans une zone d'embarquement et personne n'est Ã  proximitÃ© pour Ãªtre extrait."
+-- STALE: ctld.i18n["fr"]["You are not in a pickup zone"] = "Vous n'Ãªtes pas dans une zone d'embarquement"
+-- STALE: ctld.i18n["fr"]["No one to unload"] = "Personne Ã  dÃ©barquer"
+-- STALE: ctld.i18n["fr"]["Dropped troops back to base"] = "Troupes larguÃ©es Ã  la base"
+-- STALE: ctld.i18n["fr"]["Dropped vehicles back to base"] = "VÃ©hicules larguÃ©s Ã  la base"
+-- STALE: ctld.i18n["fr"]["You already have troops onboard."] = "Vous avez dÃ©jÃ  des troupes Ã  bord."
 -- STALE: ctld.i18n["fr"]["Count Infantries limit in the mission reached, you can't load more troops"] = "Nombre maximum de troupes sur mission atteint, vous ne pouvez pas charger plus de troupes"
--- STALE: ctld.i18n["fr"]["You already have vehicles onboard."] = "Vous avez déjà des véhicules à bord."
--- STALE: ctld.i18n["fr"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "Désolé - Le groupe de %1 est trop important. \n\nLa limite est de %2 pour %3"
+-- STALE: ctld.i18n["fr"]["You already have vehicles onboard."] = "Vous avez dÃ©jÃ  des vÃ©hicules Ã  bord."
+-- STALE: ctld.i18n["fr"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "DÃ©solÃ© - Le groupe de %1 est trop important. \n\nLa limite est de %2 pour %3"
 -- STALE: ctld.i18n["fr"]["%1 extracted troops in %2 from combat"] = "%1 troupes extraites du combat en %2"
--- STALE: ctld.i18n["fr"]["No extractable troops nearby!"] = "Aucune troupe extractible à proximité !"
--- STALE: ctld.i18n["fr"]["%1 extracted vehicles in %2 from combat"] = "%1 véhicules extraits du combat en %2"
--- STALE: ctld.i18n["fr"]["No extractable vehicles nearby!"] = "Aucun véhicule extractible à proximité !"
--- STALE: ctld.i18n["fr"]["%1 troops onboard (%2 kg)\n"] = "%1 troupes à bord (%2 kg)\n"
--- STALE: ctld.i18n["fr"]["%1 vehicles onboard (%2)\n"] = "%1 véhicules à bord (%2)\n"
--- STALE: ctld.i18n["fr"]["1 FOB Crate oboard (%1 kg)\n"] = "1 caisse FOB à bord (%1 kg)\n"
--- STALE: ctld.i18n["fr"]["%1 crate onboard (%2 kg)\n"] = "%1 caisse à bord (%2 kg)\n"
+-- STALE: ctld.i18n["fr"]["No extractable troops nearby!"] = "Aucune troupe extractible Ã  proximitÃ© !"
+-- STALE: ctld.i18n["fr"]["%1 extracted vehicles in %2 from combat"] = "%1 vÃ©hicules extraits du combat en %2"
+-- STALE: ctld.i18n["fr"]["No extractable vehicles nearby!"] = "Aucun vÃ©hicule extractible Ã  proximitÃ© !"
+-- STALE: ctld.i18n["fr"]["%1 troops onboard (%2 kg)\n"] = "%1 troupes Ã  bord (%2 kg)\n"
+-- STALE: ctld.i18n["fr"]["%1 vehicles onboard (%2)\n"] = "%1 vÃ©hicules Ã  bord (%2)\n"
+-- STALE: ctld.i18n["fr"]["1 FOB Crate oboard (%1 kg)\n"] = "1 caisse FOB Ã  bord (%1 kg)\n"
+-- STALE: ctld.i18n["fr"]["%1 crate onboard (%2 kg)\n"] = "%1 caisse Ã  bord (%2 kg)\n"
 -- STALE: ctld.i18n["fr"]["Total weight of cargo : %1 kg\n"] = "Poids total de la cargaison : %1 kg\n"
 -- STALE: ctld.i18n["fr"]["No cargo."] = "Aucune cargaison."
--- STALE: ctld.i18n["fr"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "Stationaire au-dessus de la caisse %1. \n\nMaintenez le stationaire pendant %2 secondes ! \n\nSi le compte à rebours s'arrête, vous êtes trop loin !"
--- STALE: ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
+-- STALE: ctld.i18n["fr"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "Stationaire au-dessus de la caisse %1. \n\nMaintenez le stationaire pendant %2 secondes ! \n\nSi le compte Ã  rebours s'arrÃªte, vous Ãªtes trop loin !"
+-- STALE: ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargÃ©e !"
 -- STALE: ctld.i18n["fr"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "Trop bas pour accrocher la caisse %1.\n\nMaintenez le stationaire pendant %2 secondes"
 -- STALE: ctld.i18n["fr"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "Trop haut pour accrocher la caisse %1.\n\nMaintenez le stationaire pendant %2 secondes"
 -- STALE: ctld.i18n["fr"]["You must land before you can load a crate!"] = "Vous devez atterrir avant de pouvoir charger une caisse !"
--- STALE: ctld.i18n["fr"]["No Crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
--- STALE: ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses à bord !"
+-- STALE: ctld.i18n["fr"]["No Crates within 50m to load!"] = "Aucune caisse Ã  moins de 50 m pour charger !"
+-- STALE: ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses Ã  bord !"
 -- STALE: ctld.i18n["fr"]["%1\n%2 crate - kg %3 - %4 m - %5 o'clock"] = "%1\n%2 caisse - kg %3 - %4 m - %5 heures"
 -- STALE: ctld.i18n["fr"]["FOB Crate - %1 m - %2 o'clock\n"] = "Caisse FOB - %1 m - %2 heures\n"
--- STALE: ctld.i18n["fr"]["No Nearby Crates"] = "Aucune caisse à proximité"
--- STALE: ctld.i18n["fr"]["Nearby Crates:\n%1"] = "Caisses à proximité :\n%1"
--- STALE: ctld.i18n["fr"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "Caisses FOB à proximité (non chargeables par élingue) :\n%1"
+-- STALE: ctld.i18n["fr"]["No Nearby Crates"] = "Aucune caisse Ã  proximitÃ©"
+-- STALE: ctld.i18n["fr"]["Nearby Crates:\n%1"] = "Caisses Ã  proximitÃ© :\n%1"
+-- STALE: ctld.i18n["fr"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "Caisses FOB Ã  proximitÃ© (non chargeables par Ã©lingue) :\n%1"
 -- STALE: ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 -- STALE: ctld.i18n["fr"]["%1\nFOB @ %2"] = "%1\nFOB @ %2"
--- STALE: ctld.i18n["fr"]["Sorry, there are no active FOBs!"] = "Désolé, il n'y a pas de FOB actif !"
--- STALE: ctld.i18n["fr"]["You can't unpack that here! Take it to where it's needed!"] = "Vous ne pouvez déballer ça ici ! Emmenez-le là où vous en avez besoin !"
--- STALE: ctld.i18n["fr"]["Sorry you must move this crate before you unpack it!"] = "Désolé, vous devez déplacer cette caisse avant de la déballer !"
--- STALE: ctld.i18n["fr"]["%1 successfully deployed %2 to the field"] = "%1 a déployé avec succès %2 sur le terrain."
--- STALE: ctld.i18n["fr"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "Aucune caisse alliée n'est suffisamment proche pour être déballée, ou la caisse est trop proche d'un avion."
--- STALE: ctld.i18n["fr"]["Finished building FOB! Crates and Troops can now be picked up."] = "Construction du FOB terminée ! Les caisses et les troupes peuvent maintenant embarqués."
--- STALE: ctld.i18n["fr"]["Finished building FOB! Crates can now be picked up."] = "Construction du FOB terminée ! Les caisses peuvent maintenant être embarqués."
--- STALE: ctld.i18n["fr"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 a commencé à construire le FOB en utilisant %2 caisses FOB, il sera terminé dans %3 secondes.\nPosition marquée par le fumigène."
--- STALE: ctld.i18n["fr"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "Impossible de construire le FOB !\n\nIl nécessite %1 grandes caisses FOB (3 petites caisses FOB équivalent à 1 grande caisse FOB) et il y a l'équivalent de %2 grandes caisses FOB à proximité\n\nOu les caisses ne sont pas à moins de 750 m les unes des autres autre"
+-- STALE: ctld.i18n["fr"]["Sorry, there are no active FOBs!"] = "DÃ©solÃ©, il n'y a pas de FOB actif !"
+-- STALE: ctld.i18n["fr"]["You can't unpack that here! Take it to where it's needed!"] = "Vous ne pouvez dÃ©baller Ã§a ici ! Emmenez-le lÃ  oÃ¹ vous en avez besoin !"
+-- STALE: ctld.i18n["fr"]["Sorry you must move this crate before you unpack it!"] = "DÃ©solÃ©, vous devez dÃ©placer cette caisse avant de la dÃ©baller !"
+-- STALE: ctld.i18n["fr"]["%1 successfully deployed %2 to the field"] = "%1 a dÃ©ployÃ© avec succÃ¨s %2 sur le terrain."
+-- STALE: ctld.i18n["fr"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "Aucune caisse alliÃ©e n'est suffisamment proche pour Ãªtre dÃ©ballÃ©e, ou la caisse est trop proche d'un avion."
+-- STALE: ctld.i18n["fr"]["Finished building FOB! Crates and Troops can now be picked up."] = "Construction du FOB terminÃ©e ! Les caisses et les troupes peuvent maintenant embarquÃ©s."
+-- STALE: ctld.i18n["fr"]["Finished building FOB! Crates can now be picked up."] = "Construction du FOB terminÃ©e ! Les caisses peuvent maintenant Ãªtre embarquÃ©s."
+-- STALE: ctld.i18n["fr"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 a commencÃ© Ã  construire le FOB en utilisant %2 caisses FOB, il sera terminÃ© dans %3 secondes.\nPosition marquÃ©e par le fumigÃ¨ne."
+-- STALE: ctld.i18n["fr"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "Impossible de construire le FOB !\n\nIl nÃ©cessite %1 grandes caisses FOB (3 petites caisses FOB Ã©quivalent Ã  1 grande caisse FOB) et il y a l'Ã©quivalent de %2 grandes caisses FOB Ã  proximitÃ©\n\nOu les caisses ne sont pas Ã  moins de 750 m les unes des autres autre"
 -- STALE: ctld.i18n["fr"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "Vous ne transportez actuellement aucune caisse. \n\nPour charger une caisse, survolez la caisse pendant %1 secondes ou atterrissez et utilisez les commandes de caisse F10."
 -- STALE: ctld.i18n["fr"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "Vous ne transportez actuellement aucune caisse. \n\nPour ramasser une caisse, survolez la caisse pendant %1 secondes."
 -- STALE: ctld.i18n["fr"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "Vous ne transportez actuellement aucune caisse. \n\nPour charger une caisse, atterrissez et utilisez les commandes de caisse F10."
--- STALE: ctld.i18n["fr"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caisse a été décrochée en toute sécurité et se trouve à vos %2 heures"
--- STALE: ctld.i18n["fr"]["%1 crate has been safely dropped below you"] = "%1 caisse a été déposée en toute sécurité sous vous"
--- STALE: ctld.i18n["fr"]["You were too high! The crate has been destroyed"] = "Vous étiez trop haut! La caisse a été détruite"
+-- STALE: ctld.i18n["fr"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caisse a Ã©tÃ© dÃ©crochÃ©e en toute sÃ©curitÃ© et se trouve Ã  vos %2 heures"
+-- STALE: ctld.i18n["fr"]["%1 crate has been safely dropped below you"] = "%1 caisse a Ã©tÃ© dÃ©posÃ©e en toute sÃ©curitÃ© sous vous"
+-- STALE: ctld.i18n["fr"]["You were too high! The crate has been destroyed"] = "Vous Ã©tiez trop haut! La caisse a Ã©tÃ© dÃ©truite"
 -- STALE: ctld.i18n["fr"]["Radio Beacons:\n%1"] = "Balises radio :\n%1"
 -- STALE: ctld.i18n["fr"]["No Active Radio Beacons"] = "Aucune balise radio active"
--- STALE: ctld.i18n["fr"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 a déployé une balise radio.\n\n%2"
--- STALE: ctld.i18n["fr"]["You need to land before you can deploy a Radio Beacon!"] = "Vous devez atterrir avant de pouvoir déployer une balise radio !"
--- STALE: ctld.i18n["fr"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 a supprimé une balise radio.\n\n%2"
--- STALE: ctld.i18n["fr"]["No Radio Beacons within 500m."] = "Aucune balise radio à moins de 500m."
+-- STALE: ctld.i18n["fr"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 a dÃ©ployÃ© une balise radio.\n\n%2"
+-- STALE: ctld.i18n["fr"]["You need to land before you can deploy a Radio Beacon!"] = "Vous devez atterrir avant de pouvoir dÃ©ployer une balise radio !"
+-- STALE: ctld.i18n["fr"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 a supprimÃ© une balise radio.\n\n%2"
+-- STALE: ctld.i18n["fr"]["No Radio Beacons within 500m."] = "Aucune balise radio Ã  moins de 500m."
 -- STALE: ctld.i18n["fr"]["You need to land before remove a Radio Beacon"] = "Vous devez atterrir avant de retirer une balise radio"
--- STALE: ctld.i18n["fr"]["%1 successfully rearmed a full %2 in the field"] = "%1 a réarmé avec succès un %2 complet sur le terrain"
+-- STALE: ctld.i18n["fr"]["%1 successfully rearmed a full %2 in the field"] = "%1 a rÃ©armÃ© avec succÃ¨s un %2 complet sur le terrain"
 -- STALE: ctld.i18n["fr"]["Missing %1\n"] = "%1 manquant\n"
--- STALE: ctld.i18n["fr"]["Out of parts for AA Systems. Current limit is %1\n"] = "Plus de pièces pour les systèmes AA. La limite actuelle est de %1\n"
+-- STALE: ctld.i18n["fr"]["Out of parts for AA Systems. Current limit is %1\n"] = "Plus de piÃ¨ces pour les systÃ¨mes AA. La limite actuelle est de %1\n"
 -- STALE: ctld.i18n["fr"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "Impossible de construire %1\n%2\n\nOu les caisses ne sont pas assez proches les unes des autres"
--- STALE: ctld.i18n["fr"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 a déployé avec succès un %2 complet sur le terrain. \n\nLa limite du système actif AA est : %3\nActif : %4"
--- STALE: ctld.i18n["fr"]["%1 successfully repaired a full %2 in the field."] = "%1 a réparé avec succès un %2 complet sur le terrain."
--- STALE: ctld.i18n["fr"]["Cannot repair %1. No damaged %2 within 300m"] = "Impossible de réparer %1. Aucun %2 endommagé à moins de 300 m"
--- STALE: ctld.i18n["fr"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 a déployé avec succès %2 sur le terrain en utilisant %3 caisses."
--- STALE: ctld.i18n["fr"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "Impossible de construire %1 !\n\nIl faut %2 caisses et il y en a %3 \n\nOu les caisses ne sont pas à moins de 300 m les unes des autres"
--- STALE: ctld.i18n["fr"]["%1 dropped %2 smoke."] = "%1 a largué un fumigène %2."
+-- STALE: ctld.i18n["fr"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 a dÃ©ployÃ© avec succÃ¨s un %2 complet sur le terrain. \n\nLa limite du systÃ¨me actif AA est : %3\nActif : %4"
+-- STALE: ctld.i18n["fr"]["%1 successfully repaired a full %2 in the field."] = "%1 a rÃ©parÃ© avec succÃ¨s un %2 complet sur le terrain."
+-- STALE: ctld.i18n["fr"]["Cannot repair %1. No damaged %2 within 300m"] = "Impossible de rÃ©parer %1. Aucun %2 endommagÃ© Ã  moins de 300 m"
+-- STALE: ctld.i18n["fr"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 a dÃ©ployÃ© avec succÃ¨s %2 sur le terrain en utilisant %3 caisses."
+-- STALE: ctld.i18n["fr"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "Impossible de construire %1 !\n\nIl faut %2 caisses et il y en a %3 \n\nOu les caisses ne sont pas Ã  moins de 300 m les unes des autres"
+-- STALE: ctld.i18n["fr"]["%1 dropped %2 smoke."] = "%1 a larguÃ© un fumigÃ¨ne %2."
 
 --- JTAC messages
 -- STALE: ctld.i18n["fr"]["JTAC Group %1 KIA!"] = "Groupe JTAC %1 KIA !"
--- STALE: ctld.i18n["fr"]["%1, selected target reacquired, %2"] = "%1, cible sélectionnée réacquise, %2"
+-- STALE: ctld.i18n["fr"]["%1, selected target reacquired, %2"] = "%1, cible sÃ©lectionnÃ©e rÃ©acquise, %2"
 -- STALE: ctld.i18n["fr"][". CODE: %1. POSITION: %2"] = ". CODE : %1. POSITION : %2"
 -- STALE: ctld.i18n["fr"]["new target, "] = "nouvelle cible, "
 -- STALE: ctld.i18n["fr"]["standing by on %1"] = "en attente sur %1"
 -- STALE: ctld.i18n["fr"]["lasing %1"] = "laser %1"
 -- STALE: ctld.i18n["fr"][", temporarily %1"] = ", temporairement %1"
 -- STALE: ctld.i18n["fr"]["target lost"] = "cible perdue"
--- STALE: ctld.i18n["fr"]["target destroyed"] = "cible détruite"
--- STALE: ctld.i18n["fr"][", selected %1"] = ", %1 sélectionné"
+-- STALE: ctld.i18n["fr"]["target destroyed"] = "cible dÃ©truite"
+-- STALE: ctld.i18n["fr"][", selected %1"] = ", %1 sÃ©lectionnÃ©"
 -- STALE: ctld.i18n["fr"]["%1 %2 target lost."] = "%1 %2 cible perdue."
--- STALE: ctld.i18n["fr"]["%1 %2 target destroyed."] = "%1 %2 cible détruite."
--- STALE: ctld.i18n["fr"]["JTAC STATUS: \n\n"] = "ÉTAT JTAC : \n\n"
+-- STALE: ctld.i18n["fr"]["%1 %2 target destroyed."] = "%1 %2 cible dÃ©truite."
+-- STALE: ctld.i18n["fr"]["JTAC STATUS: \n\n"] = "Ã‰TAT JTAC : \n\n"
 -- STALE: ctld.i18n["fr"][", available on %1 %2,"] = ", disponible sur %1 %2,"
 -- STALE: ctld.i18n["fr"]["UNKNOWN"] = "INCONNU"
 -- STALE: ctld.i18n["fr"][" targeting "] = " ciblage "
--- STALE: ctld.i18n["fr"][" targeting selected unit "] = " ciblage de l'unité sélectionnée "
--- STALE: ctld.i18n["fr"][" attempting to find selected unit, temporarily targeting "] = " tentative de recherche de l'unité sélectionnée, ciblage temporaire "
+-- STALE: ctld.i18n["fr"][" targeting selected unit "] = " ciblage de l'unitÃ© sÃ©lectionnÃ©e "
+-- STALE: ctld.i18n["fr"][" attempting to find selected unit, temporarily targeting "] = " tentative de recherche de l'unitÃ© sÃ©lectionnÃ©e, ciblage temporaire "
 -- STALE: ctld.i18n["fr"]["(Laser OFF) "] = "(Laser INACTIF) "
--- STALE: ctld.i18n["fr"]["Visual On: "] = "Visuel activé : "
+-- STALE: ctld.i18n["fr"]["Visual On: "] = "Visuel activÃ© : "
 -- STALE: ctld.i18n["fr"][" searching for targets %1\n"] = " recherche de cibles %1\n"
 -- STALE: ctld.i18n["fr"]["No Active JTACs"] = "Aucun JTAC actif"
--- STALE: ctld.i18n["fr"][", targeting selected unit, %1"] = ", ciblage de l'unité sélectionnée, %1"
--- STALE: ctld.i18n["fr"][", target selection reset."] = ", sélection de cible réinitialisée."
--- STALE: ctld.i18n["fr"]["%1, laser and smokes enabled"] = "%1, laser et fumigènes activés"
--- STALE: ctld.i18n["fr"]["%1, laser and smokes disabled"] = "%1, laser et fumigènes désactivés"
--- STALE: ctld.i18n["fr"]["%1, wind and target speed laser spot compensations enabled"] = "%1, compensations activées de la vitesse du vent et de la cible pour le spot laser"
--- STALE: ctld.i18n["fr"]["%1, wind and target speed laser spot compensations disabled"] = "%1, compensations désactivées de la vitesse du vent et de la cible pour le spot laser"
--- STALE: ctld.i18n["fr"]["%1, WHITE smoke deployed near target"] = "%1, fumigène BLANCHE déployée près de la cible"
+-- STALE: ctld.i18n["fr"][", targeting selected unit, %1"] = ", ciblage de l'unitÃ© sÃ©lectionnÃ©e, %1"
+-- STALE: ctld.i18n["fr"][", target selection reset."] = ", sÃ©lection de cible rÃ©initialisÃ©e."
+-- STALE: ctld.i18n["fr"]["%1, laser and smokes enabled"] = "%1, laser et fumigÃ¨nes activÃ©s"
+-- STALE: ctld.i18n["fr"]["%1, laser and smokes disabled"] = "%1, laser et fumigÃ¨nes dÃ©sactivÃ©s"
+-- STALE: ctld.i18n["fr"]["%1, wind and target speed laser spot compensations enabled"] = "%1, compensations activÃ©es de la vitesse du vent et de la cible pour le spot laser"
+-- STALE: ctld.i18n["fr"]["%1, wind and target speed laser spot compensations disabled"] = "%1, compensations dÃ©sactivÃ©es de la vitesse du vent et de la cible pour le spot laser"
+-- STALE: ctld.i18n["fr"]["%1, WHITE smoke deployed near target"] = "%1, fumigÃ¨ne BLANCHE dÃ©ployÃ©e prÃ¨s de la cible"
 
 --- F10 menu messages
 -- STALE: ctld.i18n["fr"]["Actions"] = "Actions"
 -- STALE: ctld.i18n["fr"]["Troop Transport"] = "Transport troupes"
--- STALE: ctld.i18n["fr"]["Unload / Extract Troops"] = "Débarqt / Embarqt Troupes"
+-- STALE: ctld.i18n["fr"]["Unload / Extract Troops"] = "DÃ©barqt / Embarqt Troupes"
 -- STALE: ctld.i18n["fr"]["Next page"] = "page suiv."
 -- STALE: ctld.i18n["fr"]["Load "] = "Charger "
 -- STALE: ctld.i18n["fr"]["Vehicle / FOB Transport"] = "Transport Vehicule / FOB"
 -- STALE: ctld.i18n["fr"]["Crates: Vehicle / FOB / Drone"] = "Caisses Vehicule / FOB / Drone"
--- STALE: ctld.i18n["fr"]["Unload Vehicles"] = "Décharger Vehicles"
--- STALE: ctld.i18n["fr"]["Load / Extract Vehicles"] = "Chargt / Déchargt Vehicules"
--- STALE: ctld.i18n["fr"]["Load / Unload FOB Crate"] = "Chargt / Déchargt Caisse FOB"
--- STALE: ctld.i18n["fr"]["Pack Vehicles"] = "Emballer véhicules"
+-- STALE: ctld.i18n["fr"]["Unload Vehicles"] = "DÃ©charger Vehicles"
+-- STALE: ctld.i18n["fr"]["Load / Extract Vehicles"] = "Chargt / DÃ©chargt Vehicules"
+-- STALE: ctld.i18n["fr"]["Load / Unload FOB Crate"] = "Chargt / DÃ©chargt Caisse FOB"
+-- STALE: ctld.i18n["fr"]["Pack Vehicles"] = "Emballer vÃ©hicules"
 -- STALE: ctld.i18n["fr"]["CTLD Commands"] = "Commandes CTLD"
 -- STALE: ctld.i18n["fr"]["CTLD"] = "CTLD"
--- STALE: ctld.i18n["fr"]["Check Cargo"] = "Vérif° chargement"
+-- STALE: ctld.i18n["fr"]["Check Cargo"] = "VÃ©rifÂ° chargement"
 -- STALE: ctld.i18n["fr"]["Load Nearby Crate(s)"] = "Charger caisse(s) proche"
--- STALE: ctld.i18n["fr"]["Unpack Any Crate"] = "Déballer caisses"
--- STALE: ctld.i18n["fr"]["Drop Crate(s)"] = "Décharger caisse(s)"
+-- STALE: ctld.i18n["fr"]["Unpack Any Crate"] = "DÃ©baller caisses"
+-- STALE: ctld.i18n["fr"]["Drop Crate(s)"] = "DÃ©charger caisse(s)"
 -- STALE: ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
 -- STALE: ctld.i18n["fr"]["List FOBs"] = "Liste FOBs"
 -- STALE: ctld.i18n["fr"]["List Beacons"] = "Liste balises"
 -- STALE: ctld.i18n["fr"]["List Radio Beacons"] = "Liste Radio balises"
--- STALE: ctld.i18n["fr"]["Smoke Markers"] = "Marques Fumées"
--- STALE: ctld.i18n["fr"]["Drop Red Smoke"] = "Déposer Fumi Rouge"
--- STALE: ctld.i18n["fr"]["Drop Blue Smoke"] = "Déposer Fumi Bleu"
--- STALE: ctld.i18n["fr"]["Drop Orange Smoke"] = "Déposer Fumi Orange"
--- STALE: ctld.i18n["fr"]["Drop Green Smoke"] = "Déposer Fumi Vert"
--- STALE: ctld.i18n["fr"]["Drop Beacon"] = "Déposer Balise"
+-- STALE: ctld.i18n["fr"]["Smoke Markers"] = "Marques FumÃ©es"
+-- STALE: ctld.i18n["fr"]["Drop Red Smoke"] = "DÃ©poser Fumi Rouge"
+-- STALE: ctld.i18n["fr"]["Drop Blue Smoke"] = "DÃ©poser Fumi Bleu"
+-- STALE: ctld.i18n["fr"]["Drop Orange Smoke"] = "DÃ©poser Fumi Orange"
+-- STALE: ctld.i18n["fr"]["Drop Green Smoke"] = "DÃ©poser Fumi Vert"
+-- STALE: ctld.i18n["fr"]["Drop Beacon"] = "DÃ©poser Balise"
 -- STALE: ctld.i18n["fr"]["Radio Beacons"] = "Balises radio"
 -- STALE: ctld.i18n["fr"]["Remove Closest Beacon"] = "Supprimer Balise +proche"
 -- STALE: ctld.i18n["fr"]["JTAC Status"] = "Statut JTAC"
 -- STALE: ctld.i18n["fr"]["DISABLE "] = "DESACTIVE "
 -- STALE: ctld.i18n["fr"]["ENABLE "] = "ACTIVE "
 -- STALE: ctld.i18n["fr"]["REQUEST "] = "DEMANDE"
--- STALE: ctld.i18n["fr"]["Reset TGT Selection"] = "Réinitialiser sélection TGT"
+-- STALE: ctld.i18n["fr"]["Reset TGT Selection"] = "RÃ©initialiser sÃ©lection TGT"
 
 --- F10 RECON menus
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
@@ -2074,68 +2056,60 @@ ctld.i18n["fr"]["Load Crate"] = "Charger caisse"
 ctld.i18n["fr"]["Land to load crates"] = "Atterrissez pour charger une caisse"
 ctld.i18n["fr"]["No crates within 50m"] = "Aucune caisse dans 50 m"
 ctld.i18n["fr"]["You must land before you can load a crate!"] = "Vous devez atterrir avant de pouvoir charger une caisse !"
-ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses à bord !"
-ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
-ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
+ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses Ã  bord !"
+ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse Ã  moins de 50 m pour charger !"
+ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargÃ©e !"
 
 --- Drop Crate(s)
-ctld.i18n["fr"]["No crates on board to drop."] = "Aucune caisse à bord à déposer."
-ctld.i18n["fr"]["You must land before dropping crates!"] = "Vous devez atterrir avant de déposer les caisses !"
-ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) déposée(s) à vos %2 heures"
+ctld.i18n["fr"]["No crates on board to drop."] = "Aucune caisse Ã  bord Ã  dÃ©poser."
+ctld.i18n["fr"]["You must land before dropping crates!"] = "Vous devez atterrir avant de dÃ©poser les caisses !"
+ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) dÃ©posÃ©e(s) Ã  vos %2 heures"
 
 --- Unpack Crate submenu
-ctld.i18n["fr"]["Unpack Crate"] = "Déballer caisses"
-ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
-ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
+ctld.i18n["fr"]["Unpack Crate"] = "DÃ©baller caisses"
+ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour dÃ©baller"
+ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses Ã  proximitÃ©"
 ctld.i18n["fr"]["Build FOB"] = "Construire un FOB"
-ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
-ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
-ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
+ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de dÃ©baller les caisses !"
+ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses Ã  proximitÃ© pour dÃ©baller !"
+ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 dÃ©ballÃ© avec succÃ¨s !"
 
 --- Pack Vehicle submenu
-ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
-ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"
-ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
-ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
+ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des vÃ©hicules"
+ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun vÃ©hicule emballable Ã  proximitÃ©"
+ctld.i18n["fr"]["Vehicle no longer exists."] = "Le vÃ©hicule n'existe plus."
+ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de vÃ©hicule."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
 ctld.i18n["fr"]["No crates within 300m."] = "Aucune caisse dans un rayon de 300m."
 ctld.i18n["fr"]["Crates within 300m:"] = "Caisses dans un rayon de 300m :"
-ctld.i18n["fr"]["  %1: %2/%3 — READY"] = "  %1 : %2/%3 — PRÊT"
-ctld.i18n["fr"]["  %1: %2/%3 — incomplete"] = "  %1 : %2/%3 — incomplet"
+ctld.i18n["fr"]["  %1: %2/%3 â€” READY"] = "  %1 : %2/%3 â€” PRÃŠT"
+ctld.i18n["fr"]["  %1: %2/%3 â€” incomplete"] = "  %1 : %2/%3 â€” incomplet"
 
 --- Check Cargo summary
-ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison à bord."
+ctld.i18n["fr"]["No cargo on board."] = "Aucune cargaison Ã  bord."
 ctld.i18n["fr"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1 : %2 caisse(s) en soute (%3 kg)"
 ctld.i18n["fr"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldat(s) en soute (%2 kg)"
 ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 kg"
 
 --- Request Equipment spawn messages
-ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
-ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
-ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"
-ctld.i18n["fr"]["%1 crates have been brought out at your %2 o'clock"] = "%1 caisses ont été apportées à vos %2 heures"
+ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez Ãªtre posÃ© pour demander une caisse."
+ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'Ãªtes pas assez proche de la logistique alliÃ©e pour obtenir une caisse !"
+ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a Ã©tÃ© apportÃ©e et se trouve Ã  vos %3 heures"
+ctld.i18n["fr"]["%1 crates have been brought out at your %2 o'clock"] = "%1 caisses ont Ã©tÃ© apportÃ©es Ã  vos %2 heures"
 
---- FOBs List menu + FOB layer toggles
+--- FOBs List menu
 ctld.i18n["fr"]["FOBs List"] = "Liste des FOBs"
 ctld.i18n["fr"]["List active FOBs"] = "Lister les FOBs actifs"
 ctld.i18n["fr"]["No active FOBs."] = "Aucun FOB actif."
 ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
-ctld.i18n["fr"]["Toggle Friendly FOB Layer"] = "Activer/désactiver le calque FOB amis"
-ctld.i18n["fr"]["Toggle Enemy FOB Layer"] = "Activer/désactiver le calque FOB ennemis"
-ctld.i18n["fr"]["Friendly FOB layer: OFF"] = "Calque FOB amis : OFF"
-ctld.i18n["fr"]["Friendly FOB layer: ON (%1 FOB(s))"] = "Calque FOB amis : ON (%1 FOB(s))"
-ctld.i18n["fr"]["Enemy FOB layer: OFF"] = "Calque FOB ennemis : OFF"
-ctld.i18n["fr"]["Enemy FOB layer: ON (%1 FOB(s))"] = "Calque FOB ennemis : ON (%1 FOB(s))"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["fr"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_fr.lua =====
+ctld.i18n["fr"]["â†’ Next Page"] = ""
 
--- ===== Start : CTLD_i18n_es.lua =====
 --[[
-    CTLD — Spanish dictionary
+    CTLD â€” Spanish dictionary
     Translation version: 1.7
 
     Translator: FullGas1
@@ -2149,18 +2123,18 @@ ctld.i18n["es"] = {}
 ctld.i18n["es"].translation_version = "1.8"
 
 --- groups names
-ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
-ctld.i18n["es"]["Anti Air"] = "Defensa aérea"
+ctld.i18n["es"]["Standard Group"] = "Grupo estÃ¡ndar"
+ctld.i18n["es"]["Anti Air"] = "Defensa aÃ©rea"
 ctld.i18n["es"]["Anti Tank"] = "Antitanque"
 ctld.i18n["es"]["Mortar Squad"] = "Grupo mortero"
 ctld.i18n["es"]["JTAC Group"] = "Grupo JTAC"
 ctld.i18n["es"]["Single JTAC"] = "JTAC solo"
-ctld.i18n["es"]["2x - Standard Groups"] = "2x - Grupos estándares"
-ctld.i18n["es"]["2x - Anti Air"] = "2x - Defensas aéreas"
+ctld.i18n["es"]["2x - Standard Groups"] = "2x - Grupos estÃ¡ndares"
+ctld.i18n["es"]["2x - Anti Air"] = "2x - Defensas aÃ©reas"
 ctld.i18n["es"]["2x - Anti Tank"] = "2x - Antitanque"
-ctld.i18n["es"]["2x - Standard Groups + 2x Mortar"] = "2x - Grupos estándar + 2x Grupos morteros"
-ctld.i18n["es"]["3x - Standard Groups"] = "3x - Defensas aéreas"
-ctld.i18n["es"]["3x - Anti Air"] = "3x - Defensas aéreas"
+ctld.i18n["es"]["2x - Standard Groups + 2x Mortar"] = "2x - Grupos estÃ¡ndar + 2x Grupos morteros"
+ctld.i18n["es"]["3x - Standard Groups"] = "3x - Defensas aÃ©reas"
+ctld.i18n["es"]["3x - Anti Air"] = "3x - Defensas aÃ©reas"
 ctld.i18n["es"]["3x - Anti Tank"] = "3x - Antitanque"
 ctld.i18n["es"]["3x - Mortar Squad"] = "3x - Grupos de morteros"
 ctld.i18n["es"]["5x - Mortar Squad"] = "5x - Grupos de morteros"
@@ -2175,11 +2149,11 @@ ctld.i18n["es"]["Heavy Tank - Abrams"] = "Tanque pesado - Abrams"
 ctld.i18n["es"]["BTR-D"] = "BTR-D - Transporte de tropas"
 ctld.i18n["es"]["BRDM-2"] = "BRDM-2 - Reconocimiento"
 ctld.i18n["es"]["Hummer - JTAC"] = "JTAC Hummer"
-ctld.i18n["es"]["M-818 Ammo Truck"] = "Camión M-818 de municiones"
-ctld.i18n["es"]["M-978 Tanker"] = "Camión cisterna M-978"
+ctld.i18n["es"]["M-818 Ammo Truck"] = "CamiÃ³n M-818 de municiones"
+ctld.i18n["es"]["M-978 Tanker"] = "CamiÃ³n cisterna M-978"
 ctld.i18n["es"]["SKP-11 - JTAC"] = "JTAC SKP-11"
-ctld.i18n["es"]["Ural-375 Ammo Truck"] = "Camión Ural-375 de municiones"
-ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
+ctld.i18n["es"]["Ural-375 Ammo Truck"] = "CamiÃ³n Ural-375 de municiones"
+ctld.i18n["es"]["KAMAZ Ammo Truck"] = "CamiÃ³n KAMAZ de municiones"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
 ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
@@ -2205,24 +2179,24 @@ ctld.i18n["es"]["9K35M Strela-10"] = "9K35M Strela-10 - SA-13 Gopher"
 ctld.i18n["es"]["9K331 Tor"] = "9K331 Tor - SA-15 Tor"
 ctld.i18n["es"]["2K22 Tunguska"] = "2K22 Tunguska - SA-19 Tunguska"
 ctld.i18n["es"]["HAWK Launcher"] = "HAWK - Lanzador"
-ctld.i18n["es"]["HAWK Search Radar"] = "HAWK - Radar de Búsqueda"
+ctld.i18n["es"]["HAWK Search Radar"] = "HAWK - Radar de BÃºsqueda"
 ctld.i18n["es"]["HAWK Track Radar"] = "HAWK - Radar de Seguimiento"
 ctld.i18n["es"]["HAWK PCP"] = "HAWK - Puesto de Comando"
 ctld.i18n["es"]["HAWK CWAR"] = "HAWK - Sistema de Control de Guerra"
 ctld.i18n["es"]["HAWK Repair"] = "Reparar HAWK"
 ctld.i18n["es"]["NASAMS Launcher 120C"] = "NASAMS - Lanzador 120C"
-ctld.i18n["es"]["NASAMS Search/Track Radar"] = "NASAMS - Radar de Búsqueda/Seguimiento"
+ctld.i18n["es"]["NASAMS Search/Track Radar"] = "NASAMS - Radar de BÃºsqueda/Seguimiento"
 ctld.i18n["es"]["NASAMS Command Post"] = "NASAMS - Puesto de Mando"
 ctld.i18n["es"]["NASAMS Repair"] = "Reparar NASAMS"
 ctld.i18n["es"]["KUB Launcher"] = "KUB - Lanzador"
 ctld.i18n["es"]["KUB Radar"] = "KUB - Radar"
 ctld.i18n["es"]["KUB Repair"] = "Reparar KUB"
 ctld.i18n["es"]["BUK Launcher"] = "BUK - Lanzador"
-ctld.i18n["es"]["BUK Search Radar"] = "BUK - Radar de Búsqueda"
+ctld.i18n["es"]["BUK Search Radar"] = "BUK - Radar de BÃºsqueda"
 ctld.i18n["es"]["BUK CC Radar"] = "BUK - Radar de Control de Combate"
 ctld.i18n["es"]["BUK Repair"] = "Reparar BUK"
 ctld.i18n["es"]["Patriot Launcher"] = "Patriot - Lanzador"
-ctld.i18n["es"]["Patriot Radar"] = "Patriot - Radar de Búsqueda"
+ctld.i18n["es"]["Patriot Radar"] = "Patriot - Radar de BÃºsqueda"
 ctld.i18n["es"]["Patriot ECS"] = "Patriot - Puesto de Mando"
 ctld.i18n["es"]["Patriot ICC"] = "Patriot - Sistema de Control de Fuego"
 ctld.i18n["es"]["Patriot EPP"] = "Patriot - Generador"
@@ -2230,8 +2204,8 @@ ctld.i18n["es"]["Patriot AMG (optional)"] = ""
 ctld.i18n["es"]["Patriot Repair"] = "Reparar Patriot"
 ctld.i18n["es"]["S-300 Grumble TEL C"] = "S-300 Grumble TEL C - Lanzador"
 ctld.i18n["es"]["S-300 Grumble Flap Lid-A TR"] = "S-300 Grumble Flap Lid-A TR - Radar de Seguimiento"
-ctld.i18n["es"]["S-300 Grumble Clam Shell SR"] = "S-300 Grumble Clam Shell SR - Radar de Búsqueda"
-ctld.i18n["es"]["S-300 Grumble Big Bird SR"] = "S-300 Grumble Big Bird SR - Radar de Búsqueda"
+ctld.i18n["es"]["S-300 Grumble Clam Shell SR"] = "S-300 Grumble Clam Shell SR - Radar de BÃºsqueda"
+ctld.i18n["es"]["S-300 Grumble Big Bird SR"] = "S-300 Grumble Big Bird SR - Radar de BÃºsqueda"
 ctld.i18n["es"]["S-300 Grumble C2"] = "S-300 Grumble C2 - Puesto de Mando"
 ctld.i18n["es"]["S-300 Repair"] = "Reparar S-300"
 ctld.i18n["es"]["Humvee - TOW - All crates"] = "Humvee - TOW - Todas las cajas"
@@ -2271,51 +2245,51 @@ ctld.i18n["es"]["Patriot - All crates"] = "Patriot - Todas las cajas"
 -- STALE: ctld.i18n["es"]["CTLD.lua ERROR: Can't find crate with weight %1"] = "CTLD.lua ERROR : Imposible encontrar una caja con un peso de %1"
 
 --- runtime messages
--- STALE: ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
--- STALE: ctld.i18n["es"]["No more JTAC Crates Left!"] = "¡No hay más cajas JTAC disponibles!"
+-- STALE: ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "Â¡No estÃ¡s lo suficientemente cerca de la logÃ­stica aliada para solicitar una caja!"
+-- STALE: ctld.i18n["es"]["No more JTAC Crates Left!"] = "Â¡No hay mÃ¡s cajas JTAC disponibles!"
 -- STALE: ctld.i18n["es"]["Sorry you must wait %1 seconds before you can get another crate"] = "Lo sentimos, debes esperar %1 segundos antes de poder solicitar otra caja"
--- STALE: ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
+-- STALE: ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y estÃ¡ a tus %3 en punto "
 -- STALE: ctld.i18n["es"]["%1 fast-ropped troops from %2 into combat"] = "%1 descolgo tropas con cuerdas de %2 al combate"
 -- STALE: ctld.i18n["es"]["%1 dropped troops from %2 into combat"] = "%1 descargo tropas de %2 al combate"
 -- STALE: ctld.i18n["es"]["%1 fast-ropped troops from %2 into %3"] = "%1 descolgo tropas con cuerdas de %2 a %3"
--- STALE: ctld.i18n["es"]["%1 dropped troops from %2 into %3"] = "%1 arrojó tropas de %2 a %3"
--- STALE: ctld.i18n["es"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "¡Demasiado alto o rápido para lanzar tropas al combate! Manten estacionario por debajo de % 1 pies o aterriza."
--- STALE: ctld.i18n["es"]["%1 dropped vehicles from %2 into combat"] = "%1 descargo vehículos de %2 al combate"
--- STALE: ctld.i18n["es"]["%1 loaded troops into %2"] = "%1 cargó tropas en %2"
--- STALE: ctld.i18n["es"]["%1 loaded %2 vehicles into %3"] = "%1 cargó %2 vehículos en %3"
--- STALE: ctld.i18n["es"]["%1 delivered a FOB Crate"] = "%1 entregó una caja FOB"
--- STALE: ctld.i18n["es"]["Delivered FOB Crate 60m at 6'oclock to you"] = "Se le entregó la caja FOB de 60 m a sus 6 en punto"
+-- STALE: ctld.i18n["es"]["%1 dropped troops from %2 into %3"] = "%1 arrojÃ³ tropas de %2 a %3"
+-- STALE: ctld.i18n["es"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "Â¡Demasiado alto o rÃ¡pido para lanzar tropas al combate! Manten estacionario por debajo de % 1 pies o aterriza."
+-- STALE: ctld.i18n["es"]["%1 dropped vehicles from %2 into combat"] = "%1 descargo vehÃ­culos de %2 al combate"
+-- STALE: ctld.i18n["es"]["%1 loaded troops into %2"] = "%1 cargÃ³ tropas en %2"
+-- STALE: ctld.i18n["es"]["%1 loaded %2 vehicles into %3"] = "%1 cargÃ³ %2 vehÃ­culos en %3"
+-- STALE: ctld.i18n["es"]["%1 delivered a FOB Crate"] = "%1 entregÃ³ una caja FOB"
+-- STALE: ctld.i18n["es"]["Delivered FOB Crate 60m at 6'oclock to you"] = "Se le entregÃ³ la caja FOB de 60 m a sus 6 en punto"
 -- STALE: ctld.i18n["es"]["FOB Crate dropped back to base"] = "Caja FOB devuelta a la base"
 -- STALE: ctld.i18n["es"]["FOB Crate Loaded"] = "Caja FOB cargada"
--- STALE: ctld.i18n["es"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 cargó una caja FOB lista para su entrega!"
--- STALE: ctld.i18n["es"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "¡No hay unidades logísticas amigas cerca para cargar una caja FOB!"
--- STALE: ctld.i18n["es"]["This area has no more reinforcements available!"] = "¡Esta área no tiene más refuerzos disponibles!"
--- STALE: ctld.i18n["es"]["You are not in a pickup zone and no one is nearby to extract"] = "No estás en una zona de carga y/o no hay nadie cerca para extraccion"
--- STALE: ctld.i18n["es"]["You are not in a pickup zone"] = "No estás en una zona de carga"
+-- STALE: ctld.i18n["es"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 cargÃ³ una caja FOB lista para su entrega!"
+-- STALE: ctld.i18n["es"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "Â¡No hay unidades logÃ­sticas amigas cerca para cargar una caja FOB!"
+-- STALE: ctld.i18n["es"]["This area has no more reinforcements available!"] = "Â¡Esta Ã¡rea no tiene mÃ¡s refuerzos disponibles!"
+-- STALE: ctld.i18n["es"]["You are not in a pickup zone and no one is nearby to extract"] = "No estÃ¡s en una zona de carga y/o no hay nadie cerca para extraccion"
+-- STALE: ctld.i18n["es"]["You are not in a pickup zone"] = "No estÃ¡s en una zona de carga"
 -- STALE: ctld.i18n["es"]["No one to unload"] = "Nadie / Nada para descargar"
 -- STALE: ctld.i18n["es"]["Dropped troops back to base"] = "Tropas descargados de vuelta a la base"
--- STALE: ctld.i18n["es"]["Dropped vehicles back to base"] = "Vehículos descargados de vuelta a la base"
+-- STALE: ctld.i18n["es"]["Dropped vehicles back to base"] = "VehÃ­culos descargados de vuelta a la base"
 -- STALE: ctld.i18n["es"]["You already have troops onboard."] = "Ya tienes tropas a bordo."
--- STALE: ctld.i18n["es"]["Count Infantries limit in the mission reached, you can't load more troops"] = "Se alcanzó el límite de infantería en la misión, no puedes cargar más tropas"
--- STALE: ctld.i18n["es"]["You already have vehicles onboard."] = "Ya tienes vehículos a bordo."
--- STALE: ctld.i18n["es"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "Lo sentimos, el grupo de %1 es demasiado grande. \n \nEl límite es %2 para %3"
--- STALE: ctld.i18n["es"]["%1 extracted troops in %2 from combat"] = "%1 tropas extraídas del combate en %2"
--- STALE: ctld.i18n["es"]["No extractable troops nearby!"] = "¡No hay tropas extraíbles cerca!"
--- STALE: ctld.i18n["es"]["%1 extracted vehicles in %2 from combat"] = "%1 vehículos extraídos del combate en %2"
--- STALE: ctld.i18n["es"]["No extractable vehicles nearby!"] = "¡No hay vehículos extraíbles cerca!"
+-- STALE: ctld.i18n["es"]["Count Infantries limit in the mission reached, you can't load more troops"] = "Se alcanzÃ³ el lÃ­mite de infanterÃ­a en la misiÃ³n, no puedes cargar mÃ¡s tropas"
+-- STALE: ctld.i18n["es"]["You already have vehicles onboard."] = "Ya tienes vehÃ­culos a bordo."
+-- STALE: ctld.i18n["es"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "Lo sentimos, el grupo de %1 es demasiado grande. \n \nEl lÃ­mite es %2 para %3"
+-- STALE: ctld.i18n["es"]["%1 extracted troops in %2 from combat"] = "%1 tropas extraÃ­das del combate en %2"
+-- STALE: ctld.i18n["es"]["No extractable troops nearby!"] = "Â¡No hay tropas extraÃ­bles cerca!"
+-- STALE: ctld.i18n["es"]["%1 extracted vehicles in %2 from combat"] = "%1 vehÃ­culos extraÃ­dos del combate en %2"
+-- STALE: ctld.i18n["es"]["No extractable vehicles nearby!"] = "Â¡No hay vehÃ­culos extraÃ­bles cerca!"
 -- STALE: ctld.i18n["es"]["%1 troops onboard (%2 kg)\n"] = "%1 tropas a bordo (%2 kg)\n"
--- STALE: ctld.i18n["es"]["%1 vehicles onboard (%2)\n"] = "%1 vehículos a bordo (%2)\n"
+-- STALE: ctld.i18n["es"]["%1 vehicles onboard (%2)\n"] = "%1 vehÃ­culos a bordo (%2)\n"
 -- STALE: ctld.i18n["es"]["1 FOB Crate oboard (%1 kg)\n"] = "1 caja FOB a bordo (%1 kg)\n"
 -- STALE: ctld.i18n["es"]["%1 crate onboard (%2 kg)\n"] = "%1 caja a bordo (%2 kg)\n"
 -- STALE: ctld.i18n["es"]["Total weight of cargo : %1 kg\n"] = "Peso total de la carga: %1 kg\n"
 -- STALE: ctld.i18n["es"]["No cargo."] = "Sin carga."
--- STALE: ctld.i18n["es"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "En estacionario sobre la caja %1 \n\n¡Mantenlo durante %2 segundos! \n\n¡Si la cuenta atras se detiene, estás demasiado lejos!"
--- STALE: ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
--- STALE: ctld.i18n["es"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "Demasiado bajo para enganchar la caja %1.\n\nMantén el estacionario durante %2 segundos"
--- STALE: ctld.i18n["es"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "Demasiado alto para enganchar la caja %1.\n\nMantén el estacionario durante %2 segundos"
--- STALE: ctld.i18n["es"]["You must land before you can load a crate!"] = "¡Debes aterrizar antes de poder cargar una caja!"
--- STALE: ctld.i18n["es"]["No Crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
--- STALE: ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo de cajas a bordo!"
+-- STALE: ctld.i18n["es"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "En estacionario sobre la caja %1 \n\nÂ¡Mantenlo durante %2 segundos! \n\nÂ¡Si la cuenta atras se detiene, estÃ¡s demasiado lejos!"
+-- STALE: ctld.i18n["es"]["Loaded %1 crate!"] = "Â¡Caja %1 cargada!"
+-- STALE: ctld.i18n["es"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "Demasiado bajo para enganchar la caja %1.\n\nMantÃ©n el estacionario durante %2 segundos"
+-- STALE: ctld.i18n["es"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "Demasiado alto para enganchar la caja %1.\n\nMantÃ©n el estacionario durante %2 segundos"
+-- STALE: ctld.i18n["es"]["You must land before you can load a crate!"] = "Â¡Debes aterrizar antes de poder cargar una caja!"
+-- STALE: ctld.i18n["es"]["No Crates within 50m to load!"] = "Â¡No hay cajas para cargar en un radio de 50 m!"
+-- STALE: ctld.i18n["es"]["Maximum number of crates are on board!"] = "Â¡NÃºmero mÃ¡ximo de cajas a bordo!"
 -- STALE: ctld.i18n["es"]["%1\n%2 crate - kg %3 - %4 m - %5 o'clock"] = "%1\n%2 caja - kg %3 - %4 m - a tus %5 en punto"
 -- STALE: ctld.i18n["es"]["FOB Crate - %1 m - %2 o'clock\n"] = "Caja FOB - %1 m - a tus %2 en punto\n"
 -- STALE: ctld.i18n["es"]["No Nearby Crates"] = "No hay cajas cerca"
@@ -2323,46 +2297,46 @@ ctld.i18n["es"]["Patriot - All crates"] = "Patriot - Todas las cajas"
 -- STALE: ctld.i18n["es"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "Cajas FOB cercanas (no se pueden cargar con eslinga):\n%1"
 -- STALE: ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 -- STALE: ctld.i18n["es"]["%1\nFOB @ %2"] = "%1\nFOB @ %2"
--- STALE: ctld.i18n["es"]["Sorry, there are no active FOBs!"] = "¡Lo sentimos, no hay FOB activos!"
--- STALE: ctld.i18n["es"]["You can't unpack that here! Take it to where it's needed!"] = "¡No puedes desembalar eso aquí! ¡Llévalo a donde lo necesiten!"
--- STALE: ctld.i18n["es"]["Sorry you must move this crate before you unpack it!"] = "¡Lo siento, debes mover esta caja antes de desembalar!"
+-- STALE: ctld.i18n["es"]["Sorry, there are no active FOBs!"] = "Â¡Lo sentimos, no hay FOB activos!"
+-- STALE: ctld.i18n["es"]["You can't unpack that here! Take it to where it's needed!"] = "Â¡No puedes desembalar eso aquÃ­! Â¡LlÃ©valo a donde lo necesiten!"
+-- STALE: ctld.i18n["es"]["Sorry you must move this crate before you unpack it!"] = "Â¡Lo siento, debes mover esta caja antes de desembalar!"
 -- STALE: ctld.i18n["es"]["%1 successfully deployed %2 to the field"] = "%1 Desplego %2 con exito en el campo."
--- STALE: ctld.i18n["es"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "No hay cajas amigas lo suficientemente cerca por desembalar, o la caja está demasiado cerca de un avión"
--- STALE: ctld.i18n["es"]["Finished building FOB! Crates and Troops can now be picked up."] = "¡Construcción FOB completada! Ahora se pueden recoger cajas y tropas"
--- STALE: ctld.i18n["es"]["Finished building FOB! Crates can now be picked up."] = "¡Construcción FOB completada! Ahora se pueden recoger cajas."
--- STALE: ctld.i18n["es"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 comenzó a construir FOB usando %2 cajas FOB , estará terminado en %3 segundos.\nPosición marcada con bomba de humo."
--- STALE: ctld.i18n["es"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "¡No se puede construir el FOB!\n\nSe requiere %1 cajas FOB grandes (3 cajas FOB pequeñas equivalente a 1 caja FOB grande) y hay el equivalente a %2 cajas FOB grandes cerca\n\nO las cajas no están a menos de 750 m una de otra"
--- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "Actualmente no estás transportando ninguna caja.\n\nPara cargar una caja, realiza un estacionario sobre la caja durante %1 segundos o aterrice y use los comandos de caja F10."
--- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "Actualmente no estás transportando ninguna caja. \n\nPara cargar una caja, realiza un estacionario sobre la caja durante %1 segundos."
--- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "Actualmente no estás transportando ninguna caja. \n\nPara cargar una caja, aterriza y usa los controles de la caja F10."
--- STALE: ctld.i18n["es"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caja desenganchada de forma segura y está en tus %2 en punto"
+-- STALE: ctld.i18n["es"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "No hay cajas amigas lo suficientemente cerca por desembalar, o la caja estÃ¡ demasiado cerca de un aviÃ³n"
+-- STALE: ctld.i18n["es"]["Finished building FOB! Crates and Troops can now be picked up."] = "Â¡ConstrucciÃ³n FOB completada! Ahora se pueden recoger cajas y tropas"
+-- STALE: ctld.i18n["es"]["Finished building FOB! Crates can now be picked up."] = "Â¡ConstrucciÃ³n FOB completada! Ahora se pueden recoger cajas."
+-- STALE: ctld.i18n["es"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 comenzÃ³ a construir FOB usando %2 cajas FOB , estarÃ¡ terminado en %3 segundos.\nPosiciÃ³n marcada con bomba de humo."
+-- STALE: ctld.i18n["es"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "Â¡No se puede construir el FOB!\n\nSe requiere %1 cajas FOB grandes (3 cajas FOB pequeÃ±as equivalente a 1 caja FOB grande) y hay el equivalente a %2 cajas FOB grandes cerca\n\nO las cajas no estÃ¡n a menos de 750 m una de otra"
+-- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "Actualmente no estÃ¡s transportando ninguna caja.\n\nPara cargar una caja, realiza un estacionario sobre la caja durante %1 segundos o aterrice y use los comandos de caja F10."
+-- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "Actualmente no estÃ¡s transportando ninguna caja. \n\nPara cargar una caja, realiza un estacionario sobre la caja durante %1 segundos."
+-- STALE: ctld.i18n["es"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "Actualmente no estÃ¡s transportando ninguna caja. \n\nPara cargar una caja, aterriza y usa los controles de la caja F10."
+-- STALE: ctld.i18n["es"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caja desenganchada de forma segura y estÃ¡ en tus %2 en punto"
 -- STALE: ctld.i18n["es"]["%1 crate has been safely dropped below you"] = "%1 caja ha soltado de forma segura debajo de ti"
--- STALE: ctld.i18n["es"]["You were too high! The crate has been destroyed"] = "¡Estabas demasiado alto! La caja ha sido destruida"
+-- STALE: ctld.i18n["es"]["You were too high! The crate has been destroyed"] = "Â¡Estabas demasiado alto! La caja ha sido destruida"
 -- STALE: ctld.i18n["es"]["Radio Beacons:\n%1"] = "Balizas de radio:\n%1"
 -- STALE: ctld.i18n["es"]["No Active Radio Beacons"] = "No hay radiobalizas activas"
 -- STALE: ctld.i18n["es"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 Despliega una radiobaliza.\n\n%2"
--- STALE: ctld.i18n["es"]["You need to land before you can deploy a Radio Beacon!"] = "¡Debes aterrizar antes de poder desplegar una radiobaliza!"
--- STALE: ctld.i18n["es"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 eliminó una radiobaliza.\n\n%2"
+-- STALE: ctld.i18n["es"]["You need to land before you can deploy a Radio Beacon!"] = "Â¡Debes aterrizar antes de poder desplegar una radiobaliza!"
+-- STALE: ctld.i18n["es"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 eliminÃ³ una radiobaliza.\n\n%2"
 -- STALE: ctld.i18n["es"]["No Radio Beacons within 500m."] = "No hay radiobalizas a menos de 500 m."
 -- STALE: ctld.i18n["es"]["You need to land before remove a Radio Beacon"] = "Es necesario aterrizar antes de eliminar una radiobaliza"
--- STALE: ctld.i18n["es"]["%1 successfully rearmed a full %2 in the field"] = "%1 rearmó con exito un %2 completo en el campo"
+-- STALE: ctld.i18n["es"]["%1 successfully rearmed a full %2 in the field"] = "%1 rearmÃ³ con exito un %2 completo en el campo"
 -- STALE: ctld.i18n["es"]["Missing %1\n"] = "Faltan: %1\n"
--- STALE: ctld.i18n["es"]["Out of parts for AA Systems. Current limit is %1\n"] = "Sin piezas para sistemas AA. El límite actual es %1\n"
--- STALE: ctld.i18n["es"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "Imposible construir %1\n%2\n\nO las cajas no están lo suficientemente cerca unas de otras."
--- STALE: ctld.i18n["es"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 Despliegue con exito un % 2 completo en el campo \n\nEl límite AA del sistema activo es: %3\nActivo: %4"
--- STALE: ctld.i18n["es"]["%1 successfully repaired a full %2 in the field."] = "%1 reparó con exito un %2 completo en el campo."
--- STALE: ctld.i18n["es"]["Cannot repair %1. No damaged %2 within 300m"] = "Imposible reparar %1. No hay daños en %2 en 300 m al rededor"
+-- STALE: ctld.i18n["es"]["Out of parts for AA Systems. Current limit is %1\n"] = "Sin piezas para sistemas AA. El lÃ­mite actual es %1\n"
+-- STALE: ctld.i18n["es"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "Imposible construir %1\n%2\n\nO las cajas no estÃ¡n lo suficientemente cerca unas de otras."
+-- STALE: ctld.i18n["es"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 Despliegue con exito un % 2 completo en el campo \n\nEl lÃ­mite AA del sistema activo es: %3\nActivo: %4"
+-- STALE: ctld.i18n["es"]["%1 successfully repaired a full %2 in the field."] = "%1 reparÃ³ con exito un %2 completo en el campo."
+-- STALE: ctld.i18n["es"]["Cannot repair %1. No damaged %2 within 300m"] = "Imposible reparar %1. No hay daÃ±os en %2 en 300 m al rededor"
 -- STALE: ctld.i18n["es"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 Despliegue con exito de %2 en el campo usando %3 cajas."
--- STALE: ctld.i18n["es"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "Imposible construir %1 !\n\nNecesita %2 cajas y hay %3 \n\nO las cajas están a no menos de 300 m una de otra"
+-- STALE: ctld.i18n["es"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "Imposible construir %1 !\n\nNecesita %2 cajas y hay %3 \n\nO las cajas estÃ¡n a no menos de 300 m una de otra"
 -- STALE: ctld.i18n["es"]["%1 dropped %2 smoke."] = "%1 lanzo humo %2."
 
 --- JTAC messages
--- STALE: ctld.i18n["es"]["JTAC Group %1 KIA!"] = "¡Grupo JTAC %1 KIA!"
+-- STALE: ctld.i18n["es"]["JTAC Group %1 KIA!"] = "Â¡Grupo JTAC %1 KIA!"
 -- STALE: ctld.i18n["es"]["%1, selected target reacquired, %2"] = "%1, objetivo seleccionado readquirido, %2"
--- STALE: ctld.i18n["es"][". CODE: %1. POSITION: %2"] = ". CÓDIGO: %1. POSICIÓN: %2"
+-- STALE: ctld.i18n["es"][". CODE: %1. POSITION: %2"] = ". CÃ“DIGO: %1. POSICIÃ“N: %2"
 -- STALE: ctld.i18n["es"]["new target, "] = "nuevo objetivo, "
 -- STALE: ctld.i18n["es"]["standing by on %1"] = "en espera en %1"
--- STALE: ctld.i18n["es"]["lasing %1"] = "láser %1"
+-- STALE: ctld.i18n["es"]["lasing %1"] = "lÃ¡ser %1"
 -- STALE: ctld.i18n["es"][", temporarily %1"] = ", temporalmente %1"
 -- STALE: ctld.i18n["es"]["target lost"] = "objetivo perdido"
 -- STALE: ctld.i18n["es"]["target destroyed"] = "objetivo destruido"
@@ -2375,30 +2349,30 @@ ctld.i18n["es"]["Patriot - All crates"] = "Patriot - Todas las cajas"
 -- STALE: ctld.i18n["es"][" targeting "] = " apuntando "
 -- STALE: ctld.i18n["es"][" targeting selected unit "] = " apuntando a la unidad indicada"
 -- STALE: ctld.i18n["es"][" attempting to find selected unit, temporarily targeting "] = " intentando encontrar la unidad indicada, laser activo "
--- STALE: ctld.i18n["es"]["(Laser OFF) "] = "(Láser INACTIVO) "
+-- STALE: ctld.i18n["es"]["(Laser OFF) "] = "(LÃ¡ser INACTIVO) "
 -- STALE: ctld.i18n["es"]["Visual On: "] = "Visual activado: "
 -- STALE: ctld.i18n["es"][" searching for targets %1\n"] = " buscando objetivos %1\n"
 -- STALE: ctld.i18n["es"]["No Active JTACs"] = "Sin JTAC activos"
 -- STALE: ctld.i18n["es"][", targeting selected unit, %1"] = ", apuntando a la unidad indicada, %1"
--- STALE: ctld.i18n["es"][", target selection reset."] = ", reinicio de selección de objetivo."
--- STALE: ctld.i18n["es"]["%1, laser and smokes enabled"] = "%1, láser y humo habilitados"
--- STALE: ctld.i18n["es"]["%1, laser and smokes disabled"] = "%1, láser y humo deshabilitados"
--- STALE: ctld.i18n["es"]["%1, wind and target speed laser spot compensations enabled"] = "%1, compensaciones habilitadas del viento y de velocidad del objetivo para el punto láser"
--- STALE: ctld.i18n["es"]["%1, wind and target speed laser spot compensations disabled"] = "%1, compensaciones deshabilitadas del viento y de velocidad del objetivo para el punto láser"
+-- STALE: ctld.i18n["es"][", target selection reset."] = ", reinicio de selecciÃ³n de objetivo."
+-- STALE: ctld.i18n["es"]["%1, laser and smokes enabled"] = "%1, lÃ¡ser y humo habilitados"
+-- STALE: ctld.i18n["es"]["%1, laser and smokes disabled"] = "%1, lÃ¡ser y humo deshabilitados"
+-- STALE: ctld.i18n["es"]["%1, wind and target speed laser spot compensations enabled"] = "%1, compensaciones habilitadas del viento y de velocidad del objetivo para el punto lÃ¡ser"
+-- STALE: ctld.i18n["es"]["%1, wind and target speed laser spot compensations disabled"] = "%1, compensaciones deshabilitadas del viento y de velocidad del objetivo para el punto lÃ¡ser"
 -- STALE: ctld.i18n["es"]["%1, WHITE smoke deployed near target"] = "%1, humo BLANCO desplegado cerca del objetivo"
 
 --- F10 menu messages
 -- STALE: ctld.i18n["es"]["Actions"] = "Acciones"
 -- STALE: ctld.i18n["es"]["Troop Transport"] = "Transporte de tropas"
 -- STALE: ctld.i18n["es"]["Unload / Extract Troops"] = "Descargar/Extraer tropas"
--- STALE: ctld.i18n["es"]["Next page"] = "Página siguiente"
+-- STALE: ctld.i18n["es"]["Next page"] = "PÃ¡gina siguiente"
 -- STALE: ctld.i18n["es"]["Load "] = "Cargar "
--- STALE: ctld.i18n["es"]["Vehicle / FOB Transport"] = "Transporte de Vehículo / FOB"
--- STALE: ctld.i18n["es"]["Crates: Vehicle / FOB / Drone"] = "Cajas de Vehículo / FOB / Dron"
--- STALE: ctld.i18n["es"]["Unload Vehicles"] = "Descargar vehículos"
--- STALE: ctld.i18n["es"]["Load / Extract Vehicles"] = "Cargar/Extraer vehículos"
+-- STALE: ctld.i18n["es"]["Vehicle / FOB Transport"] = "Transporte de VehÃ­culo / FOB"
+-- STALE: ctld.i18n["es"]["Crates: Vehicle / FOB / Drone"] = "Cajas de VehÃ­culo / FOB / Dron"
+-- STALE: ctld.i18n["es"]["Unload Vehicles"] = "Descargar vehÃ­culos"
+-- STALE: ctld.i18n["es"]["Load / Extract Vehicles"] = "Cargar/Extraer vehÃ­culos"
 -- STALE: ctld.i18n["es"]["Load / Unload FOB Crate"] = "Cargar/Descargar caja FOB"
--- STALE: ctld.i18n["es"]["Pack Vehicles"] = "Envolver vehículos"
+-- STALE: ctld.i18n["es"]["Pack Vehicles"] = "Envolver vehÃ­culos"
 -- STALE: ctld.i18n["es"]["CTLD Commands"] = "Comandos CTLD"
 -- STALE: ctld.i18n["es"]["CTLD"] = "CTLD"
 -- STALE: ctld.i18n["es"]["Check Cargo"] = "Verificar carga"
@@ -2421,27 +2395,27 @@ ctld.i18n["es"]["Patriot - All crates"] = "Patriot - Todas las cajas"
 -- STALE: ctld.i18n["es"]["DISABLE "] = "DESHABILITAR "
 -- STALE: ctld.i18n["es"]["ENABLE "] = "HABILITAR "
 -- STALE: ctld.i18n["es"]["REQUEST "] = "SOLICITUD "
--- STALE: ctld.i18n["es"]["Reset TGT Selection"] = "Restablecer selección de objetivo"
+-- STALE: ctld.i18n["es"]["Reset TGT Selection"] = "Restablecer selecciÃ³n de objetivo"
 
 --- F10 RECON menus
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
 -- STALE: ctld.i18n["es"]["Show targets in LOS (refresh)"] = "Marcar objetivos visibles en el mapa F10"
 -- STALE: ctld.i18n["es"]["Hide targets in LOS"] = "Borrar marcas del mapa F10"
--- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
--- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
+-- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automÃ¡tico de objetivos"
+-- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automÃ¡tico de objetivos"
 
 --- Load Crate submenu
 ctld.i18n["es"]["Load Crate"] = "Cargar caja"
 ctld.i18n["es"]["Land to load crates"] = "Aterriza para cargar una caja"
 ctld.i18n["es"]["No crates within 50m"] = "No hay cajas en 50 m"
-ctld.i18n["es"]["You must land before you can load a crate!"] = "¡Debes aterrizar antes de poder cargar una caja!"
-ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo de cajas a bordo!"
-ctld.i18n["es"]["No crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
-ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
+ctld.i18n["es"]["You must land before you can load a crate!"] = "Â¡Debes aterrizar antes de poder cargar una caja!"
+ctld.i18n["es"]["Maximum number of crates are on board!"] = "Â¡NÃºmero mÃ¡ximo de cajas a bordo!"
+ctld.i18n["es"]["No crates within 50m to load!"] = "Â¡No hay cajas para cargar en un radio de 50 m!"
+ctld.i18n["es"]["Loaded %1 crate!"] = "Â¡Caja %1 cargada!"
 
 --- Drop Crate(s)
 ctld.i18n["es"]["No crates on board to drop."] = "No hay cajas a bordo para soltar."
-ctld.i18n["es"]["You must land before dropping crates!"] = "¡Debes aterrizar antes de soltar las cajas!"
+ctld.i18n["es"]["You must land before dropping crates!"] = "Â¡Debes aterrizar antes de soltar las cajas!"
 ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(s) a tu %2 en punto"
 
 --- Unpack Crate submenu
@@ -2449,22 +2423,22 @@ ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["Build FOB"] = "Construir FOB"
-ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
-ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
-ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
+ctld.i18n["es"]["You must land before unpacking crates!"] = "Â¡Debes aterrizar antes de desempaquetar las cajas!"
+ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "Â¡No hay suficientes cajas cercanas para desempaquetar!"
+ctld.i18n["es"]["%1 unpacked successfully!"] = "Â¡%1 desempaquetado con Ã©xito!"
 
 --- Pack Vehicle submenu
-ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehículos"
-ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetables cercanos"
-ctld.i18n["es"]["Vehicle no longer exists."] = "El vehículo ya no existe."
-ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehículo."
+ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehÃ­culos"
+ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehÃ­culos empaquetables cercanos"
+ctld.i18n["es"]["Vehicle no longer exists."] = "El vehÃ­culo ya no existe."
+ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehÃ­culo."
 
 --- List Nearby Crates
 ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
 ctld.i18n["es"]["No crates within 300m."] = "No hay cajas en un radio de 300m."
 ctld.i18n["es"]["Crates within 300m:"] = "Cajas en un radio de 300m:"
-ctld.i18n["es"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — LISTA"
-ctld.i18n["es"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incompleta"
+ctld.i18n["es"]["  %1: %2/%3 â€” READY"] = "  %1: %2/%3 â€” LISTA"
+ctld.i18n["es"]["  %1: %2/%3 â€” incomplete"] = "  %1: %2/%3 â€” incompleta"
 
 --- Check Cargo summary
 ctld.i18n["es"]["No cargo on board."] = "Sin carga a bordo."
@@ -2474,34 +2448,26 @@ ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 
 --- Request Equipment spawn messages
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
-ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
-ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
+ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "Â¡No estÃ¡s lo suficientemente cerca de la logÃ­stica aliada para solicitar una caja!"
+ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y estÃ¡ a tus %3 en punto "
 ctld.i18n["es"]["%1 crates have been brought out at your %2 o'clock"] = "%1 cajas han sido preparadas a tu %2 en punto"
 
---- FOBs List menu + FOB layer toggles
+--- FOBs List menu
 ctld.i18n["es"]["FOBs List"] = "Lista de FOBs"
 ctld.i18n["es"]["List active FOBs"] = "Listar FOBs activos"
 ctld.i18n["es"]["No active FOBs."] = "No hay FOBs activos."
 ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
-ctld.i18n["es"]["Toggle Friendly FOB Layer"] = "Alternar capa FOB amigos"
-ctld.i18n["es"]["Toggle Enemy FOB Layer"] = "Alternar capa FOB enemigos"
-ctld.i18n["es"]["Friendly FOB layer: OFF"] = "Capa FOB amigos: OFF"
-ctld.i18n["es"]["Friendly FOB layer: ON (%1 FOB(s))"] = "Capa FOB amigos: ON (%1 FOB(s))"
-ctld.i18n["es"]["Enemy FOB layer: OFF"] = "Capa FOB enemigos: OFF"
-ctld.i18n["es"]["Enemy FOB layer: ON (%1 FOB(s))"] = "Capa FOB enemigos: ON (%1 FOB(s))"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["es"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_es.lua =====
+ctld.i18n["es"]["â†’ Next Page"] = ""
 
--- ===== Start : CTLD_i18n_ko.lua =====
 --[[
-    CTLD — Korean dictionary
+    CTLD â€” Korean dictionary
     Translation version: 1.7
 
     Translator: rising_star
-    Note: some entries are intentionally empty (untranslated) — ctld.tr() will fall back to English.
-    Note: "Pack Vehicles" was absent from the original KO dictionary — added with empty placeholder.
+    Note: some entries are intentionally empty (untranslated) â€” ctld.tr() will fall back to English.
+    Note: "Pack Vehicles" was absent from the original KO dictionary â€” added with empty placeholder.
     To update: run tools/merger_V2/generate_i18n_dicts.ps1 after any ctld.tr() change.
 ]]
 if not ctld then ctld = {} end
@@ -2511,251 +2477,251 @@ ctld.i18n["ko"] = {}
 ctld.i18n["ko"].translation_version = "1.8"
 
 --- groups names
-ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
-ctld.i18n["ko"]["Anti Air"] = "방공"
-ctld.i18n["ko"]["Anti Tank"] = "대기갑"
-ctld.i18n["ko"]["Mortar Squad"] = "박격포 분대"
-ctld.i18n["ko"]["JTAC Group"] = "JTAC 그룹"
-ctld.i18n["ko"]["Single JTAC"] = "싱글 JTAC"
-ctld.i18n["ko"]["2x - Standard Groups"] = "표준 그룹 2x"
-ctld.i18n["ko"]["2x - Anti Air"] = "방공 2x"
-ctld.i18n["ko"]["2x - Anti Tank"] = "대기갑 2x"
-ctld.i18n["ko"]["2x - Standard Groups + 2x Mortar"] = "표준 그룹 2x + 박격포 분대 2x"
-ctld.i18n["ko"]["3x - Standard Groups"] = "표준 그룹 3x"
-ctld.i18n["ko"]["3x - Anti Air"] = "방공 3x"
-ctld.i18n["ko"]["3x - Anti Tank"] = "대기갑 3x"
-ctld.i18n["ko"]["3x - Mortar Squad"] = "박격포 분대 3x"
-ctld.i18n["ko"]["5x - Mortar Squad"] = "박격포 분대 5x"
-ctld.i18n["ko"]["Mortar Squad Red"] = "레드 박격포 분대"
+ctld.i18n["ko"]["Standard Group"] = "í‘œì¤€ ê·¸ë£¹"
+ctld.i18n["ko"]["Anti Air"] = "ë°©ê³µ"
+ctld.i18n["ko"]["Anti Tank"] = "ëŒ€ê¸°ê°‘"
+ctld.i18n["ko"]["Mortar Squad"] = "ë°•ê²©í¬ ë¶„ëŒ€"
+ctld.i18n["ko"]["JTAC Group"] = "JTAC ê·¸ë£¹"
+ctld.i18n["ko"]["Single JTAC"] = "ì‹±ê¸€ JTAC"
+ctld.i18n["ko"]["2x - Standard Groups"] = "í‘œì¤€ ê·¸ë£¹ 2x"
+ctld.i18n["ko"]["2x - Anti Air"] = "ë°©ê³µ 2x"
+ctld.i18n["ko"]["2x - Anti Tank"] = "ëŒ€ê¸°ê°‘ 2x"
+ctld.i18n["ko"]["2x - Standard Groups + 2x Mortar"] = "í‘œì¤€ ê·¸ë£¹ 2x + ë°•ê²©í¬ ë¶„ëŒ€ 2x"
+ctld.i18n["ko"]["3x - Standard Groups"] = "í‘œì¤€ ê·¸ë£¹ 3x"
+ctld.i18n["ko"]["3x - Anti Air"] = "ë°©ê³µ 3x"
+ctld.i18n["ko"]["3x - Anti Tank"] = "ëŒ€ê¸°ê°‘ 3x"
+ctld.i18n["ko"]["3x - Mortar Squad"] = "ë°•ê²©í¬ ë¶„ëŒ€ 3x"
+ctld.i18n["ko"]["5x - Mortar Squad"] = "ë°•ê²©í¬ ë¶„ëŒ€ 5x"
+ctld.i18n["ko"]["Mortar Squad Red"] = "ë ˆë“œ ë°•ê²©í¬ ë¶„ëŒ€"
 
 --- crates names (empty = untranslated, ctld.tr() falls back to EN)
-ctld.i18n["ko"]["Humvee - MG"] = "험비 - MG"
-ctld.i18n["ko"]["Humvee - TOW"] = "험비 - TOW"
+ctld.i18n["ko"]["Humvee - MG"] = "í—˜ë¹„ - MG"
+ctld.i18n["ko"]["Humvee - TOW"] = "í—˜ë¹„ - TOW"
 ctld.i18n["ko"]["Light Tank - MRAP"] = ""
 ctld.i18n["ko"]["Med Tank - LAV-25"] = ""
-ctld.i18n["ko"]["Heavy Tank - Abrams"] = "M1 에이브럼스"
+ctld.i18n["ko"]["Heavy Tank - Abrams"] = "M1 ì—ì´ë¸ŒëŸ¼ìŠ¤"
 ctld.i18n["ko"]["BTR-D"] = ""
 ctld.i18n["ko"]["BRDM-2"] = ""
-ctld.i18n["ko"]["Hummer - JTAC"] = "험머 - JTAC"
-ctld.i18n["ko"]["M-818 Ammo Truck"] = "M-818 탄약 차량"
-ctld.i18n["ko"]["M-978 Tanker"] = "M-978 연료 차량"
+ctld.i18n["ko"]["Hummer - JTAC"] = "í—˜ë¨¸ - JTAC"
+ctld.i18n["ko"]["M-818 Ammo Truck"] = "M-818 íƒ„ì•½ ì°¨ëŸ‰"
+ctld.i18n["ko"]["M-978 Tanker"] = "M-978 ì—°ë£Œ ì°¨ëŸ‰"
 ctld.i18n["ko"]["SKP-11 - JTAC"] = ""
-ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
-ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
-ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
-ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
-ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
-ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
-ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
-ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
-ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). %3초 후 완료."
+ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 íƒ„ì•½ ì°¨ëŸ‰"
+ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ íƒ„ì•½ ì°¨ëŸ‰"
+ctld.i18n["ko"]["EWR Radar"] = "ì¡°ê¸°ê²½ë³´ ë ˆì´ë”"
+ctld.i18n["ko"]["FOB Crate"] = "FOB í™”ë¬¼"
+ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOBë¥¼ ë°°ì¹˜í•˜ë ¤ë©´ ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤."
+ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOBì—ëŠ” 750m ì´ë‚´ì— %1ê°œì˜ í™”ë¬¼ì´ í•„ìš”í•©ë‹ˆë‹¤ - %2ê°œë§Œ ë°œê²¬ë˜ì—ˆìŠµë‹ˆë‹¤."
+ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "ì—¬ê¸°ì— FOBë¥¼ ë°°ì¹˜í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤! í•„ìš”í•œ ê³³ìœ¼ë¡œ ì´ë™í•˜ì„¸ìš”."
+ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB ë°°ì¹˜ ì°¨ë‹¨: ê¸°ì¡´ êµ°ìˆ˜ êµ¬ì—­ì—ì„œ ìµœì†Œ %1m ì´ìƒ ì´ë™í•˜ì„¸ìš”."
+ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1ì´(ê°€) FOB ê±´ì„¤ì„ ì‹œìž‘í–ˆìŠµë‹ˆë‹¤ (%2ê°œ í™”ë¬¼). %3ì´ˆ í›„ ì™„ë£Œ."
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["ko"]["MLRS"] = ""
-ctld.i18n["ko"]["SpGH DANA"] = "DANA 자주곡사포"
-ctld.i18n["ko"]["T155 Firtina"] = "T-155 프르트나"
+ctld.i18n["ko"]["SpGH DANA"] = "DANA ìžì£¼ê³¡ì‚¬í¬"
+ctld.i18n["ko"]["T155 Firtina"] = "T-155 í”„ë¥´íŠ¸ë‚˜"
 ctld.i18n["ko"]["Howitzer"] = ""
-ctld.i18n["ko"]["SPH 2S19 Msta"] = "2S19 므스타 자주곡사포"
-ctld.i18n["ko"]["M1097 Avenger"] = "M1097 어벤저"
-ctld.i18n["ko"]["M48 Chaparral"] = "M48 채퍼럴"
-ctld.i18n["ko"]["Roland ADS"] = "롤랑 ADS"
-ctld.i18n["ko"]["Gepard AAA"] = "게파트 자주대공포"
+ctld.i18n["ko"]["SPH 2S19 Msta"] = "2S19 ë¯€ìŠ¤íƒ€ ìžì£¼ê³¡ì‚¬í¬"
+ctld.i18n["ko"]["M1097 Avenger"] = "M1097 ì–´ë²¤ì €"
+ctld.i18n["ko"]["M48 Chaparral"] = "M48 ì±„í¼ëŸ´"
+ctld.i18n["ko"]["Roland ADS"] = "ë¡¤ëž‘ ADS"
+ctld.i18n["ko"]["Gepard AAA"] = "ê²ŒíŒŒíŠ¸ ìžì£¼ëŒ€ê³µí¬"
 ctld.i18n["ko"]["LPWS C-RAM"] = ""
-ctld.i18n["ko"]["9K33 Osa"] = "9K33 오사"
-ctld.i18n["ko"]["9P31 Strela-1"] = "9P31 스트렐라-1"
-ctld.i18n["ko"]["9K35M Strela-10"] = "9K35M 스트렐라-10"
-ctld.i18n["ko"]["9K331 Tor"] = "9K331 토르"
-ctld.i18n["ko"]["2K22 Tunguska"] = "2K22 퉁구스카"
-ctld.i18n["ko"]["HAWK Launcher"] = "호크 포대"
-ctld.i18n["ko"]["HAWK Search Radar"] = "호크 탐지 레이더"
-ctld.i18n["ko"]["HAWK Track Radar"] = "호크 추적 레이더"
-ctld.i18n["ko"]["HAWK PCP"] = "호크 PCP"
-ctld.i18n["ko"]["HAWK CWAR"] = "호크 CWAR"
-ctld.i18n["ko"]["HAWK Repair"] = "호크 수리킷"
-ctld.i18n["ko"]["NASAMS Launcher 120C"] = "NASAMS 포대 120C"
-ctld.i18n["ko"]["NASAMS Search/Track Radar"] = "NASAMS 레이더"
-ctld.i18n["ko"]["NASAMS Command Post"] = "NASAMS 관제소"
-ctld.i18n["ko"]["NASAMS Repair"] = "NASAMS 수리킷"
-ctld.i18n["ko"]["KUB Launcher"] = "SA-6 포대"
-ctld.i18n["ko"]["KUB Radar"] = "SA-6 레이더"
-ctld.i18n["ko"]["KUB Repair"] = "SA-6 수리킷"
-ctld.i18n["ko"]["BUK Launcher"] = "SA-11 포대"
-ctld.i18n["ko"]["BUK Search Radar"] = "SA-11 탐지 레이더"
+ctld.i18n["ko"]["9K33 Osa"] = "9K33 ì˜¤ì‚¬"
+ctld.i18n["ko"]["9P31 Strela-1"] = "9P31 ìŠ¤íŠ¸ë ë¼-1"
+ctld.i18n["ko"]["9K35M Strela-10"] = "9K35M ìŠ¤íŠ¸ë ë¼-10"
+ctld.i18n["ko"]["9K331 Tor"] = "9K331 í† ë¥´"
+ctld.i18n["ko"]["2K22 Tunguska"] = "2K22 í‰êµ¬ìŠ¤ì¹´"
+ctld.i18n["ko"]["HAWK Launcher"] = "í˜¸í¬ í¬ëŒ€"
+ctld.i18n["ko"]["HAWK Search Radar"] = "í˜¸í¬ íƒì§€ ë ˆì´ë”"
+ctld.i18n["ko"]["HAWK Track Radar"] = "í˜¸í¬ ì¶”ì  ë ˆì´ë”"
+ctld.i18n["ko"]["HAWK PCP"] = "í˜¸í¬ PCP"
+ctld.i18n["ko"]["HAWK CWAR"] = "í˜¸í¬ CWAR"
+ctld.i18n["ko"]["HAWK Repair"] = "í˜¸í¬ ìˆ˜ë¦¬í‚·"
+ctld.i18n["ko"]["NASAMS Launcher 120C"] = "NASAMS í¬ëŒ€ 120C"
+ctld.i18n["ko"]["NASAMS Search/Track Radar"] = "NASAMS ë ˆì´ë”"
+ctld.i18n["ko"]["NASAMS Command Post"] = "NASAMS ê´€ì œì†Œ"
+ctld.i18n["ko"]["NASAMS Repair"] = "NASAMS ìˆ˜ë¦¬í‚·"
+ctld.i18n["ko"]["KUB Launcher"] = "SA-6 í¬ëŒ€"
+ctld.i18n["ko"]["KUB Radar"] = "SA-6 ë ˆì´ë”"
+ctld.i18n["ko"]["KUB Repair"] = "SA-6 ìˆ˜ë¦¬í‚·"
+ctld.i18n["ko"]["BUK Launcher"] = "SA-11 í¬ëŒ€"
+ctld.i18n["ko"]["BUK Search Radar"] = "SA-11 íƒì§€ ë ˆì´ë”"
 ctld.i18n["ko"]["BUK CC Radar"] = "SA-11 CC"
-ctld.i18n["ko"]["BUK Repair"] = "SA-11 수리킷"
-ctld.i18n["ko"]["Patriot Launcher"] = "패트리어트 포대"
-ctld.i18n["ko"]["Patriot Radar"] = "패트리어트 탐지 레이더"
-ctld.i18n["ko"]["Patriot ECS"] = "패트리어트 ECS"
-ctld.i18n["ko"]["Patriot ICC"] = "패트리어트 ICC"
-ctld.i18n["ko"]["Patriot EPP"] = "패트리어트 EPP"
-ctld.i18n["ko"]["Patriot AMG (optional)"] = "패트리어트 AMG (선택 사항)"
-ctld.i18n["ko"]["Patriot Repair"] = "패트리어트 수리킷"
-ctld.i18n["ko"]["S-300 Grumble TEL C"] = "S-300 C 포대"
-ctld.i18n["ko"]["S-300 Grumble Flap Lid-A TR"] = "S-300 5N63 추적 레이더"
-ctld.i18n["ko"]["S-300 Grumble Clam Shell SR"] = "S-300 Clam Shell 탐지 레이더"
-ctld.i18n["ko"]["S-300 Grumble Big Bird SR"] = "S-300 Big Bird 탐지 레이더"
-ctld.i18n["ko"]["S-300 Grumble C2"] = "S-300 관제소"
-ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
+ctld.i18n["ko"]["BUK Repair"] = "SA-11 ìˆ˜ë¦¬í‚·"
+ctld.i18n["ko"]["Patriot Launcher"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ í¬ëŒ€"
+ctld.i18n["ko"]["Patriot Radar"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ íƒì§€ ë ˆì´ë”"
+ctld.i18n["ko"]["Patriot ECS"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ ECS"
+ctld.i18n["ko"]["Patriot ICC"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ ICC"
+ctld.i18n["ko"]["Patriot EPP"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ EPP"
+ctld.i18n["ko"]["Patriot AMG (optional)"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ AMG (ì„ íƒ ì‚¬í•­)"
+ctld.i18n["ko"]["Patriot Repair"] = "íŒ¨íŠ¸ë¦¬ì–´íŠ¸ ìˆ˜ë¦¬í‚·"
+ctld.i18n["ko"]["S-300 Grumble TEL C"] = "S-300 C í¬ëŒ€"
+ctld.i18n["ko"]["S-300 Grumble Flap Lid-A TR"] = "S-300 5N63 ì¶”ì  ë ˆì´ë”"
+ctld.i18n["ko"]["S-300 Grumble Clam Shell SR"] = "S-300 Clam Shell íƒì§€ ë ˆì´ë”"
+ctld.i18n["ko"]["S-300 Grumble Big Bird SR"] = "S-300 Big Bird íƒì§€ ë ˆì´ë”"
+ctld.i18n["ko"]["S-300 Grumble C2"] = "S-300 ê´€ì œì†Œ"
+ctld.i18n["ko"]["S-300 Repair"] = "S-300 ìˆ˜ë¦¬í‚·"
 -- "All crates" shortcuts not translated in original KO source
 
 --- mission design error messages
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua 오류 : %1 트리거를 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone called %1"] = "CTLD.lua 오류 : %1 존을 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone or ship called %1"] = "CTLD.lua 오류 : %1 존 또는 함선을 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find crate with weight %1"] = "CTLD.lua 오류 : %1 의 무게를 가진 화물을 찾을 수 없음"
+-- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ì˜¤ë¥˜ : %1 íŠ¸ë¦¬ê±°ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŒ"
+-- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone called %1"] = "CTLD.lua ì˜¤ë¥˜ : %1 ì¡´ì„ ì°¾ì„ ìˆ˜ ì—†ìŒ"
+-- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone or ship called %1"] = "CTLD.lua ì˜¤ë¥˜ : %1 ì¡´ ë˜ëŠ” í•¨ì„ ì„ ì°¾ì„ ìˆ˜ ì—†ìŒ"
+-- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find crate with weight %1"] = "CTLD.lua ì˜¤ë¥˜ : %1 ì˜ ë¬´ê²Œë¥¼ ê°€ì§„ í™”ë¬¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŒ"
 
 --- runtime messages
--- STALE: ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
--- STALE: ctld.i18n["ko"]["No more JTAC Crates Left!"] = "JTAC 화물이 남아있지 않습니다!"
--- STALE: ctld.i18n["ko"]["Sorry you must wait %1 seconds before you can get another crate"] = "죄송합니다, 다른 화물을 얻기까지 %1 초 기다려야 합니다."
--- STALE: ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
--- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into combat"] = "%1 이(가) %2 에서 공수부대를 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into combat"] = "%1 이(가) %2 에서 병력을 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into %3"] = "%1 이(가) %2 에서 %3 로 공수부대를 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into %3"] = "%1 이(가) %2에서 %3 로 병력을 투입했습니다."
--- STALE: ctld.i18n["ko"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "병력을 투입하기에 너무 빠르거나 너무 높습니다! %1 피트 아래로 호버링 하거나 착륙하십시오."
--- STALE: ctld.i18n["ko"]["%1 dropped vehicles from %2 into combat"] = "%1 이(가) %2 에서 차량(들)을 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 loaded troops into %2"] = "%1 이 %2 로 병력을 실었습니다."
--- STALE: ctld.i18n["ko"]["%1 loaded %2 vehicles into %3"] = "%1 이 %2 대의 차량을 %3 로 실었습니다."
--- STALE: ctld.i18n["ko"]["%1 delivered a FOB Crate"] = "%1 이 FOB 화물을 배달했습니다."
--- STALE: ctld.i18n["ko"]["Delivered FOB Crate 60m at 6'oclock to you"] = "FOB 화물이 6시 방향 60m 거리에 있습니다."
--- STALE: ctld.i18n["ko"]["FOB Crate dropped back to base"] = "FOB 화물이 기지로 돌아갔습니다."
--- STALE: ctld.i18n["ko"]["FOB Crate Loaded"] = "FOB 화물 적재 완료"
--- STALE: ctld.i18n["ko"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 이 배달 준비가 완료된 FOB 화물을 실었습니다!"
--- STALE: ctld.i18n["ko"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "아군 보급계가 FOB 화물을 싣기에 충분한 거리에 있지 않습니다!"
--- STALE: ctld.i18n["ko"]["This area has no more reinforcements available!"] = "이 구역은 지원이 불가합니다!"
--- STALE: ctld.i18n["ko"]["You are not in a pickup zone and no one is nearby to extract"] = "픽업 구역이 아니고 근처에 철수할 병력이 없습니다."
--- STALE: ctld.i18n["ko"]["You are not in a pickup zone"] = "픽업 구역이 아닙니다."
--- STALE: ctld.i18n["ko"]["No one to unload"] = "내릴 사람 없음"
--- STALE: ctld.i18n["ko"]["Dropped troops back to base"] = "병력을 기지로 돌려보냈습니다."
--- STALE: ctld.i18n["ko"]["Dropped vehicles back to base"] = "차량을 기지로 돌려보냈습니다."
--- STALE: ctld.i18n["ko"]["You already have troops onboard."] = "이미 병력이 탑승중입니다."
+-- STALE: ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "ì•„êµ° ë³´ê¸‰ê³„ê°€ í™”ë¬¼ì„ ì‹£ê¸°ì— ì¶©ë¶„í•œ ê±°ë¦¬ì— ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["No more JTAC Crates Left!"] = "JTAC í™”ë¬¼ì´ ë‚¨ì•„ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["Sorry you must wait %1 seconds before you can get another crate"] = "ì£„ì†¡í•©ë‹ˆë‹¤, ë‹¤ë¥¸ í™”ë¬¼ì„ ì–»ê¸°ê¹Œì§€ %1 ì´ˆ ê¸°ë‹¤ë ¤ì•¼ í•©ë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KGì˜ %1 í™”ë¬¼ì´ %3 ì‹œ ë°©í–¥ì— ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into combat"] = "%1 ì´(ê°€) %2 ì—ì„œ ê³µìˆ˜ë¶€ëŒ€ë¥¼ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into combat"] = "%1 ì´(ê°€) %2 ì—ì„œ ë³‘ë ¥ì„ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into %3"] = "%1 ì´(ê°€) %2 ì—ì„œ %3 ë¡œ ê³µìˆ˜ë¶€ëŒ€ë¥¼ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into %3"] = "%1 ì´(ê°€) %2ì—ì„œ %3 ë¡œ ë³‘ë ¥ì„ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "ë³‘ë ¥ì„ íˆ¬ìž…í•˜ê¸°ì— ë„ˆë¬´ ë¹ ë¥´ê±°ë‚˜ ë„ˆë¬´ ë†’ìŠµë‹ˆë‹¤! %1 í”¼íŠ¸ ì•„ëž˜ë¡œ í˜¸ë²„ë§ í•˜ê±°ë‚˜ ì°©ë¥™í•˜ì‹­ì‹œì˜¤."
+-- STALE: ctld.i18n["ko"]["%1 dropped vehicles from %2 into combat"] = "%1 ì´(ê°€) %2 ì—ì„œ ì°¨ëŸ‰(ë“¤)ì„ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 loaded troops into %2"] = "%1 ì´ %2 ë¡œ ë³‘ë ¥ì„ ì‹¤ì—ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 loaded %2 vehicles into %3"] = "%1 ì´ %2 ëŒ€ì˜ ì°¨ëŸ‰ì„ %3 ë¡œ ì‹¤ì—ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 delivered a FOB Crate"] = "%1 ì´ FOB í™”ë¬¼ì„ ë°°ë‹¬í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Delivered FOB Crate 60m at 6'oclock to you"] = "FOB í™”ë¬¼ì´ 6ì‹œ ë°©í–¥ 60m ê±°ë¦¬ì— ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["FOB Crate dropped back to base"] = "FOB í™”ë¬¼ì´ ê¸°ì§€ë¡œ ëŒì•„ê°”ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["FOB Crate Loaded"] = "FOB í™”ë¬¼ ì ìž¬ ì™„ë£Œ"
+-- STALE: ctld.i18n["ko"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 ì´ ë°°ë‹¬ ì¤€ë¹„ê°€ ì™„ë£Œëœ FOB í™”ë¬¼ì„ ì‹¤ì—ˆìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "ì•„êµ° ë³´ê¸‰ê³„ê°€ FOB í™”ë¬¼ì„ ì‹£ê¸°ì— ì¶©ë¶„í•œ ê±°ë¦¬ì— ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["This area has no more reinforcements available!"] = "ì´ êµ¬ì—­ì€ ì§€ì›ì´ ë¶ˆê°€í•©ë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["You are not in a pickup zone and no one is nearby to extract"] = "í”½ì—… êµ¬ì—­ì´ ì•„ë‹ˆê³  ê·¼ì²˜ì— ì² ìˆ˜í•  ë³‘ë ¥ì´ ì—†ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["You are not in a pickup zone"] = "í”½ì—… êµ¬ì—­ì´ ì•„ë‹™ë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["No one to unload"] = "ë‚´ë¦´ ì‚¬ëžŒ ì—†ìŒ"
+-- STALE: ctld.i18n["ko"]["Dropped troops back to base"] = "ë³‘ë ¥ì„ ê¸°ì§€ë¡œ ëŒë ¤ë³´ëƒˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Dropped vehicles back to base"] = "ì°¨ëŸ‰ì„ ê¸°ì§€ë¡œ ëŒë ¤ë³´ëƒˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["You already have troops onboard."] = "ì´ë¯¸ ë³‘ë ¥ì´ íƒ‘ìŠ¹ì¤‘ìž…ë‹ˆë‹¤."
 -- STALE: ctld.i18n["ko"]["Count Infantries limit in the mission reached, you can't load more troops"] = ""
--- STALE: ctld.i18n["ko"]["You already have vehicles onboard."] = "이미 차량이 적재되어 있습니다."
--- STALE: ctld.i18n["ko"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "죄송합니다. %1 그룹이 너무 무겁습니다. \n\n%3 의 무게 제한은 %2 입니다."
--- STALE: ctld.i18n["ko"]["%1 extracted troops in %2 from combat"] = "%1 이 %2 에서 병력을 철수시켰습니다."
--- STALE: ctld.i18n["ko"]["No extractable troops nearby!"] = "철수시킬 병력이 근처에 없습니다!"
--- STALE: ctld.i18n["ko"]["%1 extracted vehicles in %2 from combat"] = "%1 이 %2 에서 차량을 철수시켰습니다."
--- STALE: ctld.i18n["ko"]["No extractable vehicles nearby!"] = "철수시킬 차량이 근처에 없습니다!"
--- STALE: ctld.i18n["ko"]["%1 troops onboard (%2 kg)\n"] = "탑승중인 병력 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["%1 vehicles onboard (%2)\n"] = "적재된 차량 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["1 FOB Crate oboard (%1 kg)\n"] = "FOB 화물 1개 적재됨 (%1 kg)\n"
--- STALE: ctld.i18n["ko"]["%1 crate onboard (%2 kg)\n"] = "적재된 화물 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["Total weight of cargo : %1 kg\n"] = "총 화물 무게 : %1 kg\n"
--- STALE: ctld.i18n["ko"]["No cargo."] = "화물 없음."
--- STALE: ctld.i18n["ko"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "%1 화물 위 호버링 중. \n\n%2 초 동안 호버링하세요! \n\n카운트다운이 멈추면 너무 멀다는 뜻입니다!"
--- STALE: ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
--- STALE: ctld.i18n["ko"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 화물을 싣기에 너무 낮습니다.\n\n%2 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 화물을 싣기에 너무 높습니다.\n\n%2 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
--- STALE: ctld.i18n["ko"]["No Crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
--- STALE: ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
--- STALE: ctld.i18n["ko"]["%1\n%2 crate - kg %3 - %4 m - %5 o'clock"] = "%1\n%2 화물 - kg %3 - %4 m - %5 시 방향"
--- STALE: ctld.i18n["ko"]["FOB Crate - %1 m - %2 o'clock\n"] = "FOB 화물 - %1 m - %2 시 방향\n"
--- STALE: ctld.i18n["ko"]["No Nearby Crates"] = "근처 화물 없음."
--- STALE: ctld.i18n["ko"]["Nearby Crates:\n%1"] = "근처 화물:\n%1"
--- STALE: ctld.i18n["ko"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "근처 FOB 화물 (슬링로드 불가):\n%1"
--- STALE: ctld.i18n["ko"]["FOB Positions:"] = "FOB 위치:"
+-- STALE: ctld.i18n["ko"]["You already have vehicles onboard."] = "ì´ë¯¸ ì°¨ëŸ‰ì´ ì ìž¬ë˜ì–´ ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "ì£„ì†¡í•©ë‹ˆë‹¤. %1 ê·¸ë£¹ì´ ë„ˆë¬´ ë¬´ê²ìŠµë‹ˆë‹¤. \n\n%3 ì˜ ë¬´ê²Œ ì œí•œì€ %2 ìž…ë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 extracted troops in %2 from combat"] = "%1 ì´ %2 ì—ì„œ ë³‘ë ¥ì„ ì² ìˆ˜ì‹œì¼°ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["No extractable troops nearby!"] = "ì² ìˆ˜ì‹œí‚¬ ë³‘ë ¥ì´ ê·¼ì²˜ì— ì—†ìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["%1 extracted vehicles in %2 from combat"] = "%1 ì´ %2 ì—ì„œ ì°¨ëŸ‰ì„ ì² ìˆ˜ì‹œì¼°ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["No extractable vehicles nearby!"] = "ì² ìˆ˜ì‹œí‚¬ ì°¨ëŸ‰ì´ ê·¼ì²˜ì— ì—†ìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["%1 troops onboard (%2 kg)\n"] = "íƒ‘ìŠ¹ì¤‘ì¸ ë³‘ë ¥ : %1 (%2 kg)\n"
+-- STALE: ctld.i18n["ko"]["%1 vehicles onboard (%2)\n"] = "ì ìž¬ëœ ì°¨ëŸ‰ : %1 (%2 kg)\n"
+-- STALE: ctld.i18n["ko"]["1 FOB Crate oboard (%1 kg)\n"] = "FOB í™”ë¬¼ 1ê°œ ì ìž¬ë¨ (%1 kg)\n"
+-- STALE: ctld.i18n["ko"]["%1 crate onboard (%2 kg)\n"] = "ì ìž¬ëœ í™”ë¬¼ : %1 (%2 kg)\n"
+-- STALE: ctld.i18n["ko"]["Total weight of cargo : %1 kg\n"] = "ì´ í™”ë¬¼ ë¬´ê²Œ : %1 kg\n"
+-- STALE: ctld.i18n["ko"]["No cargo."] = "í™”ë¬¼ ì—†ìŒ."
+-- STALE: ctld.i18n["ko"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "%1 í™”ë¬¼ ìœ„ í˜¸ë²„ë§ ì¤‘. \n\n%2 ì´ˆ ë™ì•ˆ í˜¸ë²„ë§í•˜ì„¸ìš”! \n\nì¹´ìš´íŠ¸ë‹¤ìš´ì´ ë©ˆì¶”ë©´ ë„ˆë¬´ ë©€ë‹¤ëŠ” ëœ»ìž…ë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 í™”ë¬¼ ì ìž¬ ì™„ë£Œ!"
+-- STALE: ctld.i18n["ko"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 í™”ë¬¼ì„ ì‹£ê¸°ì— ë„ˆë¬´ ë‚®ìŠµë‹ˆë‹¤.\n\n%2 ì´ˆ ë™ì•ˆ í˜¸ë²„ë§í•˜ì„¸ìš”."
+-- STALE: ctld.i18n["ko"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 í™”ë¬¼ì„ ì‹£ê¸°ì— ë„ˆë¬´ ë†’ìŠµë‹ˆë‹¤.\n\n%2 ì´ˆ ë™ì•ˆ í˜¸ë²„ë§í•˜ì„¸ìš”."
+-- STALE: ctld.i18n["ko"]["You must land before you can load a crate!"] = "í™”ë¬¼ì„ ì‹£ê¸° ì „ì— ë¨¼ì € ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["No Crates within 50m to load!"] = "50m ë‚´ì— ì‹¤ì„ í™”ë¬¼ì´ ì—†ìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["Maximum number of crates are on board!"] = "ì´ë¯¸ í™”ë¬¼ì„ ìµœëŒ€ë¡œ ì‹¤ì—ˆìŠµë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["%1\n%2 crate - kg %3 - %4 m - %5 o'clock"] = "%1\n%2 í™”ë¬¼ - kg %3 - %4 m - %5 ì‹œ ë°©í–¥"
+-- STALE: ctld.i18n["ko"]["FOB Crate - %1 m - %2 o'clock\n"] = "FOB í™”ë¬¼ - %1 m - %2 ì‹œ ë°©í–¥\n"
+-- STALE: ctld.i18n["ko"]["No Nearby Crates"] = "ê·¼ì²˜ í™”ë¬¼ ì—†ìŒ."
+-- STALE: ctld.i18n["ko"]["Nearby Crates:\n%1"] = "ê·¼ì²˜ í™”ë¬¼:\n%1"
+-- STALE: ctld.i18n["ko"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "ê·¼ì²˜ FOB í™”ë¬¼ (ìŠ¬ë§ë¡œë“œ ë¶ˆê°€):\n%1"
+-- STALE: ctld.i18n["ko"]["FOB Positions:"] = "FOB ìœ„ì¹˜:"
 -- STALE: ctld.i18n["ko"]["%1\nFOB @ %2"] = ""
--- STALE: ctld.i18n["ko"]["Sorry, there are no active FOBs!"] = "죄송합니다, 활성화된 FOB가 없습니다."
--- STALE: ctld.i18n["ko"]["You can't unpack that here! Take it to where it's needed!"] = "여기에 풀 수 없습니다! 필요한 곳에 가져가세요!"
--- STALE: ctld.i18n["ko"]["Sorry you must move this crate before you unpack it!"] = "죄송합니다, 풀기 전에 이 화물을 옮겨야 합니다!"
--- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field"] = "%1 이 %2 를 성공적으로 배치했습니다."
--- STALE: ctld.i18n["ko"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "풀 아군 화물이 가깝지 않거나 너무 가깝습니다."
--- STALE: ctld.i18n["ko"]["Finished building FOB! Crates and Troops can now be picked up."] = "FOB 건설 완료! 이제 화물과 병력을 실을 수 있습니다."
--- STALE: ctld.i18n["ko"]["Finished building FOB! Crates can now be picked up."] = "FOB 건설 완료! 이제 화물을 실을 수 있습니다."
--- STALE: ctld.i18n["ko"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 이 %2 개의 FOB 화물을 이용하여 FOB 건설을 시작했습니다. %3 초 후 완료됩니다.\n위치가 연막으로 표시됐습니다."
--- STALE: ctld.i18n["ko"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "FOB를 건설할 수 없습니다!\n\n%1 개의 FOB 화물 - 大 가 필요합니다! (3개의 FOB 화물 - 小 는 1개의 FOB 화물 - 大 와 동일합니다.) 근처에 %2 개의 FOB 화물 - 大 가 있습니다.\n\n또는 화물들이 서로 750m 거리보다 멀리 있습니다."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 화물 위에서 %1 초 동안 호버링하거나 착륙하여 F10 화물 명령어를 사용하세요."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 화물 위에서 %1 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 착륙하여 F10 화물 명령어를 사용하세요."
--- STALE: ctld.i18n["ko"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 화물이 안전하게 내려졌고 %2 시 방향에 있습니다."
--- STALE: ctld.i18n["ko"]["%1 crate has been safely dropped below you"] = "%1 화물이 밑에 안전하게 내려졌습니다."
--- STALE: ctld.i18n["ko"]["You were too high! The crate has been destroyed"] = "너무 높았습니다! 화물이 파괴되었습니다."
--- STALE: ctld.i18n["ko"]["Radio Beacons:\n%1"] = "라디오 비콘 :\n%1"
--- STALE: ctld.i18n["ko"]["No Active Radio Beacons"] = "활성화된 라디오 비콘 없음."
--- STALE: ctld.i18n["ko"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 배치했습니다.\n\n%2"
--- STALE: ctld.i18n["ko"]["You need to land before you can deploy a Radio Beacon!"] = "라디오 비콘을 배치하려면 착륙해야 합니다!"
--- STALE: ctld.i18n["ko"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 제거했습니다.\n\n%2"
--- STALE: ctld.i18n["ko"]["No Radio Beacons within 500m."] = "500m 내에 라디오 비콘 없음."
--- STALE: ctld.i18n["ko"]["You need to land before remove a Radio Beacon"] = "라디오 비콘을 제거하려면 착륙해야 합니다."
--- STALE: ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = "%1 이(가) %2 을(를) 성공적으로 재무장 시켰습니다."
--- STALE: ctld.i18n["ko"]["Missing %1\n"] = "%1 없음\n"
--- STALE: ctld.i18n["ko"]["Out of parts for AA Systems. Current limit is %1\n"] = "방공 시스템 필요 부분 없음. 현재 제한 : %1\n"
--- STALE: ctld.i18n["ko"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "%1 건설 불가\n%2\n\n또는 화물이 서로 가까이 있지 않습니다."
--- STALE: ctld.i18n["ko"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 이(가) 완전한 %2 를 성공적으로 투입했습니다. \n\n방공 시스템 제한 : %3\n활성화된 방공 시스템 : %4"
--- STALE: ctld.i18n["ko"]["%1 successfully repaired a full %2 in the field."] = "%1 이(가) 완전한 %2 을(를) 성공적으로 수리했습니다."
--- STALE: ctld.i18n["ko"]["Cannot repair %1. No damaged %2 within 300m"] = "%1 수리 불가. 300m 내에 손상을 입은 %2 없음."
--- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 이 %3 개의 화물을 이용하여 %2 을(를) 성공적으로 배치했습니다."
--- STALE: ctld.i18n["ko"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "%1 건설 불가!\n\n%2 개의 화물이 필요하지만 %3 개 있습니다. \n\n또는 화물들이 서로 300m 내의 거리에 있지 않습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped %2 smoke."] = "%1 이(가) %2 연막을 투하했습니다."
+-- STALE: ctld.i18n["ko"]["Sorry, there are no active FOBs!"] = "ì£„ì†¡í•©ë‹ˆë‹¤, í™œì„±í™”ëœ FOBê°€ ì—†ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["You can't unpack that here! Take it to where it's needed!"] = "ì—¬ê¸°ì— í’€ ìˆ˜ ì—†ìŠµë‹ˆë‹¤! í•„ìš”í•œ ê³³ì— ê°€ì ¸ê°€ì„¸ìš”!"
+-- STALE: ctld.i18n["ko"]["Sorry you must move this crate before you unpack it!"] = "ì£„ì†¡í•©ë‹ˆë‹¤, í’€ê¸° ì „ì— ì´ í™”ë¬¼ì„ ì˜®ê²¨ì•¼ í•©ë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field"] = "%1 ì´ %2 ë¥¼ ì„±ê³µì ìœ¼ë¡œ ë°°ì¹˜í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "í’€ ì•„êµ° í™”ë¬¼ì´ ê°€ê¹ì§€ ì•Šê±°ë‚˜ ë„ˆë¬´ ê°€ê¹ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Finished building FOB! Crates and Troops can now be picked up."] = "FOB ê±´ì„¤ ì™„ë£Œ! ì´ì œ í™”ë¬¼ê³¼ ë³‘ë ¥ì„ ì‹¤ì„ ìˆ˜ ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Finished building FOB! Crates can now be picked up."] = "FOB ê±´ì„¤ ì™„ë£Œ! ì´ì œ í™”ë¬¼ì„ ì‹¤ì„ ìˆ˜ ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 ì´ %2 ê°œì˜ FOB í™”ë¬¼ì„ ì´ìš©í•˜ì—¬ FOB ê±´ì„¤ì„ ì‹œìž‘í–ˆìŠµë‹ˆë‹¤. %3 ì´ˆ í›„ ì™„ë£Œë©ë‹ˆë‹¤.\nìœ„ì¹˜ê°€ ì—°ë§‰ìœ¼ë¡œ í‘œì‹œëìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "FOBë¥¼ ê±´ì„¤í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤!\n\n%1 ê°œì˜ FOB í™”ë¬¼ - å¤§ ê°€ í•„ìš”í•©ë‹ˆë‹¤! (3ê°œì˜ FOB í™”ë¬¼ - å° ëŠ” 1ê°œì˜ FOB í™”ë¬¼ - å¤§ ì™€ ë™ì¼í•©ë‹ˆë‹¤.) ê·¼ì²˜ì— %2 ê°œì˜ FOB í™”ë¬¼ - å¤§ ê°€ ìžˆìŠµë‹ˆë‹¤.\n\në˜ëŠ” í™”ë¬¼ë“¤ì´ ì„œë¡œ 750m ê±°ë¦¬ë³´ë‹¤ ë©€ë¦¬ ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "í˜„ìž¬ í™”ë¬¼ì„ ìš´ì†¡í•˜ê³  ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤. \n\ní™”ë¬¼ì„ ì‹¤ìœ¼ë ¤ë©´, í™”ë¬¼ ìœ„ì—ì„œ %1 ì´ˆ ë™ì•ˆ í˜¸ë²„ë§í•˜ê±°ë‚˜ ì°©ë¥™í•˜ì—¬ F10 í™”ë¬¼ ëª…ë ¹ì–´ë¥¼ ì‚¬ìš©í•˜ì„¸ìš”."
+-- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "í˜„ìž¬ í™”ë¬¼ì„ ìš´ì†¡í•˜ê³  ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤. \n\ní™”ë¬¼ì„ ì‹¤ìœ¼ë ¤ë©´, í™”ë¬¼ ìœ„ì—ì„œ %1 ì´ˆ ë™ì•ˆ í˜¸ë²„ë§í•˜ì„¸ìš”."
+-- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "í˜„ìž¬ í™”ë¬¼ì„ ìš´ì†¡í•˜ê³  ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤. \n\ní™”ë¬¼ì„ ì‹¤ìœ¼ë ¤ë©´, ì°©ë¥™í•˜ì—¬ F10 í™”ë¬¼ ëª…ë ¹ì–´ë¥¼ ì‚¬ìš©í•˜ì„¸ìš”."
+-- STALE: ctld.i18n["ko"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 í™”ë¬¼ì´ ì•ˆì „í•˜ê²Œ ë‚´ë ¤ì¡Œê³  %2 ì‹œ ë°©í–¥ì— ìžˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 crate has been safely dropped below you"] = "%1 í™”ë¬¼ì´ ë°‘ì— ì•ˆì „í•˜ê²Œ ë‚´ë ¤ì¡ŒìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["You were too high! The crate has been destroyed"] = "ë„ˆë¬´ ë†’ì•˜ìŠµë‹ˆë‹¤! í™”ë¬¼ì´ íŒŒê´´ë˜ì—ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Radio Beacons:\n%1"] = "ë¼ë””ì˜¤ ë¹„ì½˜ :\n%1"
+-- STALE: ctld.i18n["ko"]["No Active Radio Beacons"] = "í™œì„±í™”ëœ ë¼ë””ì˜¤ ë¹„ì½˜ ì—†ìŒ."
+-- STALE: ctld.i18n["ko"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 ì´(ê°€) ë¼ë””ì˜¤ ë¹„ì½˜ì„ ë°°ì¹˜í–ˆìŠµë‹ˆë‹¤.\n\n%2"
+-- STALE: ctld.i18n["ko"]["You need to land before you can deploy a Radio Beacon!"] = "ë¼ë””ì˜¤ ë¹„ì½˜ì„ ë°°ì¹˜í•˜ë ¤ë©´ ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+-- STALE: ctld.i18n["ko"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 ì´(ê°€) ë¼ë””ì˜¤ ë¹„ì½˜ì„ ì œê±°í–ˆìŠµë‹ˆë‹¤.\n\n%2"
+-- STALE: ctld.i18n["ko"]["No Radio Beacons within 500m."] = "500m ë‚´ì— ë¼ë””ì˜¤ ë¹„ì½˜ ì—†ìŒ."
+-- STALE: ctld.i18n["ko"]["You need to land before remove a Radio Beacon"] = "ë¼ë””ì˜¤ ë¹„ì½˜ì„ ì œê±°í•˜ë ¤ë©´ ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = "%1 ì´(ê°€) %2 ì„(ë¥¼) ì„±ê³µì ìœ¼ë¡œ ìž¬ë¬´ìž¥ ì‹œì¼°ìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Missing %1\n"] = "%1 ì—†ìŒ\n"
+-- STALE: ctld.i18n["ko"]["Out of parts for AA Systems. Current limit is %1\n"] = "ë°©ê³µ ì‹œìŠ¤í…œ í•„ìš” ë¶€ë¶„ ì—†ìŒ. í˜„ìž¬ ì œí•œ : %1\n"
+-- STALE: ctld.i18n["ko"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "%1 ê±´ì„¤ ë¶ˆê°€\n%2\n\në˜ëŠ” í™”ë¬¼ì´ ì„œë¡œ ê°€ê¹Œì´ ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 ì´(ê°€) ì™„ì „í•œ %2 ë¥¼ ì„±ê³µì ìœ¼ë¡œ íˆ¬ìž…í–ˆìŠµë‹ˆë‹¤. \n\në°©ê³µ ì‹œìŠ¤í…œ ì œí•œ : %3\ní™œì„±í™”ëœ ë°©ê³µ ì‹œìŠ¤í…œ : %4"
+-- STALE: ctld.i18n["ko"]["%1 successfully repaired a full %2 in the field."] = "%1 ì´(ê°€) ì™„ì „í•œ %2 ì„(ë¥¼) ì„±ê³µì ìœ¼ë¡œ ìˆ˜ë¦¬í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Cannot repair %1. No damaged %2 within 300m"] = "%1 ìˆ˜ë¦¬ ë¶ˆê°€. 300m ë‚´ì— ì†ìƒì„ ìž…ì€ %2 ì—†ìŒ."
+-- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 ì´ %3 ê°œì˜ í™”ë¬¼ì„ ì´ìš©í•˜ì—¬ %2 ì„(ë¥¼) ì„±ê³µì ìœ¼ë¡œ ë°°ì¹˜í–ˆìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "%1 ê±´ì„¤ ë¶ˆê°€!\n\n%2 ê°œì˜ í™”ë¬¼ì´ í•„ìš”í•˜ì§€ë§Œ %3 ê°œ ìžˆìŠµë‹ˆë‹¤. \n\në˜ëŠ” í™”ë¬¼ë“¤ì´ ì„œë¡œ 300m ë‚´ì˜ ê±°ë¦¬ì— ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤."
+-- STALE: ctld.i18n["ko"]["%1 dropped %2 smoke."] = "%1 ì´(ê°€) %2 ì—°ë§‰ì„ íˆ¬í•˜í–ˆìŠµë‹ˆë‹¤."
 
 --- JTAC messages
--- STALE: ctld.i18n["ko"]["JTAC Group %1 KIA!"] = "JTAC 그룹 %1 전사!"
--- STALE: ctld.i18n["ko"]["%1, selected target reacquired, %2"] = "%1, 선택된 목표물 재습득, %2"
--- STALE: ctld.i18n["ko"][". CODE: %1. POSITION: %2"] = ". 코드: %1. 위치: %2"
--- STALE: ctld.i18n["ko"]["new target, "] = "새 목표물, "
--- STALE: ctld.i18n["ko"]["standing by on %1"] = "%1 대기 중"
--- STALE: ctld.i18n["ko"]["lasing %1"] = "%1 레이저 조준 중"
--- STALE: ctld.i18n["ko"][", temporarily %1"] = ", 임시로 %1"
--- STALE: ctld.i18n["ko"]["target lost"] = "목표물 놓침"
--- STALE: ctld.i18n["ko"]["target destroyed"] = "목표물 파괴됨"
--- STALE: ctld.i18n["ko"][", selected %1"] = ", %1 선택 완료"
--- STALE: ctld.i18n["ko"]["%1 %2 target lost."] = "%1 %2 목표물 놓침."
--- STALE: ctld.i18n["ko"]["%1 %2 target destroyed."] = "%1 %2 목표물 파괴됨."
--- STALE: ctld.i18n["ko"]["JTAC STATUS: \n\n"] = "JTAC 상태 : \n\n"
--- STALE: ctld.i18n["ko"][", available on %1 %2,"] = ", %1 %2 가능,"
--- STALE: ctld.i18n["ko"]["UNKNOWN"] = "미상"
--- STALE: ctld.i18n["ko"][" targeting "] = " 조준 중 : "
--- STALE: ctld.i18n["ko"][" targeting selected unit "] = " 선택한 유닛 조준 중 "
--- STALE: ctld.i18n["ko"][" attempting to find selected unit, temporarily targeting "] = " 선택한 유닛 찾는 중, 임시로 조준 중 : "
--- STALE: ctld.i18n["ko"]["(Laser OFF) "] = "(레이저 끔) "
--- STALE: ctld.i18n["ko"]["Visual On: "] = "육안 식별 : "
--- STALE: ctld.i18n["ko"][" searching for targets %1\n"] = " %1 목표물 찾는 중\n"
--- STALE: ctld.i18n["ko"]["No Active JTACs"] = "활성화된 JTAC 없음"
--- STALE: ctld.i18n["ko"][", targeting selected unit, %1"] = ", 선택한 유닛 조준 중, %1"
--- STALE: ctld.i18n["ko"][", target selection reset."] = ", 목표물 선택 초기화."
--- STALE: ctld.i18n["ko"]["%1, laser and smokes enabled"] = "%1, 레이저 및 연막 사용"
--- STALE: ctld.i18n["ko"]["%1, laser and smokes disabled"] = "%1, 레이저 및 연막 미사용"
--- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations enabled"] = "%1, 바람, 목표물 속도 보정 사용"
--- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations disabled"] = "%1, 바람, 목표물 속도 보정 미사용"
--- STALE: ctld.i18n["ko"]["%1, WHITE smoke deployed near target"] = "%1, 목표물 근처 백색 연막"
+-- STALE: ctld.i18n["ko"]["JTAC Group %1 KIA!"] = "JTAC ê·¸ë£¹ %1 ì „ì‚¬!"
+-- STALE: ctld.i18n["ko"]["%1, selected target reacquired, %2"] = "%1, ì„ íƒëœ ëª©í‘œë¬¼ ìž¬ìŠµë“, %2"
+-- STALE: ctld.i18n["ko"][". CODE: %1. POSITION: %2"] = ". ì½”ë“œ: %1. ìœ„ì¹˜: %2"
+-- STALE: ctld.i18n["ko"]["new target, "] = "ìƒˆ ëª©í‘œë¬¼, "
+-- STALE: ctld.i18n["ko"]["standing by on %1"] = "%1 ëŒ€ê¸° ì¤‘"
+-- STALE: ctld.i18n["ko"]["lasing %1"] = "%1 ë ˆì´ì € ì¡°ì¤€ ì¤‘"
+-- STALE: ctld.i18n["ko"][", temporarily %1"] = ", ìž„ì‹œë¡œ %1"
+-- STALE: ctld.i18n["ko"]["target lost"] = "ëª©í‘œë¬¼ ë†“ì¹¨"
+-- STALE: ctld.i18n["ko"]["target destroyed"] = "ëª©í‘œë¬¼ íŒŒê´´ë¨"
+-- STALE: ctld.i18n["ko"][", selected %1"] = ", %1 ì„ íƒ ì™„ë£Œ"
+-- STALE: ctld.i18n["ko"]["%1 %2 target lost."] = "%1 %2 ëª©í‘œë¬¼ ë†“ì¹¨."
+-- STALE: ctld.i18n["ko"]["%1 %2 target destroyed."] = "%1 %2 ëª©í‘œë¬¼ íŒŒê´´ë¨."
+-- STALE: ctld.i18n["ko"]["JTAC STATUS: \n\n"] = "JTAC ìƒíƒœ : \n\n"
+-- STALE: ctld.i18n["ko"][", available on %1 %2,"] = ", %1 %2 ê°€ëŠ¥,"
+-- STALE: ctld.i18n["ko"]["UNKNOWN"] = "ë¯¸ìƒ"
+-- STALE: ctld.i18n["ko"][" targeting "] = " ì¡°ì¤€ ì¤‘ : "
+-- STALE: ctld.i18n["ko"][" targeting selected unit "] = " ì„ íƒí•œ ìœ ë‹› ì¡°ì¤€ ì¤‘ "
+-- STALE: ctld.i18n["ko"][" attempting to find selected unit, temporarily targeting "] = " ì„ íƒí•œ ìœ ë‹› ì°¾ëŠ” ì¤‘, ìž„ì‹œë¡œ ì¡°ì¤€ ì¤‘ : "
+-- STALE: ctld.i18n["ko"]["(Laser OFF) "] = "(ë ˆì´ì € ë”) "
+-- STALE: ctld.i18n["ko"]["Visual On: "] = "ìœ¡ì•ˆ ì‹ë³„ : "
+-- STALE: ctld.i18n["ko"][" searching for targets %1\n"] = " %1 ëª©í‘œë¬¼ ì°¾ëŠ” ì¤‘\n"
+-- STALE: ctld.i18n["ko"]["No Active JTACs"] = "í™œì„±í™”ëœ JTAC ì—†ìŒ"
+-- STALE: ctld.i18n["ko"][", targeting selected unit, %1"] = ", ì„ íƒí•œ ìœ ë‹› ì¡°ì¤€ ì¤‘, %1"
+-- STALE: ctld.i18n["ko"][", target selection reset."] = ", ëª©í‘œë¬¼ ì„ íƒ ì´ˆê¸°í™”."
+-- STALE: ctld.i18n["ko"]["%1, laser and smokes enabled"] = "%1, ë ˆì´ì € ë° ì—°ë§‰ ì‚¬ìš©"
+-- STALE: ctld.i18n["ko"]["%1, laser and smokes disabled"] = "%1, ë ˆì´ì € ë° ì—°ë§‰ ë¯¸ì‚¬ìš©"
+-- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations enabled"] = "%1, ë°”ëžŒ, ëª©í‘œë¬¼ ì†ë„ ë³´ì • ì‚¬ìš©"
+-- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations disabled"] = "%1, ë°”ëžŒ, ëª©í‘œë¬¼ ì†ë„ ë³´ì • ë¯¸ì‚¬ìš©"
+-- STALE: ctld.i18n["ko"]["%1, WHITE smoke deployed near target"] = "%1, ëª©í‘œë¬¼ ê·¼ì²˜ ë°±ìƒ‰ ì—°ë§‰"
 
 --- F10 menu messages
--- STALE: ctld.i18n["ko"]["Actions"] = "행동"
--- STALE: ctld.i18n["ko"]["Troop Transport"] = "병력 수송"
--- STALE: ctld.i18n["ko"]["Unload / Extract Troops"] = "병력 하차 / 철수"
--- STALE: ctld.i18n["ko"]["Next page"] = "다음 페이지"
--- STALE: ctld.i18n["ko"]["Load "] = "싣기 : "
--- STALE: ctld.i18n["ko"]["Vehicle / FOB Transport"] = "차량 / FOB 수송"
--- STALE: ctld.i18n["ko"]["Crates: Vehicle / FOB / Drone"] = "차량 / FOB 화물"
--- STALE: ctld.i18n["ko"]["Unload Vehicles"] = "차량 하역"
--- STALE: ctld.i18n["ko"]["Load / Extract Vehicles"] = "차량 적재 / 철수"
--- STALE: ctld.i18n["ko"]["Load / Unload FOB Crate"] = "FOB 화물 적재 / 철수"
+-- STALE: ctld.i18n["ko"]["Actions"] = "í–‰ë™"
+-- STALE: ctld.i18n["ko"]["Troop Transport"] = "ë³‘ë ¥ ìˆ˜ì†¡"
+-- STALE: ctld.i18n["ko"]["Unload / Extract Troops"] = "ë³‘ë ¥ í•˜ì°¨ / ì² ìˆ˜"
+-- STALE: ctld.i18n["ko"]["Next page"] = "ë‹¤ìŒ íŽ˜ì´ì§€"
+-- STALE: ctld.i18n["ko"]["Load "] = "ì‹£ê¸° : "
+-- STALE: ctld.i18n["ko"]["Vehicle / FOB Transport"] = "ì°¨ëŸ‰ / FOB ìˆ˜ì†¡"
+-- STALE: ctld.i18n["ko"]["Crates: Vehicle / FOB / Drone"] = "ì°¨ëŸ‰ / FOB í™”ë¬¼"
+-- STALE: ctld.i18n["ko"]["Unload Vehicles"] = "ì°¨ëŸ‰ í•˜ì—­"
+-- STALE: ctld.i18n["ko"]["Load / Extract Vehicles"] = "ì°¨ëŸ‰ ì ìž¬ / ì² ìˆ˜"
+-- STALE: ctld.i18n["ko"]["Load / Unload FOB Crate"] = "FOB í™”ë¬¼ ì ìž¬ / ì² ìˆ˜"
 -- STALE: ctld.i18n["ko"]["Pack Vehicles"] = ""
--- STALE: ctld.i18n["ko"]["CTLD Commands"] = "CTLD 명령"
+-- STALE: ctld.i18n["ko"]["CTLD Commands"] = "CTLD ëª…ë ¹"
 -- STALE: ctld.i18n["ko"]["CTLD"] = "CTLD"
--- STALE: ctld.i18n["ko"]["Check Cargo"] = "화물 확인"
--- STALE: ctld.i18n["ko"]["Load Nearby Crate(s)"] = "근처 화물 싣기"
--- STALE: ctld.i18n["ko"]["Unpack Any Crate"] = "화물 풀기"
--- STALE: ctld.i18n["ko"]["Drop Crate(s)"] = "화물 투하"
--- STALE: ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
--- STALE: ctld.i18n["ko"]["List FOBs"] = "FOB 목록"
--- STALE: ctld.i18n["ko"]["List Beacons"] = "비콘 목록"
--- STALE: ctld.i18n["ko"]["List Radio Beacons"] = "라디오 비콘 목록"
--- STALE: ctld.i18n["ko"]["Smoke Markers"] = "연막 마커"
--- STALE: ctld.i18n["ko"]["Drop Red Smoke"] = "적색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Blue Smoke"] = "청색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Orange Smoke"] = "주황색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Green Smoke"] = "녹색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Beacon"] = "비콘 투하"
--- STALE: ctld.i18n["ko"]["Radio Beacons"] = "라디오 비콘"
--- STALE: ctld.i18n["ko"]["Remove Closest Beacon"] = "가까운 비콘 제거"
--- STALE: ctld.i18n["ko"]["JTAC Status"] = "JTAC 상태"
--- STALE: ctld.i18n["ko"]["DISABLE "] = "비활성화 "
--- STALE: ctld.i18n["ko"]["ENABLE "] = "활성화 "
--- STALE: ctld.i18n["ko"]["REQUEST "] = "요청 "
--- STALE: ctld.i18n["ko"]["Reset TGT Selection"] = "TGT 선택 초기화"
+-- STALE: ctld.i18n["ko"]["Check Cargo"] = "í™”ë¬¼ í™•ì¸"
+-- STALE: ctld.i18n["ko"]["Load Nearby Crate(s)"] = "ê·¼ì²˜ í™”ë¬¼ ì‹£ê¸°"
+-- STALE: ctld.i18n["ko"]["Unpack Any Crate"] = "í™”ë¬¼ í’€ê¸°"
+-- STALE: ctld.i18n["ko"]["Drop Crate(s)"] = "í™”ë¬¼ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["List Nearby Crates"] = "ê·¼ì²˜ í™”ë¬¼ ëª©ë¡"
+-- STALE: ctld.i18n["ko"]["List FOBs"] = "FOB ëª©ë¡"
+-- STALE: ctld.i18n["ko"]["List Beacons"] = "ë¹„ì½˜ ëª©ë¡"
+-- STALE: ctld.i18n["ko"]["List Radio Beacons"] = "ë¼ë””ì˜¤ ë¹„ì½˜ ëª©ë¡"
+-- STALE: ctld.i18n["ko"]["Smoke Markers"] = "ì—°ë§‰ ë§ˆì»¤"
+-- STALE: ctld.i18n["ko"]["Drop Red Smoke"] = "ì ìƒ‰ ì—°ë§‰ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["Drop Blue Smoke"] = "ì²­ìƒ‰ ì—°ë§‰ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["Drop Orange Smoke"] = "ì£¼í™©ìƒ‰ ì—°ë§‰ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["Drop Green Smoke"] = "ë…¹ìƒ‰ ì—°ë§‰ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["Drop Beacon"] = "ë¹„ì½˜ íˆ¬í•˜"
+-- STALE: ctld.i18n["ko"]["Radio Beacons"] = "ë¼ë””ì˜¤ ë¹„ì½˜"
+-- STALE: ctld.i18n["ko"]["Remove Closest Beacon"] = "ê°€ê¹Œìš´ ë¹„ì½˜ ì œê±°"
+-- STALE: ctld.i18n["ko"]["JTAC Status"] = "JTAC ìƒíƒœ"
+-- STALE: ctld.i18n["ko"]["DISABLE "] = "ë¹„í™œì„±í™” "
+-- STALE: ctld.i18n["ko"]["ENABLE "] = "í™œì„±í™” "
+-- STALE: ctld.i18n["ko"]["REQUEST "] = "ìš”ì²­ "
+-- STALE: ctld.i18n["ko"]["Reset TGT Selection"] = "TGT ì„ íƒ ì´ˆê¸°í™”"
 
 --- F10 RECON menus (not in original KO source - falling back to EN)
 ctld.i18n["ko"]["RECON"] = ""
@@ -2764,20 +2730,14 @@ ctld.i18n["ko"]["RECON"] = ""
 -- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = ""
 -- STALE: ctld.i18n["ko"]["STOP autoRefresh targets in LOS"] = ""
 
---- FOBs List menu + FOB layer toggles
-ctld.i18n["ko"]["FOBs List"] = "FOB 목록"
-ctld.i18n["ko"]["List active FOBs"] = "활성 FOB 나열"
-ctld.i18n["ko"]["No active FOBs."] = "활성 FOB 없음."
-ctld.i18n["ko"]["FOB Positions:"] = "FOB 위치:"
-ctld.i18n["ko"]["Toggle Friendly FOB Layer"] = "아군 FOB 레이어 토글"
-ctld.i18n["ko"]["Toggle Enemy FOB Layer"] = "적군 FOB 레이어 토글"
-ctld.i18n["ko"]["Friendly FOB layer: OFF"] = "아군 FOB 레이어: OFF"
-ctld.i18n["ko"]["Friendly FOB layer: ON (%1 FOB(s))"] = "아군 FOB 레이어: ON (%1 개)"
-ctld.i18n["ko"]["Enemy FOB layer: OFF"] = "적군 FOB 레이어: OFF"
-ctld.i18n["ko"]["Enemy FOB layer: ON (%1 FOB(s))"] = "적군 FOB 레이어: ON (%1 개)"
+--- FOBs List menu
+ctld.i18n["ko"]["FOBs List"] = "FOB ëª©ë¡"
+ctld.i18n["ko"]["List active FOBs"] = "í™œì„± FOB ë‚˜ì—´"
+ctld.i18n["ko"]["No active FOBs."] = "í™œì„± FOB ì—†ìŒ."
+ctld.i18n["ko"]["FOB Positions:"] = "FOB ìœ„ì¹˜:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["ko"]["→ Next Page"] = ""
+ctld.i18n["ko"]["â†’ Next Page"] = ""
 ctld.i18n["ko"]["2K22 Tunguska - All crates"] = ""
 ctld.i18n["ko"]["9K33 Osa - All crates"] = ""
 ctld.i18n["ko"]["9K331 Tor - All crates"] = ""
@@ -2809,55 +2769,53 @@ ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
 
 --- Load Crate submenu
-ctld.i18n["ko"]["Load Crate"] = "화물 적재"
-ctld.i18n["ko"]["Land to load crates"] = "착륙 후 화물 적재 가능"
-ctld.i18n["ko"]["No crates within 50m"] = "50m 내 화물 없음"
-ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
-ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
-ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
-ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
+ctld.i18n["ko"]["Load Crate"] = "í™”ë¬¼ ì ìž¬"
+ctld.i18n["ko"]["Land to load crates"] = "ì°©ë¥™ í›„ í™”ë¬¼ ì ìž¬ ê°€ëŠ¥"
+ctld.i18n["ko"]["No crates within 50m"] = "50m ë‚´ í™”ë¬¼ ì—†ìŒ"
+ctld.i18n["ko"]["You must land before you can load a crate!"] = "í™”ë¬¼ì„ ì‹£ê¸° ì „ì— ë¨¼ì € ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+ctld.i18n["ko"]["Maximum number of crates are on board!"] = "ì´ë¯¸ í™”ë¬¼ì„ ìµœëŒ€ë¡œ ì‹¤ì—ˆìŠµë‹ˆë‹¤!"
+ctld.i18n["ko"]["No crates within 50m to load!"] = "50m ë‚´ì— ì‹¤ì„ í™”ë¬¼ì´ ì—†ìŠµë‹ˆë‹¤!"
+ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 í™”ë¬¼ ì ìž¬ ì™„ë£Œ!"
 
 --- Drop Crate(s)
-ctld.i18n["ko"]["No crates on board to drop."] = "내릴 화물이 없습니다."
-ctld.i18n["ko"]["You must land before dropping crates!"] = "화물을 내리기 전에 먼저 착륙해야 합니다!"
-ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2시 방향에 내려졌습니다"
+ctld.i18n["ko"]["No crates on board to drop."] = "ë‚´ë¦´ í™”ë¬¼ì´ ì—†ìŠµë‹ˆë‹¤."
+ctld.i18n["ko"]["You must land before dropping crates!"] = "í™”ë¬¼ì„ ë‚´ë¦¬ê¸° ì „ì— ë¨¼ì € ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1ê°œ í™”ë¬¼ì´ %2ì‹œ ë°©í–¥ì— ë‚´ë ¤ì¡ŒìŠµë‹ˆë‹¤"
 
 --- Unpack Crate submenu
-ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
-ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
-ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
-ctld.i18n["ko"]["Build FOB"] = "FOB 건설"
-ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
-ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
-ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
+ctld.i18n["ko"]["Unpack Crate"] = "í™”ë¬¼ í’€ê¸°"
+ctld.i18n["ko"]["Land to unpack crates"] = "í™”ë¬¼ì„ í’€ë ¤ë©´ ì°©ë¥™í•˜ì„¸ìš”"
+ctld.i18n["ko"]["No complete crate sets nearby"] = "ê·¼ì²˜ì— ì™„ì „í•œ í™”ë¬¼ ì„¸íŠ¸ ì—†ìŒ"
+ctld.i18n["ko"]["Build FOB"] = "FOB ê±´ì„¤"
+ctld.i18n["ko"]["You must land before unpacking crates!"] = "í™”ë¬¼ì„ í’€ê¸° ì „ì— ë¨¼ì € ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "í’€ê¸°ì— ì¶©ë¶„í•œ í™”ë¬¼ì´ ê·¼ì²˜ì— ì—†ìŠµë‹ˆë‹¤!"
+ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 í’€ê¸° ì™„ë£Œ!"
 
 --- Pack Vehicle submenu
-ctld.i18n["ko"]["Land to pack vehicles"] = "차량을 포장하려면 착륙하세요"
-ctld.i18n["ko"]["No packable vehicles nearby"] = "근처에 포장 가능한 차량 없음"
-ctld.i18n["ko"]["Vehicle no longer exists."] = "차량이 더 이상 존재하지 않습니다."
-ctld.i18n["ko"]["Cannot pack this vehicle type."] = "이 유형의 차량은 포장할 수 없습니다."
+ctld.i18n["ko"]["Land to pack vehicles"] = "ì°¨ëŸ‰ì„ í¬ìž¥í•˜ë ¤ë©´ ì°©ë¥™í•˜ì„¸ìš”"
+ctld.i18n["ko"]["No packable vehicles nearby"] = "ê·¼ì²˜ì— í¬ìž¥ ê°€ëŠ¥í•œ ì°¨ëŸ‰ ì—†ìŒ"
+ctld.i18n["ko"]["Vehicle no longer exists."] = "ì°¨ëŸ‰ì´ ë” ì´ìƒ ì¡´ìž¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."
+ctld.i18n["ko"]["Cannot pack this vehicle type."] = "ì´ ìœ í˜•ì˜ ì°¨ëŸ‰ì€ í¬ìž¥í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
 
 --- List Nearby Crates
-ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
-ctld.i18n["ko"]["No crates within 300m."] = "300m 이내에 화물 없음."
-ctld.i18n["ko"]["Crates within 300m:"] = "300m 이내 화물:"
-ctld.i18n["ko"]["  %1: %2/%3 — READY"] = "  %1: %2/%3 — 준비됨"
-ctld.i18n["ko"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — 불완전"
+ctld.i18n["ko"]["List Nearby Crates"] = "ê·¼ì²˜ í™”ë¬¼ ëª©ë¡"
+ctld.i18n["ko"]["No crates within 300m."] = "300m ì´ë‚´ì— í™”ë¬¼ ì—†ìŒ."
+ctld.i18n["ko"]["Crates within 300m:"] = "300m ì´ë‚´ í™”ë¬¼:"
+ctld.i18n["ko"]["  %1: %2/%3 â€” READY"] = "  %1: %2/%3 â€” ì¤€ë¹„ë¨"
+ctld.i18n["ko"]["  %1: %2/%3 â€” incomplete"] = "  %1: %2/%3 â€” ë¶ˆì™„ì „"
 
 --- Check Cargo summary
-ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
-ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2개 크레이트 탑재 중 (%3 kg)"
-ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg)"
-ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
+ctld.i18n["ko"]["No cargo on board."] = "íƒ‘ìž¬ í™”ë¬¼ ì—†ìŒ."
+ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2ê°œ í¬ë ˆì´íŠ¸ íƒ‘ìž¬ ì¤‘ (%3 kg)"
+ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1ëª… ë³‘ì‚¬ íƒ‘ìž¬ ì¤‘ (%2 kg)"
+ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "ì´ í™”ë¬¼ ë¬´ê²Œ: %1 kg"
 
 --- Request Equipment spawn messages
-ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
-ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
-ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
-ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
--- ===== End   : CTLD_i18n_ko.lua =====
+ctld.i18n["ko"]["You must be landed to request a crate."] = "í™”ë¬¼ì„ ìš”ì²­í•˜ê¸° ì „ì— ë¨¼ì € ì°©ë¥™í•´ì•¼ í•©ë‹ˆë‹¤!"
+ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "ì•„êµ° ë³´ê¸‰ê³„ê°€ í™”ë¬¼ì„ ì‹£ê¸°ì— ì¶©ë¶„í•œ ê±°ë¦¬ì— ìžˆì§€ ì•ŠìŠµë‹ˆë‹¤!"
+ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KGì˜ %1 í™”ë¬¼ì´ %3 ì‹œ ë°©í–¥ì— ìžˆìŠµë‹ˆë‹¤."
+ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1ê°œì˜ í™”ë¬¼ì´ %2ì‹œ ë°©í–¥ì— ë°°ì¹˜ë˜ì—ˆìŠµë‹ˆë‹¤"
 
--- ===== Start : CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -2866,7 +2824,7 @@ ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개�
 -- NOTE: Do NOT re-introduce a MIST dependency. If a utility is missing, port it from MIST into this file.
 
 
--- 1. Définition du namespace global 'ctld'
+-- 1. DÃ©finition du namespace global 'ctld'
 ctld = ctld or {}
 
 -- ====================================================================================================
@@ -2939,7 +2897,7 @@ function ctld.utils.getRelativeCoords(
     magneticDeclinationInDegrees
 )
     -------------------------------------------------------------------------
-    -- 1. Convert reference heading (radians → degrees)
+    -- 1. Convert reference heading (radians â†’ degrees)
     --    refHeading is a DCS true heading in radians, clockwise, 0 = North.
     -------------------------------------------------------------------------
     local refHeadingDeg = math.deg(refHeading)
@@ -2969,14 +2927,14 @@ function ctld.utils.getRelativeCoords(
     --
     --    refHeadingDeg            = reference TRUE heading
     --    + offsetHeadingInDegrees = rotation relative to the reference
-    --    - magneticDeclination    = convert true → magnetic
+    --    - magneticDeclination    = convert true â†’ magnetic
     -------------------------------------------------------------------------
     local magneticHeadingDeg =
         refHeadingDeg +
         offsetHeadingInDegrees -
         magneticDeclinationInDegrees
 
-    -- Normalize to 0–360°
+    -- Normalize to 0â€“360Â°
     magneticHeadingDeg = (magneticHeadingDeg % 360 + 360) % 360
 
     -------------------------------------------------------------------------
@@ -3064,7 +3022,7 @@ function ctld.utils.getRelativeBearing(
         math.sin(refLatRad) * math.cos(destLatRad) * math.cos(dLon)
     )
 
-    -- Normalize true bearing to [0, 2π)
+    -- Normalize true bearing to [0, 2Ï€)
     if trueBearingRad < 0 then
         trueBearingRad = trueBearingRad + 2 * math.pi
     end
@@ -3075,7 +3033,7 @@ function ctld.utils.getRelativeBearing(
     -- Compute relative bearing (subtract reference heading)
     local relativeRad = trueBearingRad - refHeadingRad
 
-    -- Normalize relative bearing to [-π, +π]
+    -- Normalize relative bearing to [-Ï€, +Ï€]
     relativeRad = (relativeRad + math.pi) % (2 * math.pi) - math.pi
 
     -- Output formats
@@ -3090,8 +3048,8 @@ function ctld.utils.getRelativeBearing(
     end
 
     if resultFormat == "clock" then
-        -- 12 o'clock = ahead (0°), each hour = 30 degrees
-        -- Clock 3 = right (90°), 6 = behind (180°), 9 = left (270°)
+        -- 12 o'clock = ahead (0Â°), each hour = 30 degrees
+        -- Clock 3 = right (90Â°), 6 = behind (180Â°), 9 = left (270Â°)
         local clock = math.floor((relativeDeg + 15) / 30) % 12
         if clock == 0 then clock = 12 end
         return clock, resultFormat
@@ -3199,20 +3157,20 @@ end
 
 --------------------------------------------------------------------------------------------------------
 --- @function ctld.utils:rotateVec3
--- Calcule l'offset cartésien absolu en appliquant la rotation du cap de l'appareil.
--- (Conçu pour le format de données : relative = {x, y, z})
+-- Calcule l'offset cartÃ©sien absolu en appliquant la rotation du cap de l'appareil.
+-- (ConÃ§u pour le format de donnÃ©es : relative = {x, y, z})
 function ctld.utils.rotateVec3(relativeVec, headingDeg)
     local x_rel = relativeVec.x
     local z_rel = relativeVec.z
-    -- y_rel n'est pas utilisé dans le calcul de rotation, mais sera dans le retour
+    -- y_rel n'est pas utilisÃ© dans le calcul de rotation, mais sera dans le retour
     local y_rel = relativeVec.y or 0
 
-    -- Vérification des données (X et Z sont obligatoires)
+    -- VÃ©rification des donnÃ©es (X et Z sont obligatoires)
     if x_rel == nil or z_rel == nil then
         local msg = "CTLD.utils:rotateVec3: Missing X or Z component in relative position data."
         if env and env.error then
             env.error(msg)
-            -- Lève une erreur qui sera capturée par pcall (si appelé)
+            -- LÃ¨ve une erreur qui sera capturÃ©e par pcall (si appelÃ©)
             error(msg)
         else
             error(msg)
@@ -3559,7 +3517,7 @@ end
 --------------------------------------------------------------------------------------------------------
 ctld.utils.UniqIdCounter = 0 -- Compteur statique pour les ID uniques
 --- @function ctld.utils:getNextUniqId
--- Génère un ID unique incrémental, comme requis pour 'unitId' dans groupData.
+-- GÃ©nÃ¨re un ID unique incrÃ©mental, comme requis pour 'unitId' dans groupData.
 function ctld.utils.getNextUniqId()
     ctld.utils.UniqIdCounter = ctld.utils.UniqIdCounter + 1
     return ctld.utils.UniqIdCounter
@@ -3597,12 +3555,12 @@ end
 
 --------------------------------------------------------------------------------------------------------
 --- @function ctld.utils:polarToCartesian
--- Convertit une distance (rho), un angle (theta) et un cap de référence (headingDeg)
--- en coordonnées cartésiennes absolues (x, z) de la carte DCS.
--- @param distance number La distance au point de référence.
--- @param relativeAngle number L'angle relatif au point de référence (0 = devant, 90 = droite).
--- @param headingDeg number Le cap absolu de l'appareil (point de référence).
--- @return table L'offset cartésien absolu { x, y=0, z }.
+-- Convertit une distance (rho), un angle (theta) et un cap de rÃ©fÃ©rence (headingDeg)
+-- en coordonnÃ©es cartÃ©siennes absolues (x, z) de la carte DCS.
+-- @param distance number La distance au point de rÃ©fÃ©rence.
+-- @param relativeAngle number L'angle relatif au point de rÃ©fÃ©rence (0 = devant, 90 = droite).
+-- @param headingDeg number Le cap absolu de l'appareil (point de rÃ©fÃ©rence).
+-- @return table L'offset cartÃ©sien absolu { x, y=0, z }.
 function ctld.utils.polarToCartesian(distance, relativeAngle, headingDeg)
     local absoluteAngle = headingDeg + relativeAngle
     local angleRad = math.rad(absoluteAngle)
@@ -3610,11 +3568,11 @@ function ctld.utils.polarToCartesian(distance, relativeAngle, headingDeg)
     -- Correction du facteur distance (20m -> 10m)
     local dist = (distance or 0) * 2
 
-    -- X (Nord/Sud, l'axe de référence du cap 0°) : Utilise COS
+    -- X (Nord/Sud, l'axe de rÃ©fÃ©rence du cap 0Â°) : Utilise COS
     local x_rot = dist * math.cos(angleRad)
 
-    -- Z (Est/Ouest) : Utilise SIN. La trigonométrie standard sin(angle) augmente CCW.
-    -- Nous ne touchons pas au signe car la trigonométrie de DCS peut être non standard.
+    -- Z (Est/Ouest) : Utilise SIN. La trigonomÃ©trie standard sin(angle) augmente CCW.
+    -- Nous ne touchons pas au signe car la trigonomÃ©trie de DCS peut Ãªtre non standard.
     local z_rot = dist * math.sin(angleRad)
 
     return { x = x_rot, y = 0, z = z_rot }
@@ -4533,7 +4491,7 @@ end
 
 -- ====================================================================================================
 -- SECTION: Spawn positions on a random axis (used by CTLDCrateManager and CTLDSceneManager)
--- Computes N absolute world positions along a single random axis (full 360° relative to unit heading).
+-- Computes N absolute world positions along a single random axis (full 360Â° relative to unit heading).
 -- Used for:
 --   - CTLDCrateManager: pack and virtual unload (crate wave dispersion)
 --   - CTLDSceneManager: step.axis positioning (random-axis object placement within a scene)
@@ -4547,7 +4505,7 @@ end
 --                       Pass a fixed value to align multiple crates in a predictable line.
 -- @return table { positions = {{x,z}, ...}, clock = "1".."12", distance = safeDistance }
 --
--- Clock convention: 0° ahead = 12 o'clock, 90° right = 3 o'clock, 180° behind = 6 o'clock.
+-- Clock convention: 0Â° ahead = 12 o'clock, 90Â° right = 3 o'clock, 180Â° behind = 6 o'clock.
 -- ====================================================================================================
 
 function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axisOffsetDeg)
@@ -4647,7 +4605,7 @@ function ctld.utils.calcDropPosition(transport, descentRate)
 end
 
 -- =====================================================================
--- Convenience log shorthands — route through ctld.utils.log.
+-- Convenience log shorthands â€” route through ctld.utils.log.
 -- These are used throughout src/ modules (CTLD_menu.lua etc.).
 -- =====================================================================
 
@@ -4668,14 +4626,12 @@ end
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
--- ===== End   : CTLD_utils.lua =====
 
--- ===== Start : CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
 --
--- ARCHITECTURE — two layers:
+-- ARCHITECTURE â€” two layers:
 --
 --   ctld.Menu         : Logical tree model for one group's menu.
 --                       Callers work exclusively with this model.
@@ -4688,11 +4644,11 @@ end
 --   Every node carries an optional `order` field (number).
 --   Siblings are sorted by `order` (ascending) before DCS rendering, regardless of
 --   insertion order or manager initialization order.
---   Recommended spacing: 10, 20, 30 … to leave room for future entries.
+--   Recommended spacing: 10, 20, 30 â€¦ to leave room for future entries.
 --   Nodes without an explicit `order` value are appended last (math.huge).
 --
 --   WHY: each manager calls addSubMenu() independently. Without explicit order,
---   the visual position of a submenu would depend on the manager init sequence —
+--   the visual position of a submenu would depend on the manager init sequence â€”
 --   fragile and hard to control. Explicit order makes positions declarative and stable.
 --
 -- ENABLED CONVENTION:
@@ -4709,10 +4665,10 @@ end
 --   Rule applied by _rebuildPagedChildren():
 --     - If visible children count <= 10 : render all on one page (no pagination).
 --     - If visible children count  > 10 : render 9 in F1-F9,
---                                         F10 = "→ Next Page" submenu (DCS-only, not in memory),
+--                                         F10 = "â†’ Next Page" submenu (DCS-only, not in memory),
 --                                         recurse with remaining items inside that submenu.
---     The last page always receives <= 10 items and needs no "→ Next Page".
---   The "→ Next Page" node NEVER exists in the memory model — it is generated
+--     The last page always receives <= 10 items and needs no "â†’ Next Page".
+--   The "â†’ Next Page" node NEVER exists in the memory model â€” it is generated
 --   at render time only.
 --
 -- DYNAMIC REFRESH PATTERN (proximity-based lists):
@@ -4726,7 +4682,7 @@ end
 ctld = ctld or {}
 
 -- =============================================================================
--- ctld.MenuManager — Singleton: owns all group menus, drives DCS rendering
+-- ctld.MenuManager â€” Singleton: owns all group menus, drives DCS rendering
 -- =============================================================================
 
 ctld.MenuManager = ctld.MenuManager or {}
@@ -4839,12 +4795,12 @@ end
 -- Paginate and render a pre-sorted list of children at parentPath.
 --
 -- PAGINATION RULE (see file header for full explanation):
---   visible count <= 10 → render all directly           (last / only page, F1-F10 free)
---   visible count  > 10 → render 9 items in F1-F9,
---                          F10 = "→ Next Page" submenu,
+--   visible count <= 10 â†’ render all directly           (last / only page, F1-F10 free)
+--   visible count  > 10 â†’ render 9 items in F1-F9,
+--                          F10 = "â†’ Next Page" submenu,
 --                          recurse with remaining items inside that submenu.
 --
--- The "→ Next Page" DCS submenu is created here only; it does not exist in the memory model.
+-- The "â†’ Next Page" DCS submenu is created here only; it does not exist in the memory model.
 function ctld.MenuManager:_rebuildPagedChildren(groupId, parentPath, children)
     -- Keep only enabled nodes for DCS rendering.
     local visible = {}
@@ -4856,23 +4812,23 @@ function ctld.MenuManager:_rebuildPagedChildren(groupId, parentPath, children)
     local dcsPath   = #parentPath > 0 and parentPath or nil
 
     if #visible <= 10 then
-        -- Last (or only) page: all F1-F10 available for content, no "→ Next Page" needed.
+        -- Last (or only) page: all F1-F10 available for content, no "â†’ Next Page" needed.
         for _, child in ipairs(visible) do
             ctld.MenuManager:_rebuildMenuNode(groupId, parentPath, child)
         end
         return
     end
 
-    -- Intermediate page: render PAGE_SIZE items, then add "→ Next Page" at F10.
+    -- Intermediate page: render PAGE_SIZE items, then add "â†’ Next Page" at F10.
     for i = 1, PAGE_SIZE do
         ctld.MenuManager:_rebuildMenuNode(groupId, parentPath, visible[i])
     end
 
-    -- F10 = "→ Next Page" (translated, DCS-only — never in memory model).
-    local nextLabel = ctld.tr("→ Next Page")
+    -- F10 = "â†’ Next Page" (translated, DCS-only â€” never in memory model).
+    local nextLabel = ctld.tr("â†’ Next Page")
     missionCommands.addSubMenuForGroup(groupId, nextLabel, dcsPath)
 
-    -- Build path into the "→ Next Page" submenu and recurse with remaining items.
+    -- Build path into the "â†’ Next Page" submenu and recurse with remaining items.
     local nextPath = {}
     for _, p in ipairs(parentPath) do table.insert(nextPath, p) end
     table.insert(nextPath, nextLabel)
@@ -4884,7 +4840,7 @@ end
 
 -- Retrieve group name by iterating all coalitions.
 -- Note: Group.getByID() does not exist in the DCS SSE API (only Group.getByName() is documented).
--- Coalition iteration is the only reliable way to resolve groupId → name.
+-- Coalition iteration is the only reliable way to resolve groupId â†’ name.
 function ctld.MenuManager:_getGroupName(groupId)
     for _, coalId in ipairs({ 0, 1, 2 }) do
         for _, gp in pairs(coalition.getGroups(coalId)) do
@@ -4920,7 +4876,7 @@ function ctld.MenuManager:getMenuByUnitId(unitId)
 end
 
 -- =============================================================================
--- ctld.Menu — Logical tree model for one group's F10 menu
+-- ctld.Menu â€” Logical tree model for one group's F10 menu
 -- =============================================================================
 
 ctld.Menu = {}
@@ -4930,7 +4886,7 @@ function ctld.Menu:_new(groupId, manager)
         groupId    = groupId,
         groupName  = manager:_getGroupName(groupId),
         children   = {},   -- root-level nodes (ordered by `order` field at render time)
-        _lookup    = {},   -- path string → node (for fast access)
+        _lookup    = {},   -- path string â†’ node (for fast access)
         manager    = manager,
         nextItemId = 1,
     }
@@ -4941,10 +4897,10 @@ end
 -- Add a submenu node at pathTable / menuName.
 --
 -- opts (optional table):
---   order   : number  — position among siblings in the DCS menu (ascending).
+--   order   : number  â€” position among siblings in the DCS menu (ascending).
 --             See ORDER CONVENTION at file top. Recommended: multiples of 10.
 --             Without this field the node is appended after all ordered siblings.
---   enabled : boolean — initial DCS visibility (default true).
+--   enabled : boolean â€” initial DCS visibility (default true).
 --             false = node reserved in memory but invisible in DCS until
 --             setBranchEnabled(path, true) + refresh() is called.
 --
@@ -4998,7 +4954,7 @@ function ctld.Menu:addSubMenu(pathTable, menuName, opts)
 end
 
 -- Add a command leaf at pathTable / commandName.
--- anyArgument must be a table (or nil → defaults to {}).
+-- anyArgument must be a table (or nil â†’ defaults to {}).
 function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgument)
     pathTable = pathTable or {}
 
@@ -5072,7 +5028,7 @@ function ctld.Menu:clearBranch(pathTable)
 end
 
 -- Enable or disable the node at pathTable (and its subtree visibility in DCS).
--- The node stays in the memory tree — its ORDER position is preserved.
+-- The node stays in the memory tree â€” its ORDER position is preserved.
 -- Call refresh() after to apply the change to the live DCS menu.
 --
 -- Typical use: a mission trigger unlocks a feature mid-mission.
@@ -5089,7 +5045,7 @@ function ctld.Menu:setBranchEnabled(pathTable, enabled)
 end
 
 -- Permanently remove the node at pathTable and all its descendants.
--- Frees the ORDER slot in the parent — sibling ORDER values are unaffected but
+-- Frees the ORDER slot in the parent â€” sibling ORDER values are unaffected but
 -- the freed slot will not be visible after the next refresh().
 --
 -- Prefer clearBranch() for dynamic content and setBranchEnabled() for conditional menus.
@@ -5196,12 +5152,10 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
--- ===== End   : CTLD_menu.lua =====
 
--- ===== Start : lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
--- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
+-- CTLDObjectRegistry â€” catalog of enriched DCS object descriptors + spawnObject() factory.
 --
 -- SCOPE RULE:
 --   This registry is NOT a general catalog of all DCS typeNames.
@@ -5214,7 +5168,7 @@ end
 --
 -- Dynamic registration:
 --   Managers may insert entries at INIT time (e.g. CTLDTroopManager._registerTemplates).
---   All entries — static and dynamic — share the same _db table and spawnObject() path.
+--   All entries â€” static and dynamic â€” share the same _db table and spawnObject() path.
 --
 -- Each entry contains only fields specific to the object type; standard fields
 -- (name, groupId, unitId, x, z, heading, start_time, transportable, skill)
@@ -5620,9 +5574,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
--- ===== End   : lib/CTLD_objectRegistry.lua =====
 
--- ===== Start : lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5673,14 +5625,12 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 -- ============================================================
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
--- Inherits all three no-ops — zero overhead, safe default.
--- ===== End   : lib/CTLDParachuteEffect.lua =====
+-- Inherits all three no-ops â€” zero overhead, safe default.
 
--- ===== Start : CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
--- CTLDSceneManager singleton — scene model registry + sequential execution engine.
--- CtldScene      — executes one scene instance step by step.
+-- CTLDSceneManager singleton â€” scene model registry + sequential execution engine.
+-- CtldScene      â€” executes one scene instance step by step.
 --
 -- Step types (fields in each step table):
 --   polar  : { polar={distance, angle}, relativeHeadingInDegrees, relativeAltitudeInMeters,
@@ -5709,13 +5659,13 @@ CtldScene = class()
 local _sceneCounter = 0
 
 -- Creates and immediately starts a new scene instance.
--- @param unit   DCS Unit object (trigger unit — position/heading snapshot is taken here)
+-- @param unit   DCS Unit object (trigger unit â€” position/heading snapshot is taken here)
 -- @param model  table { name=string, steps={...} }
 -- @return CtldScene
--- @param unit        DCS Unit — trigger unit; position/heading snapshot taken here
--- @param model       table    — scene model (name + steps)
--- @param params      table    — optional key/value bag passed to step funcs via ctx.scene._params
--- @param onComplete  function — optional callback called with (scene) when last step finishes
+-- @param unit        DCS Unit â€” trigger unit; position/heading snapshot taken here
+-- @param model       table    â€” scene model (name + steps)
+-- @param params      table    â€” optional key/value bag passed to step funcs via ctx.scene._params
+-- @param onComplete  function â€” optional callback called with (scene) when last step finishes
 function CtldScene:init(unit, model, params, onComplete)
     _sceneCounter  = _sceneCounter + 1
     self._name     = string.format("%s#%d", model.name, _sceneCounter)
@@ -5824,7 +5774,7 @@ function CtldScene:_runNextStep()
     end
 
     -- -----------------------------------------------------------------------
-    -- Optional func — receives a named context table (ctx).
+    -- Optional func â€” receives a named context table (ctx).
     -- ctx.unit       : DCS Unit (trigger unit)
     -- ctx.spawnedObj : last object spawned in this step (nil for func-only steps)
     -- ctx.step       : current step table
@@ -5884,8 +5834,8 @@ function CTLDSceneManager.getInstance()
 end
 
 function CTLDSceneManager:_init()
-    self._models = {}   -- model name → model table
-    self._active = {}   -- scene name  → CtldScene instance
+    self._models = {}   -- model name â†’ model table
+    self._active = {}   -- scene name  â†’ CtldScene instance
     self:_registerBuiltins()
     local n = 0
     for _ in pairs(self._models) do n = n + 1 end
@@ -5957,7 +5907,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     name  = "FARP Alpha",
     steps = {
 
-        -- Step 1: FARP helipad (STATIC) — warehouse stocked with all fuel types after spawn.
+        -- Step 1: FARP helipad (STATIC) â€” warehouse stocked with all fuel types after spawn.
         {
             polar                    = { distance = 100, angle = 0 },
             delayAfterPreviousStep   = 0,
@@ -6098,9 +6048,7 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ===== End   : CTLD_sceneManager.lua =====
 
--- ===== Start : CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -6114,13 +6062,13 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 --
 -- Zone naming conventions:
 --
---   TRZ  (TroopZone) — troops pickup / extract / mixed
+--   TRZ  (TroopZone) â€” troops pickup / extract / mixed
 --     TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   (all 5 fields required)
 --     stock  : 0=no pickup, 1-998=limited, 999=unlimited
 --     flag   : DCS flag name (string) or reserved word "nil"
---     target : 0=no win condition, N≥1=soldier threshold
+--     target : 0=no win condition, Nâ‰¥1=soldier threshold
 --
---   LGZ  (LogisticZone) — crate/vehicle services
+--   LGZ  (LogisticZone) â€” crate/vehicle services
 --     LGZ_name_[R|B|N]
 --
 -- Legacy fallback: missions using the old PKZ/IAZ/WPZ/EXZ prefix
@@ -6129,8 +6077,8 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 -- are never overwritten.
 --
 -- Events published:
---   OnZoneSmokeRefreshed  — every smokeRefreshInterval seconds
---   OnLogisticZoneUpdated — at init + on dynamic unit death
+--   OnZoneSmokeRefreshed  â€” every smokeRefreshInterval seconds
+--   OnLogisticZoneUpdated â€” at init + on dynamic unit death
 -- ============================================================
 
 ---@diagnostic disable
@@ -6270,7 +6218,7 @@ CTLDLogisticZone = class()
 --- Constructor.
 -- @param data table
 --   Required : name, coalition, center (vec3), radius
---   Optional : linkedUnit (Unit — dynamic zone follows this unit),
+--   Optional : linkedUnit (Unit â€” dynamic zone follows this unit),
 --              active, services table
 function CTLDLogisticZone:init(data)
     self.name        = data.name
@@ -6305,7 +6253,7 @@ function CTLDLogisticZone:isAlive()
     return self._linkedUnit:isExist()
 end
 
---- True if point is inside the zone (circular only — logistic zones are always circular).
+--- True if point is inside the zone (circular only â€” logistic zones are always circular).
 function CTLDLogisticZone:isInZone(point)
     return ctld.utils.getDistance("CTLDLogisticZone:isInZone", point, self:getCenter()) <= self.radius
 end
@@ -6364,7 +6312,7 @@ function CTLDZoneManager:init()
     self:_publishLogisticZoneUpdated({}, {})
 
     ctld.utils.log("INFO",
-        "CTLDZoneManager ready — troop:%d logistic:%d",
+        "CTLDZoneManager ready â€” troop:%d logistic:%d",
         self:_count(self._troopZones), self:_count(self._logisticZones))
 end
 
@@ -6398,9 +6346,9 @@ end
 -- ============================================================
 
 -- Parse TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>   strict positional, all 5 fields required.
--- stock  : integer 0-999  — 0=no pickup (nil), 999=unlimited (internal 0), 1-998=limited
+-- stock  : integer 0-999  â€” 0=no pickup (nil), 999=unlimited (internal 0), 1-998=limited
 -- flag   : string or reserved word "nil" (= no objective flag)
--- target : integer ≥0     — 0=no win condition (nil), N≥1=soldier threshold
+-- target : integer â‰¥0     â€” 0=no win condition (nil), Nâ‰¥1=soldier threshold
 -- Returns a table on success, nil + error string on failure.
 function CTLDZoneManager:_parseTRZ(name)
     local parts = _split(name, "_")
@@ -6414,7 +6362,7 @@ function CTLDZoneManager:_parseTRZ(name)
         return nil, "zoneName cannot be a reserved word: " .. zoneName
     end
 
-    -- field 3: coalition (required — A=all, R=RED, B=BLUE, N=NEUTRAL)
+    -- field 3: coalition (required â€” A=all, R=RED, B=BLUE, N=NEUTRAL)
     local coalStr = parts[3]
     if not coalStr then return nil, "missing coalition (A|R|B|N)" end
     local coalitionId
@@ -6422,13 +6370,13 @@ function CTLDZoneManager:_parseTRZ(name)
     elseif coalStr == "R" then coalitionId = coalition.side.RED
     elseif coalStr == "B" then coalitionId = coalition.side.BLUE
     elseif coalStr == "N" then coalitionId = coalition.side.NEUTRAL
-    else return nil, "invalid coalition '" .. coalStr .. "' — expected A, R, B or N" end
+    else return nil, "invalid coalition '" .. coalStr .. "' â€” expected A, R, B or N" end
 
     -- field 4: stock (required, integer 0-999)
     local stockStr = parts[4]
     local stockRaw = tonumber(stockStr)
     if not stockRaw or math.floor(stockRaw) ~= stockRaw or stockRaw < 0 or stockRaw > 999 then
-        return nil, "invalid stock '" .. tostring(stockStr) .. "' — expected integer 0-999 (0=no pickup, 999=unlimited)"
+        return nil, "invalid stock '" .. tostring(stockStr) .. "' â€” expected integer 0-999 (0=no pickup, 999=unlimited)"
     end
     local pickMaxStock
     if     stockRaw == 0   then pickMaxStock = nil  -- no pickup capability
@@ -6445,11 +6393,11 @@ function CTLDZoneManager:_parseTRZ(name)
     local objectiveFlag
     if flagStr ~= "nil" then objectiveFlag = flagStr end
 
-    -- field 6: target (required, integer ≥0)
+    -- field 6: target (required, integer â‰¥0)
     local targetStr = parts[6]
     local targetRaw = tonumber(targetStr)
     if not targetRaw or math.floor(targetRaw) ~= targetRaw or targetRaw < 0 then
-        return nil, "invalid target '" .. tostring(targetStr) .. "' — expected integer ≥0 (0=no win condition)"
+        return nil, "invalid target '" .. tostring(targetStr) .. "' â€” expected integer â‰¥0 (0=no win condition)"
     end
     local objectiveTarget
     if targetRaw > 0 then objectiveTarget = targetRaw end
@@ -6476,7 +6424,7 @@ function CTLDZoneManager:_parseLGZ(name)
 end
 
 -- Parse IAZ_name_[R|B|N]  (AI auto-drop zone)
--- Parse WPZ_name_[R|B|N]  (waypoint zone — troops march to center)
+-- Parse WPZ_name_[R|B|N]  (waypoint zone â€” troops march to center)
 -- Shared logic: prefix must match, second field = zoneName, optional third = coalition.
 local function _parseSimpleZone(prefix, name)
     local parts = _split(name, "_")
@@ -6619,7 +6567,7 @@ end
 
 function CTLDZoneManager:_loadLegacyZones()
 
-    -- pickupZones → CTLDTroopZone (pickup only)
+    -- pickupZones â†’ CTLDTroopZone (pickup only)
     for _, zd in pairs(ctld.gs("pickupZones") or {}) do
         local trig = trigger.misc.getZone(zd[1])
         if trig and not self._troopZones[zd[1]] then
@@ -6641,7 +6589,7 @@ function CTLDZoneManager:_loadLegacyZones()
         end
     end
 
-    -- dropOffZones → CTLDTroopZone (AI auto-drop marker)
+    -- dropOffZones â†’ CTLDTroopZone (AI auto-drop marker)
     for _, zd in pairs(ctld.gs("dropOffZones") or {}) do
         local trig = trigger.misc.getZone(zd[1])
         if trig and not self._troopZones[zd[1]] then
@@ -6661,7 +6609,7 @@ function CTLDZoneManager:_loadLegacyZones()
         end
     end
 
-    -- wpZones → CTLDTroopZone (waypoint: troops march to center)
+    -- wpZones â†’ CTLDTroopZone (waypoint: troops march to center)
     for _, zd in pairs(ctld.gs("wpZones") or {}) do
         local trig = trigger.misc.getZone(zd[1])
         if trig and not self._troopZones[zd[1]] then
@@ -6682,7 +6630,7 @@ function CTLDZoneManager:_loadLegacyZones()
         end
     end
 
-    -- logisticUnits → CTLDLogisticZone (dynamic, linked to unit/static)
+    -- logisticUnits â†’ CTLDLogisticZone (dynamic, linked to unit/static)
     local maxDist = ctld.gs("maximumDistanceLogistic") or 500
     local added, removed = {}, {}
     for _, unitName in pairs(ctld.gs("logisticUnits") or {}) do
@@ -6854,7 +6802,7 @@ function CTLDZoneManager:unregisterLogistic(name)
 end
 
 -- ============================================================
--- Query API — TroopZones
+-- Query API â€” TroopZones
 -- ============================================================
 
 --- Return CTLDTroopZone by zoneName, or nil.
@@ -6899,7 +6847,7 @@ end
 
 --- Return the active WPZ zone containing point for the given coalition, or nil.
 -- @param point     vec3
--- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @param coalition number  (coalition.side.* â€” 0 = accept all)
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getWaypointZoneAt(point, coalition)
     for _, zone in pairs(self._troopZones) do
@@ -6915,7 +6863,7 @@ end
 --- Return the active IAZ zone containing point for the given coalition, or nil.
 -- Used by AI transport auto-drop logic.
 -- @param point     vec3
--- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @param coalition number  (coalition.side.* â€” 0 = accept all)
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getDropoffZoneAt(point, coalition)
     for _, zone in pairs(self._troopZones) do
@@ -6929,7 +6877,7 @@ function CTLDZoneManager:getDropoffZoneAt(point, coalition)
 end
 
 -- ============================================================
--- Query API — LogisticZones
+-- Query API â€” LogisticZones
 -- ============================================================
 
 --- Return CTLDLogisticZone by name, or nil.
@@ -7019,11 +6967,11 @@ end
 function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
     local trig = trigger.misc.getZone(zoneName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDZoneManager:createExtractZone — zone not found: %s", tostring(zoneName))
+        ctld.utils.log("ERROR", "CTLDZoneManager:createExtractZone â€” zone not found: %s", tostring(zoneName))
         return false
     end
     if self._troopZones[zoneName] then
-        ctld.utils.log("WARN", "CTLDZoneManager:createExtractZone — zone already registered: %s", zoneName)
+        ctld.utils.log("WARN", "CTLDZoneManager:createExtractZone â€” zone already registered: %s", zoneName)
         return false
     end
     local p2 = { x = trig.point.x, y = trig.point.z }
@@ -7040,7 +6988,7 @@ function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
         active        = true,
     })
     if smokeColor >= 0 then trigger.action.smoke(pt, smokeColor) end
-    ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone — '%s' flag=%s", zoneName, tostring(flagNumber))
+    ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone â€” '%s' flag=%s", zoneName, tostring(flagNumber))
     return true
 end
 
@@ -7052,10 +7000,10 @@ end
 function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
     if self._troopZones[zoneName] then
         self._troopZones[zoneName] = nil
-        ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone — '%s' removed", zoneName)
+        ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone â€” '%s' removed", zoneName)
         return true
     end
-    ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone — not found: %s", tostring(zoneName))
+    ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone â€” not found: %s", tostring(zoneName))
     return false
 end
 
@@ -7078,20 +7026,20 @@ end
 function CTLDZoneManager:changeRemainingGroups(zoneName, amount)
     local zone = self._troopZones[zoneName]
     if not zone then
-        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups — not found: %s", tostring(zoneName))
+        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups â€” not found: %s", tostring(zoneName))
         return false
     end
     if zone.pickMaxStock == nil then
-        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups — '%s' has no pickup stock", zoneName)
+        ctld.utils.log("WARN", "CTLDZoneManager:changeRemainingGroups â€” '%s' has no pickup stock", zoneName)
         return false
     end
     zone.pickCurrentStock = math.max(0, zone.pickCurrentStock + amount)
-    ctld.utils.log("INFO", "CTLDZoneManager:changeRemainingGroups — '%s' stock=%d", zoneName, zone.pickCurrentStock)
+    ctld.utils.log("INFO", "CTLDZoneManager:changeRemainingGroups â€” '%s' stock=%d", zoneName, zone.pickCurrentStock)
     return true
 end
 
 -- ============================================================
--- Zone name validation (developer tool — reports to DCS log + screen)
+-- Zone name validation (developer tool â€” reports to DCS log + screen)
 -- ============================================================
 
 function CTLDZoneManager:_validateZoneNames()
@@ -7122,7 +7070,7 @@ function CTLDZoneManager:_validateZoneNames()
         end
     end
     if #errors > 0 then
-        local report = "[CTLD] Zone validation — " .. #errors .. " issue(s):\n"
+        local report = "[CTLD] Zone validation â€” " .. #errors .. " issue(s):\n"
                     .. table.concat(errors, "\n")
         trigger.action.outText(report, 30)
         ctld.utils.log("WARN", report)
@@ -7130,9 +7078,7 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
--- ===== End   : CTLD_zone.lua =====
 
--- ===== Start : CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -7170,7 +7116,7 @@ CTLDTroopGroup.STATE = {
 --   hasJtac      (boolean)
 --   coalitionId  (number)      coalition.side.*
 --   countryId    (number)      DCS country id
---   state        (string|nil)  CTLDTroopGroup.STATE.* — defaults to LOADED
+--   state        (string|nil)  CTLDTroopGroup.STATE.* â€” defaults to LOADED
 function CTLDTroopGroup:init(data)
     self.templateKey  = data.templateKey
     self.templateName = data.templateName
@@ -7268,7 +7214,7 @@ function CTLDTroopManager:init()
         method  = "buildMenuSection",
         order   = 20,
     })
-    ctld.utils.log("INFO", "CTLDTroopManager initialized — %d templates registered",
+    ctld.utils.log("INFO", "CTLDTroopManager initialized â€” %d templates registered",
         self._templateCount)
     return self
 end
@@ -7280,7 +7226,7 @@ function CTLDTroopManager:setParachuteEffect(effect)
 end
 
 -- ============================================================
--- Template registration → CTLDObjectRegistry entries
+-- Template registration â†’ CTLDObjectRegistry entries
 -- ============================================================
 
 local function _sanitizeKey(name)
@@ -7288,7 +7234,7 @@ local function _sanitizeKey(name)
 end
 
 -- Populates self._templates from config and registers each standard template.
--- Mutates source objects (adds _dbKey, total, hasJtac, custom, disabled) — consistent with legacy.
+-- Mutates source objects (adds _dbKey, total, hasJtac, custom, disabled) â€” consistent with legacy.
 function CTLDTroopManager:_registerTemplates()
     local cfgTemplates = ctld.gs("loadableGroups") or {}
     for _, tmpl in ipairs(cfgTemplates) do
@@ -7343,7 +7289,7 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
         units      = units,
     }
 
-    ctld.utils.log("INFO", "_registerOneTemplate: '%s' → key='%s' (%d units)",
+    ctld.utils.log("INFO", "_registerOneTemplate: '%s' â†’ key='%s' (%d units)",
         tmpl.name, key, total)
 end
 
@@ -7356,7 +7302,7 @@ function CTLDTroopManager:_loadUserConfig()
         for _, entry in ipairs(customs) do
             local ok, err = self:createLoadableGroup(entry)
             if not ok then
-                ctld.utils.log("WARN", "_loadUserConfig: skipped custom group — %s", err)
+                ctld.utils.log("WARN", "_loadUserConfig: skipped custom group â€” %s", err)
             end
         end
     end
@@ -7366,14 +7312,14 @@ function CTLDTroopManager:_loadUserConfig()
         for _, name in ipairs(disables) do
             local ok, err = self:disableLoadableGroup(name)
             if not ok then
-                ctld.utils.log("WARN", "_loadUserConfig: could not disable '%s' — %s", name, err)
+                ctld.utils.log("WARN", "_loadUserConfig: could not disable '%s' â€” %s", name, err)
             end
         end
     end
 end
 
 -- ============================================================
--- Public API — LoadableGroup management
+-- Public API â€” LoadableGroup management
 -- ============================================================
 
 -- Returns the template entry with this name, or nil.
@@ -7457,7 +7403,7 @@ function CTLDTroopManager:editLoadableGroup(name, config)
         return false, "template not found: " .. tostring(name)
     end
     if not tmpl.custom then
-        return false, "cannot edit standard template '" .. name .. "' — create a custom one instead"
+        return false, "cannot edit standard template '" .. name .. "' â€” create a custom one instead"
     end
     if type(config) ~= "table" then
         return false, "config must be a table"
@@ -7513,7 +7459,7 @@ function CTLDTroopManager:enableLoadableGroup(name)
 end
 
 -- ============================================================
--- Public API — cargo queries
+-- Public API â€” cargo queries
 -- ============================================================
 
 -- Returns the CTLDTroopGroup in transit for unitName, or nil.
@@ -7533,7 +7479,7 @@ function CTLDTroopManager:getWeight(unitName)
 end
 
 -- Updates DCS internal cargo weight for this transport (troops weight only).
--- NOTE: temporary — CTLDPlayerManager will aggregate all cargo sources when built.
+-- NOTE: temporary â€” CTLDPlayerManager will aggregate all cargo sources when built.
 function CTLDTroopManager:_updateWeight(unitName)
     trigger.action.setUnitInternalCargo(unitName, self:getWeight(unitName))
 end
@@ -7700,7 +7646,7 @@ function CTLDTroopManager:deploy(unit)
 
         if group.hasJtac then
             -- Signal: CTLDJtacManager will handle laser attribution when built
-            ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s'", dcsGroup:getName())
+            ctld.utils.log("INFO", "deploy: JTAC group dropped â€” '%s'", dcsGroup:getName())
         end
 
         -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
@@ -7727,7 +7673,7 @@ function CTLDTroopManager:deploy(unit)
                     ctrl:setTask(arg.mission)
                 end, { grpName = grpName, mission = mission }, timer.getTime() + 2)
                 ctld.utils.log("INFO",
-                    "deploy: WPZ '%s' — group '%s' ordered to march to zone center",
+                    "deploy: WPZ '%s' â€” group '%s' ordered to march to zone center",
                     wpzZone.zoneName, grpName)
             end
         end
@@ -8039,17 +7985,17 @@ end
 -- ============================================================
 
 -- "Unload / Extract Troops" button:
---   On ground + nearest dropped group + no troops → extract
---   Has troops + in TRZ pickup-only               → returnToBase
---   Has troops + in TRZ with objectiveFlag        → deploy (flag incremented)
---   Has troops + not in any TRZ                   → deploy to combat
+--   On ground + nearest dropped group + no troops â†’ extract
+--   Has troops + in TRZ pickup-only               â†’ returnToBase
+--   Has troops + in TRZ with objectiveFlag        â†’ deploy (flag incremented)
+--   Has troops + not in any TRZ                   â†’ deploy to combat
 function CTLDTroopManager:_menuUnloadOrExtract(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local zm        = CTLDZoneManager.getInstance()
     local inAir     = self:_isInAir(unit)
 
-    -- Ground + extractable group nearby + no troops onboard → extract
+    -- Ground + extractable group nearby + no troops onboard â†’ extract
     if not inAir and not self:hasTroops(unitName) then
         local nearest = self:_findNearestDropped(unit, coalition)
         if nearest then
@@ -8059,8 +8005,8 @@ function CTLDTroopManager:_menuUnloadOrExtract(unit)
     end
 
     -- Has troops: TRZ with objectiveFlag takes priority over pickup-only TRZ.
-    -- Mixed TRZ (hasPickup + hasExtract) → deploy to increment objective flag.
-    -- Pickup-only TRZ → returnToBase to restore pickup stock.
+    -- Mixed TRZ (hasPickup + hasExtract) â†’ deploy to increment objective flag.
+    -- Pickup-only TRZ â†’ returnToBase to restore pickup stock.
     if self:hasTroops(unitName) then
         local exzZone = zm:isUnitInZone(unitName, "extract")
         if exzZone then
@@ -8096,7 +8042,7 @@ function CTLDTroopManager:_menuCheckCargo(unit)
     local group    = self._inTransit[unitName]
     local msg
     if group then
-        msg = ctld.tr("Cargo: [%1] — %2 troops, %3 kg",
+        msg = ctld.tr("Cargo: [%1] â€” %2 troops, %3 kg",
             group.templateName, group.unitTotal, math.floor(group.weight))
     else
         msg = ctld.tr("No troops onboard.")
@@ -8105,7 +8051,7 @@ function CTLDTroopManager:_menuCheckCargo(unit)
 end
 
 -- ============================================================
--- Feature A — Virtual parachute
+-- Feature A â€” Virtual parachute
 -- ============================================================
 
 --- Parachute troops currently loaded on a transport.
@@ -8267,7 +8213,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     if not inAir and unit then
         local pt = unit:getPoint()
 
-        -- "Unload / Extract" — ground only
+        -- "Unload / Extract" â€” ground only
         local hasTroops   = self:hasTroops(playerObj.unitName)
         local hasNearby   = self:_findNearestDropped(unit, playerObj.coalition) ~= nil
         if hasTroops or hasNearby then
@@ -8280,7 +8226,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                 { unitName = playerObj.unitName })
         end
 
-        -- "Load from X" — one submenu per TRZ the player is physically inside
+        -- "Load from X" â€” one submenu per TRZ the player is physically inside
         local limit = self:_transportLimit(playerObj.typeName)
 
         for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
@@ -8333,7 +8279,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             end,
             { unitName = playerObj.unitName })
 
-        -- "Parachute Troops" — if capable
+        -- "Parachute Troops" â€” if capable
         local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
         if acts2 and acts2.canParachute then
             menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
@@ -8348,12 +8294,12 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     end
 
     menu:refresh()
-    ctld.utils.log("INFO", "CTLDTroopManager:refreshMenuSection — unit=%s inAir=%s",
+    ctld.utils.log("INFO", "CTLDTroopManager:refreshMenuSection â€” unit=%s inAir=%s",
         playerObj.unitName, tostring(inAir))
 end
 
 -- ============================================================
--- Public ctld.* API — LoadableGroup wrappers
+-- Public ctld.* API â€” LoadableGroup wrappers
 -- ============================================================
 
 --- Create a custom loadable group template.
@@ -8398,8 +8344,8 @@ end
 -- ============================================================
 
 --- Resolve a count or composition table to the closest available template.
--- integer → template whose total is nearest; table {inf,mg,...} → sum totals then match.
--- @param coalitionId number  (unused — templates are coalition-agnostic)
+-- integer â†’ template whose total is nearest; table {inf,mg,...} â†’ sum totals then match.
+-- @param coalitionId number  (unused â€” templates are coalition-agnostic)
 -- @param number      number|table
 -- @return table|nil  template
 function CTLDTroopManager:_resolveTemplateForLegacy(coalitionId, number)
@@ -8431,7 +8377,7 @@ end
 function CTLDTroopManager:spawnGroupAtTrigger(side, number, triggerName, radius)
     local trig = trigger.misc.getZone(triggerName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtTrigger — zone not found: %s", tostring(triggerName))
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtTrigger â€” zone not found: %s", tostring(triggerName))
         return false
     end
     local p2 = { x = trig.point.x, y = trig.point.z }
@@ -8453,7 +8399,7 @@ function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
 
     local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)
     if not tmpl then
-        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint — no template available")
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint â€” no template available")
         return false
     end
 
@@ -8463,11 +8409,11 @@ function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
         { circleRadius = radius }
     )
     if not dcsGroup then
-        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint — spawnObject failed for key '%s'", tostring(tmpl._dbKey))
+        ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtPoint â€” spawnObject failed for key '%s'", tostring(tmpl._dbKey))
         return false
     end
     table.insert(self._droppedGroups[coalitionId], dcsGroup:getName())
-    ctld.utils.log("INFO", "CTLDTroopManager:spawnGroupAtPoint — '%s' spawned (%s, %d units)",
+    ctld.utils.log("INFO", "CTLDTroopManager:spawnGroupAtPoint â€” '%s' spawned (%s, %d units)",
         dcsGroup:getName(), side, tmpl.total)
     return true
 end
@@ -8476,18 +8422,18 @@ end
 -- Uses the template closest to number for the transport's coalition.
 -- @param unitName string         DCS unit name of the transport
 -- @param number   number|table   troop count or composition
--- @param troops   boolean        legacy param (ignored — always loads infantry template)
+-- @param troops   boolean        legacy param (ignored â€” always loads infantry template)
 -- @return boolean
 function CTLDTroopManager:preLoadTransport(unitName, number, troops)
     local unit = Unit.getByName(unitName)
     if not unit or not unit:isExist() then
-        ctld.utils.log("WARN", "CTLDTroopManager:preLoadTransport — unit not found: %s", tostring(unitName))
+        ctld.utils.log("WARN", "CTLDTroopManager:preLoadTransport â€” unit not found: %s", tostring(unitName))
         return false
     end
     local coalitionId = unit:getCoalition()
     local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)
     if not tmpl then
-        ctld.utils.log("ERROR", "CTLDTroopManager:preLoadTransport — no template for '%s'", unitName)
+        ctld.utils.log("ERROR", "CTLDTroopManager:preLoadTransport â€” no template for '%s'", unitName)
         return false
     end
     local weight = 0
@@ -8504,7 +8450,7 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
         countryId    = unit:getCountry(),
     })
     self:_updateWeight(unitName)
-    ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport — '%s' loaded [%s]", unitName, tmpl.name)
+    ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport â€” '%s' loaded [%s]", unitName, tmpl.name)
     return true
 end
 
@@ -8514,7 +8460,7 @@ end
 function CTLDTroopManager:unloadTransport(unitName)
     local unit = Unit.getByName(unitName)
     if not unit or not unit:isExist() then
-        ctld.utils.log("WARN", "CTLDTroopManager:unloadTransport — unit not found: %s", tostring(unitName))
+        ctld.utils.log("WARN", "CTLDTroopManager:unloadTransport â€” unit not found: %s", tostring(unitName))
         return false
     end
     if not self:hasTroops(unitName) then return false end
@@ -8528,12 +8474,12 @@ end
 function CTLDTroopManager:loadTransport(unitName)
     local unit = Unit.getByName(unitName)
     if not unit or not unit:isExist() then
-        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport — unit not found: %s", tostring(unitName))
+        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport â€” unit not found: %s", tostring(unitName))
         return false
     end
     local zone = CTLDZoneManager.getInstance():getTroopZoneForUnit(unitName)
     if not zone or not zone:hasPickup() then
-        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport — no pickup zone for '%s'", unitName)
+        ctld.utils.log("WARN", "CTLDTroopManager:loadTransport â€” no pickup zone for '%s'", unitName)
         return false
     end
     local tmpl = self._templates[1]
@@ -8565,7 +8511,7 @@ end
 function CTLDTroopManager:startGroupCountWatcher(zoneName, blueFlag, redFlag)
     local trig = trigger.misc.getZone(zoneName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDTroopManager:startGroupCountWatcher — zone not found: %s", tostring(zoneName))
+        ctld.utils.log("ERROR", "CTLDTroopManager:startGroupCountWatcher â€” zone not found: %s", tostring(zoneName))
         return
     end
     local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
@@ -8607,7 +8553,7 @@ end
 function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     local trig = trigger.misc.getZone(zoneName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDTroopManager:startUnitCountWatcher — zone not found: %s", tostring(zoneName))
+        ctld.utils.log("ERROR", "CTLDTroopManager:startUnitCountWatcher â€” zone not found: %s", tostring(zoneName))
         return
     end
     local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
@@ -8643,9 +8589,7 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
--- ===== End   : CTLD_troop.lua =====
 
--- ===== Start : CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -8993,7 +8937,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB sentinels ("FOB" / "FOB-SMALL"): handled by CTLDFOBManager, not spawned as vehicles.
     local FOB_SENTINELS = { ["FOB"] = true, ["FOB-SMALL"] = true }
 
-    -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
+    -- Group ground crates by descriptor.unit (hasMoved not checked here â€” checked at click time)
     -- FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
@@ -9120,7 +9064,7 @@ function CTLDCrateManager:setParachuteEffect(effect)
 end
 
 -- ============================================================
--- Feature B — Virtual Slingload
+-- Feature B â€” Virtual Slingload
 -- ============================================================
 
 --- Return the first slingloaded crate for a given transport, or nil.
@@ -9137,7 +9081,7 @@ end
 
 --- Polling tick (1 s). Called by the timer loop started in getInstance().
 -- For each active player with canSlingload=true and in-air transport:
---   1. Overspeed check: if speed > maxSlingloadSpeed → crate lost.
+--   1. Overspeed check: if speed > maxSlingloadSpeed â†’ crate lost.
 --   2. Hover pickup: find nearest eligible ground crate, count down hoverTime,
 --      then hook it (load + destroy DCS static + publish OnCrateLoaded).
 function CTLDCrateManager:checkHoverStatus()
@@ -9284,9 +9228,9 @@ function CTLDCrateManager:checkHoverStatus()
     end
 end
 
---- Release the slingloaded crate safely (transport at or near ground, AGL ≤ maximumHoverHeight).
+--- Release the slingloaded crate safely (transport at or near ground, AGL â‰¤ maximumHoverHeight).
 -- Refuses if transport AGL > maximumHoverHeight with an informational message.
--- Transitions crate: loaded → landed. Spawns at a position offset ahead of the transport.
+-- Transitions crate: loaded â†’ landed. Spawns at a position offset ahead of the transport.
 -- Publishes OnCrateUnloaded(trigger="slingload_release").
 -- @param transport    Unit
 -- @param playerObj    table   {groupId, unitName}
@@ -9320,8 +9264,8 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
 end
 
 --- Cut the slingload (emergency drop, any altitude).
--- AGL > 40m → crate is destroyed (too high, impact damage).
--- AGL ≤ 40m → crate lands at a position computed from transport inertia (no parachute delay).
+-- AGL > 40m â†’ crate is destroyed (too high, impact damage).
+-- AGL â‰¤ 40m â†’ crate lands at a position computed from transport inertia (no parachute delay).
 -- Publishes OnCrateUnloaded(trigger="slingload_cut") or OnCrateLost(trigger="slingload_cut_impact").
 -- @param transport    Unit
 -- @param playerObj    table   {groupId, unitName}
@@ -9362,10 +9306,10 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
             timestamp  = timer.getAbsTime(),
         })
     else
-        -- Drop with inertia drift (reuses FA calcDropPosition, descentRate=0 → immediate land)
+        -- Drop with inertia drift (reuses FA calcDropPosition, descentRate=0 â†’ immediate land)
         local landPos, _ = ctld.utils.calcDropPosition(transport, 0)
         crate:land(landPos)
-        -- TODO: re-spawn DCS static at landPos (requires coalition.addStaticObject — pending Hoggit verification)
+        -- TODO: re-spawn DCS static at landPos (requires coalition.addStaticObject â€” pending Hoggit verification)
         trigger.action.outTextForGroup(playerObj.groupId,
             string.format(ctld.tr("%s crate dropped below you."), crate.descriptor.desc), 10)
         self:_publish("OnCrateUnloaded", {
@@ -9447,7 +9391,7 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
     local data = {
         name     = name,
         x        = position.x,
-        y        = position.z,   -- dynAddStatic maps y → DCS world-Z axis
+        y        = position.z,   -- dynAddStatic maps y â†’ DCS world-Z axis
         heading  = 0,
         type     = model.type     or "ammo_cargo",
         canCargo = model.canCargo or false,
@@ -9522,8 +9466,8 @@ end
 -- The axis direction is chosen randomly within the front sector for standard
 -- units, or within the rear sector for native-cargo-capable units, so that
 -- successive multi-crate spawns land at different angles and do not overlap.
---   Front sector : [-45°, +45°]  relative to unit heading (axisOffsetDeg 315..45)
---   Rear  sector : [135°, 225°]  relative to unit heading (axisOffsetDeg 135..225)
+--   Front sector : [-45Â°, +45Â°]  relative to unit heading (axisOffsetDeg 315..45)
+--   Rear  sector : [135Â°, 225Â°]  relative to unit heading (axisOffsetDeg 135..225)
 --
 -- @param descriptors  table   ordered list of descriptor tables (one per crate)
 -- @param transport    Unit    the requesting/packing transport unit
@@ -9584,7 +9528,7 @@ function CTLDCrateManager:registerMMCrate(obj, desc)
 
     if descriptor == nil then
         _log("CTLDCrateManager:registerMMCrate - unknown cargo type '"
-            .. tostring(typeName) .. "' (" .. crateName .. ") — skipped", "WARNING")
+            .. tostring(typeName) .. "' (" .. crateName .. ") â€” skipped", "WARNING")
         return
     end
 
@@ -9637,7 +9581,7 @@ function CTLDCrateManager:getCratesInRange(position, radius)
 end
 
 --- Load a crate into a transport unit.
--- Transitions crate: spawned|landed → loaded.
+-- Transitions crate: spawned|landed â†’ loaded.
 -- Publishes OnCrateLoaded.
 -- @param crateName string
 -- @param transport Unit
@@ -9673,7 +9617,7 @@ function CTLDCrateManager:loadCrate(crateName, transport)
 end
 
 --- Unload a crate to the ground (transport has landed).
--- Transitions crate: loaded → landed.
+-- Transitions crate: loaded â†’ landed.
 -- Publishes OnCrateUnloaded.
 -- @param crateName string
 -- @param position  vec3
@@ -9708,7 +9652,7 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
 end
 
 --- Unpack a crate (contents deployed).
--- Transitions crate: spawned|landed → unpacked.
+-- Transitions crate: spawned|landed â†’ unpacked.
 -- Publishes OnCrateUnpacked.
 -- Spawn logic is delegated to the relevant manager based on descriptor type.
 -- @param crateName string
@@ -9828,8 +9772,8 @@ function CTLDCrateManager:checkAssemblyReady(crate, radius)
 end
 
 --- Drop a crate from a transport in flight.
--- Below maxDropHeight → crate lands safely.
--- Above maxDropHeight → crate is destroyed (impact damage).
+-- Below maxDropHeight â†’ crate lands safely.
+-- Above maxDropHeight â†’ crate is destroyed (impact damage).
 -- Publishes OnCrateUnloaded (method="drop") on safe landing,
 -- or OnCrateDestroyed (reason="drop_impact") on destruction.
 -- @param crateName     string
@@ -10000,10 +9944,10 @@ end
 --- Build "Request Equipment" + "Crate Commands" F10 submenus for a player.
 -- Requires enableCrates = true (configKey gate) AND unitActions.crates = true.
 -- Sub-entries:
---   Request Equipment → per LGZ → per category → per crate (filtered by coalition + JTAC flag)
---   Crate Commands → Load/Drop/Unpack/List
---                  → List FOBs         if enabledFOBBuilding
---                  → Pack Vehicle (container, populated dynamically) if enablePackingVehicles
+--   Request Equipment â†’ per LGZ â†’ per category â†’ per crate (filtered by coalition + JTAC flag)
+--   Crate Commands â†’ Load/Drop/Unpack/List
+--                  â†’ List FOBs         if enabledFOBBuilding
+--                  â†’ Pack Vehicle (container, populated dynamically) if enablePackingVehicles
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDCrateManager:buildMenuSection(playerObj, menu)
@@ -10016,7 +9960,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     local spawnSub  = ctld.tr("Request Equipment")
     menu:addSubMenu({ root }, spawnSub, { order = 40 })
 
-    -- Request Equipment: per LGZ × per category × per crate
+    -- Request Equipment: per LGZ Ã— per category Ã— per crate
     local lgZones        = CTLDZoneManager.getInstance():getLogisticZonesForCoalition(playerObj.coalition)
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
 
@@ -10064,7 +10008,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                             spawned, spawnInfo.clock), 20)
                                 end
                             else
-                                -- Single crate entry (random axis = nil → random clock reported)
+                                -- Single crate entry (random axis = nil â†’ random clock reported)
                                 local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
                                 local pos        = spawnInfo.positions[1]
                                 local descriptor = mgr:findDescriptorByTypeName(arg.unit)
@@ -10188,9 +10132,9 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             for _, key in ipairs(unitOrder) do
                 local info = byUnit[key]
                 if info.count >= info.required then
-                    table.insert(lines, ctld.tr("  %1: %2/%3 — READY", info.desc, info.count, info.required))
+                    table.insert(lines, ctld.tr("  %1: %2/%3 â€” READY", info.desc, info.count, info.required))
                 else
-                    table.insert(lines, ctld.tr("  %1: %2/%3 — incomplete", info.desc, info.count, info.required))
+                    table.insert(lines, ctld.tr("  %1: %2/%3 â€” incomplete", info.desc, info.count, info.required))
                 end
             end
             trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
@@ -10293,12 +10237,12 @@ end
 function CTLDCrateManager:spawnCrateAtZone(side, weight, zone)
     local trig = trigger.misc.getZone(zone)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone — zone not found: %s", tostring(zone))
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone â€” zone not found: %s", tostring(zone))
         return nil
     end
     local descriptor = self:findDescriptorByWeight(weight)
     if not descriptor then
-        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone — no descriptor for weight=%s", tostring(weight))
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtZone â€” no descriptor for weight=%s", tostring(weight))
         return nil
     end
     local p2  = { x = trig.point.x, y = trig.point.z }
@@ -10316,7 +10260,7 @@ end
 function CTLDCrateManager:spawnCrateAtPoint(side, weight, point, hdg)
     local descriptor = self:findDescriptorByWeight(weight)
     if not descriptor then
-        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtPoint — no descriptor for weight=%s", tostring(weight))
+        ctld.utils.log("ERROR", "CTLDCrateManager:spawnCrateAtPoint â€” no descriptor for weight=%s", tostring(weight))
         return nil
     end
     local cId = (side == "red") and coalition.side.RED or coalition.side.BLUE
@@ -10330,7 +10274,7 @@ end
 function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     local trig = trigger.misc.getZone(zoneName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDCrateManager:startCrateCountWatcher — zone not found: %s", tostring(zoneName))
+        ctld.utils.log("ERROR", "CTLDCrateManager:startCrateCountWatcher â€” zone not found: %s", tostring(zoneName))
         return
     end
     local center = { x = trig.point.x, y = trig.point.y, z = trig.point.z }
@@ -10352,33 +10296,31 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
--- ===== End   : CTLD_crate.lua =====
 
--- ===== Start : CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
 --
 -- Vehicle lifecycle:
---   WAITING   — spawned on the ground, awaiting pick-up
---   LOADED    — loaded into a transport (DCS unit destroyed / bbox-tracked)
---   DELIVERED — unloaded from transport (DCS unit respawned)
+--   WAITING   â€” spawned on the ground, awaiting pick-up
+--   LOADED    â€” loaded into a transport (DCS unit destroyed / bbox-tracked)
+--   DELIVERED â€” unloaded from transport (DCS unit respawned)
 --
 -- Load methods:
---   "menu_ctld"  — virtual load via CTLD F10 menu: unit destroyed on load,
+--   "menu_ctld"  â€” virtual load via CTLD F10 menu: unit destroyed on load,
 --                  respawned on unload using the original group / unit names
---   "dcs_native" — detected via bounding-box overlap with a C-130 / Il-76
+--   "dcs_native" â€” detected via bounding-box overlap with a C-130 / Il-76
 --                  (vehicleTransportEnabled list)
 --
 -- Unload methods:
---   "menu_ctld"  — virtual unload: unit respawned near transport
---   "dcs_native" — bbox exit while transport is on the ground
---   "parachute"  — bbox exit while transport is airborne
+--   "menu_ctld"  â€” virtual unload: unit respawned near transport
+--   "dcs_native" â€” bbox exit while transport is on the ground
+--   "parachute"  â€” bbox exit while transport is airborne
 --
 -- Spawn position for spawnVehicleForTransport / unloadVehicle:
 --   Uses the transport's own bounding box to compute a collision-free offset
 --   (same logic as ctld.getSecureDistanceFromUnit), then places the unit in the
---   front sector (±45 ° of heading) of the transport.
+--   front sector (Â±45 Â° of heading) of the transport.
 --
 -- Group / unit naming:
 --   spawnVehicleForTransport assigns  groupName = "CTLD_VEH_<type>_<id>"
@@ -10387,10 +10329,10 @@ end
 --   that the unit re-appears under its original name on the F10 map.
 --
 -- Events published:
---   OnVehicleSpawnedForTransport  — vehicle spawned by spawnVehicleForTransport
---   OnVehicleLoaded               — vehicle loaded into a transport
---   OnVehicleUnloaded             — vehicle unloaded / dropped from a transport
---   OnVehicleDead                 — tracked vehicle destroyed (combat / accident)
+--   OnVehicleSpawnedForTransport  â€” vehicle spawned by spawnVehicleForTransport
+--   OnVehicleLoaded               â€” vehicle loaded into a transport
+--   OnVehicleUnloaded             â€” vehicle unloaded / dropped from a transport
+--   OnVehicleDead                 â€” tracked vehicle destroyed (combat / accident)
 --
 -- Dependencies: class (lib/class.lua), ctld.utils, ctld.gs,
 --               EventDispatcher, CTLDDCSEventBridge
@@ -10418,9 +10360,9 @@ CTLDVehicle.STATE = {
 -- @param data table
 --   Required: id (string), vehicleType (string), spawner (DCS Unit),
 --             logisticZone (CTLDLogisticZone|nil), countryId (number),
---             coalitionId (number), spawnData (table — see below)
+--             coalitionId (number), spawnData (table â€” see below)
 --   spawnData:  { groupName, unitName, vehicleType, countryId, coalitionId }
---   Optional:   unit (DCS Unit)   — the live DCS unit when in WAITING state
+--   Optional:   unit (DCS Unit)   â€” the live DCS unit when in WAITING state
 function CTLDVehicle:init(data)
     self.id           = data.id
     self.vehicleType  = data.vehicleType
@@ -10435,7 +10377,7 @@ function CTLDVehicle:init(data)
     self.loadTransportName = nil
 end
 
---- Transition to a new state.  No validation — callers are responsible.
+--- Transition to a new state.  No validation â€” callers are responsible.
 -- @param newState string  CTLDVehicle.STATE.*
 function CTLDVehicle:setState(newState)
     self.state = newState
@@ -10464,11 +10406,11 @@ function CTLDVehicleSpawner.getInstance()
 end
 
 function CTLDVehicleSpawner:init()
-    self._vehicles        = {}   -- id         → CTLDVehicle
-    self._unitToVehicle   = {}   -- unitName   → vehicleId   (reverse lookup)
+    self._vehicles        = {}   -- id         â†’ CTLDVehicle
+    self._unitToVehicle   = {}   -- unitName   â†’ vehicleId   (reverse lookup)
     self._vehicleCount    = 0
     self._parachuteEffect = CTLDNullParachuteEffect:new()
-    -- nativeTracked: transportName → { vehicleId, wasInBbox }
+    -- nativeTracked: transportName â†’ { vehicleId, wasInBbox }
     -- populated by _checkNativeLoading to avoid re-firing on same entry
     self._nativeTracked = {}
 
@@ -10491,7 +10433,7 @@ function CTLDVehicleSpawner:init()
         order   = 30,
     })
 
-    -- Pack menu refresh: detect inAir→landed transition every 3 s
+    -- Pack menu refresh: detect inAirâ†’landed transition every 3 s
     self._prevInAir = {}
     timer.scheduleFunction(function(_, t)
         local inst = CTLDVehicleSpawner._instance
@@ -10536,7 +10478,7 @@ local function _secureOffset(transport)
     return 30
 end
 
---- Compute a spawn position in the front sector (±45 °) of transport.
+--- Compute a spawn position in the front sector (Â±45 Â°) of transport.
 -- @param transport DCS Unit
 -- @return vec3
 local function _computeSpawnPosition(transport)
@@ -10671,14 +10613,14 @@ end
 -- @param method    string      "menu_ctld" | "dcs_native"
 function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     if vehicle:getState() ~= CTLDVehicle.STATE.WAITING then
-        ctld.utils.log("WARNING", "CTLDVehicleSpawner:loadVehicle — vehicle "
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:loadVehicle â€” vehicle "
             .. vehicle.id .. " not in WAITING state")
         return
     end
 
     local unitPos = vehicle.unit and vehicle.unit:getPoint() or transport:getPoint()
 
-    -- Destroy DCS unit (virtual load — unit disappears from map)
+    -- Destroy DCS unit (virtual load â€” unit disappears from map)
     if vehicle.unit and vehicle.unit:isExist() then
         vehicle.unit:destroy()
         EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
@@ -10733,7 +10675,7 @@ end
 -- @param method    string      "menu_ctld" | "dcs_native" | "parachute"
 function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     if vehicle:getState() ~= CTLDVehicle.STATE.LOADED then
-        ctld.utils.log("WARNING", "CTLDVehicleSpawner:unloadVehicle — vehicle "
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:unloadVehicle â€” vehicle "
             .. vehicle.id .. " not in LOADED state")
         return
     end
@@ -10765,7 +10707,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
 
     local result = ctld.utils.dynAdd("CTLDVehicleSpawner:unloadVehicle", groupData)
     if not result then
-        ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle — dynAdd failed for id="
+        ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle â€” dynAdd failed for id="
             .. vehicle.id)
         return
     end
@@ -10835,8 +10777,8 @@ end
 
 --- Periodic check for DCS-native C-130 / Il-76 bbox load / unload detection.
 -- For every transport in vehicleTransportEnabled that exists on the map:
---   • WAITING vehicle enters bbox  → loadVehicle (method="dcs_native")
---   • LOADED  vehicle exits  bbox  → unloadVehicle (method depends on inAir flag)
+--   â€¢ WAITING vehicle enters bbox  â†’ loadVehicle (method="dcs_native")
+--   â€¢ LOADED  vehicle exits  bbox  â†’ unloadVehicle (method depends on inAir flag)
 function CTLDVehicleSpawner:_checkNativeLoading()
     local vehicleTransports = ctld.gs("vehicleTransportEnabled") or {}
     if #vehicleTransports == 0 then return end
@@ -10888,7 +10830,7 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                             local uPos = veh.unit:getPoint()
                             local lp   = self:_worldToLocal(uPos, transform)
                             if self:_isInBbox(lp, box) then
-                                -- Vehicle entered bbox → load
+                                -- Vehicle entered bbox â†’ load
                                 self:loadVehicle(veh, transport, nil, "dcs_native")
                                 -- Track transport for exit detection
                                 self._nativeTracked[tName] = self._nativeTracked[tName] or {}
@@ -10959,7 +10901,7 @@ function CTLDVehicleSpawner:onDead(event)
 end
 
 -- ============================================================
--- Feature A — Virtual parachute
+-- Feature A â€” Virtual parachute
 -- ============================================================
 
 --- Replace the parachute visual effect handler.
@@ -11011,7 +10953,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
-    -- Unload from transport (mark as delivered — will be re-spawned at landing position)
+    -- Unload from transport (mark as delivered â€” will be re-spawned at landing position)
     local spawnData = vehicle.spawnData
     vehicle:setState(CTLDVehicle.STATE.DELIVERED)
 
@@ -11125,7 +11067,7 @@ end
 -- Pack Vehicle
 -- ============================================================
 
---- Detect inAir→landed transition for each player and refresh their menu.
+--- Detect inAirâ†’landed transition for each player and refresh their menu.
 -- Mirrors ctld.updatePackMenuOnlanding; called every 3 s from init timer.
 function CTLDVehicleSpawner:_checkPackingLanding()
     if ctld.gs("enablePackingVehicles") ~= true then return end
@@ -11333,9 +11275,7 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
--- ===== End   : CTLD_vehicle.lua =====
 
--- ===== Start : CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -11349,11 +11289,11 @@ end
 --   5. CTLDBeaconManager drops an infinite-battery FOB beacon.
 --   6. If troopPickupAtFOB, the FOB is also tracked as a troop-pickup point.
 --   7. S_EVENT_DEAD on any scene object triggers integrity check;
---      if alive fraction < (1 - fobDestructionThreshold) → FOB destroyed.
+--      if alive fraction < (1 - fobDestructionThreshold) â†’ FOB destroyed.
 --
 -- Events published:
---   OnFOBDeployed   — when the scene completes and the FOB is fully active
---   OnFOBDestroyed  — when integrity threshold is breached
+--   OnFOBDeployed   â€” when the scene completes and the FOB is fully active
+--   OnFOBDestroyed  â€” when integrity threshold is breached
 --
 -- Dependencies: class (lib/class.lua), CTLDUtils (ctld.utils),
 --               CTLDConfig (ctld.gs), EventDispatcher,
@@ -11394,7 +11334,7 @@ function CTLDFOB:isAlive()
     return false
 end
 
---- Alive fraction of scene objects (0.0–1.0). Returns 0 if no objects tracked.
+--- Alive fraction of scene objects (0.0â€“1.0). Returns 0 if no objects tracked.
 function CTLDFOB:getIntegrityPercent()
     local total = #self.sceneObjects
     if total == 0 then return 0 end
@@ -11422,37 +11362,15 @@ function CTLDFOBManager.getInstance()
     return CTLDFOBManager._instance
 end
 
--- FOB layer mark ID counter (starts at 8000 to avoid collision with CTLDReconManager)
-local _fobMarkCounter = 8000
-
-local function _nextFobMark()
-    _fobMarkCounter = _fobMarkCounter + 1
-    return _fobMarkCounter
-end
-
 function CTLDFOBManager:init()
-    self._fobs          = {}   -- fobId  → CTLDFOB
-    self._fobCount      = 0
-    self._objectToFOB   = {}   -- DCS object name → fobId  (reverse lookup for onDead)
-    -- FOB layer marks: _fobMarks[player][tag][fobId] = markId
-    -- tag = "friendly" | "enemy"
-    self._fobMarks      = {}
-    -- Layer visibility state: _fobLayerOn[player][tag] = bool
-    self._fobLayerOn    = {}
+    self._fobs        = {}   -- fobId  â†’ CTLDFOB
+    self._fobCount    = 0
+    self._objectToFOB = {}   -- DCS object name â†’ fobId  (reverse lookup for onDead)
 
     local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
     if ok and bridge then
         bridge:register(self, world.event.S_EVENT_DEAD, "onDead")
     end
-
-    -- Refresh FOB layers when FOBs appear or disappear
-    local ed = EventDispatcher.getInstance()
-    ed:subscribe("OnFOBDeployed", function(payload)
-        CTLDFOBManager.getInstance():_refreshAllFOBLayers()
-    end)
-    ed:subscribe("OnFOBDestroyed", function(payload)
-        CTLDFOBManager.getInstance():_refreshAllFOBLayers()
-    end)
 
     CTLDPlayerManager.getInstance():registerMenuSection({
         key       = "fobs",
@@ -11519,7 +11437,7 @@ local function _isTooCloseToZone(position, coalitionId)
 end
 
 -- ============================================================
--- Core action: unpack FOB crates → schedule build
+-- Core action: unpack FOB crates â†’ schedule build
 -- ============================================================
 
 --- Called from F10 menu when a player attempts to unpack FOB crates.
@@ -11595,7 +11513,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
         if not transport2 or not transport2:isExist() then
             -- Transport left; use a minimal proxy (coalition/country from cache)
             -- The scene will use params.centroid for positioning.
-            transport2 = transport  -- stale ref — only coalition/country are read by scene engine
+            transport2 = transport  -- stale ref â€” only coalition/country are read by scene engine
         end
 
         CTLDSceneManager.getInstance():playScene(
@@ -11647,7 +11565,7 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
 
     -- Drop FOB beacon (infinite battery).
     -- Beacon is placed in the open space between container and watchtower:
-    -- 20 m at 158° from the scene heading (same direction as watchtower step,
+    -- 20 m at 158Â° from the scene heading (same direction as watchtower step,
     -- but short enough to stay clear of both buildings).
     local transport = Unit.getByName(transportName)
     if transport and transport:isExist() and CTLDBeaconManager then
@@ -11693,7 +11611,7 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
 end
 
 -- ============================================================
--- S_EVENT_DEAD — integrity check
+-- S_EVENT_DEAD â€” integrity check
 -- ============================================================
 
 function CTLDFOBManager:onDead(event)
@@ -11711,7 +11629,7 @@ function CTLDFOBManager:onDead(event)
     local integrity = fob:getIntegrityPercent()
 
     ctld.utils.log("INFO",
-        "CTLDFOBManager: FOB '%s' scene object '%s' dead — integrity %.0f%%",
+        "CTLDFOBManager: FOB '%s' scene object '%s' dead â€” integrity %.0f%%",
         fob.name, objName, integrity * 100)
 
     if integrity < (1 - threshold) then
@@ -11823,7 +11741,7 @@ function CTLDFOBManager:listFOBs(transport)
         local latLon   = ctld.utils.tostringLL(
             "CTLDFOBManager:listFOBs", lat, lon, 3, ctld.gs("location_DMS") or false)
         local integrity = string.format("%.0f%%", fob:getIntegrityPercent() * 100)
-        local line      = string.format("  %s — %s — %s", fob.name or fob.fobId, latLon, integrity)
+        local line      = string.format("  %s â€” %s â€” %s", fob.name or fob.fobId, latLon, integrity)
         if fob.beacon then
             line = line .. string.format(
                 "\n    VHF %.1f kHz / UHF %.1f MHz / FM %.1f MHz",
@@ -11834,134 +11752,6 @@ function CTLDFOBManager:listFOBs(transport)
         lines[#lines + 1] = line
     end
     trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 20)
-end
-
--- ============================================================
--- FOB Layer (F10 map marks)
--- ============================================================
-
--- Colors: friendly blue, friendly red, enemy (inverted), semi-transparent
-local _FOB_COLOR = {
-    [coalition.side.BLUE] = { 0.20, 0.50, 1.00, 1.0 },
-    [coalition.side.RED]  = { 1.00, 0.30, 0.20, 1.0 },
-}
-local _FOB_ENEMY_COLOR = {
-    [coalition.side.BLUE] = { 1.00, 0.30, 0.20, 0.85 },
-    [coalition.side.RED]  = { 0.20, 0.50, 1.00, 0.85 },
-}
-
---- Draw FOB mark icons for one coalition set, visible only to demandingCoa.
--- @param player       string
--- @param tag          string   "friendly"|"enemy"
--- @param fobList      table    array of CTLDFOB (alive only)
--- @param color        table    {r,g,b,a}
--- @param demandingCoa number   coalition.side.* of the requesting player
-function CTLDFOBManager:_drawFOBMarks(player, tag, fobList, color, demandingCoa)
-    if not self._fobMarks[player] then self._fobMarks[player] = {} end
-    if not self._fobMarks[player][tag] then self._fobMarks[player][tag] = {} end
-    local marks = self._fobMarks[player][tag]
-
-    for _, fob in ipairs(fobList) do
-        local mid = _nextFobMark()
-        marks[fob.fobId] = mid
-        CTLDReconRenderer.drawFOBIcon(fob.position, mid, color, demandingCoa,
-            fob.name or fob.fobId)
-    end
-end
-
---- Remove all FOB mark icons for player+tag.
-function CTLDFOBManager:_clearFOBMarks(player, tag)
-    if not self._fobMarks[player] then return end
-    local marks = self._fobMarks[player][tag]
-    if not marks then return end
-    for _, mid in pairs(marks) do
-        CTLDReconRenderer.removeFOBIcon(mid)
-    end
-    self._fobMarks[player][tag] = {}
-end
-
---- Toggle the friendly FOB layer for a player.
--- @param transport DCS Unit
--- @param player    string
-function CTLDFOBManager:toggleFriendlyFOBLayer(transport, player)
-    if not self._fobLayerOn[player] then self._fobLayerOn[player] = {} end
-    local coa = transport:getCoalition()
-    local gid = transport:getGroup():getID()
-    local tag = "friendly"
-
-    if self._fobLayerOn[player][tag] then
-        self:_clearFOBMarks(player, tag)
-        self._fobLayerOn[player][tag] = false
-        trigger.action.outTextForGroup(gid, ctld.tr("Friendly FOB layer: OFF"), 8)
-    else
-        local fobList = {}
-        for _, fob in ipairs(self:getFOBsForCoalition(coa)) do
-            if fob:isAlive() then fobList[#fobList + 1] = fob end
-        end
-        self:_drawFOBMarks(player, tag, fobList, _FOB_COLOR[coa] or _FOB_COLOR[2], coa)
-        self._fobLayerOn[player][tag] = true
-        trigger.action.outTextForGroup(gid,
-            ctld.tr("Friendly FOB layer: ON (%1 FOB(s))", #fobList), 8)
-    end
-end
-
---- Toggle the enemy FOB layer for a player.
--- Gated by config enableEnemyFOBRecon.
--- @param transport DCS Unit
--- @param player    string
-function CTLDFOBManager:toggleEnemyFOBLayer(transport, player)
-    if ctld.gs("enableEnemyFOBRecon") ~= true then return end
-    if not self._fobLayerOn[player] then self._fobLayerOn[player] = {} end
-    local coa    = transport:getCoalition()
-    local gid    = transport:getGroup():getID()
-    local tag    = "enemy"
-    local eneCoa = (coa == coalition.side.BLUE) and coalition.side.RED or coalition.side.BLUE
-
-    if self._fobLayerOn[player][tag] then
-        self:_clearFOBMarks(player, tag)
-        self._fobLayerOn[player][tag] = false
-        trigger.action.outTextForGroup(gid, ctld.tr("Enemy FOB layer: OFF"), 8)
-    else
-        local fobList = {}
-        for _, fob in ipairs(self:getFOBsForCoalition(eneCoa)) do
-            if fob:isAlive() then fobList[#fobList + 1] = fob end
-        end
-        self:_drawFOBMarks(player, tag, fobList,
-            _FOB_ENEMY_COLOR[coa] or _FOB_ENEMY_COLOR[2], coa)
-        self._fobLayerOn[player][tag] = true
-        trigger.action.outTextForGroup(gid,
-            ctld.tr("Enemy FOB layer: ON (%1 FOB(s))", #fobList), 8)
-    end
-end
-
---- Refresh all active FOB layers for all players (called on FOB deployed/destroyed).
-function CTLDFOBManager:_refreshAllFOBLayers()
-    local pm = CTLDPlayerManager.getInstance()
-    for unitName, playerObj in pairs(pm._players) do
-        local unit = Unit.getByName(unitName)
-        if unit and unit:isExist() and self._fobLayerOn[unitName] then
-            local coa    = unit:getCoalition()
-            local eneCoa = (coa == coalition.side.BLUE) and coalition.side.RED or coalition.side.BLUE
-            if self._fobLayerOn[unitName]["friendly"] then
-                self:_clearFOBMarks(unitName, "friendly")
-                local fobList = {}
-                for _, fob in ipairs(self:getFOBsForCoalition(coa)) do
-                    if fob:isAlive() then fobList[#fobList + 1] = fob end
-                end
-                self:_drawFOBMarks(unitName, "friendly", fobList,
-                    _FOB_COLOR[coa] or _FOB_COLOR[2], coa)
-            end
-            if self._fobLayerOn[unitName]["enemy"] and ctld.gs("enableEnemyFOBRecon") == true then
-                self:_clearFOBMarks(unitName, "enemy")
-                local fobList = {}
-                for _, fob in ipairs(self:getFOBsForCoalition(eneCoa)) do
-                    if fob:isAlive() then fobList[#fobList + 1] = fob end
-                end
-                self:_drawFOBMarks(unitName, "enemy", fobList,
-                    _FOB_ENEMY_COLOR[coa] or _FOB_ENEMY_COLOR[2], coa)
-            end
-        end
-    end
 end
 
 -- ============================================================
@@ -11985,9 +11775,7 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
--- ===== End   : CTLD_fob.lua =====
 
--- ===== Start : CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -12008,9 +11796,9 @@ end
 --   -- if handled == false, caller falls through to standard unpack.
 --
 -- Events published:
---   OnAASystemDeployed  — full system assembled for the first time
---   OnAASystemRearmed   — extra launchers added to an existing complete system
---   OnAASystemRepaired  — damaged system respawned in place
+--   OnAASystemDeployed  â€” full system assembled for the first time
+--   OnAASystemRearmed   â€” extra launchers added to an existing complete system
+--   OnAASystemRepaired  â€” damaged system respawned in place
 --
 -- Config keys: aaLaunchers, AASystemLimitRED, AASystemLimitBLUE,
 --              AASystemCrateStacking
@@ -12024,7 +11812,7 @@ end
 ctld = ctld or {}
 
 -- ============================================================
--- AA system templates (static data — mission-maker can override
+-- AA system templates (static data â€” mission-maker can override
 -- CTLDCrateAssemblyManager.TEMPLATES before init if needed).
 -- Structure mirrors source ctld.AASystemTemplate.
 -- ============================================================
@@ -12038,9 +11826,9 @@ CTLDCrateAssemblyManager._instance = nil
 --   parts   array    { name, desc, launcher?, amount?, NoCrate? }
 --     name     DCS type name of the ground unit
 --     desc     human-readable label (for "missing" messages)
---     launcher true   → this part is the "launcher" (used for rearm detection)
---     amount   number → override spawn count per template (default 1, or aaLaunchers for launchers)
---     NoCrate  true   → part is spawned without a crate (always found)
+--     launcher true   â†’ this part is the "launcher" (used for rearm detection)
+--     amount   number â†’ override spawn count per template (default 1, or aaLaunchers for launchers)
+--     NoCrate  true   â†’ part is spawned without a crate (always found)
 --   repair  string   DCS type name of the repair crate unit for this system
 CTLDCrateAssemblyManager.TEMPLATES = {
     {
@@ -12124,7 +11912,7 @@ function CTLDCrateAssemblyManager.getInstance()
 end
 
 function CTLDCrateAssemblyManager:init()
-    -- groupName → { details = [{point,unit,name,hdg}], template = template }
+    -- groupName â†’ { details = [{point,unit,name,hdg}], template = template }
     self._completeSystems = {}
     ctld.utils.log("INFO", "CTLDCrateAssemblyManager: init complete")
 end
@@ -12221,7 +12009,7 @@ end
 --
 -- @param heli      Unit        transport unit performing the action
 -- @param crate     CTLDCrate   the nearest crate (already confirmed on ground)
--- @param allCrates table       CTLDCrateManager.crates  (name → CTLDCrate)
+-- @param allCrates table       CTLDCrateManager.crates  (name â†’ CTLDCrate)
 -- @param radius    number|nil  search radius for nearby crates (default 500 m)
 -- @return boolean  true if an AA action was performed (caller must not unpack further)
 function CTLDCrateAssemblyManager:tryUnpackOrRepair(heli, crate, allCrates, radius)
@@ -12248,7 +12036,7 @@ end
 -- complete system exists within rearm distance.
 -- @param heli      Unit
 -- @param crate     CTLDCrate   nearest crate (the one the player is at)
--- @param allCrates table       name → CTLDCrate
+-- @param allCrates table       name â†’ CTLDCrate
 -- @param template  table
 -- @param radius    number      part search radius in metres
 function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, radius)
@@ -12351,7 +12139,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- ---- Spawn group ----
     local spawnedGroup = self:_spawnGroup(heli, positions, types, headings)
     if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_assemble — spawnGroup failed for " .. template.name)
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_assemble â€” spawnGroup failed for " .. template.name)
         return
     end
 
@@ -12421,7 +12209,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     -- Respawn with same positions/types/headings (fully rearmed)
     local spawnedGroup = self:_spawnGroup(heli, points, types, headings)
     if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_rearm — spawnGroup failed")
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_rearm â€” spawnGroup failed")
         return false
     end
 
@@ -12487,7 +12275,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
 
     local spawnedGroup = self:_spawnGroup(heli, points, types, headings)
     if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_repair — spawnGroup failed")
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_repair â€” spawnGroup failed")
         return
     end
 
@@ -12581,7 +12369,7 @@ end
 -- multiple units of the same part are evenly distributed around the circle.
 -- NoCrate parts use random offsets within spawnRadius from origin.
 -- @param template    table
--- @param systemParts table  name → { found, required, NoCrate, amount, ... }
+-- @param systemParts table  name â†’ { found, required, NoCrate, amount, ... }
 -- @param origin      vec3   reference spawn point (from _computeOrigin)
 -- @param heli        Unit   used to get heading for NoCrate offset direction
 -- @return positions[], types[], headings[]
@@ -12684,9 +12472,7 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
--- ===== End   : CTLD_aasystem.lua =====
 
--- ===== Start : CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -12699,17 +12485,17 @@ end
 -- Beacon lifecycle:
 --   dropped  : 3 TACAN_beacon units spawned, radio transmissions started
 --   active   : refresh every beaconRefreshInterval seconds
---   destroyed: battery depleted OR < 3 units alive → cleanup + free freqs
+--   destroyed: battery depleted OR < 3 units alive â†’ cleanup + free freqs
 --   removed  : manual removal by player within 500m
 --
 -- Frequency pools (recycled when < 3 free):
---   VHF : 200–1250 kHz  (10 kHz steps below 850, 50 kHz above)
---   UHF : 220–399 MHz   (0.5 MHz steps)
---   FM  : 30–76 MHz     (formula: (100*f + 10*s + t) * 100 kHz)
+--   VHF : 200â€“1250 kHz  (10 kHz steps below 850, 50 kHz above)
+--   UHF : 220â€“399 MHz   (0.5 MHz steps)
+--   FM  : 30â€“76 MHz     (formula: (100*f + 10*s + t) * 100 kHz)
 --
 -- Radio transmission modes:
 --   VHF : mode 0 (AM), sound = radioSound
---   UHF : mode 0 (AM), sound = radioSoundFC3 (silent — FC3 aircraft)
+--   UHF : mode 0 (AM), sound = radioSoundFC3 (silent â€” FC3 aircraft)
 --   FM  : mode 1 (FM), sound = radioSound
 --
 -- Draw layer:
@@ -12757,7 +12543,7 @@ function CTLDBeacon:isBatteryAlive()
     return self.batteryEndTime == -1 or timer.getTime() < self.batteryEndTime
 end
 
---- Number of still-alive DCS units for this beacon (0–3).
+--- Number of still-alive DCS units for this beacon (0â€“3).
 function CTLDBeacon:countAliveUnits()
     local n = 0
     for _, gname in ipairs({ self.vhfGroupName, self.uhfGroupName, self.fmGroupName }) do
@@ -12840,7 +12626,7 @@ end
 -- Frequency pools
 -- ============================================================
 
--- Known NDB frequencies to skip in VHF pool (kHz → × 1000 = Hz).
+-- Known NDB frequencies to skip in VHF pool (kHz â†’ Ã— 1000 = Hz).
 -- These match existing NDB beacons on DCS maps (Caucasus, Nevada, etc.)
 -- and would interfere if used for CTLD radio beacons.
 CTLDBeaconManager._ndbSkip = {
@@ -12863,7 +12649,7 @@ function CTLDBeaconManager:_buildFreqPools()
         skipSet[kHz * 1000] = true
     end
 
-    -- VHF: 200–840 kHz by 10 kHz (skipping NDB), then 850–1250 kHz by 50 kHz (skipping NDB)
+    -- VHF: 200â€“840 kHz by 10 kHz (skipping NDB), then 850â€“1250 kHz by 50 kHz (skipping NDB)
     for f = 200000, 840000, 10000 do
         if not skipSet[f] then self._freeVHF[#self._freeVHF + 1] = f end
     end
@@ -12871,7 +12657,7 @@ function CTLDBeaconManager:_buildFreqPools()
         if not skipSet[f] then self._freeVHF[#self._freeVHF + 1] = f end
     end
 
-    -- UHF: 220–398.5 MHz by 0.5 MHz (stops before 399 MHz, matching source)
+    -- UHF: 220â€“398.5 MHz by 0.5 MHz (stops before 399 MHz, matching source)
     local f = 220000000
     while f < 399000000 do
         self._freeUHF[#self._freeUHF + 1] = f
@@ -13010,7 +12796,7 @@ end
 -- @return CTLDBeacon or nil
 function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition)
     if not ctld.gs("enabledRadioBeaconDrop") then
-        ctld.utils.log("WARN", "CTLDBeaconManager:dropBeacon — beacons disabled in config")
+        ctld.utils.log("WARN", "CTLDBeaconManager:dropBeacon â€” beacons disabled in config")
         return nil
     end
 
@@ -13030,7 +12816,7 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
     local fmGroup  = self:_spawnBeaconUnit(point, countryId, displayName .. " FM "  .. freqText)
 
     if not (vhfGroup and uhfGroup and fmGroup) then
-        ctld.utils.log("ERROR", "CTLDBeaconManager:dropBeacon — spawn failed for '%s'", displayName)
+        ctld.utils.log("ERROR", "CTLDBeaconManager:dropBeacon â€” spawn failed for '%s'", displayName)
         return nil
     end
 
@@ -13440,7 +13226,7 @@ end
 function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, name)
     local trig = trigger.misc.getZone(zoneName)
     if not trig then
-        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone — zone not found: %s", tostring(zoneName))
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone â€” zone not found: %s", tostring(zoneName))
         return nil
     end
     local p2 = { x = trig.point.x, y = trig.point.z }
@@ -13461,7 +13247,7 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     local fmGroup  = self:_spawnBeaconUnit(pt, countryId, name .. " FM "  .. freqText)
 
     if not (vhfGroup and uhfGroup and fmGroup) then
-        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone — spawn failed for '%s'", name)
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone â€” spawn failed for '%s'", name)
         return nil
     end
 
@@ -13499,15 +13285,18 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
         timestamp  = timer.getAbsTime(),
     })
 
-    ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
+    ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone â€” '%s' at zone '%s'", name, zoneName)
     return beacon
 end
--- ===== End   : CTLD_beacon.lua =====
 
--- ===== Start : CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
+--
+-- SCOPE: RECON is exclusively for displaying ENEMY unit information
+-- detected via Line-of-Sight (LOS) from an allied unit.
+-- It must NOT be used to display friendly assets (FOBs, zones, beaconsâ€¦).
+-- Those belong in their own manager menus.
 --
 -- Dependencies : class (lib/class.lua), CTLDUtils (ctld.utils),
 --                CTLDConfig (ctld.gs), EventDispatcher
@@ -13517,11 +13306,11 @@ end
 --
 -- Recon workflow:
 --   1. Player enables one or more layers (Layers submenu)
---   2. Player scans → LOS check via ctld.utils.getUnitsLOS()
---      → Draw API icons per layer type on F10 map
+--   2. Player scans â†’ LOS check via ctld.utils.getUnitsLOS()
+--      â†’ Draw API icons per layer type on F10 map
 --   3. Optional: Auto-Refresh every reconRefreshInterval seconds
---      → tracks moved/new/lost targets
---   4. Hide All Targets → remove marks, stop timer
+--      â†’ tracks moved/new/lost targets
+--   4. Hide All Targets â†’ remove marks, stop timer
 --
 -- Layers (per-player state):
 --   infantry, ground_vehicles, air_defense, aircraft, helicopters, ships
@@ -13540,7 +13329,7 @@ end
 ctld = ctld or {}
 
 -- ============================================================
--- CTLDReconRenderer  (static table — no instance)
+-- CTLDReconRenderer  (static table â€” no instance)
 -- ============================================================
 
 CTLDReconRenderer = {}
@@ -13552,7 +13341,7 @@ function CTLDReconRenderer.removeIcon(markId)
     end
 end
 
---- Infantry icon: circle + horizontal + vertical cross (⊕).
+--- Infantry icon: circle + horizontal + vertical cross (âŠ•).
 function CTLDReconRenderer.drawInfantryIcon(pos, markId, color)
     local r    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").infantry) or 30
     local fill = { color[1], color[2], color[3], 0.3 }
@@ -13566,7 +13355,7 @@ function CTLDReconRenderer.drawInfantryIcon(pos, markId, color)
         color, 1, true, "")
 end
 
---- Vehicle icon: rectangle + diagonal (▭╱).
+--- Vehicle icon: rectangle + diagonal (â–­â•±).
 function CTLDReconRenderer.drawVehicleIcon(pos, markId, color)
     local s    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").vehicle) or 40
     local hs   = s / 2
@@ -13643,35 +13432,6 @@ function CTLDReconRenderer.drawShipIcon(pos, markId, color)
         { x = pos.x + sw / 2,           y = 0, z = pos.z + sh / 2 },
         { x = pos.x + sw / 2 + sh / 2,  y = 0, z = pos.z },
         color, 1, true, "")
-end
-
---- FOB icon: filled square (fortification) + vertical mast from top-centre.
--- Uses 2 sub-elements (slots markId*10+1 and markId*10+2).
--- @param pos      vec3
--- @param markId   number
--- @param color    {r,g,b,a}
--- @param coalId   number  coalition that sees this mark (-1=all, 1=RED, 2=BLUE)
--- @param label    string  mark text label
-function CTLDReconRenderer.drawFOBIcon(pos, markId, color, coalId, label)
-    local s    = 50
-    local hs   = s / 2
-    local fill = { color[1], color[2], color[3], 0.25 }
-    local p    = { x = pos.x, y = 0, z = pos.z }
-    trigger.action.rectToAll(coalId, markId * 10 + 1,
-        { x = pos.x - hs, y = 0, z = pos.z - hs },
-        { x = pos.x + hs, y = 0, z = pos.z + hs },
-        color, fill, 2, true, label or "FOB")
-    trigger.action.lineToAll(coalId, markId * 10 + 2,
-        { x = pos.x, y = 0, z = pos.z + hs },
-        { x = pos.x, y = 0, z = pos.z + hs + 40 },
-        color, 2, true, "")
-end
-
---- Remove a FOB icon (2 sub-elements).
--- @param markId number
-function CTLDReconRenderer.removeFOBIcon(markId)
-    trigger.action.removeMark(markId * 10 + 1)
-    trigger.action.removeMark(markId * 10 + 2)
 end
 
 --- Dispatch icon creation to the correct draw function.
@@ -14040,7 +13800,7 @@ function CTLDReconManager:hideScan(playerUnit, player)
     })
 end
 
---- Enable auto-refresh (menu F10 "Auto-Refresh: [OFF]" → ON).
+--- Enable auto-refresh (menu F10 "Auto-Refresh: [OFF]" â†’ ON).
 -- @param playerUnit DCS Unit
 -- @param player     string
 function CTLDReconManager:enableAutoRefresh(playerUnit, player)
@@ -14079,7 +13839,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
     })
 end
 
---- Disable auto-refresh (menu F10 "Auto-Refresh: [ON]" → OFF).
+--- Disable auto-refresh (menu F10 "Auto-Refresh: [ON]" â†’ OFF).
 -- @param playerUnit DCS Unit
 -- @param player     string
 function CTLDReconManager:disableAutoRefresh(playerUnit, player)
@@ -14156,7 +13916,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
 
     local playerUnit = Unit.getByName(unitName)
     if not playerUnit or not playerUnit:isExist() then
-        -- Player gone — cleanup silently
+        -- Player gone â€” cleanup silently
         self:_removeAllMarks(scan)
         self._activeScans[playerName] = nil
         return
@@ -14396,23 +14156,6 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
     end
 
-    -- FOB layer toggles (managed by CTLDFOBManager)
-    menu:addCommand({ root, reconSub }, ctld.tr("Toggle Friendly FOB Layer"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDFOBManager.getInstance():toggleFriendlyFOBLayer(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    if ctld.gs("enableEnemyFOBRecon") == true then
-        menu:addCommand({ root, reconSub }, ctld.tr("Toggle Enemy FOB Layer"),
-            function(arg)
-                local unit = Unit.getByName(arg.unitName)
-                if unit then CTLDFOBManager.getInstance():toggleEnemyFOBLayer(unit, arg.playerName) end
-            end,
-            { unitName = playerObj.unitName, playerName = playerObj.unitName })
-    end
-
     menu:addCommand({ root, reconSub }, ctld.tr("START autoRefresh"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
@@ -14427,9 +14170,7 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
--- ===== End   : CTLD_recon.lua =====
 
--- ===== Start : CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -14451,9 +14192,9 @@ end
 --   dead       : unit destroyed
 --
 -- Detection: crate descriptor.jtac == true   (no separate jtacUnitTypes table)
--- Laser pool: sequential 1111–1688 (assigned on spawn, freed on death)
+-- Laser pool: sequential 1111â€“1688 (assigned on spawn, freed on death)
 -- Timings   : JTAC_laseIntervalSeconds / JTAC_searchIntervalSeconds (config)
--- DCS bug   : coalition.addGroup leaves group empty for ~1s →
+-- DCS bug   : coalition.addGroup leaves group empty for ~1s â†’
 --             first _autoLaseLoop is delayed +1s (preserved from source)
 -- ============================================================
 
@@ -14555,7 +14296,7 @@ function CTLDJTAC:stopLase(reason)
     if self.laserSpot then self.laserSpot:destroy(); self.laserSpot = nil end
     if self.irSpot    then self.irSpot:destroy();    self.irSpot    = nil end
     self.currentTarget = nil
-    -- Keep ORBITING state intact — _orbitLoop handles the ORBITING→IDLE transition
+    -- Keep ORBITING state intact â€” _orbitLoop handles the ORBITINGâ†’IDLE transition
     if self.state == CTLDJTAC.STATE.LASING then
         self.state = CTLDJTAC.STATE.IDLE
     end
@@ -14605,7 +14346,7 @@ end
 
 
 -- ============================================================
--- CTLDJTACDetector  (static helpers — no instance)
+-- CTLDJTACDetector  (static helpers â€” no instance)
 -- ============================================================
 
 CTLDJTACDetector = {}
@@ -14613,7 +14354,7 @@ CTLDJTACDetector = {}
 --- Compute FM radio frequency from laser code.
 -- Formula from CTLD_jtac.lua source (ctld.JTACAutoLase, lines 72-74):
 --   freq = 30 + floor((code-1000)/100) + ((code-1000) mod 100) * 0.05
--- Range: laser 1111–1688 → FM ~31.5–40.4 MHz
+-- Range: laser 1111â€“1688 â†’ FM ~31.5â€“40.4 MHz
 -- @param groupName string
 -- @param laserCode number
 -- @return table { name, freq (string MHz), mod } or nil
@@ -14629,8 +14370,8 @@ end
 --- Find the nearest visible enemy for a JTAC unit.
 -- Uses world.searchObjects (sphere) + land.isVisible (LOS, +2m Y offset).
 -- Prioritises: hpriority > priority > Air Defence > standard; ties broken by distance.
--- API: world.searchObjects — verified Hoggit 2026-04-01
--- API: land.isVisible      — verified CTLD_jtac.lua source
+-- API: world.searchObjects â€” verified Hoggit 2026-04-01
+-- API: land.isVisible      â€” verified CTLD_jtac.lua source
 -- @param jtacUnit    DCS Unit object
 -- @param lockMode    string  "all" | "vehicle" | "troop"
 -- @param maxDistance number  metres
@@ -14642,7 +14383,7 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
     local jtacCoal = jtacUnit:getCoalition()
     local offsetA  = { x = jtacPos.x, y = jtacPos.y + 2, z = jtacPos.z }
 
-    -- Track best candidate inline (O(n)) — no sort needed, only one result is used.
+    -- Track best candidate inline (O(n)) â€” no sort needed, only one result is used.
     local best = nil
 
     world.searchObjects(
@@ -14658,7 +14399,7 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
             if lockMode == CTLDJTAC.LOCK_MODE.VEHICLE and not isVehicle  then return true end
             if lockMode == CTLDJTAC.LOCK_MODE.TROOP   and not isInfantry then return true end
 
-            -- LOS check (+2m height offset — avoids terrain/hull occlusion at ground level)
+            -- LOS check (+2m height offset â€” avoids terrain/hull occlusion at ground level)
             local unitPos = unit:getPoint()
             local offsetB = { x = unitPos.x, y = unitPos.y + 2, z = unitPos.z }
             if not land.isVisible(offsetA, offsetB) then return true end
@@ -14702,7 +14443,7 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
 end
 
 --- Line-of-sight check (convenience wrapper).
--- API: land.isVisible — verified CTLD_jtac.lua source
+-- API: land.isVisible â€” verified CTLD_jtac.lua source
 -- @param posA table {x,y,z}
 -- @param posB table {x,y,z}
 -- @return boolean
@@ -14712,7 +14453,7 @@ end
 
 --- Compute predictive laser-spot correction for a moving target.
 -- Compensates target velocity (+1.0s anticipation) and wind (-1.05s).
--- API: atmosphere.getWind — verified CTLD_jtac.lua source
+-- API: atmosphere.getWind â€” verified CTLD_jtac.lua source
 -- @param targetPos      table {x,y,z}
 -- @param targetVelocity table {x,y,z}  Unit:getVelocity()
 -- @param wind           table {x,y,z}  atmosphere.getWind(pos)
@@ -14727,7 +14468,7 @@ end
 
 
 -- ============================================================
--- CTLDJTACMessage  (static — message builder)
+-- CTLDJTACMessage  (static â€” message builder)
 -- ============================================================
 
 CTLDJTACMessage = {}
@@ -14851,7 +14592,7 @@ end
 function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     local dcsGroup = Group.getByName(groupName)
     if not dcsGroup then
-        ctld.logError("CTLDJTACManager:spawnJTAC — group not found: " .. tostring(groupName))
+        ctld.logError("CTLDJTACManager:spawnJTAC â€” group not found: " .. tostring(groupName))
         return nil
     end
 
@@ -14861,7 +14602,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         laserCode = self:_assignLaserCode()
     end
     if not laserCode then
-        ctld.logError("CTLDJTACManager:spawnJTAC — laser code pool exhausted")
+        ctld.logError("CTLDJTACManager:spawnJTAC â€” laser code pool exhausted")
         return nil
     end
 
@@ -14932,7 +14673,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         timer.getTime() + 1
     )
 
-    -- Publish event (dcsUnit may be nil within the 1s DCS spawn window — acceptable)
+    -- Publish event (dcsUnit may be nil within the 1s DCS spawn window â€” acceptable)
     self:_publishEvent("OnJTACSpawned", {
         jtac = {
             groupName  = groupName,
@@ -15050,7 +14791,7 @@ end
 -- @return CTLDJTAC|nil
 function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio)
     if self.jtacs[groupName] then
-        ctld.utils.log("WARN", "CTLDJTACManager:autoLase — JTAC already active: %s", groupName)
+        ctld.utils.log("WARN", "CTLDJTACManager:autoLase â€” JTAC already active: %s", groupName)
         return self.jtacs[groupName]
     end
     local cfg = {
@@ -15087,11 +14828,11 @@ end
 function CTLDJTACManager:stopAutoLase(groupName)
     local jtac = self.jtacs[groupName]
     if not jtac then
-        ctld.utils.log("WARN", "CTLDJTACManager:stopAutoLase — JTAC not found: %s", tostring(groupName))
+        ctld.utils.log("WARN", "CTLDJTACManager:stopAutoLase â€” JTAC not found: %s", tostring(groupName))
         return
     end
     jtac.standbyMode = true
-    ctld.utils.log("INFO", "CTLDJTACManager:stopAutoLase — '%s' set to standby", groupName)
+    ctld.utils.log("INFO", "CTLDJTACManager:stopAutoLase â€” '%s' set to standby", groupName)
 end
 
 --- Destroy all active JTACs and reset state.
@@ -15106,9 +14847,9 @@ function CTLDJTACManager:cleanup()
 end
 
 
--- ──────────────────────────────────────────────────
+-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 -- Private
--- ──────────────────────────────────────────────────
+-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 --- Main auto-lase loop for one JTAC. Self-rescheduling via timer.scheduleFunction.
 -- Interval: JTAC_laseIntervalSeconds when lasing, JTAC_searchIntervalSeconds when searching.
@@ -15129,7 +14870,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
 
     local jtacUnit = dcsGroup:getUnits()[1]
     if not jtacUnit or not jtacUnit:isExist() then
-        -- Unit gone but group still reported alive — treat as dead
+        -- Unit gone but group still reported alive â€” treat as dead
         self:killJTAC(groupName, nil)
         return nil
     end
@@ -15150,7 +14891,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         return t + searchInterval
     end
 
-    -- ── Check existing target ──────────────────────────────────
+    -- â”€â”€ Check existing target â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if jtac.currentTarget then
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
 
@@ -15169,7 +14910,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
                 self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.TARGET_LOST)
                 -- Fall through to search below
             else
-                -- Target still valid — update spot position
+                -- Target still valid â€” update spot position
                 local correctedPos = targetPos
                 if jtac.laseSpotCorrections then
                     local vel  = targetUnit:getVelocity()
@@ -15189,7 +14930,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         end
     end
 
-    -- ── Search for new target ──────────────────────────────────
+    -- â”€â”€ Search for new target â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     local found = CTLDJTACDetector.findNearestVisibleEnemy(
         jtacUnit,
         jtac.lockMode,
@@ -15201,7 +14942,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
     end
 
     -- Stop ground unit movement while lasing
-    -- API: trigger.action.groupStopMoving — verified CTLD_jtac.lua source
+    -- API: trigger.action.groupStopMoving â€” verified CTLD_jtac.lua source
     if not jtac.isFlying then
         trigger.action.groupStopMoving(dcsGroup)
     end
@@ -15215,7 +14956,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
     end
 
     -- Create DCS Spot objects
-    -- API: Spot.createLaser, Spot.createInfraRed — verified CTLD_jtac.lua source
+    -- API: Spot.createLaser, Spot.createInfraRed â€” verified CTLD_jtac.lua source
     local spotOffset = { x = 0, y = 2, z = 0 }
     local laserSpot  = Spot.createLaser(jtacUnit, spotOffset, lasePos, jtac.laserCode)
     local irSpot     = Spot.createInfraRed(jtacUnit, spotOffset, lasePos)
@@ -15300,7 +15041,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     if not jtacUnit then return end
 
     if hasCurrent and not inOrbit then
-        -- New target acquired — start orbiting
+        -- New target acquired â€” start orbiting
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
@@ -15314,7 +15055,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         })
 
     elseif hasCurrent and inOrbit then
-        -- Already orbiting — update orbit centre every 60s if target moved
+        -- Already orbiting â€” update orbit centre every 60s if target moved
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
@@ -15324,7 +15065,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         end
 
     elseif not hasCurrent and inOrbit then
-        -- Target lost — restore initial route
+        -- Target lost â€” restore initial route
         if jtac.initialRoute then
             dcsGroup:getController():setTask(jtac.initialRoute)
         end
@@ -15387,7 +15128,7 @@ function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
     })
 end
 
---- Fill the laser pool with all valid codes (1111–1688). Called at init and cleanup.
+--- Fill the laser pool with all valid codes (1111â€“1688). Called at init and cleanup.
 function CTLDJTACManager:_initLaserPool()
     self._laserPool = {}
     for code = 1111, 1688 do
@@ -15395,7 +15136,7 @@ function CTLDJTACManager:_initLaserPool()
     end
 end
 
---- Assign next laser code from the pool. O(1) — removes from tail.
+--- Assign next laser code from the pool. O(1) â€” removes from tail.
 -- @return number or nil  (nil = pool exhausted)
 function CTLDJTACManager:_assignLaserCode()
     return table.remove(self._laserPool)
@@ -15510,9 +15251,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
--- ===== End   : CTLD_jtac.lua =====
 
--- ===== Start : CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -15525,13 +15264,13 @@ end
 --                    cargo state tracking via EventDispatcher subscriptions.
 --
 -- DCS events consumed (via CTLDDCSEventBridge):
---   S_EVENT_PLAYER_ENTER_UNIT → onPlayerEnterUnit(event)
---   S_EVENT_PLAYER_LEAVE_UNIT → onPlayerLeaveUnit(event)
+--   S_EVENT_PLAYER_ENTER_UNIT â†’ onPlayerEnterUnit(event)
+--   S_EVENT_PLAYER_LEAVE_UNIT â†’ onPlayerLeaveUnit(event)
 --
 -- CTLD events consumed (via EventDispatcher):
---   OnVehicleLoaded   { transportUnitObject, ctldVehicleObject } → add to loadedVehicles
---   OnVehicleUnloaded { transportUnitObject, ctldVehicleObject } → remove from loadedVehicles
---   OnCrateLoaded     { carrierUnitName, crate }                → add to loadedCrates
+--   OnVehicleLoaded   { transportUnitObject, ctldVehicleObject } â†’ add to loadedVehicles
+--   OnVehicleUnloaded { transportUnitObject, ctldVehicleObject } â†’ remove from loadedVehicles
+--   OnCrateLoaded     { carrierUnitName, crate }                â†’ add to loadedCrates
 --
 -- Events published: none.
 --
@@ -15619,7 +15358,7 @@ function CTLDPlayerManager.getInstance()
 end
 
 function CTLDPlayerManager:init()
-    self._players      = {}   -- unitName → CTLDPlayer
+    self._players      = {}   -- unitName â†’ CTLDPlayer
     self._menuSections = {}   -- ordered list of { key, manager, method, configKey, order }
 
     -- Register for DCS player slot events
@@ -15697,7 +15436,7 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
     local unitName = unit:getName()
     local group    = unit:getGroup()
     if not group then
-        ctld.utils.log("WARNING", "CTLDPlayerManager:onPlayerEnterUnit — no group for " .. unitName)
+        ctld.utils.log("WARNING", "CTLDPlayerManager:onPlayerEnterUnit â€” no group for " .. unitName)
         return
     end
 
@@ -15738,7 +15477,7 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
---- DCS S_EVENT_LAND handler — rebuild troop menu section for landing unit.
+--- DCS S_EVENT_LAND handler â€” rebuild troop menu section for landing unit.
 -- Delayed 1 s: S_EVENT_LAND fires before the aircraft has fully settled,
 -- so _isInAir() may still return true at the exact moment of the event.
 function CTLDPlayerManager:onLand(event)
@@ -15756,7 +15495,7 @@ function CTLDPlayerManager:onLand(event)
     end, nil, timer.getTime() + 1)
 end
 
---- DCS S_EVENT_TAKEOFF handler — rebuild troop menu section for departing unit.
+--- DCS S_EVENT_TAKEOFF handler â€” rebuild troop menu section for departing unit.
 function CTLDPlayerManager:onTakeoff(event)
     local unit = event and event.initiator
     if not unit then return end
@@ -15800,7 +15539,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:createMenuForGroup(playerObj.groupId)
     if not menu then
-        ctld.utils.log("WARNING", "CTLDPlayerManager:buildMenu — cannot create menu for group "
+        ctld.utils.log("WARNING", "CTLDPlayerManager:buildMenu â€” cannot create menu for group "
             .. tostring(playerObj.groupId))
         return
     end
@@ -15812,17 +15551,17 @@ function CTLDPlayerManager:buildMenu(playerObj)
     -- Root submenu "CTLD" at F1 slot (order 10)
     menu:addSubMenu({}, root, { order = 10 })
 
-    -- "Check Cargo" — queries crates and troops loaded on this transport
+    -- "Check Cargo" â€” queries crates and troops loaded on this transport
     menu:addCommand({ root }, ctld.tr("Check Cargo"),
         function()
             local transport = Unit.getByName(unitName)
             local lines     = {}
             local total     = 0
 
-            -- Crates loaded on this transport — grouped by descriptor.desc
+            -- Crates loaded on this transport â€” grouped by descriptor.desc
             -- Compare by unit name, not object identity (DCS userdata equality is unreliable)
             local crateMgr   = CTLDCrateManager.getInstance()
-            local crateCount = {}   -- desc → { count, totalWeight }
+            local crateCount = {}   -- desc â†’ { count, totalWeight }
             local crateOrder = {}   -- preserve insertion order for deterministic output
             for _, c in pairs(crateMgr.crates) do
                 if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == unitName then
@@ -15878,7 +15617,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
             if fn then
                 fn(section.manager, playerObj, menu)
             else
-                ctld.utils.log("WARN", "CTLDPlayerManager:buildMenu — section '%s' method '%s' not found",
+                ctld.utils.log("WARN", "CTLDPlayerManager:buildMenu â€” section '%s' method '%s' not found",
                     section.key, tostring(section.method))
             end
         end
@@ -15929,9 +15668,7 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
--- ===== End   : CTLD_player.lua =====
 
--- ===== Start : CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -15955,9 +15692,9 @@ ctld = ctld or {}
 
 
 -- ============================================================
--- EventDispatcher  (singleton — CTLD internal pub/sub only)
+-- EventDispatcher  (singleton â€” CTLD internal pub/sub only)
 -- ============================================================
--- Routes CTLD business events (OnCrateLoaded, OnTroopsDeployed, …).
+-- Routes CTLD business events (OnCrateLoaded, OnTroopsDeployed, â€¦).
 -- DCS engine events NEVER pass through here; they go through CTLDDCSEventBridge.
 
 EventDispatcher = class()
@@ -16031,11 +15768,11 @@ end
 
 
 -- ============================================================
--- CTLDDCSEventBridge  (singleton — single world.addEventHandler)
+-- CTLDDCSEventBridge  (singleton â€” single world.addEventHandler)
 -- ============================================================
 -- Receives all DCS engine events and routes them to registered managers.
 -- Each manager registers via bridge:register(target, eventId, "methodName").
--- The bridge does NO filtering beyond event id — filtering is each manager's job.
+-- The bridge does NO filtering beyond event id â€” filtering is each manager's job.
 
 CTLDDCSEventBridge = class()
 CTLDDCSEventBridge._instance = nil
@@ -16068,7 +15805,7 @@ function CTLDDCSEventBridge:register(target, eventId, method)
     table.insert(self._handlers[eventId], { target = target, method = method })
 end
 
---- DCS engine callback — do NOT rename.
+--- DCS engine callback â€” do NOT rename.
 function CTLDDCSEventBridge:onEvent(event)
     local list = self._handlers[event.id]
     if not list then return end
@@ -16084,7 +15821,7 @@ end
 
 
 -- ============================================================
--- CTLDPlayerTracker  (singleton — human slot tracking, no MIST)
+-- CTLDPlayerTracker  (singleton â€” human slot tracking, no MIST)
 -- ============================================================
 -- Maintains a double-index of connected human players:
 --   _byUnit[unitName]     -> playerName
@@ -16176,7 +15913,7 @@ end
 
 -- Internal scan ----------------------------------------------------
 
---- Active scan via coalition.getPlayers() — idempotent, adds missing entries only.
+--- Active scan via coalition.getPlayers() â€” idempotent, adds missing entries only.
 function CTLDPlayerTracker:_scanAllSlots()
     for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
         local units = coalition.getPlayers(side) or {}
@@ -16233,7 +15970,7 @@ end
 
 
 -- ============================================================
--- CTLDCoreManager  (singleton — startup orchestrator)
+-- CTLDCoreManager  (singleton â€” startup orchestrator)
 -- ============================================================
 -- Runs INIT-B (MM crates) and INIT-C (MM JTACs) at startup.
 -- Registers late-activation handlers for crates and JTACs in the bridge.
@@ -16272,7 +16009,7 @@ function CTLDCoreManager:init()
     -- INIT-C: detect JTAC groups pre-placed by the mission maker
     self:_initMMJTACs()
 
-    -- INIT-A: detect AI transport units (TODO — requires CTLDTransportManager)
+    -- INIT-A: detect AI transport units (TODO â€” requires CTLDTransportManager)
     -- self:_initAITransports()
 
     ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-B + INIT-C)")
@@ -16283,7 +16020,7 @@ end
 --- Scan all coalition statics for cargo objects placed by the mission maker.
 -- Delegates to CTLDCrateManager:registerMMCrate() for each detected cargo.
 -- API note: coalition.getStaticObjects() may return destroyed objects (DCS bug)
---           → filtered by isExist().  Object.getCategory() == 6 == CARGO.
+--           â†’ filtered by isExist().  Object.getCategory() == 6 == CARGO.
 function CTLDCoreManager:_initMMCrates()
     local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
     local count = 0
@@ -16299,7 +16036,7 @@ function CTLDCoreManager:_initMMCrates()
             end
         end
     end
-    ctld.utils.log("INFO", "CTLDCoreManager: INIT-B complete — %d MM crate(s) detected", count)
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-B complete â€” %d MM crate(s) detected", count)
 end
 
 -- INIT-C -----------------------------------------------------------
@@ -16307,7 +16044,7 @@ end
 --- Scan all coalition ground groups for JTAC groups pre-placed by the mission maker.
 -- Delegates to CTLDJTACManager for active groups; marks late-activation groups pending.
 -- API note: coalition.getGroups() may return destroyed groups (DCS bug)
---           → filtered by isExist().  Only RED and BLUE (no NEUTRAL support).
+--           â†’ filtered by isExist().  Only RED and BLUE (no NEUTRAL support).
 function CTLDCoreManager:_initMMJTACs()
     local sides = { coalition.side.RED, coalition.side.BLUE }
     local count = 0
@@ -16325,11 +16062,11 @@ function CTLDCoreManager:_initMMJTACs()
             end
         end
     end
-    ctld.utils.log("INFO", "CTLDCoreManager: INIT-C complete — %d MM JTAC group(s) detected", count)
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-C complete â€” %d MM JTAC group(s) detected", count)
 end
 
 --- Return true if group should be managed as a JTAC by CTLD.
--- Detection rule (new OOP system — no separate jtacUnitTypes table):
+-- Detection rule (new OOP system â€” no separate jtacUnitTypes table):
 --   Group name contains "jtac" (case-insensitive).
 -- Convention: MM must name JTAC groups with "jtac" in the name
 --   (e.g. "jtac_blue_1", "JTAC_Red_Drone").
@@ -16338,22 +16075,20 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
--- ===== End   : CTLD_core.lua =====
 
--- ===== Start : scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
--- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
+-- FARP deployment scene â€” spawns a functional Forward Arming and Refueling Point.
 --
 -- Reference point: 50 m at 12 o'clock from the trigger unit (prescript step 0).
 -- All subsequent object offsets are relative to that reference point.
 --
 -- Objects registered (all in CTLDObjectRegistry):
---   SINGLE_HELIPAD    — landing pad (logistic zone anchor)     at ref point
---   FARP_Tent         — crew tent                              30 m / 90°
---   FARP_Ammo_Storage — ammunition dump                        30 m / 135°
---   Windsock          — wind indicator / logistic unit marker  15 m / 270°
---   Fuel_Truck        — coalition-aware fuel truck             35 m / 225°
+--   SINGLE_HELIPAD    â€” landing pad (logistic zone anchor)     at ref point
+--   FARP_Tent         â€” crew tent                              30 m / 90Â°
+--   FARP_Ammo_Storage â€” ammunition dump                        30 m / 135Â°
+--   Windsock          â€” wind indicator / logistic unit marker  15 m / 270Â°
+--   Fuel_Truck        â€” coalition-aware fuel truck             35 m / 225Â°
 --
 -- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
 -- ====================================================================================================
@@ -16364,7 +16099,7 @@ farpScene.name = "farpScene"
 farpScene.steps = {
 
     -- ----------------------------------------------------------------
-    -- Step 0: prescript — move reference point 50 m ahead of the heli.
+    -- Step 0: prescript â€” move reference point 50 m ahead of the heli.
     -- All subsequent polar offsets are relative to this new origin.
     -- ----------------------------------------------------------------
     {
@@ -16381,7 +16116,7 @@ farpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 1: FARP helipad — at the reference point.
+    -- Step 1: FARP helipad â€” at the reference point.
     -- ----------------------------------------------------------------
     {
         registryKey              = "SINGLE_HELIPAD",
@@ -16392,7 +16127,7 @@ farpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 2: Command tent — 30 m right of helipad.
+    -- Step 2: Command tent â€” 30 m right of helipad.
     -- ----------------------------------------------------------------
     {
         registryKey              = "FARP_Tent",
@@ -16403,7 +16138,7 @@ farpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 3: Ammo storage — 30 m at 135° from helipad.
+    -- Step 3: Ammo storage â€” 30 m at 135Â° from helipad.
     -- ----------------------------------------------------------------
     {
         registryKey              = "FARP_Ammo_Storage",
@@ -16414,7 +16149,7 @@ farpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 4: Windsock — 15 m left of helipad.
+    -- Step 4: Windsock â€” 15 m left of helipad.
     -- ----------------------------------------------------------------
     {
         registryKey              = "Windsock",
@@ -16425,7 +16160,7 @@ farpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 5: Fuel truck — 35 m at 225° from helipad.
+    -- Step 5: Fuel truck â€” 35 m at 225Â° from helipad.
     -- ----------------------------------------------------------------
     {
         registryKey              = "Fuel_Truck",
@@ -16441,13 +16176,11 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
--- ===== End   : scenes/CTLD_farpScene.lua =====
 
--- ===== Start : scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
--- FOB deployment scene — spawns an outpost container + watchtower.
+-- FOB deployment scene â€” spawns an outpost container + watchtower.
 --
 -- Spawn position:
 --   Step 0 (prescript): if ctx.scene._params.centroid is provided, use it
@@ -16456,10 +16189,10 @@ CTLDSceneManager.getInstance():registerSceneModel(farpScene)
 --   the trigger unit (fallback for ad-hoc calls).
 --
 -- Steps:
---   0 — prescript: override scene reference point (func-only, no delay)
---   1 — FOB_container  at polar(0, 0°)  relative to reference point
---   2 — FOB_watchtower at polar(39, 158°) relative to reference point
---   3 — completion message (func-only)
+--   0 â€” prescript: override scene reference point (func-only, no delay)
+--   1 â€” FOB_container  at polar(0, 0Â°)  relative to reference point
+--   2 â€” FOB_watchtower at polar(39, 158Â°) relative to reference point
+--   3 â€” completion message (func-only)
 --
 -- ctx.scene._params expected keys (all optional):
 --   centroid   vec3   pre-computed spawn position (set by CTLDFOBManager)
@@ -16475,7 +16208,7 @@ fobScene.name = "fobScene"
 fobScene.steps = {
 
     -- ----------------------------------------------------------------
-    -- Step 0: prescript — override reference point.
+    -- Step 0: prescript â€” override reference point.
     -- Uses params.centroid when set; otherwise computes 100 m ahead.
     -- ----------------------------------------------------------------
     {
@@ -16500,7 +16233,7 @@ fobScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 1: FOB outpost container (STATIC) — at reference point.
+    -- Step 1: FOB outpost container (STATIC) â€” at reference point.
     -- ----------------------------------------------------------------
     {
         registryKey              = "FOB_container",
@@ -16511,7 +16244,7 @@ fobScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 2: Watchtower (STATIC) — ~39 m at 158° from reference.
+    -- Step 2: Watchtower (STATIC) â€” ~39 m at 158Â° from reference.
     -- Reproduces the legacy offset: x+14.86 m, z-36.57 m (polar approx).
     -- ----------------------------------------------------------------
     {
@@ -16543,20 +16276,18 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
--- ===== End   : scenes/CTLD_fobScene.lua =====
 
--- ===== Start : scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
--- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
+-- Minefield scene model â€” migrated from source_scene_ini/mineFieldSceneDatas.lua.
 --
 -- Changes vs. original:
---   - mist.dynAddStatic()        → CTLDObjectRegistry.spawnObject("Landmine", ...)
---   - coalitionId undefined bug  → triggerUnitObj:getCoalition()
---   - _spawnedGroup global leak  → local variable
+--   - mist.dynAddStatic()        â†’ CTLDObjectRegistry.spawnObject("Landmine", ...)
+--   - coalitionId undefined bug  â†’ triggerUnitObj:getCoalition()
+--   - _spawnedGroup global leak  â†’ local variable
 --   - func step signature updated to (triggerUnitObj, spawnedObj, step)
 --   - Registration: CTLDSceneManager.getInstance():registerSceneModel(...)
---   - Layout: quinconce (staggered) pattern — odd rows N mines, even rows N-1 mines offset cs/2
+--   - Layout: quinconce (staggered) pattern â€” odd rows N mines, even rows N-1 mines offset cs/2
 --
 -- Dependencies: CTLDUtils, CTLDObjectRegistry, CTLDSceneManager
 -- DCS API: trigger.action.outText
@@ -16566,7 +16297,7 @@ local mineFieldScene = {}
 mineFieldScene.name = "mineField"
 
 mineFieldScene.stepsDatas = {
-    -- Step 1: deploy minefield (func-only — positions computed inside)
+    -- Step 1: deploy minefield (func-only â€” positions computed inside)
     {
         delayAfterPreviousStep = 0,
         func = function(ctx)
@@ -16590,8 +16321,8 @@ mineFieldScene.stepsDatas = {
 --   even rows : N-1 mines, shifted laterally by colSpacing/2
 --
 -- Special cases:
---   nbMines == 1                  → single mine, diamond F10 marker
---   nbMinesColumns < 2            → straight forward column, no stagger
+--   nbMines == 1                  â†’ single mine, diamond F10 marker
+--   nbMinesColumns < 2            â†’ straight forward column, no stagger
 --
 -- @param triggerUnitObj                   DCS Unit object
 -- @param distanceOf1stMineFromHeliInMeter number  distance from unit to first row (metres)
@@ -16637,7 +16368,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
 
     if nbMines == 1 then
         -- ----------------------------------------------------------------
-        -- Single mine — diamond F10 marker
+        -- Single mine â€” diamond F10 marker
         -- ----------------------------------------------------------------
         local pt = ctld.utils.GetRelativeVec2Coords(
             unitVec2, triggerUnitHeadingInRad,
@@ -16679,7 +16410,7 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
 
     else
         -- ----------------------------------------------------------------
-        -- Quinconce (staggered) layout — nbMinesColumns >= 2
+        -- Quinconce (staggered) layout â€” nbMinesColumns >= 2
         --   odd rows  (r=1,3,...) : N mines,   leftmost at -halfWidth
         --   even rows (r=2,4,...) : N-1 mines, leftmost at -halfWidth + cs/2
         -- ----------------------------------------------------------------
@@ -16738,7 +16469,7 @@ end
 -- ====================================================================================================
 -- mineFieldScene.setLandMineAuto
 -- Parametric minefield: derives column count and row count automatically from a target area
--- (width × length in metres) and a desired total mine count, then delegates to setLandMine.
+-- (width Ã— length in metres) and a desired total mine count, then delegates to setLandMine.
 --
 -- The layout is always quinconce (staggered rows):
 --   odd rows  : N mines
@@ -16749,7 +16480,7 @@ end
 -- the requested aspect ratio (width/length).  Column and line spacings are derived from the
 -- dimensions: cs = width/(N-1),  ls = length/(R-1).
 --
--- @param triggerUnitObj  DCS Unit object — defines origin and heading
+-- @param triggerUnitObj  DCS Unit object â€” defines origin and heading
 -- @param distFromUnit    number  forward distance (m) from unit to first mine row
 -- @param widthMeters     number  lateral extent of the minefield (m)
 -- @param lengthMeters    number  forward extent of the minefield (m)
@@ -16758,7 +16489,7 @@ end
 --
 -- Example (MM usage):
 --   local ok, result = mineFieldScene.setLandMineAuto(transport, 30, 50, 80, 40)
---   -- lays ~40 mines in a 50 m wide × 80 m long staggered field starting 30 m ahead
+--   -- lays ~40 mines in a 50 m wide Ã— 80 m long staggered field starting 30 m ahead
 -- ====================================================================================================
 function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeters, lengthMeters, nbMines)
     if not triggerUnitObj then
@@ -16776,7 +16507,7 @@ function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeter
         return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, 1, 1, widthMeters, lengthMeters)
     end
 
-    -- T(N,R) = R*N - floor(R/2)  →  R ≈ nbMines / (N - 0.5)
+    -- T(N,R) = R*N - floor(R/2)  â†’  R â‰ˆ nbMines / (N - 0.5)
     local function countForNR(N, R)
         return R * N - math.floor(R / 2)
     end
@@ -16810,12 +16541,10 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
--- ===== End   : scenes/CTLD_mineFieldScene.lua =====
 
--- ===== Start : compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
--- Legacy API compatibility wrappers — CTLD v1 → v2
+-- Legacy API compatibility wrappers â€” CTLD v1 â†’ v2
 --
 -- Provides the original ctld.* function signatures used in
 -- mission DO SCRIPT triggers, forwarding each call to the
@@ -16827,7 +16556,7 @@ CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
 -- NOTE: ctld.spawnCrateAtZone / ctld.spawnCrateAtPoint delegate
 -- to CTLDCrateManager:spawnCrate() (implemented, uses ctld.utils.dynAddStatic).
 --
--- NOTE: ctld.addCallback() is not wrapped — use
+-- NOTE: ctld.addCallback() is not wrapped â€” use
 -- EventDispatcher:subscribe(eventName, handler) instead.
 -- See documentation/migration-v2.md for the full migration guide.
 --
@@ -16844,37 +16573,37 @@ ctld = ctld or {}
 
 --- @deprecated Use CTLDTroopManager:spawnGroupAtTrigger()
 function ctld.spawnGroupAtTrigger(_groupSide, _number, _triggerName, _searchRadius)
-    ctld.logWarning("DEPRECATED: ctld.spawnGroupAtTrigger — use CTLDTroopManager:spawnGroupAtTrigger()")
+    ctld.logWarning("DEPRECATED: ctld.spawnGroupAtTrigger â€” use CTLDTroopManager:spawnGroupAtTrigger()")
     CTLDTroopManager.getInstance():spawnGroupAtTrigger(_groupSide, _number, _triggerName, _searchRadius)
 end
 
 --- @deprecated Use CTLDTroopManager:spawnGroupAtPoint()
 function ctld.spawnGroupAtPoint(_groupSide, _number, _point, _searchRadius)
-    ctld.logWarning("DEPRECATED: ctld.spawnGroupAtPoint — use CTLDTroopManager:spawnGroupAtPoint()")
+    ctld.logWarning("DEPRECATED: ctld.spawnGroupAtPoint â€” use CTLDTroopManager:spawnGroupAtPoint()")
     CTLDTroopManager.getInstance():spawnGroupAtPoint(_groupSide, _number, _point, _searchRadius)
 end
 
 --- @deprecated Use CTLDTroopManager:preLoadTransport()
 function ctld.preLoadTransport(_unitName, _number, _troops)
-    ctld.logWarning("DEPRECATED: ctld.preLoadTransport — use CTLDTroopManager:preLoadTransport()")
+    ctld.logWarning("DEPRECATED: ctld.preLoadTransport â€” use CTLDTroopManager:preLoadTransport()")
     CTLDTroopManager.getInstance():preLoadTransport(_unitName, _number, _troops)
 end
 
 --- @deprecated Use CTLDTroopManager:unloadTransport()
 function ctld.unloadTransport(_unitName)
-    ctld.logWarning("DEPRECATED: ctld.unloadTransport — use CTLDTroopManager:unloadTransport()")
+    ctld.logWarning("DEPRECATED: ctld.unloadTransport â€” use CTLDTroopManager:unloadTransport()")
     CTLDTroopManager.getInstance():unloadTransport(_unitName)
 end
 
 --- @deprecated Use CTLDTroopManager:loadTransport()
 function ctld.loadTransport(_unitName)
-    ctld.logWarning("DEPRECATED: ctld.loadTransport — use CTLDTroopManager:loadTransport()")
+    ctld.logWarning("DEPRECATED: ctld.loadTransport â€” use CTLDTroopManager:loadTransport()")
     CTLDTroopManager.getInstance():loadTransport(_unitName)
 end
 
 --- @deprecated Use CTLDTroopManager:unloadInProximityToEnemy()
 function ctld.unloadInProximityToEnemy(_unitName, _distance)
-    ctld.logWarning("DEPRECATED: ctld.unloadInProximityToEnemy — use CTLDTroopManager:unloadInProximityToEnemy()")
+    ctld.logWarning("DEPRECATED: ctld.unloadInProximityToEnemy â€” use CTLDTroopManager:unloadInProximityToEnemy()")
     return CTLDTroopManager.getInstance():unloadInProximityToEnemy(_unitName, _distance)
 end
 
@@ -16884,55 +16613,55 @@ end
 
 --- @deprecated Use CTLDZoneManager:setTroopZoneActive()
 function ctld.activatePickupZone(_zoneName)
-    ctld.logWarning("DEPRECATED: ctld.activatePickupZone — use CTLDZoneManager:setTroopZoneActive(name, true)")
+    ctld.logWarning("DEPRECATED: ctld.activatePickupZone â€” use CTLDZoneManager:setTroopZoneActive(name, true)")
     CTLDZoneManager.getInstance():setTroopZoneActive(_zoneName, true)
 end
 
 --- @deprecated Use CTLDZoneManager:setTroopZoneActive()
 function ctld.deactivatePickupZone(_zoneName)
-    ctld.logWarning("DEPRECATED: ctld.deactivatePickupZone — use CTLDZoneManager:setTroopZoneActive(name, false)")
+    ctld.logWarning("DEPRECATED: ctld.deactivatePickupZone â€” use CTLDZoneManager:setTroopZoneActive(name, false)")
     CTLDZoneManager.getInstance():setTroopZoneActive(_zoneName, false)
 end
 
 --- @deprecated Use CTLDZoneManager:changeRemainingGroups()
 function ctld.changeRemainingGroupsForPickupZone(_zoneName, _amount)
-    ctld.logWarning("DEPRECATED: ctld.changeRemainingGroupsForPickupZone — use CTLDZoneManager:changeRemainingGroups()")
+    ctld.logWarning("DEPRECATED: ctld.changeRemainingGroupsForPickupZone â€” use CTLDZoneManager:changeRemainingGroups()")
     CTLDZoneManager.getInstance():changeRemainingGroups(_zoneName, _amount)
 end
 
 --- @deprecated Use CTLDZoneManager:activateWaypointZone()
 function ctld.activateWaypointZone(_zoneName)
-    ctld.logWarning("DEPRECATED: ctld.activateWaypointZone — use CTLDZoneManager:activateWaypointZone()")
+    ctld.logWarning("DEPRECATED: ctld.activateWaypointZone â€” use CTLDZoneManager:activateWaypointZone()")
     CTLDZoneManager.getInstance():activateWaypointZone(_zoneName)
 end
 
 --- @deprecated Use CTLDZoneManager:deactivateWaypointZone()
 function ctld.deactivateWaypointZone(_zoneName)
-    ctld.logWarning("DEPRECATED: ctld.deactivateWaypointZone — use CTLDZoneManager:deactivateWaypointZone()")
+    ctld.logWarning("DEPRECATED: ctld.deactivateWaypointZone â€” use CTLDZoneManager:deactivateWaypointZone()")
     CTLDZoneManager.getInstance():deactivateWaypointZone(_zoneName)
 end
 
 --- @deprecated Use CTLDZoneManager:createExtractZone()
 function ctld.createExtractZone(_zone, _flagNumber, _smoke)
-    ctld.logWarning("DEPRECATED: ctld.createExtractZone — use CTLDZoneManager:createExtractZone()")
+    ctld.logWarning("DEPRECATED: ctld.createExtractZone â€” use CTLDZoneManager:createExtractZone()")
     CTLDZoneManager.getInstance():createExtractZone(_zone, _flagNumber, _smoke)
 end
 
 --- @deprecated Use CTLDZoneManager:removeExtractZone()
 function ctld.removeExtractZone(_zone, _flagNumber)
-    ctld.logWarning("DEPRECATED: ctld.removeExtractZone — use CTLDZoneManager:removeExtractZone()")
+    ctld.logWarning("DEPRECATED: ctld.removeExtractZone â€” use CTLDZoneManager:removeExtractZone()")
     CTLDZoneManager.getInstance():removeExtractZone(_zone, _flagNumber)
 end
 
 --- @deprecated Use CTLDTroopManager:startGroupCountWatcher()
 function ctld.countDroppedGroupsInZone(_zone, _blueFlag, _redFlag)
-    ctld.logWarning("DEPRECATED: ctld.countDroppedGroupsInZone — use CTLDTroopManager:startGroupCountWatcher()")
+    ctld.logWarning("DEPRECATED: ctld.countDroppedGroupsInZone â€” use CTLDTroopManager:startGroupCountWatcher()")
     CTLDTroopManager.getInstance():startGroupCountWatcher(_zone, _blueFlag, _redFlag)
 end
 
 --- @deprecated Use CTLDTroopManager:startUnitCountWatcher()
 function ctld.countDroppedUnitsInZone(_zone, _blueFlag, _redFlag)
-    ctld.logWarning("DEPRECATED: ctld.countDroppedUnitsInZone — use CTLDTroopManager:startUnitCountWatcher()")
+    ctld.logWarning("DEPRECATED: ctld.countDroppedUnitsInZone â€” use CTLDTroopManager:startUnitCountWatcher()")
     CTLDTroopManager.getInstance():startUnitCountWatcher(_zone, _blueFlag, _redFlag)
 end
 
@@ -16943,20 +16672,20 @@ end
 --- @deprecated Use CTLDCrateManager:spawnCrateAtZone()
 -- NOTE: non-functional until CTLDCrateManager:spawnCrate() is implemented.
 function ctld.spawnCrateAtZone(_side, _weight, _zone)
-    ctld.logWarning("DEPRECATED: ctld.spawnCrateAtZone — use CTLDCrateManager:spawnCrateAtZone()")
+    ctld.logWarning("DEPRECATED: ctld.spawnCrateAtZone â€” use CTLDCrateManager:spawnCrateAtZone()")
     return CTLDCrateManager.getInstance():spawnCrateAtZone(_side, _weight, _zone)
 end
 
 --- @deprecated Use CTLDCrateManager:spawnCrateAtPoint()
 -- NOTE: non-functional until CTLDCrateManager:spawnCrate() is implemented.
 function ctld.spawnCrateAtPoint(_side, _weight, _point, _hdg)
-    ctld.logWarning("DEPRECATED: ctld.spawnCrateAtPoint — use CTLDCrateManager:spawnCrateAtPoint()")
+    ctld.logWarning("DEPRECATED: ctld.spawnCrateAtPoint â€” use CTLDCrateManager:spawnCrateAtPoint()")
     return CTLDCrateManager.getInstance():spawnCrateAtPoint(_side, _weight, _point, _hdg)
 end
 
 --- @deprecated Use CTLDCrateManager:startCrateCountWatcher()
 function ctld.cratesInZone(_zone, _flagNumber)
-    ctld.logWarning("DEPRECATED: ctld.cratesInZone — use CTLDCrateManager:startCrateCountWatcher()")
+    ctld.logWarning("DEPRECATED: ctld.cratesInZone â€” use CTLDCrateManager:startCrateCountWatcher()")
     CTLDCrateManager.getInstance():startCrateCountWatcher(_zone, _flagNumber)
 end
 
@@ -16966,7 +16695,7 @@ end
 
 --- @deprecated Use CTLDBeaconManager:createAtZone()
 function ctld.createRadioBeaconAtZone(_zone, _coalition, _batteryLife, _name)
-    ctld.logWarning("DEPRECATED: ctld.createRadioBeaconAtZone — use CTLDBeaconManager:createAtZone()")
+    ctld.logWarning("DEPRECATED: ctld.createRadioBeaconAtZone â€” use CTLDBeaconManager:createAtZone()")
     CTLDBeaconManager.getInstance():createAtZone(_zone, _coalition, _batteryLife, _name)
 end
 
@@ -16976,30 +16705,28 @@ end
 
 --- @deprecated Use CTLDJTACManager:autoLase()
 function ctld.JTACAutoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
-    ctld.logWarning("DEPRECATED: ctld.JTACAutoLase — use CTLDJTACManager:autoLase()")
+    ctld.logWarning("DEPRECATED: ctld.JTACAutoLase â€” use CTLDJTACManager:autoLase()")
     CTLDJTACManager.get():autoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:startLase()
 function ctld.JTACStart(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
-    ctld.logWarning("DEPRECATED: ctld.JTACStart — use CTLDJTACManager:startLase()")
+    ctld.logWarning("DEPRECATED: ctld.JTACStart â€” use CTLDJTACManager:startLase()")
     CTLDJTACManager.get():startLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:stopAutoLase()
 function ctld.JTACAutoLaseStop(_jtacGroupName)
-    ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
+    ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop â€” use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
--- ===== End   : compat/legacy_api.lua =====
 
--- ===== Start : CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
--- User configuration — load AFTER CTLD_Next.lua in the mission.
+-- User configuration â€” load AFTER CTLD_Next.lua in the mission.
 --
 -- HOW TO USE
---   In the Mission Editor, add a trigger "MISSION START → DO SCRIPT FILE"
+--   In the Mission Editor, add a trigger "MISSION START â†’ DO SCRIPT FILE"
 --   and select this file.  It must run AFTER CTLD_Next.lua.
 --
 -- All values below are the factory defaults.
@@ -17009,7 +16736,7 @@ end
 if ctld == nil then ctld = {} end
 
 -- ============================================================
--- SECTION 1 — SCALAR PARAMETERS (bool / number / string)
+-- SECTION 1 â€” SCALAR PARAMETERS (bool / number / string)
 -- Comment / uncomment individual lines to override defaults.
 -- ============================================================
 ctld.yamlConfigDatas = [[
@@ -17061,7 +16788,7 @@ ctld.yamlConfigDatas = [[
 # Crates
 # ============================================================
 
-# Master switch — set to false to disable the entire crate system.
+# Master switch â€” set to false to disable the entire crate system.
 # ctld.enableCrates: true
 
 # Show "All crates" shortcut entries in the F10 menu (spawns every component of a
@@ -17080,7 +16807,7 @@ ctld.yamlConfigDatas = [[
 # ctld.enableSmokeDrop: true
 
 # Enable DCS native slingload weight simulation.
-# WARNING: some DCS versions crash with slingload enabled — if crashes occur set this
+# WARNING: some DCS versions crash with slingload enabled â€” if crashes occur set this
 # to false and rely on the virtual hover system instead.
 # When true, also set staticBugWorkaround to false.
 # ctld.slingLoad: false
@@ -17136,7 +16863,7 @@ ctld.yamlConfigDatas = [[
 # Allow pilots to insert troops via fast-rope.
 # ctld.enableFastRopeInsertion: true
 
-# Maximum safe AGL height (m) for fast-rope (not rappel) insertion — 60 ft default.
+# Maximum safe AGL height (m) for fast-rope (not rappel) insertion â€” 60 ft default.
 # ctld.fastRopeMaximumHeight: 18.28
 
 # Spawn a friendly RPG soldier with every deployed coalition infantry group.
@@ -17213,7 +16940,7 @@ ctld.yamlConfigDatas = [[
 
 
 # ============================================================
-# Parachute — virtual parachute drop (Feature A)
+# Parachute â€” virtual parachute drop (Feature A)
 # ============================================================
 
 # Minimum AGL altitude (m) required to initiate a parachute drop for crates.
@@ -17281,7 +17008,7 @@ ctld.yamlConfigDatas = [[
 # ctld.AASystemLimitBLUE: 20
 
 # Enable crate stacking : bringing N times the required crates spawns N times the
-# launchers.  Example : 2 × Patriot launcher crates → 2 launchers in the group.
+# launchers.  Example : 2 Ã— Patriot launcher crates â†’ 2 launchers in the group.
 # ctld.AASystemCrateStacking: false
 
 
@@ -17296,13 +17023,13 @@ ctld.yamlConfigDatas = [[
 # Allow pilots to spawn JTAC units from the F10 crate menu.
 # ctld.JTAC_dropEnabled: true
 
-# Maximum lasing distance (m) — targets beyond this range are ignored.
+# Maximum lasing distance (m) â€” targets beyond this range are ignored.
 # ctld.JTAC_maxDistance: 10000
 
 # Which ground unit types the JTAC will track and lase.
-# "vehicle" — armoured vehicles only
-# "troop"   — infantry only
-# "all"     — any ground unit
+# "vehicle" â€” armoured vehicles only
+# "troop"   â€” infantry only
+# "all"     â€” any ground unit
 # ctld.JTAC_lock: all
 
 # Show the JTAC status entry in the F10 menu.
@@ -17398,7 +17125,7 @@ ctld.yamlConfigDatas = [[
 ]]
 
 -- ============================================================
--- SECTION 2 — COMPLEX TABLES
+-- SECTION 2 â€” COMPLEX TABLES
 -- These cannot be expressed as YAML key:value pairs.
 -- They are applied directly on the CTLDConfig instance.
 -- Each table REPLACES the default entirely when uncommented.
@@ -17413,7 +17140,7 @@ local _cfg = CTLDConfig.get()
 -- Comment / uncomment entries to suit your mission's aircraft.
 -- ============================================================
 -- _cfg.settings["aircraftTypeTable"] = {
---     -- ── Helicopters ────────────────────────────────────────
+--     -- â”€â”€ Helicopters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "Mi-8MT",
 --     "Mi-24P",
 --     "UH-1H",
@@ -17425,10 +17152,10 @@ local _cfg = CTLDConfig.get()
 --     -- "SA342Mistral",
 --     -- "SA342Minigun",
 --
---     -- ── Fixed-wing ─────────────────────────────────────────
+--     -- â”€â”€ Fixed-wing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "C-130J-30",
 --
---     -- ── Mods ───────────────────────────────────────────────
+--     -- â”€â”€ Mods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     -- "Hercules",
 --     -- "UH-60L",
 --     -- "Bronco-OV-10A",
@@ -17440,27 +17167,27 @@ local _cfg = CTLDConfig.get()
 -- Add any DCS unit name from the Mission Editor here.
 -- ============================================================
 -- _cfg.settings["transportPilotNames"] = {
---     -- ── Player helicopter slots ────────────────────────────
+--     -- â”€â”€ Player helicopter slots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "helicargo1",  "helicargo2",  "helicargo3",  "helicargo4",  "helicargo5",
 --     "helicargo6",  "helicargo7",  "helicargo8",  "helicargo9",  "helicargo10",
 --     "helicargo11", "helicargo12", "helicargo13", "helicargo14", "helicargo15",
 --     "helicargo16", "helicargo17", "helicargo18", "helicargo19", "helicargo20",
 --     "helicargo21", "helicargo22", "helicargo23", "helicargo24", "helicargo25",
 --
---     -- ── MEDEVAC — BLUE ────────────────────────────────────
+--     -- â”€â”€ MEDEVAC â€” BLUE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "MEDEVAC BLUE #1",  "MEDEVAC BLUE #2",  "MEDEVAC BLUE #3",
 --     "MEDEVAC BLUE #4",  "MEDEVAC BLUE #5",  "MEDEVAC BLUE #6",
 --     "MEDEVAC BLUE #7",  "MEDEVAC BLUE #8",  "MEDEVAC BLUE #9",
 --     "MEDEVAC BLUE #10", "MEDEVAC BLUE #11", "MEDEVAC BLUE #12",
 --
---     -- ── MEDEVAC — RED ─────────────────────────────────────
+--     -- â”€â”€ MEDEVAC â€” RED â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "MEDEVAC RED #1",  "MEDEVAC RED #2",  "MEDEVAC RED #3",
 --     "MEDEVAC RED #4",  "MEDEVAC RED #5",  "MEDEVAC RED #6",
 --
---     -- ── MEDEVAC — both sides ──────────────────────────────
+--     -- â”€â”€ MEDEVAC â€” both sides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "MEDEVAC #1", "MEDEVAC #2", "MEDEVAC #3",
 --
---     -- ── AI transport slots ────────────────────────────────
+--     -- â”€â”€ AI transport slots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     "transport1",  "transport2",  "transport3",  "transport4",  "transport5",
 --     "transport6",  "transport7",  "transport8",  "transport9",  "transport10",
 --     "transport11", "transport12", "transport13", "transport14", "transport15",
@@ -17475,7 +17202,7 @@ local _cfg = CTLDConfig.get()
 --   limit               : -1 = unlimited ; N = max groups that can be loaded
 --                         (dropping a group back adds one to the count)
 --   "active"            : "yes" = available at mission start
---                         "no"  = deactivated — use ctld.activatePickupZone() to enable
+--                         "no"  = deactivated â€” use ctld.activatePickupZone() to enable
 --   side                : 0 = both coalitions ; 1 = RED only ; 2 = BLUE only
 --   flag (optional)     : DCS flag number where remaining group count is stored
 -- ============================================================
@@ -17522,7 +17249,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Waypoint zones (AI routing — transport will fly to each active
+-- Waypoint zones (AI routing â€” transport will fly to each active
 -- waypoint zone in sequence before reaching the drop-off zone)
 -- Each entry: { "zone_name", "smoke_color", "active", side }
 -- ============================================================
@@ -17552,7 +17279,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Logistic units — unit names near which crate spawning is allowed.
+-- Logistic units â€” unit names near which crate spawning is allowed.
 -- When a logistic unit is destroyed, crate spawning at its location stops.
 -- ============================================================
 -- _cfg.settings["logisticUnits"] = {
@@ -17563,7 +17290,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Vehicle transport — aircraft types allowed to carry vehicles
+-- Vehicle transport â€” aircraft types allowed to carry vehicles
 -- (loads vehicles onto the transport, then deploys them at the destination)
 -- ============================================================
 -- _cfg.settings["vehicleTransportEnabled"] = {
@@ -17574,7 +17301,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Dynamic cargo units — aircraft types that use the native DCS
+-- Dynamic cargo units â€” aircraft types that use the native DCS
 -- cargo system (creates a DCS cargo static that can be loaded
 -- with the standard DCS slingload / cargo interface)
 -- ============================================================
@@ -17587,25 +17314,25 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Unit load limits — maximum group size (number of soldiers)
+-- Unit load limits â€” maximum group size (number of soldiers)
 -- that each aircraft type can carry.  Groups larger than the
 -- limit will not appear as available for loading.
 -- ============================================================
 -- _cfg.settings["unitLoadLimits"] = {
---     -- ── Helicopters ────────────────────────────────────────
+--     -- â”€â”€ Helicopters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     ["Mi-8MT"]    = 16,
 --     ["Mi-24P"]    = 10,
 --     ["UH-1H"]     = 8,
 --     ["CH-47Fbl1"] = 33,
 --
---     -- ── Fixed-wing ─────────────────────────────────────────
+--     -- â”€â”€ Fixed-wing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     ["C-130J-30"] = 80,
 --
---     -- ── Mods ───────────────────────────────────────────────
+--     -- â”€â”€ Mods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     -- ["Hercules"] = 30,
 --     -- ["UH-60L"]   = 12,
 --
---     -- ── Light aircraft (set to 1 or 2 for recon/observer) ──
+--     -- â”€â”€ Light aircraft (set to 1 or 2 for recon/observer) â”€â”€
 --     -- ["SA342L"]      = 4,
 --     -- ["SA342M"]      = 4,
 --     -- ["SA342Mistral"] = 4,
@@ -17613,7 +17340,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Internal cargo limits — maximum number of crates a single
+-- Internal cargo limits â€” maximum number of crates a single
 -- aircraft can carry at the same time (internal load).
 -- ============================================================
 -- _cfg.settings["internalCargoLimits"] = {
@@ -17623,17 +17350,17 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Unit actions — per-aircraft-type capability flags.
+-- Unit actions â€” per-aircraft-type capability flags.
 -- Omit an aircraft type to use the default (crates=true, troops=true).
 --
 --   crates       : can spawn, load and unpack crates
 --   troops       : can load and deploy infantry groups
 --   canParachute : enables "Parachute Crates/Troops/Vehicle" F10 entries (Feature A)
 --   canSlingload : enables hover-pickup polling and "Release/Cut Slingload" menus (Feature B)
---                  — set true for helicopters, false for fixed-wing aircraft
+--                  â€” set true for helicopters, false for fixed-wing aircraft
 -- ============================================================
 -- _cfg.settings["unitActions"] = {
---     -- ── Helicopters ────────────────────────────────────────
+--     -- â”€â”€ Helicopters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     ["Mi-8MT"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
 --     ["Mi-24P"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
 --     ["UH-1H"]     = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
@@ -17645,10 +17372,10 @@ local _cfg = CTLDConfig.get()
 --     -- ["SA342Mistral"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
 --     -- ["SA342Minigun"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
 --
---     -- ── Fixed-wing ─────────────────────────────────────────
+--     -- â”€â”€ Fixed-wing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     ["C-130J-30"] = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
 --
---     -- ── Mods ───────────────────────────────────────────────
+--     -- â”€â”€ Mods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --     -- ["Hercules"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
 --     -- ["UH-60L"]      = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
 -- }
@@ -17672,9 +17399,9 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Infantry spawn cap — cumulative limit on the number of troops
+-- Infantry spawn cap â€” cumulative limit on the number of troops
 -- that can be loaded aboard transports across the whole mission.
--- { redLimit, blueLimit }  —  0 = no limit.
+-- { redLimit, blueLimit }  â€”  0 = no limit.
 -- Example: { 200, 200 } caps each side at 200 troops total.
 -- ============================================================
 -- _cfg.settings["nbLimitSpawnedTroops"] = { 0, 0 }
@@ -17714,19 +17441,19 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Spawnable crates — F10 crate menu catalogue
+-- Spawnable crates â€” F10 crate menu catalogue
 --
 -- The table is keyed by sub-menu name.  Each sub-menu contains
 -- one or more crate descriptor entries.
 --
 -- Crate descriptor fields:
---   weight        (number) : unique kg value used as lookup key — MUST be unique
+--   weight        (number) : unique kg value used as lookup key â€” MUST be unique
 --   desc          (string) : label shown in the F10 menu
 --   unit          (string) : DCS unit type name spawned when the crate is unpacked
 --   cratesRequired (number): number of identical crates that must be assembled
 --                            within 100 m of each other to build the unit (default 1)
 --   side          (number) : 1 = RED only ; 2 = BLUE only ; omit = both coalitions
---   multiple      (table)  : list of weights — shortcut entry that spawns all listed
+--   multiple      (table)  : list of weights â€” shortcut entry that spawns all listed
 --                            crates at once (no weight/unit fields needed here)
 -- ============================================================
 -- _cfg.settings["spawnableCrates"] = {
@@ -17807,7 +17534,7 @@ local _cfg = CTLDConfig.get()
 --     },
 --
 --     ["SAM mid range"] = {
---         --- BLUE — HAWK system
+--         --- BLUE â€” HAWK system
 --         { weight = 1004.01,                                   desc = "HAWK Launcher",               unit = "Hawk ln",              side = 2 },
 --         { weight = 1004.02,                                   desc = "HAWK Search Radar",           unit = "Hawk sr",              side = 2 },
 --         { weight = 1004.03,                                   desc = "HAWK Track Radar",            unit = "Hawk tr",              side = 2 },
@@ -17815,18 +17542,18 @@ local _cfg = CTLDConfig.get()
 --         { weight = 1004.05,                                   desc = "HAWK CWAR",                  unit = "Hawk cwar",            side = 2 },
 --         { weight = 1004.06,                                   desc = "HAWK Repair",                unit = "HAWK Repair",          side = 2 },
 --         { multiple = { 1004.01, 1004.02, 1004.03 },           desc = "HAWK - All crates",           side = 2 },
---         --- BLUE — NASAMS system
+--         --- BLUE â€” NASAMS system
 --         { weight = 1004.11,                                   desc = "NASAMS Launcher 120C",        unit = "NASAMS_LN_C",          side = 2 },
 --         { weight = 1004.12,                                   desc = "NASAMS Search/Track Radar",   unit = "NASAMS_Radar_MPQ64F1", side = 2 },
 --         { weight = 1004.13,                                   desc = "NASAMS Command Post",         unit = "NASAMS_Command_Post",  side = 2 },
 --         { weight = 1004.14,                                   desc = "NASAMS Repair",              unit = "NASAMS Repair",        side = 2 },
 --         { multiple = { 1004.11, 1004.12, 1004.13 },           desc = "NASAMS - All crates",         side = 2 },
---         --- RED — KUB system
+--         --- RED â€” KUB system
 --         { weight = 1004.21,                                   desc = "KUB Launcher",               unit = "Kub 2P25 ln",          side = 1 },
 --         { weight = 1004.22,                                   desc = "KUB Radar",                  unit = "Kub 1S91 str",         side = 1 },
 --         { weight = 1004.23,                                   desc = "KUB Repair",                 unit = "KUB Repair",           side = 1 },
 --         { multiple = { 1004.21, 1004.22 },                    desc = "KUB - All crates",            side = 1 },
---         --- RED — BUK system
+--         --- RED â€” BUK system
 --         { weight = 1004.31,                                   desc = "BUK Launcher",               unit = "SA-11 Buk LN 9A310M1", side = 1 },
 --         { weight = 1004.32,                                   desc = "BUK Search Radar",           unit = "SA-11 Buk SR 9S18M1",  side = 1 },
 --         { weight = 1004.33,                                   desc = "BUK CC Radar",               unit = "SA-11 Buk CC 9S470M1", side = 1 },
@@ -17835,14 +17562,14 @@ local _cfg = CTLDConfig.get()
 --     },
 --
 --     ["SAM long range"] = {
---         --- BLUE — Patriot system
+--         --- BLUE â€” Patriot system
 --         { weight = 1005.01,                                   desc = "Patriot Launcher",            unit = "Patriot ln",        side = 2 },
 --         { weight = 1005.02,                                   desc = "Patriot Radar",               unit = "Patriot str",       side = 2 },
 --         { weight = 1005.03,                                   desc = "Patriot ECS",                 unit = "Patriot ECS",       side = 2 },
 --         { weight = 1005.06,                                   desc = "Patriot AMG (optional)",      unit = "Patriot AMG",       side = 2 },
 --         { weight = 1005.07,                                   desc = "Patriot Repair",              unit = "Patriot Repair",    side = 2 },
 --         { multiple = { 1005.01, 1005.02, 1005.03 },           desc = "Patriot - All crates",        side = 2 },
---         --- RED — S-300 system
+--         --- RED â€” S-300 system
 --         { weight = 1005.11,                                   desc = "S-300 TEL C",                 unit = "S-300PS 5P85C ln",  side = 1 },
 --         { weight = 1005.12,                                   desc = "S-300 Flap Lid-A TR",         unit = "S-300PS 40B6M tr",  side = 1 },
 --         { weight = 1005.13,                                   desc = "S-300 Clam Shell SR",         unit = "S-300PS 40B6MD sr", side = 1 },
@@ -17875,7 +17602,7 @@ local _cfg = CTLDConfig.get()
 --
 -- Available DCS cargo models and their type strings:
 --   model shape               | type
---   ─────────────────────────────────────────────────────────
+--   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 --   ammo_box_cargo            | ammo_cargo         (default load)
 --   bw_container_cargo        | container_cargo    (default sling)
 --   iso_container_cargo       | iso_container
@@ -17967,5 +17694,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
--- ===== End   : CTLD_userConfig.lua =====
+
 
