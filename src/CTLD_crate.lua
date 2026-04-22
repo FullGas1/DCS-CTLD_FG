@@ -67,6 +67,7 @@ function CTLDCrate:init(data)
     self.loadedBy     = nil
     self.loadTime     = nil
     self.dcsStatic    = data.dcsStatic or nil
+    self.modelKey     = data.modelKey  or "load"
     self.hasMoved     = false
     self.canBeUnpacked = true
     -- Feature A: virtual parachute
