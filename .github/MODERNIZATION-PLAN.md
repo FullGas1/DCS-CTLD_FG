@@ -120,6 +120,20 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         P1 overspeed loss, P3 Release/Cut menus distincts, P2 inertia drift (calcDropPosition)
         Recette FB: F-65→F-71 22/22 PASS ✅ [2026-04-08]
 
+── FEATURES EN ATTENTE ──────────────────────────────────────────────────────
+⬜  FG  FOB construction scene — animated build sequence (120 s)
+        Animate fobScene over the full buildTimeFOB (120 s) duration instead of
+        playing all steps immediately:
+          - Spawn transition props at scene start: construction crane, worker
+            characters around the site, scattered crates
+          - Spread the permanent structure steps (container, watchtower, sandbags…)
+            across the 120 s timeline
+          - Destroy/remove all transition props (crane, characters, temp crates)
+            at scene completion, leaving only the final FOB structure
+        Implementation: add timed sub-steps in CTLD_fobScene.lua using the
+        CtldScene step engine (timer offsets); transition props registered in
+        scene._transitionObjs for cleanup in the onComplete callback.
+
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]
         22 wrappers (Troops×6, Zones×10, Crates×3, Beacons×1, JTAC×3) — thin delegates
