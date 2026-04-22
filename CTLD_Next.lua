@@ -814,7 +814,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB",       side = nil, cratesRequired = 1 }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB",       side = nil, cratesRequired = 3 }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
