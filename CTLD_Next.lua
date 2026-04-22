@@ -811,6 +811,7 @@ function CTLDConfig:load()
             { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
             { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
             { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
+            { multiple = { 1001.13, 1001.13 },          desc = ctld.tr("KAMAZ Ammo Truck - All crates"),    side = 1 },
 
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
@@ -915,7 +916,7 @@ function CTLDConfig:load()
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
             { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
-            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("Patriot - All crates"),        side = 1 },
+            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },
         ["Drone"] = {
@@ -1462,6 +1463,7 @@ ctld.i18n["en"]["M-978 Tanker"] = "M-978 Tanker"
 ctld.i18n["en"]["SKP-11 - JTAC"] = "SKP-11 - JTAC"
 ctld.i18n["en"]["Ural-375 Ammo Truck"] = "Ural-375 Ammo Truck"
 ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
+ctld.i18n["en"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Ammo Truck - All crates"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
 ctld.i18n["en"]["FOB Crate"] = "FOB Crate"
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
@@ -1545,6 +1547,7 @@ ctld.i18n["en"]["NASAMS - All crates"] = "NASAMS - All crates"
 ctld.i18n["en"]["KUB - All crates"] = "KUB - All crates"
 ctld.i18n["en"]["BUK - All crates"] = "BUK - All crates"
 ctld.i18n["en"]["Patriot - All crates"] = "Patriot - All crates"
+ctld.i18n["en"]["S-300 - All crates"] = "S-300 - All crates"
 
 --- mission design error messages
 -- STALE: ctld.i18n["en"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ERROR: Can't find trigger called %1"
@@ -1817,6 +1820,7 @@ ctld.i18n["fr"]["M-978 Tanker"] = ""
 ctld.i18n["fr"]["SKP-11 - JTAC"] = ""
 ctld.i18n["fr"]["Ural-375 Ammo Truck"] = ""
 ctld.i18n["fr"]["KAMAZ Ammo Truck"] = ""
+ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = ""
 ctld.i18n["fr"]["EWR Radar"] = ""
 ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
@@ -1900,6 +1904,7 @@ ctld.i18n["fr"]["NASAMS - All crates"] = "NASAMS - Toutes les caisses"
 ctld.i18n["fr"]["KUB - All crates"] = "KUB - Toutes les caisses"
 ctld.i18n["fr"]["BUK - All crates"] = "BUK - Toutes les caisses"
 ctld.i18n["fr"]["Patriot - All crates"] = "Patriot - Toutes les caisses"
+ctld.i18n["fr"]["S-300 - All crates"] = "S-300 - Toutes les caisses"
 
 --- mission design error messages
 -- STALE: ctld.i18n["fr"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ERREUR : Impossible de trouver le déclencheur appelé %1"
@@ -2173,6 +2178,7 @@ ctld.i18n["es"]["M-978 Tanker"] = "Camión cisterna M-978"
 ctld.i18n["es"]["SKP-11 - JTAC"] = "JTAC SKP-11"
 ctld.i18n["es"]["Ural-375 Ammo Truck"] = "Camión Ural-375 de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
+ctld.i18n["es"]["KAMAZ Ammo Truck - All crates"] = "Camión KAMAZ de municiones - Todas las cajas"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
 ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
@@ -2256,6 +2262,7 @@ ctld.i18n["es"]["NASAMS - All crates"] = "NASAMS - Todas las cajas"
 ctld.i18n["es"]["KUB - All crates"] = "KUB - Todas las cajas"
 ctld.i18n["es"]["BUK - All crates"] = "BUK - Todas las cajas"
 ctld.i18n["es"]["Patriot - All crates"] = "Patriot - Todas las cajas"
+ctld.i18n["es"]["S-300 - All crates"] = "S-300 - Todas las cajas"
 
 --- mission design error messages
 -- STALE: ctld.i18n["es"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua ERROR : Imposible encontrar el activador llamado %1"
@@ -2530,6 +2537,7 @@ ctld.i18n["ko"]["M-978 Tanker"] = "M-978 연료 차량"
 ctld.i18n["ko"]["SKP-11 - JTAC"] = ""
 ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
+ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = ""
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
@@ -2784,6 +2792,7 @@ ctld.i18n["ko"]["Med Tank - LAV-25 - All crates"] = ""
 ctld.i18n["ko"]["MLRS - All crates"] = ""
 ctld.i18n["ko"]["NASAMS - All crates"] = ""
 ctld.i18n["ko"]["Patriot - All crates"] = ""
+ctld.i18n["ko"]["S-300 - All crates"] = ""
 ctld.i18n["ko"]["Roland ADS - All crates"] = ""
 ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
 ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""

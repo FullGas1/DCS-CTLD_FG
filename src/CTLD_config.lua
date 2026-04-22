@@ -766,6 +766,7 @@ function CTLDConfig:load()
             { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
             { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
             { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
+            { multiple = { 1001.13, 1001.13 },          desc = ctld.tr("KAMAZ Ammo Truck - All crates"),    side = 1 },
 
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
@@ -870,7 +871,7 @@ function CTLDConfig:load()
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
             { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
-            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("Patriot - All crates"),        side = 1 },
+            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },
         ["Drone"] = {
