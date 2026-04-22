@@ -9171,17 +9171,21 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
-                    -- Spawn position = first crate position
-                    local spawnPos = { x = toUnpack[1].position.x,
-                                       y = toUnpack[1].position.y,
-                                       z = toUnpack[1].position.z }
                     -- Unpack each crate in assembly
                     for _, c in ipairs(toUnpack) do
                         mgr:unpackCrate(c.crateName, t)
                     end
-                    -- Spawn the vehicle
+                    -- Spawn the vehicle at least 50 m from the transport.
+                    -- Use getSpawnObjectPositions so the position is always
+                    -- outside the aircraft footprint regardless of crate placement.
+                    local MIN_UNPACK_DIST = 50
+                    local safeDist = math.max(
+                        MIN_UNPACK_DIST,
+                        (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5)
+                    local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
+                    local spawnPos  = spawnInfo.positions[1]
                     local desc = arg.descriptor
-                    if desc and desc.unit then
+                    if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
                         local uid = ctld.utils.getNextUniqId()
