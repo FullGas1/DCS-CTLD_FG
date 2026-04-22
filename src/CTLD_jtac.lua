@@ -477,9 +477,13 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
 
     -- Store initial flight route for flying JTACs (before any orbit task replaces it).
     -- Used by _orbitLoop to restore route when orbit ends.
+    -- Controller:getTask() is not guaranteed by the DCS API; pcall to avoid crash.
     if isFlying then
         local ctrl = dcsGroup:getController()
-        if ctrl then jtac.initialRoute = ctrl:getTask() end
+        if ctrl then
+            local ok2, task = pcall(function() return ctrl:getTask() end)
+            if ok2 and task then jtac.initialRoute = task end
+        end
     end
 
     self.jtacs[groupName] = jtac
@@ -606,6 +610,125 @@ end
 -- ============================================================
 -- Legacy-compatible public API (called by compat/legacy_api.lua)
 -- ============================================================
+
+--- Spawn a flying JTAC from an unpacked crate and start auto-lase.
+-- Handles the full deployment cycle for any air unit (AIRPLANE, HELICOPTER):
+--   1. coalition.addGroup using descriptor.spawnCategory with orbit + EPLRS route
+--   2. CTLDJTACManager:startLase (1-second delayed, mirrors legacy ctld.JTACStart)
+-- Called by the unpack callback when descriptor.spawnCategory is set and descriptor.isJTAC = true.
+-- @param transport  Unit    transport unit (player helicopter)
+-- @param position   vec3    horizontal spawn position {x, y, z} (y = ground level)
+-- @param descriptor table   crate descriptor { unit, desc, spawnCategory, isJTAC, ... }
+-- @param countryId  number  country.id.*
+-- @return boolean  true if spawn succeeded
+function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryId)
+    if not (ctld.gs("JTAC_dropEnabled") ~= false) then
+        ctld.utils.log("INFO", "CTLDJTACManager:deployAirJTAC — JTAC_dropEnabled=false, skipped")
+        return false
+    end
+
+    local dcsCategory = descriptor.spawnCategory or Group.Category.AIRPLANE
+    local alt   = ctld.gs("jtacDroneAltitude") or 4000
+    local speed = 54  -- m/s (~105 kts)
+    local gid   = ctld.utils.getNextUniqId()
+    local uid   = ctld.utils.getNextUniqId()
+    local gname = string.format("CTLD_JTAC_AIR_%d", gid)
+    local uname = string.format("CTLD_JTAC_AIR_%d_1", gid)
+
+    local unitDef = {
+        ["name"]          = gname,
+        ["groupId"]       = gid,
+        ["communication"] = true,
+        ["frequency"]     = 124,
+        ["visible"]       = false,
+        ["hidden"]        = false,
+        ["start_time"]    = 0,
+        ["task"]          = "Ground Nothing",
+        ["x"]             = position.x,
+        ["y"]             = position.z,
+        ["units"] = {
+            [1] = {
+                ["type"]     = descriptor.unit,
+                ["name"]     = uname,
+                ["unitId"]   = uid,
+                ["x"]        = position.x,
+                ["y"]        = position.z,
+                ["heading"]  = 0,
+                ["alt"]      = alt,
+                ["alt_type"] = "RADIO",
+                ["speed"]    = speed,
+                ["skill"]    = "Excellent",
+            },
+        },
+        ["route"] = {
+            ["points"] = {
+                [1] = {
+                    ["alt"]                = alt,
+                    ["alt_type"]           = "RADIO",
+                    ["action"]             = "Turning Point",
+                    ["type"]               = "Turning Point",
+                    ["speed"]              = speed,
+                    ["ETA"]                = 0,
+                    ["ETA_locked"]         = true,
+                    ["speed_locked"]       = true,
+                    ["formation_template"] = "",
+                    ["properties"]         = { ["addopt"] = {} },
+                    ["x"]                  = position.x,
+                    ["y"]                  = position.z,
+                    ["task"] = {
+                        ["id"]     = "ComboTask",
+                        ["params"] = {
+                            ["tasks"] = {
+                                [1] = {
+                                    ["number"]  = 1,
+                                    ["auto"]    = true,
+                                    ["id"]      = "WrappedAction",
+                                    ["enabled"] = true,
+                                    ["params"]  = {
+                                        ["action"] = {
+                                            ["id"]     = "EPLRS",
+                                            ["params"] = {
+                                                ["value"]   = true,
+                                                ["groupId"] = gid,
+                                            },
+                                        },
+                                    },
+                                },
+                                [2] = {
+                                    ["number"]  = 2,
+                                    ["auto"]    = false,
+                                    ["id"]      = "Orbit",
+                                    ["enabled"] = true,
+                                    ["params"]  = {
+                                        ["altitude"] = alt,
+                                        ["pattern"]  = "Circle",
+                                        ["speed"]    = speed,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+    local cId = countryId or country.id.USA
+    local ok, err = pcall(coalition.addGroup, cId, dcsCategory, unitDef)
+    if not ok then
+        local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
+        ctld.utils.log("WARNING",
+            "CTLDJTACManager:deployAirJTAC — coalition.addGroup failed: " .. errStr)
+        return false
+    end
+
+    -- Start auto-lase with 1s delay (DCS group units may be empty immediately after spawn)
+    self:startLase(gname)
+    ctld.utils.log("INFO",
+        string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s cat=%d alt=%dm",
+            gname, descriptor.unit, dcsCategory, alt))
+    return true
+end
 
 --- Activate auto-lase for an existing DCS JTAC group (MM DO SCRIPT).
 -- Equivalent to legacy ctld.JTACAutoLase(). Wraps spawnJTAC with converted params.

@@ -876,11 +876,11 @@ function CTLDConfig:load()
         },
         ["Drone"] = {
             --- BLUE MQ-9 Repear
-            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2 },
+            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2, isJTAC = true, spawnCategory = Group.Category.AIRPLANE },
             -- End of BLUE MQ-9 Repear
 
             --- RED RQ-1A Predator
-            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1 },
+            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1, isJTAC = true, spawnCategory = Group.Category.AIRPLANE },
             -- End of RED RQ-1A Predator
         },
     }

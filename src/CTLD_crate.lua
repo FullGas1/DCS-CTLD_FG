@@ -432,16 +432,26 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        local uid = ctld.utils.getNextUniqId()
-                        CTLDVehicleSpawner.getInstance():spawnVehicleAt(
-                            {
-                                vehicleType = desc.unit,
-                                groupName   = string.format("CTLD_UNP_%d", uid),
-                                unitName    = string.format("CTLD_UNP_%d", uid),
-                                coalitionId = coa,
-                                country     = cId,
-                            },
-                            spawnPos)
+                        if desc.spawnCategory then
+                            -- Flying JTAC (AIRPLANE/HELICOPTER): orbit + startLase via CTLDJTACManager
+                            CTLDJTACManager.get():deployAirJTAC(t, spawnPos, desc, cId)
+                        else
+                            local uid      = ctld.utils.getNextUniqId()
+                            local gname    = string.format("CTLD_UNP_%d", uid)
+                            CTLDVehicleSpawner.getInstance():spawnVehicleAt(
+                                {
+                                    vehicleType = desc.unit,
+                                    groupName   = gname,
+                                    unitName    = gname,
+                                    coalitionId = coa,
+                                    country     = cId,
+                                },
+                                spawnPos)
+                            -- Ground JTAC: any crate with isJTAC = true triggers auto-lase
+                            if desc.isJTAC then
+                                CTLDJTACManager.get():startLase(gname)
+                            end
+                        end
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -1445,7 +1455,11 @@ function CTLDCrateManager:onBirth(event)
     local desc = obj:getDesc()
     if not (desc and desc.attributes and desc.attributes.Cargos == true) then return end
     local unitName = obj:getName()
-    if self:getCrateByName(unitName) then return end   -- already registered (CTLD-spawned)
+    -- Skip CTLD-managed crates: S_EVENT_BIRTH may fire before _register() is called
+    -- (synchronous dispatch in some DCS versions), so the prefix check is more reliable
+    -- than getCrateByName() alone.
+    if string.sub(unitName, 1, 5) == "CTLD_" then return end
+    if self:getCrateByName(unitName) then return end   -- already registered
     self:registerMMCrate(obj, desc)
 end
 
