@@ -342,21 +342,21 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
-    -- FOB sentinels ("FOB" / "FOB-SMALL"): handled by CTLDFOBManager, not spawned as vehicles.
-    local FOB_SENTINELS = { ["FOB"] = true, ["FOB-SMALL"] = true }
+    -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
+    local FOB_SENTINELS = { ["FOB"] = true }
 
     -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
     -- FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local fobSmallCount = 0
+    local fobCount  = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
             if FOB_SENTINELS[ut] then
-                fobSmallCount = fobSmallCount + 1
+                fobCount = fobCount + 1
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -445,10 +445,11 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     end
 
     -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
-    if fobSmallCount > 0 then
+    if fobCount > 0 then
         hasAny = true
-        local fobRequired = ctld.gs("cratesRequiredForFOB") or 3
-        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobSmallCount, fobRequired)
+        local fobDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
+        local fobRequired = (fobDesc and fobDesc.cratesRequired) or 3
+        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobCount, fobRequired)
         menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
             function(arg)
                 local t = Unit.getByName(arg.unitName)

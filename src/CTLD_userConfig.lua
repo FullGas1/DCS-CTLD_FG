@@ -192,10 +192,6 @@ ctld.yamlConfigDatas = [[
 # Enable FOB building from crates.
 # ctld.enabledFOBBuilding: true
 
-# Number of large FOB crates required to build a FOB.
-# Small FOB crates count as 1/3 of a large crate.
-# ctld.cratesRequiredForFOB: 3
-
 # Time (s) to build the FOB after the last required crate is unpacked.
 # ctld.buildTimeFOB: 120
 
@@ -767,7 +763,7 @@ local _cfg = CTLDConfig.get()
 --         --- Both
 --         { weight = 1001.21,                                   desc = "EWR Radar",                        unit = "FPS-117",              cratesRequired = 3 },
 --         { multiple = { 1001.21, 1001.21, 1001.21 },           desc = "EWR Radar - All crates" },
---         { weight = 1001.22,                                   desc = "FOB Crate - Small",                unit = "FOB-SMALL" },
+--         { weight = 1001.22,                                   desc = "FOB Crate",                        unit = "FOB",          side = nil, cratesRequired = 3 },
 --     },
 --
 --     ["Artillery"] = {

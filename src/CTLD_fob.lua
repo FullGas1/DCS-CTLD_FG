@@ -119,8 +119,7 @@ local function _computeCentroid(transport)
 end
 
 --- Collect FOB crates on the ground within radius metres of position.
--- Each FOB Crate (FOB-SMALL sentinel) counts as 1 unit.
--- FOB large sentinel not used (large crate drop not implemented).
+-- The FOB sentinel value is unit = "FOB" (set in spawnableCrates descriptor).
 -- Returns { crates=[], total }.
 local function _collectFOBCrates(position, coalitionId, radius)
     local cm     = CTLDCrateManager.getInstance()
@@ -130,7 +129,7 @@ local function _collectFOBCrates(position, coalitionId, radius)
     for _, crate in ipairs(nearby) do
         if crate.coalition == coalitionId then
             local unit = crate.descriptor and crate.descriptor.unit
-            if unit == "FOB" or unit == "FOB-SMALL" then
+            if unit == "FOB" then
                 result.total = result.total + 1
                 result.crates[#result.crates + 1] = crate
             end
@@ -181,7 +180,8 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local coalitionId = transport:getCoalition()
 
     -- Guard: not enough crates (checked first for clearer feedback)
-    local required   = ctld.gs("cratesRequiredForFOB") or 3
+    local fobDesc    = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
+    local required   = (fobDesc and fobDesc.cratesRequired) or 3
     local collected  = _collectFOBCrates(pos, coalitionId, 750)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,

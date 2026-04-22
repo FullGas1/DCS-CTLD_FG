@@ -324,7 +324,6 @@ function CTLDConfig:load()
     self.settings["enabledFOBBuilding"]             = true  -- if true, you can load a crate INTO a C-130 than when unpacked creates a Forward Operating Base (FOB) which is a new place to spawn (crates) and carry crates from
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
-    self.settings["cratesRequiredForFOB"]           = 3 -- Number of FOB Crates required to build a FOB.
     self.settings["troopPickupAtFOB"]               = true     -- if true, troops can also be picked up at a created FOB
     self.settings["buildTimeFOB"]                   = 120      -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]        = 500      -- minimum distance (m) from existing logistic zones to deploy a FOB
@@ -816,7 +815,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB-SMALL" }, -- Builds a FOB! - requires 3 * ctld.cratesRequiredForFOB
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB",       side = nil, cratesRequired = 3 }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
@@ -8981,21 +8980,21 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
-    -- FOB sentinels ("FOB" / "FOB-SMALL"): handled by CTLDFOBManager, not spawned as vehicles.
-    local FOB_SENTINELS = { ["FOB"] = true, ["FOB-SMALL"] = true }
+    -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
+    local FOB_SENTINELS = { ["FOB"] = true }
 
     -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
     -- FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local fobSmallCount = 0
+    local fobCount  = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
             if FOB_SENTINELS[ut] then
-                fobSmallCount = fobSmallCount + 1
+                fobCount = fobCount + 1
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -9084,10 +9083,11 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     end
 
     -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
-    if fobSmallCount > 0 then
+    if fobCount > 0 then
         hasAny = true
-        local fobRequired = ctld.gs("cratesRequiredForFOB") or 3
-        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobSmallCount, fobRequired)
+        local fobDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
+        local fobRequired = (fobDesc and fobDesc.cratesRequired) or 3
+        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobCount, fobRequired)
         menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
             function(arg)
                 local t = Unit.getByName(arg.unitName)
@@ -11450,8 +11450,7 @@ local function _computeCentroid(transport)
 end
 
 --- Collect FOB crates on the ground within radius metres of position.
--- Each FOB Crate (FOB-SMALL sentinel) counts as 1 unit.
--- FOB large sentinel not used (large crate drop not implemented).
+-- The FOB sentinel value is unit = "FOB" (set in spawnableCrates descriptor).
 -- Returns { crates=[], total }.
 local function _collectFOBCrates(position, coalitionId, radius)
     local cm     = CTLDCrateManager.getInstance()
@@ -11461,7 +11460,7 @@ local function _collectFOBCrates(position, coalitionId, radius)
     for _, crate in ipairs(nearby) do
         if crate.coalition == coalitionId then
             local unit = crate.descriptor and crate.descriptor.unit
-            if unit == "FOB" or unit == "FOB-SMALL" then
+            if unit == "FOB" then
                 result.total = result.total + 1
                 result.crates[#result.crates + 1] = crate
             end
@@ -11512,7 +11511,8 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local coalitionId = transport:getCoalition()
 
     -- Guard: not enough crates (checked first for clearer feedback)
-    local required   = ctld.gs("cratesRequiredForFOB") or 3
+    local fobDesc    = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
+    local required   = (fobDesc and fobDesc.cratesRequired) or 3
     local collected  = _collectFOBCrates(pos, coalitionId, 750)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
@@ -17001,10 +17001,6 @@ ctld.yamlConfigDatas = [[
 # Enable FOB building from crates.
 # ctld.enabledFOBBuilding: true
 
-# Number of large FOB crates required to build a FOB.
-# Small FOB crates count as 1/3 of a large crate.
-# ctld.cratesRequiredForFOB: 3
-
 # Time (s) to build the FOB after the last required crate is unpacked.
 # ctld.buildTimeFOB: 120
 
@@ -17576,7 +17572,7 @@ local _cfg = CTLDConfig.get()
 --         --- Both
 --         { weight = 1001.21,                                   desc = "EWR Radar",                        unit = "FPS-117",              cratesRequired = 3 },
 --         { multiple = { 1001.21, 1001.21, 1001.21 },           desc = "EWR Radar - All crates" },
---         { weight = 1001.22,                                   desc = "FOB Crate - Small",                unit = "FOB-SMALL" },
+--         { weight = 1001.22,                                   desc = "FOB Crate",                        unit = "FOB",          side = nil, cratesRequired = 3 },
 --     },
 --
 --     ["Artillery"] = {
