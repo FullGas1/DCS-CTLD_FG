@@ -1,4 +1,4 @@
-﻿---@diagnostic disable
+---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
 --
