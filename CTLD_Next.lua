@@ -1,8 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ====================================================================================================
--- Start : lib/class.lua
+-- ===== Start: lib/class.lua =====
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -39,10 +38,9 @@ function class(base)
     end
     return cls
 end
+-- ===== End: lib/class.lua =====
 
--- End : lib/class.lua
--- ====================================================================================================
--- Start : CTLD_config.lua
+-- ===== Start: CTLD_config.lua =====
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -1187,10 +1185,9 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
+-- ===== End: CTLD_config.lua =====
 
--- End : CTLD_config.lua
--- ====================================================================================================
--- Start : CTLD_i18n.lua
+-- ===== Start: CTLD_i18n.lua =====
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1408,10 +1405,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
+-- ===== End: CTLD_i18n.lua =====
 
--- End : CTLD_i18n.lua
--- ====================================================================================================
--- Start : CTLD_i18n_en.lua
+-- ===== Start: CTLD_i18n_en.lua =====
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1799,10 +1795,9 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+-- ===== End: CTLD_i18n_en.lua =====
 
--- End : CTLD_i18n_en.lua
--- ====================================================================================================
--- Start : CTLD_i18n_fr.lua
+-- ===== Start: CTLD_i18n_fr.lua =====
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2184,10 +2179,9 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
+-- ===== End: CTLD_i18n_fr.lua =====
 
--- End : CTLD_i18n_fr.lua
--- ====================================================================================================
--- Start : CTLD_i18n_es.lua
+-- ===== Start: CTLD_i18n_es.lua =====
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2570,10 +2564,9 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
+-- ===== End: CTLD_i18n_es.lua =====
 
--- End : CTLD_i18n_es.lua
--- ====================================================================================================
--- Start : CTLD_i18n_ko.lua
+-- ===== Start: CTLD_i18n_ko.lua =====
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2958,10 +2951,9 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+-- ===== End: CTLD_i18n_ko.lua =====
 
--- End : CTLD_i18n_ko.lua
--- ====================================================================================================
--- Start : CTLD_utils.lua
+-- ===== Start: CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4772,10 +4764,9 @@ end
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
+-- ===== End: CTLD_utils.lua =====
 
--- End : CTLD_utils.lua
--- ====================================================================================================
--- Start : CTLD_menu.lua
+-- ===== Start: CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5301,10 +5292,9 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
+-- ===== End: CTLD_menu.lua =====
 
--- End : CTLD_menu.lua
--- ====================================================================================================
--- Start : lib/CTLD_objectRegistry.lua
+-- ===== Start: lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5726,10 +5716,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
+-- ===== End: lib/CTLD_objectRegistry.lua =====
 
--- End : lib/CTLD_objectRegistry.lua
--- ====================================================================================================
--- Start : lib/CTLDParachuteEffect.lua
+-- ===== Start: lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5781,10 +5770,9 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
+-- ===== End: lib/CTLDParachuteEffect.lua =====
 
--- End : lib/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : CTLD_sceneManager.lua
+-- ===== Start: CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6206,10 +6194,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
+-- ===== End: CTLD_sceneManager.lua =====
 
--- End : CTLD_sceneManager.lua
--- ====================================================================================================
--- Start : CTLD_zone.lua
+-- ===== Start: CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7259,10 +7246,9 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
+-- ===== End: CTLD_zone.lua =====
 
--- End : CTLD_zone.lua
--- ====================================================================================================
--- Start : CTLD_troop.lua
+-- ===== Start: CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8773,10 +8759,9 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
+-- ===== End: CTLD_troop.lua =====
 
--- End : CTLD_troop.lua
--- ====================================================================================================
--- Start : CTLD_crate.lua
+-- ===== Start: CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -9278,6 +9263,9 @@ function CTLDCrateManager:checkHoverStatus()
         CTLDCrateManager.getInstance():checkHoverStatus()
     end, {}, timer.getTime() + 1)
 
+    -- DCS-native cargo detection (always, independent of slingload config)
+    self:_checkNativeDCSCargo()
+
     if ctld.gs("enableHoverSlingload") ~= true then return end
 
     local unitActions = ctld.gs("unitActions")        or {}
@@ -9411,6 +9399,143 @@ function CTLDCrateManager:checkHoverStatus()
             else
                 -- Not in air: reset hover counter
                 self._hoverStatus[unitName] = nil
+            end
+        end
+    end
+end
+
+--- Return true if world-space point `pt` is inside the bounding box of `unitPos`.
+-- unitPos : result of unit:getPosition() = { p=Vec3, x=Vec3, y=Vec3, z=Vec3 }
+-- bbox    : { min=Vec3, max=Vec3 } in local coords (from unit:getDesc().box)
+-- margin  : extra metres added on every face (default 0)
+local function _pointInBBox(unitPos, bbox, pt, margin)
+    margin = margin or 0
+    local dx = pt.x - unitPos.p.x
+    local dy = pt.y - unitPos.p.y
+    local dz = pt.z - unitPos.p.z
+    local lx = dx * unitPos.x.x + dy * unitPos.x.y + dz * unitPos.x.z
+    local ly = dx * unitPos.y.x + dy * unitPos.y.y + dz * unitPos.y.z
+    local lz = dx * unitPos.z.x + dy * unitPos.z.y + dz * unitPos.z.z
+    return lx >= (bbox.min.x - margin) and lx <= (bbox.max.x + margin)
+       and ly >= (bbox.min.y - margin) and ly <= (bbox.max.y + margin)
+       and lz >= (bbox.min.z - margin) and lz <= (bbox.max.z + margin)
+end
+
+--- Detect DCS-native cargo load/unload via bounding-box containment (1 s tick).
+-- Called from checkHoverStatus() unconditionally.
+--
+-- No S_EVENT_CARGO_LOADED / S_EVENT_CARGO_UNLOADED exists in the DCS API.
+-- Detection is purely positional:
+--   LOAD  : crate.dcsStatic:getPoint() is inside the transport's 3-D bounding box.
+--           Works while the aircraft is still on the ground (before takeoff),
+--           so CTLD marks the crate as taken before any other transport sees it.
+--   UNLOAD: crate state is LOADED (via dcs_native, so dcsStatic still exists),
+--           and the static's current position is now OUTSIDE the transport's bbox.
+--
+-- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are
+-- silently skipped here (outer check `dcsStatic and dcsStatic:isExist()`).
+function CTLDCrateManager:_checkNativeDCSCargo()
+    local dynamicUnits = ctld.gs("dynamicCargoUnits") or {}
+    if #dynamicUnits == 0 then return end
+
+    -- Build candidate transport list (ALL dynamic transports, ground OR air).
+    -- We pre-fetch position and bbox so we don't call getPosition()/getDesc()
+    -- more than once per transport per tick.
+    local pm         = CTLDPlayerManager.getInstance()
+    local transports = {}   -- array of { transport, unitName, playerObj, unitPos, bbox }
+    for unitName, playerObj in pairs(pm._players) do
+        local transport = Unit.getByName(unitName)
+        if transport and transport:isExist() and self:_isDynamicCapable(transport) then
+            local desc = transport:getDesc()
+            if desc and desc.box then
+                transports[#transports + 1] = {
+                    transport = transport,
+                    unitName  = unitName,
+                    playerObj = playerObj,
+                    unitPos   = transport:getPosition(),
+                    bbox      = desc.box,
+                }
+            end
+        end
+    end
+
+    for _, crate in pairs(self.crates) do
+        local dcsStatic = crate.dcsStatic
+        if dcsStatic and dcsStatic:isExist() then
+            local cratePos = dcsStatic:getPoint()
+
+            -- ── LOAD detection ─────────────────────────────────────────────
+            -- Crate is on ground AND its static is inside a transport's bbox.
+            -- 0.5 m margin to account for attachment offsets.
+            if crate:isOnGround() then
+                for _, entry in ipairs(transports) do
+                    if _pointInBBox(entry.unitPos, entry.bbox, cratePos, 0.5) then
+                        crate:load(entry.transport)
+                        self:_publish("OnCrateLoaded", {
+                            crate           = crate,
+                            crateName       = crate.crateName,
+                            carrierUnitName = entry.unitName,
+                            coalition       = crate.coalition,
+                            descriptor      = crate.descriptor,
+                            method          = "dcs_native",
+                            timestamp       = timer.getAbsTime(),
+                        })
+                        pm:refreshForUnit(entry.unitName)
+                        self:refreshUnpackSectionForUnit(entry.unitName)
+                        ctld.utils.log("INFO",
+                            "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s",
+                            crate.crateName, entry.unitName)
+                        break
+                    end
+                end
+
+            -- ── UNLOAD detection ───────────────────────────────────────────
+            -- Crate is LOADED and dcsStatic is still alive → DCS-native load.
+            -- (CTLD-managed loads nil dcsStatic on load, so they never reach here.)
+            -- If the static is now outside the transport's bbox → unloaded.
+            elseif crate:isLoaded() then
+                local transport = crate.loadedBy
+                if not transport or not transport:isExist() then
+                    -- Transport destroyed while crate was natively loaded: reset.
+                    crate.position = cratePos
+                    crate.state    = CTLDCrate.STATE.LANDED
+                    crate.loadedBy = nil
+                    crate.loadTime = nil
+                    ctld.utils.log("INFO",
+                        "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
+                        crate.crateName)
+                else
+                    local tDesc = transport:getDesc()
+                    local tPos  = transport:getPosition()
+                    -- 1 m margin: keeps crate marked LOADED while it settles at edge of bbox.
+                    local stillInside = tDesc and tDesc.box
+                        and _pointInBBox(tPos, tDesc.box, cratePos, 1.0)
+                    if not stillInside then
+                        local carrierName = transport:getName()
+                        local playerObj   = pm:getPlayer(carrierName)
+                        crate.position = cratePos
+                        crate.state    = CTLDCrate.STATE.LANDED
+                        crate.loadedBy = nil
+                        crate.loadTime = nil
+                        self:_publish("OnCrateUnloaded", {
+                            crate      = crate,
+                            crateName  = crate.crateName,
+                            coalition  = crate.coalition,
+                            descriptor = crate.descriptor,
+                            method     = "dcs_native",
+                            timestamp  = timer.getAbsTime(),
+                        })
+                        if playerObj then
+                            pm:refreshForUnit(carrierName)
+                            self:refreshUnpackSectionForUnit(carrierName)
+                            self:refreshLoadCrateSection(playerObj)
+                            self:refreshRequestEquipmentSection(playerObj)
+                        end
+                        ctld.utils.log("INFO",
+                            "CTLDCrateManager: DCS native UNLOAD — crate=%s",
+                            crate.crateName)
+                    end
+                end
             end
         end
     end
@@ -10554,10 +10679,9 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
+-- ===== End: CTLD_crate.lua =====
 
--- End : CTLD_crate.lua
--- ====================================================================================================
--- Start : CTLD_vehicle.lua
+-- ===== Start: CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -11536,10 +11660,9 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
+-- ===== End: CTLD_vehicle.lua =====
 
--- End : CTLD_vehicle.lua
--- ====================================================================================================
--- Start : CTLD_fob.lua
+-- ===== Start: CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12039,10 +12162,9 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
+-- ===== End: CTLD_fob.lua =====
 
--- End : CTLD_fob.lua
--- ====================================================================================================
--- Start : CTLD_aasystem.lua
+-- ===== Start: CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -12739,10 +12861,9 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
+-- ===== End: CTLD_aasystem.lua =====
 
--- End : CTLD_aasystem.lua
--- ====================================================================================================
--- Start : CTLD_beacon.lua
+-- ===== Start: CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -13556,10 +13677,9 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
+-- ===== End: CTLD_beacon.lua =====
 
--- End : CTLD_beacon.lua
--- ====================================================================================================
--- Start : CTLD_recon.lua
+-- ===== Start: CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -14356,10 +14476,9 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
+-- ===== End: CTLD_recon.lua =====
 
--- End : CTLD_recon.lua
--- ====================================================================================================
--- Start : CTLD_jtac.lua
+-- ===== Start: CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -15440,10 +15559,9 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
+-- ===== End: CTLD_jtac.lua =====
 
--- End : CTLD_jtac.lua
--- ====================================================================================================
--- Start : CTLD_player.lua
+-- ===== Start: CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -15874,10 +15992,9 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
+-- ===== End: CTLD_player.lua =====
 
--- End : CTLD_player.lua
--- ====================================================================================================
--- Start : CTLD_core.lua
+-- ===== Start: CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -16284,10 +16401,9 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
+-- ===== End: CTLD_core.lua =====
 
--- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
+-- ===== Start: scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -16388,10 +16504,9 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+-- ===== End: scenes/CTLD_farpScene.lua =====
 
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
+-- ===== Start: scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -16491,10 +16606,9 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+-- ===== End: scenes/CTLD_fobScene.lua =====
 
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
+-- ===== Start: scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -16759,10 +16873,9 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+-- ===== End: scenes/CTLD_mineFieldScene.lua =====
 
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : compat/legacy_api.lua
+-- ===== Start: compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -16941,10 +17054,9 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
+-- ===== End: compat/legacy_api.lua =====
 
--- End : compat/legacy_api.lua
--- ====================================================================================================
--- Start : CTLD_userConfig.lua
+-- ===== Start: CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -17914,5 +18026,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+-- ===== End: CTLD_userConfig.lua =====
 
--- End : CTLD_userConfig.lua

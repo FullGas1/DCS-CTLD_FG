@@ -499,6 +499,9 @@ function CTLDCrateManager:checkHoverStatus()
         CTLDCrateManager.getInstance():checkHoverStatus()
     end, {}, timer.getTime() + 1)
 
+    -- DCS-native cargo detection (always, independent of slingload config)
+    self:_checkNativeDCSCargo()
+
     if ctld.gs("enableHoverSlingload") ~= true then return end
 
     local unitActions = ctld.gs("unitActions")        or {}
@@ -632,6 +635,143 @@ function CTLDCrateManager:checkHoverStatus()
             else
                 -- Not in air: reset hover counter
                 self._hoverStatus[unitName] = nil
+            end
+        end
+    end
+end
+
+--- Return true if world-space point `pt` is inside the bounding box of `unitPos`.
+-- unitPos : result of unit:getPosition() = { p=Vec3, x=Vec3, y=Vec3, z=Vec3 }
+-- bbox    : { min=Vec3, max=Vec3 } in local coords (from unit:getDesc().box)
+-- margin  : extra metres added on every face (default 0)
+local function _pointInBBox(unitPos, bbox, pt, margin)
+    margin = margin or 0
+    local dx = pt.x - unitPos.p.x
+    local dy = pt.y - unitPos.p.y
+    local dz = pt.z - unitPos.p.z
+    local lx = dx * unitPos.x.x + dy * unitPos.x.y + dz * unitPos.x.z
+    local ly = dx * unitPos.y.x + dy * unitPos.y.y + dz * unitPos.y.z
+    local lz = dx * unitPos.z.x + dy * unitPos.z.y + dz * unitPos.z.z
+    return lx >= (bbox.min.x - margin) and lx <= (bbox.max.x + margin)
+       and ly >= (bbox.min.y - margin) and ly <= (bbox.max.y + margin)
+       and lz >= (bbox.min.z - margin) and lz <= (bbox.max.z + margin)
+end
+
+--- Detect DCS-native cargo load/unload via bounding-box containment (1 s tick).
+-- Called from checkHoverStatus() unconditionally.
+--
+-- No S_EVENT_CARGO_LOADED / S_EVENT_CARGO_UNLOADED exists in the DCS API.
+-- Detection is purely positional:
+--   LOAD  : crate.dcsStatic:getPoint() is inside the transport's 3-D bounding box.
+--           Works while the aircraft is still on the ground (before takeoff),
+--           so CTLD marks the crate as taken before any other transport sees it.
+--   UNLOAD: crate state is LOADED (via dcs_native, so dcsStatic still exists),
+--           and the static's current position is now OUTSIDE the transport's bbox.
+--
+-- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are
+-- silently skipped here (outer check `dcsStatic and dcsStatic:isExist()`).
+function CTLDCrateManager:_checkNativeDCSCargo()
+    local dynamicUnits = ctld.gs("dynamicCargoUnits") or {}
+    if #dynamicUnits == 0 then return end
+
+    -- Build candidate transport list (ALL dynamic transports, ground OR air).
+    -- We pre-fetch position and bbox so we don't call getPosition()/getDesc()
+    -- more than once per transport per tick.
+    local pm         = CTLDPlayerManager.getInstance()
+    local transports = {}   -- array of { transport, unitName, playerObj, unitPos, bbox }
+    for unitName, playerObj in pairs(pm._players) do
+        local transport = Unit.getByName(unitName)
+        if transport and transport:isExist() and self:_isDynamicCapable(transport) then
+            local desc = transport:getDesc()
+            if desc and desc.box then
+                transports[#transports + 1] = {
+                    transport = transport,
+                    unitName  = unitName,
+                    playerObj = playerObj,
+                    unitPos   = transport:getPosition(),
+                    bbox      = desc.box,
+                }
+            end
+        end
+    end
+
+    for _, crate in pairs(self.crates) do
+        local dcsStatic = crate.dcsStatic
+        if dcsStatic and dcsStatic:isExist() then
+            local cratePos = dcsStatic:getPoint()
+
+            -- ── LOAD detection ─────────────────────────────────────────────
+            -- Crate is on ground AND its static is inside a transport's bbox.
+            -- 0.5 m margin to account for attachment offsets.
+            if crate:isOnGround() then
+                for _, entry in ipairs(transports) do
+                    if _pointInBBox(entry.unitPos, entry.bbox, cratePos, 0.5) then
+                        crate:load(entry.transport)
+                        self:_publish("OnCrateLoaded", {
+                            crate           = crate,
+                            crateName       = crate.crateName,
+                            carrierUnitName = entry.unitName,
+                            coalition       = crate.coalition,
+                            descriptor      = crate.descriptor,
+                            method          = "dcs_native",
+                            timestamp       = timer.getAbsTime(),
+                        })
+                        pm:refreshForUnit(entry.unitName)
+                        self:refreshUnpackSectionForUnit(entry.unitName)
+                        ctld.utils.log("INFO",
+                            "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s",
+                            crate.crateName, entry.unitName)
+                        break
+                    end
+                end
+
+            -- ── UNLOAD detection ───────────────────────────────────────────
+            -- Crate is LOADED and dcsStatic is still alive → DCS-native load.
+            -- (CTLD-managed loads nil dcsStatic on load, so they never reach here.)
+            -- If the static is now outside the transport's bbox → unloaded.
+            elseif crate:isLoaded() then
+                local transport = crate.loadedBy
+                if not transport or not transport:isExist() then
+                    -- Transport destroyed while crate was natively loaded: reset.
+                    crate.position = cratePos
+                    crate.state    = CTLDCrate.STATE.LANDED
+                    crate.loadedBy = nil
+                    crate.loadTime = nil
+                    ctld.utils.log("INFO",
+                        "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
+                        crate.crateName)
+                else
+                    local tDesc = transport:getDesc()
+                    local tPos  = transport:getPosition()
+                    -- 1 m margin: keeps crate marked LOADED while it settles at edge of bbox.
+                    local stillInside = tDesc and tDesc.box
+                        and _pointInBBox(tPos, tDesc.box, cratePos, 1.0)
+                    if not stillInside then
+                        local carrierName = transport:getName()
+                        local playerObj   = pm:getPlayer(carrierName)
+                        crate.position = cratePos
+                        crate.state    = CTLDCrate.STATE.LANDED
+                        crate.loadedBy = nil
+                        crate.loadTime = nil
+                        self:_publish("OnCrateUnloaded", {
+                            crate      = crate,
+                            crateName  = crate.crateName,
+                            coalition  = crate.coalition,
+                            descriptor = crate.descriptor,
+                            method     = "dcs_native",
+                            timestamp  = timer.getAbsTime(),
+                        })
+                        if playerObj then
+                            pm:refreshForUnit(carrierName)
+                            self:refreshUnpackSectionForUnit(carrierName)
+                            self:refreshLoadCrateSection(playerObj)
+                            self:refreshRequestEquipmentSection(playerObj)
+                        end
+                        ctld.utils.log("INFO",
+                            "CTLDCrateManager: DCS native UNLOAD — crate=%s",
+                            crate.crateName)
+                    end
+                end
             end
         end
     end

@@ -121,15 +121,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Recette FB: F-65→F-71 22/22 PASS ✅ [2026-04-08]
 
 ── FEATURES EN ATTENTE ──────────────────────────────────────────────────────
-⬜  FG  DCS native cargo detection — CTLD polling to detect std DCS load/unload
-        No S_EVENT_CARGO_LOADED/UNLOADED in DCS API. CTLD must detect native
-        cargo pickup/drop by polling: compare crate bounding-box center vs
-        aircraft bounding-box each second (similar to hover/parachute detection).
-        Pre-req: verify existing specs (Feature A / CdC) before implementing.
-        Impact: update crate.state (LOADED/LANDED), crate.position, trigger
-        OnCrateLoaded / OnCrateUnloaded events, refresh menus, enable Unpack
-        after std DCS drop. Must cover: load detection (crate enters bbox),
-        unload detection (crate exits bbox + on ground), coalition guard.
+✅  FG  DCS native cargo detection — CTLD polling to detect std DCS load/unload
+        No S_EVENT_CARGO_LOADED/UNLOADED in DCS API. Implemented in
+        CTLDCrateManager:_checkNativeDCSCargo() called from checkHoverStatus() (1 s tick).
+        LOAD: dcsStatic altitude rises > 3 m AND dynamic transport within 15 m.
+        UNLOAD: crate.state LOADED, dcsStatic still alive (CTLD loads nil-ify it),
+        distance from transport > 15 m. Publishes OnCrateLoaded/OnCrateUnloaded
+        with method="dcs_native". Refreshes Unpack/LoadCrate/RequestEquipment menus.
+        [2026-04-22]
 
 ⬜  FG  FOB construction scene — animated build sequence (120 s)
         Animate fobScene over the full buildTimeFOB (120 s) duration instead of
