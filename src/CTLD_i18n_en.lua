@@ -305,9 +305,9 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
-ctld.i18n["en"]["Layers"] = "Layers"
 ctld.i18n["en"]["Scan Area"] = "Scan Area"
 ctld.i18n["en"]["Hide All Targets"] = "Hide All Targets"
+ctld.i18n["en"]["Toggle %s"] = "Toggle %s"
 ctld.i18n["en"]["Auto-Refresh: [OFF]"] = "Auto-Refresh: [OFF]"
 ctld.i18n["en"]["Auto-Refresh: [ON]"] = "Auto-Refresh: [ON]"
 ctld.i18n["en"]["Altitude too low for recon scan (min %1 m)"] = "Altitude too low for recon scan (min %1 m)"
@@ -318,8 +318,12 @@ ctld.i18n["en"]["No active recon scan. Use 'Scan Area' first."] = "No active rec
 ctld.i18n["en"]["Auto-refresh enabled. Targets update every %1 s."] = "Auto-refresh enabled. Targets update every %1 s."
 ctld.i18n["en"]["Auto-refresh disabled. Current targets frozen on map."] = "Auto-refresh disabled. Current targets frozen on map."
 ctld.i18n["en"]["Recon layer '%1': %2"] = "Recon layer '%1': %2"
+-- STALE: ctld.i18n["en"]["Layers"] = "Layers"
 -- STALE: ctld.i18n["en"]["Show targets in LOS (refresh)"] = "Show targets in LOS (refresh)"
 -- STALE: ctld.i18n["en"]["Hide targets in LOS"] = "Hide targets in LOS"
+-- STALE: ctld.i18n["en"]["Scan targets in LOS"] = "Scan targets in LOS"
+-- STALE: ctld.i18n["en"]["START autoRefresh"] = "START autoRefresh"
+-- STALE: ctld.i18n["en"]["STOP autoRefresh"] = "STOP autoRefresh"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 

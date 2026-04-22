@@ -1719,9 +1719,9 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
-ctld.i18n["en"]["Layers"] = "Layers"
 ctld.i18n["en"]["Scan Area"] = "Scan Area"
 ctld.i18n["en"]["Hide All Targets"] = "Hide All Targets"
+ctld.i18n["en"]["Toggle %s"] = "Toggle %s"
 ctld.i18n["en"]["Auto-Refresh: [OFF]"] = "Auto-Refresh: [OFF]"
 ctld.i18n["en"]["Auto-Refresh: [ON]"] = "Auto-Refresh: [ON]"
 ctld.i18n["en"]["Altitude too low for recon scan (min %1 m)"] = "Altitude too low for recon scan (min %1 m)"
@@ -1732,8 +1732,12 @@ ctld.i18n["en"]["No active recon scan. Use 'Scan Area' first."] = "No active rec
 ctld.i18n["en"]["Auto-refresh enabled. Targets update every %1 s."] = "Auto-refresh enabled. Targets update every %1 s."
 ctld.i18n["en"]["Auto-refresh disabled. Current targets frozen on map."] = "Auto-refresh disabled. Current targets frozen on map."
 ctld.i18n["en"]["Recon layer '%1': %2"] = "Recon layer '%1': %2"
+-- STALE: ctld.i18n["en"]["Layers"] = "Layers"
 -- STALE: ctld.i18n["en"]["Show targets in LOS (refresh)"] = "Show targets in LOS (refresh)"
 -- STALE: ctld.i18n["en"]["Hide targets in LOS"] = "Hide targets in LOS"
+-- STALE: ctld.i18n["en"]["Scan targets in LOS"] = "Scan targets in LOS"
+-- STALE: ctld.i18n["en"]["START autoRefresh"] = "START autoRefresh"
+-- STALE: ctld.i18n["en"]["STOP autoRefresh"] = "STOP autoRefresh"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
 -- STALE: ctld.i18n["en"]["STOP autoRefresh targets in LOS"] = "STOP autoRefresh targets in LOS"
 
@@ -2098,9 +2102,9 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 
 --- F10 RECON menus
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
-ctld.i18n["fr"]["Layers"] = "Couches"
 ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
 ctld.i18n["fr"]["Hide All Targets"] = "Masquer toutes les cibles"
+ctld.i18n["fr"]["Toggle %s"] = "Basculer %s"
 ctld.i18n["fr"]["Auto-Refresh: [OFF]"] = "Actualisation auto : [OFF]"
 ctld.i18n["fr"]["Auto-Refresh: [ON]"] = "Actualisation auto : [ON]"
 ctld.i18n["fr"]["Altitude too low for recon scan (min %1 m)"] = "Altitude trop basse pour le scan reco (min %1 m)"
@@ -2111,8 +2115,12 @@ ctld.i18n["fr"]["No active recon scan. Use 'Scan Area' first."] = "Aucun scan ac
 ctld.i18n["fr"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualisation automatique activée. Mise à jour toutes les %1 s."
 ctld.i18n["fr"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualisation automatique désactivée. Cibles gelées sur la carte."
 ctld.i18n["fr"]["Recon layer '%1': %2"] = "Couche reco '%1' : %2"
+-- STALE: ctld.i18n["fr"]["Layers"] = "Couches"
 -- STALE: ctld.i18n["fr"]["Show targets in LOS (refresh)"] = "Marquer cibles visibles sur carte F10"
 -- STALE: ctld.i18n["fr"]["Hide targets in LOS"] = "Effacer marques sur carte F10"
+-- STALE: ctld.i18n["fr"]["Scan targets in LOS"] = "Scanner les cibles en LOS"
+-- STALE: ctld.i18n["fr"]["START autoRefresh"] = "Démarrer actualisation auto"
+-- STALE: ctld.i18n["fr"]["STOP autoRefresh"] = "Stopper actualisation auto"
 -- STALE: ctld.i18n["fr"]["START autoRefresh targets in LOS"] = "Lancer suivi automatique des cibles"
 -- STALE: ctld.i18n["fr"]["STOP autoRefresh targets in LOS"] = "Stopper suivi automatique des cibles"
 
@@ -2478,9 +2486,9 @@ ctld.i18n["es"]["List Beacons"] = "Listar balizas"
 
 --- F10 RECON menus
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
-ctld.i18n["es"]["Layers"] = "Capas"
 ctld.i18n["es"]["Scan Area"] = "Escanear zona"
 ctld.i18n["es"]["Hide All Targets"] = "Ocultar todos los objetivos"
+ctld.i18n["es"]["Toggle %s"] = "Alternar %s"
 ctld.i18n["es"]["Auto-Refresh: [OFF]"] = "Actualización auto: [OFF]"
 ctld.i18n["es"]["Auto-Refresh: [ON]"] = "Actualización auto: [ON]"
 ctld.i18n["es"]["Altitude too low for recon scan (min %1 m)"] = "Altitud demasiado baja para el escaneo de reconocimiento (mín. %1 m)"
@@ -2491,8 +2499,12 @@ ctld.i18n["es"]["No active recon scan. Use 'Scan Area' first."] = "No hay escane
 ctld.i18n["es"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualización automática activada. Los objetivos se actualizan cada %1 s."
 ctld.i18n["es"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualización automática desactivada. Los objetivos están congelados en el mapa."
 ctld.i18n["es"]["Recon layer '%1': %2"] = "Capa de reconocimiento '%1': %2"
+-- STALE: ctld.i18n["es"]["Layers"] = "Capas"
 -- STALE: ctld.i18n["es"]["Show targets in LOS (refresh)"] = "Marcar objetivos visibles en el mapa F10"
 -- STALE: ctld.i18n["es"]["Hide targets in LOS"] = "Borrar marcas del mapa F10"
+-- STALE: ctld.i18n["es"]["Scan targets in LOS"] = "Escanear objetivos en LOS"
+-- STALE: ctld.i18n["es"]["START autoRefresh"] = "Iniciar actualización auto"
+-- STALE: ctld.i18n["es"]["STOP autoRefresh"] = "Detener actualización auto"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
 
@@ -2830,9 +2842,9 @@ ctld.i18n["ko"]["List Beacons"] = "비콘 목록"
 
 --- F10 RECON menus (not in original KO source - falling back to EN)
 ctld.i18n["ko"]["RECON"] = ""
-ctld.i18n["ko"]["Layers"] = ""
 ctld.i18n["ko"]["Scan Area"] = ""
 ctld.i18n["ko"]["Hide All Targets"] = ""
+ctld.i18n["ko"]["Toggle %s"] = ""
 ctld.i18n["ko"]["Auto-Refresh: [OFF]"] = ""
 ctld.i18n["ko"]["Auto-Refresh: [ON]"] = ""
 ctld.i18n["ko"]["Altitude too low for recon scan (min %1 m)"] = ""
@@ -2843,8 +2855,12 @@ ctld.i18n["ko"]["No active recon scan. Use 'Scan Area' first."] = ""
 ctld.i18n["ko"]["Auto-refresh enabled. Targets update every %1 s."] = ""
 ctld.i18n["ko"]["Auto-refresh disabled. Current targets frozen on map."] = ""
 ctld.i18n["ko"]["Recon layer '%1': %2"] = ""
+-- STALE: ctld.i18n["ko"]["Layers"] = ""
 -- STALE: ctld.i18n["ko"]["Show targets in LOS (refresh)"] = ""
 -- STALE: ctld.i18n["ko"]["Hide targets in LOS"] = ""
+-- STALE: ctld.i18n["ko"]["Scan targets in LOS"] = ""
+-- STALE: ctld.i18n["ko"]["START autoRefresh"] = ""
+-- STALE: ctld.i18n["ko"]["STOP autoRefresh"] = ""
 -- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = ""
 -- STALE: ctld.i18n["ko"]["STOP autoRefresh targets in LOS"] = ""
 
@@ -13633,7 +13649,6 @@ function CTLDReconManager:init()
     self._activeScans  = {}   -- player -> scan state
     self._playerLayers = {}   -- player -> array of layer copies
     self._nextMarkId   = 1
-    self._menuAdded    = {}   -- tostring(groupId) -> true
 
     CTLDPlayerManager.getInstance():registerMenuSection({
         key       = "recon",
@@ -14171,83 +14186,6 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
 end
 
 -- ============================================================
--- Menu F10
--- ============================================================
-
---- Register RECON F10 submenu for a player group.
--- Called by menu manager when a player joins (or at mission start).
--- @param groupId    number  DCS group ID
--- @param playerUnit DCS Unit
-function CTLDReconManager:addReconMenu(groupId, playerUnit)
-    if not ctld.gs("reconEnabled") then return end
-    local key = tostring(groupId)
-    if self._menuAdded[key] then return end
-
-    local player   = playerUnit:getPlayerName() or playerUnit:getName()
-    local self_ref = self
-
-    local reconPath  = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("RECON"))
-
-    -- Layers submenu
-    local layersPath = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("Layers"), reconPath)
-    for _, layer in ipairs(self:_getPlayerLayers(player)) do
-        local lid   = layer.layerId
-        local lname = layer.name
-        missionCommands.addCommandForGroup(
-            groupId,
-            string.format("[%s] %s", layer.enabled and "ON" or "OFF", lname),
-            layersPath,
-            function() self_ref:toggleLayer(player, playerUnit, lid) end)
-    end
-
-    -- Scan
-    missionCommands.addCommandForGroup(groupId,
-        ctld.tr("Scan Area"), reconPath,
-        function() self_ref:scan(playerUnit, player) end)
-
-    -- Auto-refresh toggle (initial: OFF)
-    self:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
-
-    -- Hide
-    missionCommands.addCommandForGroup(groupId,
-        ctld.tr("Hide All Targets"), reconPath,
-        function() self_ref:hideScan(playerUnit, player) end)
-
-    self._menuAdded[key] = true
-    ctld.utils.log("INFO", "CTLDReconManager: RECON menu added for group %d", groupId)
-end
-
--- Internal: add Auto-Refresh menu item (toggling between Start/Stop).
-function CTLDReconManager:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, currentlyEnabled)
-    local self_ref  = self
-    local menuLabel, actionFn
-
-    if currentlyEnabled then
-        menuLabel = ctld.tr("Auto-Refresh: [ON]")
-        actionFn  = function()
-            self_ref:disableAutoRefresh(playerUnit, player)
-            missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("RECON"),
-                  ctld.tr("Auto-Refresh: [ON]") })
-            self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
-        end
-    else
-        menuLabel = ctld.tr("Auto-Refresh: [OFF]")
-        actionFn  = function()
-            self_ref:enableAutoRefresh(playerUnit, player)
-            missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("RECON"),
-                  ctld.tr("Auto-Refresh: [OFF]") })
-            self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, true)
-        end
-    end
-
-    missionCommands.addCommandForGroup(groupId, menuLabel, reconPath, actionFn)
-end
-
--- ============================================================
 -- Query API
 -- ============================================================
 
@@ -14279,14 +14217,14 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
     local reconSub = ctld.tr("RECON")
     menu:addSubMenu({ root }, reconSub, { order = 70 })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("Scan targets in LOS"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Scan Area"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():scan(unit, arg.playerName) end
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("Hide targets in LOS"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Hide All Targets"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():hideScan(unit, arg.playerName) end
@@ -14306,14 +14244,14 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
     end
 
-    menu:addCommand({ root, reconSub }, ctld.tr("START autoRefresh"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [OFF]"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():enableAutoRefresh(unit, arg.playerName) end
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("STOP autoRefresh"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [ON]"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():disableAutoRefresh(unit, arg.playerName) end

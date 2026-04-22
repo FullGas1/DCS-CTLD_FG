@@ -299,9 +299,9 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 
 --- F10 RECON menus
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
-ctld.i18n["fr"]["Layers"] = "Couches"
 ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
 ctld.i18n["fr"]["Hide All Targets"] = "Masquer toutes les cibles"
+ctld.i18n["fr"]["Toggle %s"] = "Basculer %s"
 ctld.i18n["fr"]["Auto-Refresh: [OFF]"] = "Actualisation auto : [OFF]"
 ctld.i18n["fr"]["Auto-Refresh: [ON]"] = "Actualisation auto : [ON]"
 ctld.i18n["fr"]["Altitude too low for recon scan (min %1 m)"] = "Altitude trop basse pour le scan reco (min %1 m)"
@@ -312,8 +312,12 @@ ctld.i18n["fr"]["No active recon scan. Use 'Scan Area' first."] = "Aucun scan ac
 ctld.i18n["fr"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualisation automatique activée. Mise à jour toutes les %1 s."
 ctld.i18n["fr"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualisation automatique désactivée. Cibles gelées sur la carte."
 ctld.i18n["fr"]["Recon layer '%1': %2"] = "Couche reco '%1' : %2"
+-- STALE: ctld.i18n["fr"]["Layers"] = "Couches"
 -- STALE: ctld.i18n["fr"]["Show targets in LOS (refresh)"] = "Marquer cibles visibles sur carte F10"
 -- STALE: ctld.i18n["fr"]["Hide targets in LOS"] = "Effacer marques sur carte F10"
+-- STALE: ctld.i18n["fr"]["Scan targets in LOS"] = "Scanner les cibles en LOS"
+-- STALE: ctld.i18n["fr"]["START autoRefresh"] = "Démarrer actualisation auto"
+-- STALE: ctld.i18n["fr"]["STOP autoRefresh"] = "Stopper actualisation auto"
 -- STALE: ctld.i18n["fr"]["START autoRefresh targets in LOS"] = "Lancer suivi automatique des cibles"
 -- STALE: ctld.i18n["fr"]["STOP autoRefresh targets in LOS"] = "Stopper suivi automatique des cibles"
 

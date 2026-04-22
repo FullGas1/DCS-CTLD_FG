@@ -300,9 +300,9 @@ ctld.i18n["es"]["List Beacons"] = "Listar balizas"
 
 --- F10 RECON menus
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
-ctld.i18n["es"]["Layers"] = "Capas"
 ctld.i18n["es"]["Scan Area"] = "Escanear zona"
 ctld.i18n["es"]["Hide All Targets"] = "Ocultar todos los objetivos"
+ctld.i18n["es"]["Toggle %s"] = "Alternar %s"
 ctld.i18n["es"]["Auto-Refresh: [OFF]"] = "Actualización auto: [OFF]"
 ctld.i18n["es"]["Auto-Refresh: [ON]"] = "Actualización auto: [ON]"
 ctld.i18n["es"]["Altitude too low for recon scan (min %1 m)"] = "Altitud demasiado baja para el escaneo de reconocimiento (mín. %1 m)"
@@ -313,8 +313,12 @@ ctld.i18n["es"]["No active recon scan. Use 'Scan Area' first."] = "No hay escane
 ctld.i18n["es"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualización automática activada. Los objetivos se actualizan cada %1 s."
 ctld.i18n["es"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualización automática desactivada. Los objetivos están congelados en el mapa."
 ctld.i18n["es"]["Recon layer '%1': %2"] = "Capa de reconocimiento '%1': %2"
+-- STALE: ctld.i18n["es"]["Layers"] = "Capas"
 -- STALE: ctld.i18n["es"]["Show targets in LOS (refresh)"] = "Marcar objetivos visibles en el mapa F10"
 -- STALE: ctld.i18n["es"]["Hide targets in LOS"] = "Borrar marcas del mapa F10"
+-- STALE: ctld.i18n["es"]["Scan targets in LOS"] = "Escanear objetivos en LOS"
+-- STALE: ctld.i18n["es"]["START autoRefresh"] = "Iniciar actualización auto"
+-- STALE: ctld.i18n["es"]["STOP autoRefresh"] = "Detener actualización auto"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
 -- STALE: ctld.i18n["es"]["STOP autoRefresh targets in LOS"] = "Detener el seguimiento automático de objetivos"
 

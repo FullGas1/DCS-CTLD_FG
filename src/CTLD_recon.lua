@@ -185,7 +185,6 @@ function CTLDReconManager:init()
     self._activeScans  = {}   -- player -> scan state
     self._playerLayers = {}   -- player -> array of layer copies
     self._nextMarkId   = 1
-    self._menuAdded    = {}   -- tostring(groupId) -> true
 
     CTLDPlayerManager.getInstance():registerMenuSection({
         key       = "recon",
@@ -723,83 +722,6 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
 end
 
 -- ============================================================
--- Menu F10
--- ============================================================
-
---- Register RECON F10 submenu for a player group.
--- Called by menu manager when a player joins (or at mission start).
--- @param groupId    number  DCS group ID
--- @param playerUnit DCS Unit
-function CTLDReconManager:addReconMenu(groupId, playerUnit)
-    if not ctld.gs("reconEnabled") then return end
-    local key = tostring(groupId)
-    if self._menuAdded[key] then return end
-
-    local player   = playerUnit:getPlayerName() or playerUnit:getName()
-    local self_ref = self
-
-    local reconPath  = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("RECON"))
-
-    -- Layers submenu
-    local layersPath = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("Layers"), reconPath)
-    for _, layer in ipairs(self:_getPlayerLayers(player)) do
-        local lid   = layer.layerId
-        local lname = layer.name
-        missionCommands.addCommandForGroup(
-            groupId,
-            string.format("[%s] %s", layer.enabled and "ON" or "OFF", lname),
-            layersPath,
-            function() self_ref:toggleLayer(player, playerUnit, lid) end)
-    end
-
-    -- Scan
-    missionCommands.addCommandForGroup(groupId,
-        ctld.tr("Scan Area"), reconPath,
-        function() self_ref:scan(playerUnit, player) end)
-
-    -- Auto-refresh toggle (initial: OFF)
-    self:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
-
-    -- Hide
-    missionCommands.addCommandForGroup(groupId,
-        ctld.tr("Hide All Targets"), reconPath,
-        function() self_ref:hideScan(playerUnit, player) end)
-
-    self._menuAdded[key] = true
-    ctld.utils.log("INFO", "CTLDReconManager: RECON menu added for group %d", groupId)
-end
-
--- Internal: add Auto-Refresh menu item (toggling between Start/Stop).
-function CTLDReconManager:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, currentlyEnabled)
-    local self_ref  = self
-    local menuLabel, actionFn
-
-    if currentlyEnabled then
-        menuLabel = ctld.tr("Auto-Refresh: [ON]")
-        actionFn  = function()
-            self_ref:disableAutoRefresh(playerUnit, player)
-            missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("RECON"),
-                  ctld.tr("Auto-Refresh: [ON]") })
-            self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
-        end
-    else
-        menuLabel = ctld.tr("Auto-Refresh: [OFF]")
-        actionFn  = function()
-            self_ref:enableAutoRefresh(playerUnit, player)
-            missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("RECON"),
-                  ctld.tr("Auto-Refresh: [OFF]") })
-            self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, true)
-        end
-    end
-
-    missionCommands.addCommandForGroup(groupId, menuLabel, reconPath, actionFn)
-end
-
--- ============================================================
 -- Query API
 -- ============================================================
 
@@ -831,14 +753,14 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
     local reconSub = ctld.tr("RECON")
     menu:addSubMenu({ root }, reconSub, { order = 70 })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("Scan targets in LOS"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Scan Area"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():scan(unit, arg.playerName) end
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("Hide targets in LOS"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Hide All Targets"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():hideScan(unit, arg.playerName) end
@@ -858,14 +780,14 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
     end
 
-    menu:addCommand({ root, reconSub }, ctld.tr("START autoRefresh"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [OFF]"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():enableAutoRefresh(unit, arg.playerName) end
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 
-    menu:addCommand({ root, reconSub }, ctld.tr("STOP autoRefresh"),
+    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [ON]"),
         function(arg)
             local unit = Unit.getByName(arg.unitName)
             if unit then CTLDReconManager.getInstance():disableAutoRefresh(unit, arg.playerName) end
