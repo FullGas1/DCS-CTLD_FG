@@ -767,6 +767,30 @@ end
 -- Public API
 -- ============================================================
 
+--- Return true if the unit type is listed in dynamicCargoUnits (native DCS cargo system).
+-- @param unit DCS Unit
+-- @return bool
+function CTLDCrateManager:_isDynamicCapable(unit)
+    local typeLower = string.lower(unit:getTypeName())
+    for _, name in ipairs(ctld.gs("dynamicCargoUnits") or {}) do
+        if string.find(typeLower, string.lower(name), 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Resolve the spawnableCratesModels key for a given transport unit.
+-- Returns "dynamic" if the unit is in dynamicCargoUnits and slingLoad is off,
+-- "sling" if slingLoad is enabled, "load" otherwise.
+-- @param unit DCS Unit
+-- @return string  "load" | "sling" | "dynamic"
+function CTLDCrateManager:_crateModelKey(unit)
+    if ctld.gs("slingLoad") then return "sling" end
+    if self:_isDynamicCapable(unit) then return "dynamic" end
+    return "load"
+end
+
 --- Spawn a new crate from the F10 menu or as the result of packing a vehicle.
 -- Uses coalition.addStaticObject (Hoggit: DCS_func_addStaticObject).
 -- @param descriptor  table         CTLD crate descriptor (from spawnableCrates)
@@ -828,6 +852,8 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         descriptor.weight, position, coalitionId, countryId, modelKey)
     if not dcsStatic then return nil end
 
+    local models  = ctld.gs("spawnableCratesModels") or {}
+    local usedKey = modelKey or (ctld.gs("slingLoad") and "sling" or "load")
     local crate = CTLDCrate:new({
         crateName   = crateName,
         descriptor  = descriptor,
@@ -837,6 +863,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         coalition   = coalitionId,
         spawnedBy   = spawnedBy,
         dcsStatic   = dcsStatic,
+        modelKey    = (models[usedKey] and usedKey) or "load",
     })
     self:_register(crate)
 
@@ -861,7 +888,7 @@ end
 -- @return bool
 function CTLDCrateManager:_respawnStatic(crate, position)
     local newName, dcsStatic = self:_spawnStatic(
-        crate.descriptor.weight, position, crate.coalition)
+        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey)
     if not dcsStatic then return false end
 
     self.crates[crate.crateName] = nil
@@ -885,15 +912,9 @@ end
 -- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
 -- @return number spawned count, table spawnInfo {positions, clock, distance}
 function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod)
-    -- Detect native-cargo-capable (rear-ramp) transport
-    local typeLower  = string.lower(transport:getTypeName())
-    local vList      = (ctld.gs and ctld.gs("vehicleTransportEnabled")) or {}
-    local isDynamic  = false
-    for _, name in ipairs(vList) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            isDynamic = true; break
-        end
-    end
+    -- Detect native-cargo-capable transport (UH-1H, CH-47, Mi-8, etc.)
+    local isDynamic = self:_isDynamicCapable(transport)
+    local modelKey  = self:_crateModelKey(transport)
 
     -- Random axis within the appropriate sector (degrees relative to unit forward)
     local axisOffsetDeg
@@ -913,7 +934,7 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
         if descriptor and pos then
-            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod) then
+            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, nil, modelKey) then
                 spawned = spawned + 1
             end
         end
@@ -1418,12 +1439,13 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                                 end
                             else
                                 -- Single crate entry (random axis = nil → random clock reported)
+                                local mKey       = mgr:_crateModelKey(transport)
                                 local spawnInfo  = ctld.utils.getSpawnObjectPositions(transport, 1, safeDist)
                                 local pos        = spawnInfo.positions[1]
                                 local descriptor = mgr:findDescriptorByTypeName(arg.unit)
                                 if descriptor then
                                     local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
-                                        CTLDCrate.SPAWN_METHOD.MENU_CTLD)
+                                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
                                     if spawned then
                                         trigger.action.outTextForGroup(gid,
                                             ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
