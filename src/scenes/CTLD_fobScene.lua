@@ -86,7 +86,7 @@ fobScene.steps = {
                            or ctx.unit:getName()
             trigger.action.outTextForCoalition(
                 ctx.scene._coalitionId,
-                string.format(ctld.tr("fobDeployedMsg", "FOB deployed by %s."), player),
+                string.format(ctld.tr("fobDeployedMsg", "FOB established by %s - logistics hub now active."), player),
                 10)
         end,
     },

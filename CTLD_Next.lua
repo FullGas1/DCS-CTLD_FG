@@ -816,7 +816,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB",       side = nil, cratesRequired = 3 }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                         unit = "FOB",       side = nil, cratesRequired = 1 }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
@@ -12911,7 +12911,7 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
     self:_startTransmissions(beacon)
 
     -- Notify coalition
-    local msg = ctld.tr("beaconDropped", player .. " deployed a Radio Beacon.")
+    local msg = ctld.tr("beaconDropped", "Navigation beacon deployed with below frequencies:")
             .. "\n" .. freqText
     trigger.action.outTextForCoalition(coalitionId, msg, 20)
 
@@ -16351,7 +16351,7 @@ fobScene.steps = {
                            or ctx.unit:getName()
             trigger.action.outTextForCoalition(
                 ctx.scene._coalitionId,
-                string.format(ctld.tr("fobDeployedMsg", "FOB deployed by %s."), player),
+                string.format(ctld.tr("fobDeployedMsg", "FOB established by %s - logistics hub now active."), player),
                 10)
         end,
     },
