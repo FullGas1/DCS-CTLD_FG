@@ -1471,6 +1471,7 @@ ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB ne
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
 ctld.i18n["en"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB deployment blocked: move at least %1 m away from existing logistic zone."
 ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."
+ctld.i18n["en"]["FOB established by %1 - logistics hub now active."] = "FOB established by %1 - logistics hub now active."
 ctld.i18n["en"]["MQ-9 Repear - JTAC"] = "MQ-9 Repear - JTAC"
 ctld.i18n["en"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
 ctld.i18n["en"]["MLRS"] = "MLRS"
@@ -1623,12 +1624,23 @@ ctld.i18n["en"]["S-300 - All crates"] = "S-300 - All crates"
 -- STALE: ctld.i18n["en"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 crate has been safely unhooked and is at your %2 o'clock"
 -- STALE: ctld.i18n["en"]["%1 crate has been safely dropped below you"] = "%1 crate has been safely dropped below you"
 -- STALE: ctld.i18n["en"]["You were too high! The crate has been destroyed"] = "You were too high! The crate has been destroyed"
+--- Radio Beacon messages
+ctld.i18n["en"]["No Radio Beacons within 500m."] = "No Radio Beacons within 500m."
+ctld.i18n["en"]["Navigation beacon deployed - %1"] = "Navigation beacon deployed - %1"
+ctld.i18n["en"]["Radio beacon removed - %1"] = "Radio beacon removed - %1"
+ctld.i18n["en"]["Radio Beacons:"] = "Radio Beacons:"
+ctld.i18n["en"]["No Active Radio Beacons"] = "No Active Radio Beacons"
+ctld.i18n["en"]["Beacon layer enabled. %1 beacon(s)."] = "Beacon layer enabled. %1 beacon(s)."
+ctld.i18n["en"]["Beacon layer disabled."] = "Beacon layer disabled."
+ctld.i18n["en"]["CTLD"] = "CTLD"
+ctld.i18n["en"]["Radio Beacons"] = "Radio Beacons"
+ctld.i18n["en"]["Drop Beacon"] = "Drop Beacon"
+ctld.i18n["en"]["Remove Closest Beacon"] = "Remove Closest Beacon"
+ctld.i18n["en"]["List Beacons"] = "List Beacons"
 -- STALE: ctld.i18n["en"]["Radio Beacons:\n%1"] = "Radio Beacons:\n%1"
--- STALE: ctld.i18n["en"]["No Active Radio Beacons"] = "No Active Radio Beacons"
 -- STALE: ctld.i18n["en"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 deployed a Radio Beacon.\n\n%2"
 -- STALE: ctld.i18n["en"]["You need to land before you can deploy a Radio Beacon!"] = "You need to land before you can deploy a Radio Beacon!"
 -- STALE: ctld.i18n["en"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 removed a Radio Beacon.\n\n%2"
--- STALE: ctld.i18n["en"]["No Radio Beacons within 500m."] = "No Radio Beacons within 500m."
 -- STALE: ctld.i18n["en"]["You need to land before remove a Radio Beacon"] = "You need to land before remove a Radio Beacon"
 -- STALE: ctld.i18n["en"]["%1 successfully rearmed a full %2 in the field"] = "%1 successfully rearmed a full %2 in the field"
 -- STALE: ctld.i18n["en"]["Missing %1\n"] = "Missing %1\n"
@@ -1699,9 +1711,6 @@ ctld.i18n["en"]["S-300 - All crates"] = "S-300 - All crates"
 -- STALE: ctld.i18n["en"]["Drop Blue Smoke"] = "Drop Blue Smoke"
 -- STALE: ctld.i18n["en"]["Drop Orange Smoke"] = "Drop Orange Smoke"
 -- STALE: ctld.i18n["en"]["Drop Green Smoke"] = "Drop Green Smoke"
--- STALE: ctld.i18n["en"]["Drop Beacon"] = "Drop Beacon"
--- STALE: ctld.i18n["en"]["Radio Beacons"] = "Radio Beacons"
--- STALE: ctld.i18n["en"]["Remove Closest Beacon"] = "Remove Closest Beacon"
 -- STALE: ctld.i18n["en"]["JTAC Status"] = "JTAC Status"
 -- STALE: ctld.i18n["en"]["DISABLE "] = "DISABLE "
 -- STALE: ctld.i18n["en"]["ENABLE "] = "ENABLE "
@@ -1710,6 +1719,19 @@ ctld.i18n["en"]["S-300 - All crates"] = "S-300 - All crates"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
+ctld.i18n["en"]["Layers"] = "Layers"
+ctld.i18n["en"]["Scan Area"] = "Scan Area"
+ctld.i18n["en"]["Hide All Targets"] = "Hide All Targets"
+ctld.i18n["en"]["Auto-Refresh: [OFF]"] = "Auto-Refresh: [OFF]"
+ctld.i18n["en"]["Auto-Refresh: [ON]"] = "Auto-Refresh: [ON]"
+ctld.i18n["en"]["Altitude too low for recon scan (min %1 m)"] = "Altitude too low for recon scan (min %1 m)"
+ctld.i18n["en"]["No recon layers enabled. Activate layers first."] = "No recon layers enabled. Activate layers first."
+ctld.i18n["en"]["Recon stopped. %1 targets hidden."] = "Recon stopped. %1 targets hidden."
+ctld.i18n["en"]["No active recon scan to hide."] = "No active recon scan to hide."
+ctld.i18n["en"]["No active recon scan. Use 'Scan Area' first."] = "No active recon scan. Use 'Scan Area' first."
+ctld.i18n["en"]["Auto-refresh enabled. Targets update every %1 s."] = "Auto-refresh enabled. Targets update every %1 s."
+ctld.i18n["en"]["Auto-refresh disabled. Current targets frozen on map."] = "Auto-refresh disabled. Current targets frozen on map."
+ctld.i18n["en"]["Recon layer '%1': %2"] = "Recon layer '%1': %2"
 -- STALE: ctld.i18n["en"]["Show targets in LOS (refresh)"] = "Show targets in LOS (refresh)"
 -- STALE: ctld.i18n["en"]["Hide targets in LOS"] = "Hide targets in LOS"
 -- STALE: ctld.i18n["en"]["START autoRefresh targets in LOS"] = "START autoRefresh targets in LOS"
@@ -1828,6 +1850,7 @@ ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : 
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
 ctld.i18n["fr"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Deploiement FOB bloque : eloignez-vous d'au moins %1 m d'une zone logistique."
 ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Pret dans %3 secondes."
+ctld.i18n["fr"]["FOB established by %1 - logistics hub now active."] = "FOB établi par %1 - hub logistique opérationnel."
 ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["fr"]["MLRS"] = ""
@@ -1980,12 +2003,23 @@ ctld.i18n["fr"]["S-300 - All crates"] = "S-300 - Toutes les caisses"
 -- STALE: ctld.i18n["fr"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caisse a été décrochée en toute sécurité et se trouve à vos %2 heures"
 -- STALE: ctld.i18n["fr"]["%1 crate has been safely dropped below you"] = "%1 caisse a été déposée en toute sécurité sous vous"
 -- STALE: ctld.i18n["fr"]["You were too high! The crate has been destroyed"] = "Vous étiez trop haut! La caisse a été détruite"
+--- Radio Beacon messages
+ctld.i18n["fr"]["No Radio Beacons within 500m."] = "Aucune balise radio dans un rayon de 500 m."
+ctld.i18n["fr"]["Navigation beacon deployed - %1"] = "Balise de navigation déployée - %1"
+ctld.i18n["fr"]["Radio beacon removed - %1"] = "Balise radio retirée - %1"
+ctld.i18n["fr"]["Radio Beacons:"] = "Balises radio :"
+ctld.i18n["fr"]["No Active Radio Beacons"] = "Aucune balise radio active"
+ctld.i18n["fr"]["Beacon layer enabled. %1 beacon(s)."] = "Couche balises activée. %1 balise(s)."
+ctld.i18n["fr"]["Beacon layer disabled."] = "Couche balises désactivée."
+ctld.i18n["fr"]["CTLD"] = "CTLD"
+ctld.i18n["fr"]["Radio Beacons"] = "Balises radio"
+ctld.i18n["fr"]["Drop Beacon"] = "Déposer balise"
+ctld.i18n["fr"]["Remove Closest Beacon"] = "Retirer balise la plus proche"
+ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 -- STALE: ctld.i18n["fr"]["Radio Beacons:\n%1"] = "Balises radio :\n%1"
--- STALE: ctld.i18n["fr"]["No Active Radio Beacons"] = "Aucune balise radio active"
 -- STALE: ctld.i18n["fr"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 a déployé une balise radio.\n\n%2"
 -- STALE: ctld.i18n["fr"]["You need to land before you can deploy a Radio Beacon!"] = "Vous devez atterrir avant de pouvoir déployer une balise radio !"
 -- STALE: ctld.i18n["fr"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 a supprimé une balise radio.\n\n%2"
--- STALE: ctld.i18n["fr"]["No Radio Beacons within 500m."] = "Aucune balise radio à moins de 500m."
 -- STALE: ctld.i18n["fr"]["You need to land before remove a Radio Beacon"] = "Vous devez atterrir avant de retirer une balise radio"
 -- STALE: ctld.i18n["fr"]["%1 successfully rearmed a full %2 in the field"] = "%1 a réarmé avec succès un %2 complet sur le terrain"
 -- STALE: ctld.i18n["fr"]["Missing %1\n"] = "%1 manquant\n"
@@ -2056,9 +2090,6 @@ ctld.i18n["fr"]["S-300 - All crates"] = "S-300 - Toutes les caisses"
 -- STALE: ctld.i18n["fr"]["Drop Blue Smoke"] = "Déposer Fumi Bleu"
 -- STALE: ctld.i18n["fr"]["Drop Orange Smoke"] = "Déposer Fumi Orange"
 -- STALE: ctld.i18n["fr"]["Drop Green Smoke"] = "Déposer Fumi Vert"
--- STALE: ctld.i18n["fr"]["Drop Beacon"] = "Déposer Balise"
--- STALE: ctld.i18n["fr"]["Radio Beacons"] = "Balises radio"
--- STALE: ctld.i18n["fr"]["Remove Closest Beacon"] = "Supprimer Balise +proche"
 -- STALE: ctld.i18n["fr"]["JTAC Status"] = "Statut JTAC"
 -- STALE: ctld.i18n["fr"]["DISABLE "] = "DESACTIVE "
 -- STALE: ctld.i18n["fr"]["ENABLE "] = "ACTIVE "
@@ -2067,6 +2098,19 @@ ctld.i18n["fr"]["S-300 - All crates"] = "S-300 - Toutes les caisses"
 
 --- F10 RECON menus
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
+ctld.i18n["fr"]["Layers"] = "Couches"
+ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
+ctld.i18n["fr"]["Hide All Targets"] = "Masquer toutes les cibles"
+ctld.i18n["fr"]["Auto-Refresh: [OFF]"] = "Actualisation auto : [OFF]"
+ctld.i18n["fr"]["Auto-Refresh: [ON]"] = "Actualisation auto : [ON]"
+ctld.i18n["fr"]["Altitude too low for recon scan (min %1 m)"] = "Altitude trop basse pour le scan reco (min %1 m)"
+ctld.i18n["fr"]["No recon layers enabled. Activate layers first."] = "Aucune couche reco activée. Activez les couches d'abord."
+ctld.i18n["fr"]["Recon stopped. %1 targets hidden."] = "Reconnaissance arrêtée. %1 cible(s) masquée(s)."
+ctld.i18n["fr"]["No active recon scan to hide."] = "Aucun scan de reconnaissance actif à masquer."
+ctld.i18n["fr"]["No active recon scan. Use 'Scan Area' first."] = "Aucun scan actif. Utilisez 'Scanner la zone' d'abord."
+ctld.i18n["fr"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualisation automatique activée. Mise à jour toutes les %1 s."
+ctld.i18n["fr"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualisation automatique désactivée. Cibles gelées sur la carte."
+ctld.i18n["fr"]["Recon layer '%1': %2"] = "Couche reco '%1' : %2"
 -- STALE: ctld.i18n["fr"]["Show targets in LOS (refresh)"] = "Marquer cibles visibles sur carte F10"
 -- STALE: ctld.i18n["fr"]["Hide targets in LOS"] = "Effacer marques sur carte F10"
 -- STALE: ctld.i18n["fr"]["START autoRefresh targets in LOS"] = "Lancer suivi automatique des cibles"
@@ -2186,6 +2230,7 @@ ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
 ctld.i18n["es"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Despliegue de FOB bloqueado: alejate al menos %1 m de una zona logistica."
 ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 comenzo a construir un FOB (%2 caja(s)). Listo en %3 segundos."
+ctld.i18n["es"]["FOB established by %1 - logistics hub now active."] = "FOB establecido por %1 - centro logístico activo."
 ctld.i18n["es"]["MQ-9 Repear - JTAC"] = "JTAC MQ-9 Repear"
 ctld.i18n["es"]["RQ-1A Predator - JTAC"] = "JTAC RQ-1A Predator"
 ctld.i18n["es"]["MLRS"] = "MLRS - Artilleria de cohetes"
@@ -2338,12 +2383,23 @@ ctld.i18n["es"]["S-300 - All crates"] = "S-300 - Todas las cajas"
 -- STALE: ctld.i18n["es"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 caja desenganchada de forma segura y está en tus %2 en punto"
 -- STALE: ctld.i18n["es"]["%1 crate has been safely dropped below you"] = "%1 caja ha soltado de forma segura debajo de ti"
 -- STALE: ctld.i18n["es"]["You were too high! The crate has been destroyed"] = "¡Estabas demasiado alto! La caja ha sido destruida"
+--- Radio Beacon messages
+ctld.i18n["es"]["No Radio Beacons within 500m."] = "No hay radiobalizas a menos de 500 m."
+ctld.i18n["es"]["Navigation beacon deployed - %1"] = "Baliza de navegación desplegada - %1"
+ctld.i18n["es"]["Radio beacon removed - %1"] = "Radiobaliza eliminada - %1"
+ctld.i18n["es"]["Radio Beacons:"] = "Balizas de radio:"
+ctld.i18n["es"]["No Active Radio Beacons"] = "No hay radiobalizas activas"
+ctld.i18n["es"]["Beacon layer enabled. %1 beacon(s)."] = "Capa de balizas activada. %1 baliza(s)."
+ctld.i18n["es"]["Beacon layer disabled."] = "Capa de balizas desactivada."
+ctld.i18n["es"]["CTLD"] = "CTLD"
+ctld.i18n["es"]["Radio Beacons"] = "Balizas de radio"
+ctld.i18n["es"]["Drop Beacon"] = "Desplegar baliza"
+ctld.i18n["es"]["Remove Closest Beacon"] = "Quitar la baliza más cercana"
+ctld.i18n["es"]["List Beacons"] = "Listar balizas"
 -- STALE: ctld.i18n["es"]["Radio Beacons:\n%1"] = "Balizas de radio:\n%1"
--- STALE: ctld.i18n["es"]["No Active Radio Beacons"] = "No hay radiobalizas activas"
 -- STALE: ctld.i18n["es"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 Despliega una radiobaliza.\n\n%2"
 -- STALE: ctld.i18n["es"]["You need to land before you can deploy a Radio Beacon!"] = "¡Debes aterrizar antes de poder desplegar una radiobaliza!"
 -- STALE: ctld.i18n["es"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 eliminó una radiobaliza.\n\n%2"
--- STALE: ctld.i18n["es"]["No Radio Beacons within 500m."] = "No hay radiobalizas a menos de 500 m."
 -- STALE: ctld.i18n["es"]["You need to land before remove a Radio Beacon"] = "Es necesario aterrizar antes de eliminar una radiobaliza"
 -- STALE: ctld.i18n["es"]["%1 successfully rearmed a full %2 in the field"] = "%1 rearmó con exito un %2 completo en el campo"
 -- STALE: ctld.i18n["es"]["Missing %1\n"] = "Faltan: %1\n"
@@ -2414,9 +2470,6 @@ ctld.i18n["es"]["S-300 - All crates"] = "S-300 - Todas las cajas"
 -- STALE: ctld.i18n["es"]["Drop Blue Smoke"] = "Lanzar humo azul"
 -- STALE: ctld.i18n["es"]["Drop Orange Smoke"] = "Lanzar humo naranja"
 -- STALE: ctld.i18n["es"]["Drop Green Smoke"] = "Lanzar humo verde"
--- STALE: ctld.i18n["es"]["Drop Beacon"] = "Desplegar baliza"
--- STALE: ctld.i18n["es"]["Radio Beacons"] = "Balizas de radio"
--- STALE: ctld.i18n["es"]["Remove Closest Beacon"] = "Quitar la baliza mas cercana"
 -- STALE: ctld.i18n["es"]["JTAC Status"] = "Estado de JTAC"
 -- STALE: ctld.i18n["es"]["DISABLE "] = "DESHABILITAR "
 -- STALE: ctld.i18n["es"]["ENABLE "] = "HABILITAR "
@@ -2425,6 +2478,19 @@ ctld.i18n["es"]["S-300 - All crates"] = "S-300 - Todas las cajas"
 
 --- F10 RECON menus
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
+ctld.i18n["es"]["Layers"] = "Capas"
+ctld.i18n["es"]["Scan Area"] = "Escanear zona"
+ctld.i18n["es"]["Hide All Targets"] = "Ocultar todos los objetivos"
+ctld.i18n["es"]["Auto-Refresh: [OFF]"] = "Actualización auto: [OFF]"
+ctld.i18n["es"]["Auto-Refresh: [ON]"] = "Actualización auto: [ON]"
+ctld.i18n["es"]["Altitude too low for recon scan (min %1 m)"] = "Altitud demasiado baja para el escaneo de reconocimiento (mín. %1 m)"
+ctld.i18n["es"]["No recon layers enabled. Activate layers first."] = "Ninguna capa de reconocimiento activada. Activa las capas primero."
+ctld.i18n["es"]["Recon stopped. %1 targets hidden."] = "Reconocimiento detenido. %1 objetivo(s) ocultado(s)."
+ctld.i18n["es"]["No active recon scan to hide."] = "No hay escaneo de reconocimiento activo para ocultar."
+ctld.i18n["es"]["No active recon scan. Use 'Scan Area' first."] = "No hay escaneo activo. Usa 'Escanear zona' primero."
+ctld.i18n["es"]["Auto-refresh enabled. Targets update every %1 s."] = "Actualización automática activada. Los objetivos se actualizan cada %1 s."
+ctld.i18n["es"]["Auto-refresh disabled. Current targets frozen on map."] = "Actualización automática desactivada. Los objetivos están congelados en el mapa."
+ctld.i18n["es"]["Recon layer '%1': %2"] = "Capa de reconocimiento '%1': %2"
 -- STALE: ctld.i18n["es"]["Show targets in LOS (refresh)"] = "Marcar objetivos visibles en el mapa F10"
 -- STALE: ctld.i18n["es"]["Hide targets in LOS"] = "Borrar marcas del mapa F10"
 -- STALE: ctld.i18n["es"]["START autoRefresh targets in LOS"] = "Iniciar el seguimiento automático de objetivos"
@@ -2545,6 +2611,7 @@ ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). %3초 후 완료."
+ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."] = ""
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = ""
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = ""
 ctld.i18n["ko"]["MLRS"] = ""
@@ -2668,12 +2735,23 @@ ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
 -- STALE: ctld.i18n["ko"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 화물이 안전하게 내려졌고 %2 시 방향에 있습니다."
 -- STALE: ctld.i18n["ko"]["%1 crate has been safely dropped below you"] = "%1 화물이 밑에 안전하게 내려졌습니다."
 -- STALE: ctld.i18n["ko"]["You were too high! The crate has been destroyed"] = "너무 높았습니다! 화물이 파괴되었습니다."
+--- Radio Beacon messages
+ctld.i18n["ko"]["No Radio Beacons within 500m."] = "500m 내에 라디오 비콘 없음."
+ctld.i18n["ko"]["Navigation beacon deployed - %1"] = "항법 비콘 배치됨 - %1"
+ctld.i18n["ko"]["Radio beacon removed - %1"] = "라디오 비콘 제거됨 - %1"
+ctld.i18n["ko"]["Radio Beacons:"] = "라디오 비콘:"
+ctld.i18n["ko"]["No Active Radio Beacons"] = "활성화된 라디오 비콘 없음."
+ctld.i18n["ko"]["Beacon layer enabled. %1 beacon(s)."] = "비콘 레이어 활성화. %1 개."
+ctld.i18n["ko"]["Beacon layer disabled."] = "비콘 레이어 비활성화."
+ctld.i18n["ko"]["CTLD"] = "CTLD"
+ctld.i18n["ko"]["Radio Beacons"] = "라디오 비콘"
+ctld.i18n["ko"]["Drop Beacon"] = "비콘 투하"
+ctld.i18n["ko"]["Remove Closest Beacon"] = "가까운 비콘 제거"
+ctld.i18n["ko"]["List Beacons"] = "비콘 목록"
 -- STALE: ctld.i18n["ko"]["Radio Beacons:\n%1"] = "라디오 비콘 :\n%1"
--- STALE: ctld.i18n["ko"]["No Active Radio Beacons"] = "활성화된 라디오 비콘 없음."
 -- STALE: ctld.i18n["ko"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 배치했습니다.\n\n%2"
 -- STALE: ctld.i18n["ko"]["You need to land before you can deploy a Radio Beacon!"] = "라디오 비콘을 배치하려면 착륙해야 합니다!"
 -- STALE: ctld.i18n["ko"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 제거했습니다.\n\n%2"
--- STALE: ctld.i18n["ko"]["No Radio Beacons within 500m."] = "500m 내에 라디오 비콘 없음."
 -- STALE: ctld.i18n["ko"]["You need to land before remove a Radio Beacon"] = "라디오 비콘을 제거하려면 착륙해야 합니다."
 -- STALE: ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = "%1 이(가) %2 을(를) 성공적으로 재무장 시켰습니다."
 -- STALE: ctld.i18n["ko"]["Missing %1\n"] = "%1 없음\n"
@@ -2744,9 +2822,6 @@ ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
 -- STALE: ctld.i18n["ko"]["Drop Blue Smoke"] = "청색 연막 투하"
 -- STALE: ctld.i18n["ko"]["Drop Orange Smoke"] = "주황색 연막 투하"
 -- STALE: ctld.i18n["ko"]["Drop Green Smoke"] = "녹색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Beacon"] = "비콘 투하"
--- STALE: ctld.i18n["ko"]["Radio Beacons"] = "라디오 비콘"
--- STALE: ctld.i18n["ko"]["Remove Closest Beacon"] = "가까운 비콘 제거"
 -- STALE: ctld.i18n["ko"]["JTAC Status"] = "JTAC 상태"
 -- STALE: ctld.i18n["ko"]["DISABLE "] = "비활성화 "
 -- STALE: ctld.i18n["ko"]["ENABLE "] = "활성화 "
@@ -2755,6 +2830,19 @@ ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
 
 --- F10 RECON menus (not in original KO source - falling back to EN)
 ctld.i18n["ko"]["RECON"] = ""
+ctld.i18n["ko"]["Layers"] = ""
+ctld.i18n["ko"]["Scan Area"] = ""
+ctld.i18n["ko"]["Hide All Targets"] = ""
+ctld.i18n["ko"]["Auto-Refresh: [OFF]"] = ""
+ctld.i18n["ko"]["Auto-Refresh: [ON]"] = ""
+ctld.i18n["ko"]["Altitude too low for recon scan (min %1 m)"] = ""
+ctld.i18n["ko"]["No recon layers enabled. Activate layers first."] = ""
+ctld.i18n["ko"]["Recon stopped. %1 targets hidden."] = ""
+ctld.i18n["ko"]["No active recon scan to hide."] = ""
+ctld.i18n["ko"]["No active recon scan. Use 'Scan Area' first."] = ""
+ctld.i18n["ko"]["Auto-refresh enabled. Targets update every %1 s."] = ""
+ctld.i18n["ko"]["Auto-refresh disabled. Current targets frozen on map."] = ""
+ctld.i18n["ko"]["Recon layer '%1': %2"] = ""
 -- STALE: ctld.i18n["ko"]["Show targets in LOS (refresh)"] = ""
 -- STALE: ctld.i18n["ko"]["Hide targets in LOS"] = ""
 -- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = ""
@@ -12947,7 +13035,7 @@ function CTLDBeaconManager:removeClosestBeacon(transport, player)
     end
 
     if not closest then
-        trigger.action.outText(ctld.tr("beaconNoneInRange", "No Radio Beacons within 500m."), 10)
+        trigger.action.outText(ctld.tr("No Radio Beacons within 500m."), 10)
         return
     end
 
@@ -12957,9 +13045,8 @@ function CTLDBeaconManager:removeClosestBeacon(transport, player)
     self:_removeBeaconFromLayers(closest)
     self._beacons[closest.beaconName] = nil
 
-    local msg = ctld.tr("beaconRemoved", player .. " removed a Radio Beacon.")
-            .. "\n" .. closest:freqText()
-    trigger.action.outTextForCoalition(coalitionId, msg, 20)
+    trigger.action.outTextForCoalition(coalitionId,
+        ctld.tr("Radio beacon removed - %1", closest:freqText()), 20)
 
     EventDispatcher.getInstance():publish("OnBeaconRemoved", {
         player     = player,
@@ -12991,8 +13078,8 @@ function CTLDBeaconManager:listBeacons(transport)
         end
     end
     local msg = #lines > 0
-        and (ctld.tr("beaconList", "Radio Beacons:") .. "\n" .. table.concat(lines, "\n"))
-        or   ctld.tr("beaconListEmpty", "No Active Radio Beacons")
+        and (ctld.tr("Radio Beacons:") .. "\n" .. table.concat(lines, "\n"))
+        or   ctld.tr("No Active Radio Beacons")
     trigger.action.outTextForGroup(transport:getGroup():getID(), msg, 20)
 end
 
@@ -13027,12 +13114,12 @@ function CTLDBeaconManager:toggleLayer(player, transport)
             end
         end
         trigger.action.outTextForGroup(transport:getGroup():getID(),
-            string.format(ctld.tr("beaconLayerOn","Beacon layer enabled. %d beacon(s)."), #beaconsDisplayed), 10)
+            ctld.tr("Beacon layer enabled. %1 beacon(s).", #beaconsDisplayed), 10)
     else
         for _, mark in ipairs(state.marks) do self:_removeMarkId(mark.markId) end
         state.marks = {}
         trigger.action.outTextForGroup(transport:getGroup():getID(),
-            ctld.tr("beaconLayerOff", "Beacon layer disabled."), 10)
+            ctld.tr("Beacon layer disabled."), 10)
     end
 
     EventDispatcher.getInstance():publish("OnBeaconLayerToggled", {
@@ -13758,15 +13845,14 @@ function CTLDReconManager:scan(playerUnit, player)
     local minAlt = ctld.gs("reconMinAltitude") or 50
     if agl < minAlt then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            string.format(
-                ctld.tr("reconAltTooLow", "Altitude too low for recon scan (min %dm)"), minAlt), 10)
+            ctld.tr("Altitude too low for recon scan (min %1 m)", minAlt), 10)
         return
     end
 
     local enabledLayers = self:_enabledLayers(player)
     if #enabledLayers == 0 then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoLayer", "No recon layers enabled. Activate layers first."), 10)
+            ctld.tr("No recon layers enabled. Activate layers first."), 10)
         return
     end
 
@@ -13831,7 +13917,7 @@ function CTLDReconManager:hideScan(playerUnit, player)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoScan", "No active recon scan to hide."), 10)
+            ctld.tr("No active recon scan to hide."), 10)
         return
     end
 
@@ -13855,9 +13941,7 @@ function CTLDReconManager:hideScan(playerUnit, player)
     self._activeScans[player] = nil
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconHidden", "Recon stopped. %d targets hidden."),
-            #marksRemoved), 10)
+        ctld.tr("Recon stopped. %1 targets hidden.", #marksRemoved), 10)
 
     EventDispatcher.getInstance():publish("OnReconHideTargets", {
         player            = player,
@@ -13877,7 +13961,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoScanAutoRefresh", "No active recon scan. Use 'Scan Area' first."), 10)
+            ctld.tr("No active recon scan. Use 'Scan Area' first."), 10)
         return
     end
     if scan.autoRefresh then return end
@@ -13893,9 +13977,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
     end, nil, timer.getTime() + interval)
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconAutoRefreshOn", "Auto-refresh enabled. Targets update every %ds."),
-            interval), 10)
+        ctld.tr("Auto-refresh enabled. Targets update every %1 s.", interval), 10)
 
     EventDispatcher.getInstance():publish("OnReconAutoRefreshEnabled", {
         player          = player,
@@ -13924,7 +14006,7 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
     end
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        ctld.tr("reconAutoRefreshOff", "Auto-refresh disabled. Current targets frozen on map."), 10)
+        ctld.tr("Auto-refresh disabled. Current targets frozen on map."), 10)
 
     EventDispatcher.getInstance():publish("OnReconAutoRefreshDisabled", {
         player          = player,
@@ -13954,9 +14036,7 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     local state   = layer.enabled and "ON" or "OFF"
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconLayerToggled", "Recon layer '%s': %s"),
-            layer.name, state), 10)
+        ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
 
     -- Immediate re-scan if scan is active (applies new layer state)
     if self._activeScans[player] then
@@ -14107,11 +14187,11 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
     local self_ref = self
 
     local reconPath  = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("reconMenu", "RECON"))
+        groupId, ctld.tr("RECON"))
 
     -- Layers submenu
     local layersPath = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("reconLayers", "Layers"), reconPath)
+        groupId, ctld.tr("Layers"), reconPath)
     for _, layer in ipairs(self:_getPlayerLayers(player)) do
         local lid   = layer.layerId
         local lname = layer.name
@@ -14124,7 +14204,7 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
 
     -- Scan
     missionCommands.addCommandForGroup(groupId,
-        ctld.tr("reconScan", "Scan Area"), reconPath,
+        ctld.tr("Scan Area"), reconPath,
         function() self_ref:scan(playerUnit, player) end)
 
     -- Auto-refresh toggle (initial: OFF)
@@ -14132,7 +14212,7 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
 
     -- Hide
     missionCommands.addCommandForGroup(groupId,
-        ctld.tr("reconHide", "Hide All Targets"), reconPath,
+        ctld.tr("Hide All Targets"), reconPath,
         function() self_ref:hideScan(playerUnit, player) end)
 
     self._menuAdded[key] = true
@@ -14145,21 +14225,21 @@ function CTLDReconManager:_addAutoRefreshMenuItem(groupId, playerUnit, player, r
     local menuLabel, actionFn
 
     if currentlyEnabled then
-        menuLabel = ctld.tr("reconStopAutoRefresh", "Auto-Refresh: [ON]")
+        menuLabel = ctld.tr("Auto-Refresh: [ON]")
         actionFn  = function()
             self_ref:disableAutoRefresh(playerUnit, player)
             missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("reconMenu", "RECON"),
-                  ctld.tr("reconStopAutoRefresh", "Auto-Refresh: [ON]") })
+                { ctld.tr("RECON"),
+                  ctld.tr("Auto-Refresh: [ON]") })
             self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
         end
     else
-        menuLabel = ctld.tr("reconStartAutoRefresh", "Auto-Refresh: [OFF]")
+        menuLabel = ctld.tr("Auto-Refresh: [OFF]")
         actionFn  = function()
             self_ref:enableAutoRefresh(playerUnit, player)
             missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("reconMenu", "RECON"),
-                  ctld.tr("reconStartAutoRefresh", "Auto-Refresh: [OFF]") })
+                { ctld.tr("RECON"),
+                  ctld.tr("Auto-Refresh: [OFF]") })
             self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, true)
         end
     end
@@ -16350,7 +16430,7 @@ fobScene.steps = {
                            or ctx.unit:getName()
             trigger.action.outTextForCoalition(
                 ctx.scene._coalitionId,
-                string.format(ctld.tr("fobDeployedMsg", "FOB established by %s - logistics hub now active."), player),
+                ctld.tr("FOB established by %1 - logistics hub now active.", player),
                 10)
         end,
     },

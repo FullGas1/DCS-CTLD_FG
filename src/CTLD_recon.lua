@@ -397,15 +397,14 @@ function CTLDReconManager:scan(playerUnit, player)
     local minAlt = ctld.gs("reconMinAltitude") or 50
     if agl < minAlt then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            string.format(
-                ctld.tr("reconAltTooLow", "Altitude too low for recon scan (min %dm)"), minAlt), 10)
+            ctld.tr("Altitude too low for recon scan (min %1 m)", minAlt), 10)
         return
     end
 
     local enabledLayers = self:_enabledLayers(player)
     if #enabledLayers == 0 then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoLayer", "No recon layers enabled. Activate layers first."), 10)
+            ctld.tr("No recon layers enabled. Activate layers first."), 10)
         return
     end
 
@@ -470,7 +469,7 @@ function CTLDReconManager:hideScan(playerUnit, player)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoScan", "No active recon scan to hide."), 10)
+            ctld.tr("No active recon scan to hide."), 10)
         return
     end
 
@@ -494,9 +493,7 @@ function CTLDReconManager:hideScan(playerUnit, player)
     self._activeScans[player] = nil
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconHidden", "Recon stopped. %d targets hidden."),
-            #marksRemoved), 10)
+        ctld.tr("Recon stopped. %1 targets hidden.", #marksRemoved), 10)
 
     EventDispatcher.getInstance():publish("OnReconHideTargets", {
         player            = player,
@@ -516,7 +513,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("reconNoScanAutoRefresh", "No active recon scan. Use 'Scan Area' first."), 10)
+            ctld.tr("No active recon scan. Use 'Scan Area' first."), 10)
         return
     end
     if scan.autoRefresh then return end
@@ -532,9 +529,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
     end, nil, timer.getTime() + interval)
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconAutoRefreshOn", "Auto-refresh enabled. Targets update every %ds."),
-            interval), 10)
+        ctld.tr("Auto-refresh enabled. Targets update every %1 s.", interval), 10)
 
     EventDispatcher.getInstance():publish("OnReconAutoRefreshEnabled", {
         player          = player,
@@ -563,7 +558,7 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
     end
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        ctld.tr("reconAutoRefreshOff", "Auto-refresh disabled. Current targets frozen on map."), 10)
+        ctld.tr("Auto-refresh disabled. Current targets frozen on map."), 10)
 
     EventDispatcher.getInstance():publish("OnReconAutoRefreshDisabled", {
         player          = player,
@@ -593,9 +588,7 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     local state   = layer.enabled and "ON" or "OFF"
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        string.format(
-            ctld.tr("reconLayerToggled", "Recon layer '%s': %s"),
-            layer.name, state), 10)
+        ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
 
     -- Immediate re-scan if scan is active (applies new layer state)
     if self._activeScans[player] then
@@ -746,11 +739,11 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
     local self_ref = self
 
     local reconPath  = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("reconMenu", "RECON"))
+        groupId, ctld.tr("RECON"))
 
     -- Layers submenu
     local layersPath = missionCommands.addSubMenuForGroup(
-        groupId, ctld.tr("reconLayers", "Layers"), reconPath)
+        groupId, ctld.tr("Layers"), reconPath)
     for _, layer in ipairs(self:_getPlayerLayers(player)) do
         local lid   = layer.layerId
         local lname = layer.name
@@ -763,7 +756,7 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
 
     -- Scan
     missionCommands.addCommandForGroup(groupId,
-        ctld.tr("reconScan", "Scan Area"), reconPath,
+        ctld.tr("Scan Area"), reconPath,
         function() self_ref:scan(playerUnit, player) end)
 
     -- Auto-refresh toggle (initial: OFF)
@@ -771,7 +764,7 @@ function CTLDReconManager:addReconMenu(groupId, playerUnit)
 
     -- Hide
     missionCommands.addCommandForGroup(groupId,
-        ctld.tr("reconHide", "Hide All Targets"), reconPath,
+        ctld.tr("Hide All Targets"), reconPath,
         function() self_ref:hideScan(playerUnit, player) end)
 
     self._menuAdded[key] = true
@@ -784,21 +777,21 @@ function CTLDReconManager:_addAutoRefreshMenuItem(groupId, playerUnit, player, r
     local menuLabel, actionFn
 
     if currentlyEnabled then
-        menuLabel = ctld.tr("reconStopAutoRefresh", "Auto-Refresh: [ON]")
+        menuLabel = ctld.tr("Auto-Refresh: [ON]")
         actionFn  = function()
             self_ref:disableAutoRefresh(playerUnit, player)
             missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("reconMenu", "RECON"),
-                  ctld.tr("reconStopAutoRefresh", "Auto-Refresh: [ON]") })
+                { ctld.tr("RECON"),
+                  ctld.tr("Auto-Refresh: [ON]") })
             self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, false)
         end
     else
-        menuLabel = ctld.tr("reconStartAutoRefresh", "Auto-Refresh: [OFF]")
+        menuLabel = ctld.tr("Auto-Refresh: [OFF]")
         actionFn  = function()
             self_ref:enableAutoRefresh(playerUnit, player)
             missionCommands.removeItemForGroup(groupId,
-                { ctld.tr("reconMenu", "RECON"),
-                  ctld.tr("reconStartAutoRefresh", "Auto-Refresh: [OFF]") })
+                { ctld.tr("RECON"),
+                  ctld.tr("Auto-Refresh: [OFF]") })
             self_ref:_addAutoRefreshMenuItem(groupId, playerUnit, player, reconPath, true)
         end
     end
