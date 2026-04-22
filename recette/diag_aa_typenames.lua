@@ -65,9 +65,9 @@ end
 -- ── collect types to test ─────────────────────────────────────────────────
 local toTest = {}   -- { typeName, label, coalition }
 
--- From AA templates
+-- From AA templates (class-level field, not instance)
 local aaMgr = CTLDCrateAssemblyManager.getInstance()
-for _, tmpl in ipairs(aaMgr._templates or {}) do
+for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES or {}) do
     local coa = (tmpl.side == 1) and coalition.side.RED or coalition.side.BLUE
     for _, part in ipairs(tmpl.parts or {}) do
         toTest[#toTest+1] = { t = part.name, label = tmpl.name .. "/" .. part.name, coa = coa }
