@@ -9729,8 +9729,11 @@ end
 -- @param coalitionId number   coalition.side.*
 -- @param countryId   number|nil  DCS country id; derived from coalitionId if nil
 -- @param modelKey    string|nil  key in spawnableCratesModels; auto if nil
+-- @param label       string|nil  human-readable content name (e.g. "FOB Crate")
+--                               shown in the DCS cargo interface and F10 list.
+--                               Sanitised: spaces→_, special chars stripped.
 -- @return string name, StaticObject|nil  (nil if dynAddStatic failed)
-function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId, modelKey)
+function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId, modelKey, label)
     local models = ctld.gs("spawnableCratesModels") or {}
     local key    = modelKey or (ctld.gs("slingLoad") and "sling" or "load")
     local model  = models[key] or models["load"] or {}
@@ -9741,7 +9744,14 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
     end
 
     local uid  = ctld.utils.getNextUniqId()
-    local name = string.format("CTLD_Crate_%d", uid)
+    local name
+    if label and label ~= "" then
+        -- Sanitise: keep alphanumeric, dash, underscore; replace spaces with _
+        local safe = label:gsub("%s+", "_"):gsub("[^%w%-%_]", "")
+        name = string.format("CTLD_%s_%d", safe, uid)
+    else
+        name = string.format("CTLD_Crate_%d", uid)
+    end
     local data = {
         name     = name,
         x        = position.x,
@@ -9770,7 +9780,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
     end
 
     local crateName, dcsStatic = self:_spawnStatic(
-        descriptor.weight, position, coalitionId, countryId, modelKey)
+        descriptor.weight, position, coalitionId, countryId, modelKey, descriptor.desc)
     if not dcsStatic then return nil end
 
     local models  = ctld.gs("spawnableCratesModels") or {}
@@ -9808,8 +9818,9 @@ end
 -- @param position vec3
 -- @return bool
 function CTLDCrateManager:_respawnStatic(crate, position)
+    local label = crate.descriptor and crate.descriptor.desc or nil
     local newName, dcsStatic = self:_spawnStatic(
-        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey)
+        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label)
     if not dcsStatic then return false end
 
     self.crates[crate.crateName] = nil
