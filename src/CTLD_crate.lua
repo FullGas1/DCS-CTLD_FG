@@ -407,13 +407,21 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
-                    -- Unpack each crate in assembly
+                    -- Delegate to AA assembly manager if this crate belongs to an AA template.
+                    -- CTLDCrateAssemblyManager handles repair/rearm/assembly with correct
+                    -- DCS type names and its own 100m offset + 50m radius placement.
+                    local aaMgr = CTLDCrateAssemblyManager.getInstance()
+                    if aaMgr:tryUnpackOrRepair(t, toUnpack[1], mgr.crates) then
+                        -- AA manager consumed the action — also destroy the other collected crates
+                        -- (tryUnpackOrRepair only destroys what it assembles internally).
+                        -- Note: for single-crate AA parts tryUnpackOrRepair already handles destruction.
+                        return
+                    end
+
+                    -- Standard (non-AA) path: unpack crates, spawn vehicle ≥ 50 m away.
                     for _, c in ipairs(toUnpack) do
                         mgr:unpackCrate(c.crateName, t)
                     end
-                    -- Spawn the vehicle at least 50 m from the transport.
-                    -- Use getSpawnObjectPositions so the position is always
-                    -- outside the aircraft footprint regardless of crate placement.
                     local MIN_UNPACK_DIST = 50
                     local safeDist = math.max(
                         MIN_UNPACK_DIST,
@@ -434,7 +442,6 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                                 country     = cId,
                             },
                             spawnPos)
-                        -- Pack menu refresh is handled automatically via OnGroundUnitSpawned event
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
