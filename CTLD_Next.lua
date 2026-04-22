@@ -9781,7 +9781,13 @@ function CTLDCrateManager:getCratesInRange(position, radius)
     local result = {}
     for _, crate in pairs(self.crates) do
         if crate:isOnGround() then
-            if ctld.utils.getDistance("CTLDCrateManager:getCratesInRange", position, crate.position) <= radius then
+            -- Prefer live DCS static position: covers crates moved by native DCS
+            -- cargo system (dropped at a different location than original spawn).
+            local cratePos = crate.position
+            if crate.dcsStatic and crate.dcsStatic:isExist() then
+                cratePos = crate.dcsStatic:getPoint()
+            end
+            if ctld.utils.getDistance("CTLDCrateManager:getCratesInRange", position, cratePos) <= radius then
                 table.insert(result, crate)
             end
         end
@@ -9964,12 +9970,18 @@ function CTLDCrateManager:checkAssemblyReady(crate, radius)
         return true, { crate }
     end
 
+    local function _livePos(c)
+        if c.dcsStatic and c.dcsStatic:isExist() then return c.dcsStatic:getPoint() end
+        return c.position
+    end
+    local refPos = _livePos(crate)
+
     local assembled = {}
     for _, c in pairs(self.crates) do
         if c:isOnGround()
             and c.descriptor
             and c.descriptor.unit == crate.descriptor.unit
-            and ctld.utils.getDistance("CTLDCrateManager:checkAssemblyReady", crate.position, c.position) <= radius
+            and ctld.utils.getDistance("CTLDCrateManager:checkAssemblyReady", refPos, _livePos(c)) <= radius
         then
             table.insert(assembled, c)
             if #assembled == required then
