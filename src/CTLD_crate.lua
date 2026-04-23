@@ -1445,11 +1445,11 @@ function CTLDCrateManager:onBirth(event)
 end
 
 --- Spawn the DCS object described by a crate descriptor and activate its post-spawn role.
--- Single dispatch point for all standard (non-AA, non-FOB) unpack outcomes:
---   • Air JTAC  (isJTAC=true, spawnAs != "GROUND"): builds orbit unitDef via JTACManager,
---     spawns via ctld.utils.spawnFromDescriptor, then calls _dispatchPostSpawn.
---   • All other (ground vehicles, future statics …): delegates to CTLDVehicleSpawner,
---     then calls _dispatchPostSpawn.
+-- Uniform path for all standard (non-AA, non-FOB) unpack outcomes:
+--   build unitDef (ctld.utils.buildGroupUnitDef)
+--   → spawn       (ctld.utils.spawnFromDescriptor)
+--   → post-spawn  (_dispatchPostSpawn)
+-- JTAC_dropEnabled is checked here for air JTAC descriptors.
 -- @param desc  table  crate descriptor { unit, spawnAs, isJTAC, … }
 -- @param pos   vec3   world spawn position
 -- @param coa   number coalition.side.*
@@ -1457,36 +1457,38 @@ end
 function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId)
     if not (desc and desc.unit and pos) then return end
 
-    if desc.isJTAC and desc.spawnAs and desc.spawnAs ~= "GROUND" then
-        -- Air JTAC: JTAC_dropEnabled guard, then JTACManager builds specialized unitDef
-        if ctld.gs("JTAC_dropEnabled") == false then
-            ctld.utils.log("INFO", "CTLDCrateManager:_spawnUnpacked — JTAC_dropEnabled=false, skipped")
-            return
-        end
-        local gid     = ctld.utils.getNextUniqId()
-        local uid     = ctld.utils.getNextUniqId()
-        local gname   = string.format("CTLD_JTAC_AIR_%d", gid)
-        local unitDef = CTLDJTACManager.get():_buildAirUnitDef(desc, pos, gname, gid, uid)
-        local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
-        if not ok then
-            local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
-            ctld.utils.log("WARNING", "CTLDCrateManager:_spawnUnpacked — air spawn failed: " .. errStr)
-            return
-        end
-        self:_dispatchPostSpawn(desc, gname)
-    else
-        -- Ground (default) or non-JTAC non-ground: VehicleSpawner builds and spawns
-        local uid   = ctld.utils.getNextUniqId()
-        local gname = string.format("CTLD_UNP_%d", uid)
-        CTLDVehicleSpawner.getInstance():spawnVehicleAt({
-            vehicleType = desc.unit,
-            groupName   = gname,
-            unitName    = gname,
-            coalitionId = coa,
-            country     = cId,
-        }, pos)
-        self:_dispatchPostSpawn(desc, gname)
+    local spawnAs = desc.spawnAs or "GROUND"
+    local isAir   = spawnAs ~= "GROUND" and spawnAs ~= "STATIC"
+
+    if isAir and ctld.gs("JTAC_dropEnabled") == false then
+        ctld.utils.log("INFO", "CTLDCrateManager:_spawnUnpacked — JTAC_dropEnabled=false, skipped")
+        return
     end
+
+    local gid   = ctld.utils.getNextUniqId()
+    local uid   = ctld.utils.getNextUniqId()
+    local gname = isAir
+        and string.format("CTLD_AIR_%d", gid)
+        or  string.format("CTLD_UNP_%d", uid)
+
+    local unitDef = ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
+    local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
+    if not ok then
+        local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
+        ctld.utils.log("WARNING", "CTLDCrateManager:_spawnUnpacked — spawn failed: " .. errStr)
+        return
+    end
+
+    if not isAir then
+        EventDispatcher.getInstance():publish("OnGroundUnitSpawned", {
+            vehicleType = desc.unit,
+            position    = pos,
+            coalitionId = coa,
+            timestamp   = timer.getAbsTime(),
+        })
+    end
+
+    self:_dispatchPostSpawn(desc, gname)
 end
 
 --- Activate post-spawn role behaviors for an unpacked crate.

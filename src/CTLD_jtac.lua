@@ -611,99 +611,8 @@ end
 -- Legacy-compatible public API (called by compat/legacy_api.lua)
 -- ============================================================
 
---- Build the DCS group definition for a flying JTAC (orbit + EPLRS route).
--- Pure builder: no spawn, no side-effects.
--- @param descriptor table  crate descriptor (reads .unit, .spawnAs)
--- @param position   vec3   spawn position {x, y, z}
--- @param gname      string group name (pre-allocated by caller)
--- @param gid        number DCS group id (pre-allocated by caller)
--- @param uid        number DCS unit id (pre-allocated by caller)
--- @return table  unitDef ready for ctld.utils.spawnFromDescriptor
-function CTLDJTACManager:_buildAirUnitDef(descriptor, position, gname, gid, uid)
-    local uname = gname .. "_1"
-    local alt   = ctld.gs("jtacDroneAltitude") or 4000
-    local speed = 54  -- m/s (~105 kts)
-    return {
-        ["name"]          = gname,
-        ["groupId"]       = gid,
-        ["communication"] = true,
-        ["frequency"]     = 124,
-        ["visible"]       = false,
-        ["hidden"]        = false,
-        ["start_time"]    = 0,
-        ["task"]          = "Ground Nothing",
-        ["x"]             = position.x,
-        ["y"]             = position.z,
-        ["units"] = {
-            [1] = {
-                ["type"]     = descriptor.unit,
-                ["name"]     = uname,
-                ["unitId"]   = uid,
-                ["x"]        = position.x,
-                ["y"]        = position.z,
-                ["heading"]  = 0,
-                ["alt"]      = alt,
-                ["alt_type"] = "RADIO",
-                ["speed"]    = speed,
-                ["skill"]    = "Excellent",
-            },
-        },
-        ["route"] = {
-            ["points"] = {
-                [1] = {
-                    ["alt"]                = alt,
-                    ["alt_type"]           = "RADIO",
-                    ["action"]             = "Turning Point",
-                    ["type"]               = "Turning Point",
-                    ["speed"]              = speed,
-                    ["ETA"]                = 0,
-                    ["ETA_locked"]         = true,
-                    ["speed_locked"]       = true,
-                    ["formation_template"] = "",
-                    ["properties"]         = { ["addopt"] = {} },
-                    ["x"]                  = position.x,
-                    ["y"]                  = position.z,
-                    ["task"] = {
-                        ["id"]     = "ComboTask",
-                        ["params"] = {
-                            ["tasks"] = {
-                                [1] = {
-                                    ["number"]  = 1,
-                                    ["auto"]    = true,
-                                    ["id"]      = "WrappedAction",
-                                    ["enabled"] = true,
-                                    ["params"]  = {
-                                        ["action"] = {
-                                            ["id"]     = "EPLRS",
-                                            ["params"] = {
-                                                ["value"]   = true,
-                                                ["groupId"] = gid,
-                                            },
-                                        },
-                                    },
-                                },
-                                [2] = {
-                                    ["number"]  = 2,
-                                    ["auto"]    = false,
-                                    ["id"]      = "Orbit",
-                                    ["enabled"] = true,
-                                    ["params"]  = {
-                                        ["altitude"] = alt,
-                                        ["pattern"]  = "Circle",
-                                        ["speed"]    = speed,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    }
-end
-
 --- Spawn a flying JTAC from an unpacked crate and start auto-lase.
--- Orchestrates: _buildAirUnitDef → spawnFromDescriptor → startLase.
+-- Orchestrates: ctld.utils.buildGroupUnitDef → spawnFromDescriptor → startLase.
 -- Can also be called from legacy DO SCRIPT (ctld.JTACAutoLase wrapper path).
 -- @param transport  Unit    transport unit (player helicopter)
 -- @param position   vec3    horizontal spawn position {x, y, z} (y = ground level)
@@ -715,14 +624,14 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
         ctld.utils.log("INFO", "CTLDJTACManager:deployAirJTAC — JTAC_dropEnabled=false, skipped")
         return false
     end
+    -- Default spawnAs to "AIRPLANE" when field absent (legacy compat)
+    local desc  = descriptor.spawnAs and descriptor or { spawnAs = "AIRPLANE", unit = descriptor.unit, isJTAC = true }
     local gid   = ctld.utils.getNextUniqId()
     local uid   = ctld.utils.getNextUniqId()
-    local gname = string.format("CTLD_JTAC_AIR_%d", gid)
-    local unitDef = self:_buildAirUnitDef(descriptor, position, gname, gid, uid)
+    local gname = string.format("CTLD_AIR_%d", gid)
+    local unitDef = ctld.utils.buildGroupUnitDef(desc, position, gname, gid, uid)
     local cId = countryId or country.id.USA
-    -- Default spawnAs to "AIRPLANE" when field absent (legacy compat)
-    local spawnDesc = descriptor.spawnAs and descriptor or { spawnAs = "AIRPLANE", unit = descriptor.unit }
-    local ok, err = ctld.utils.spawnFromDescriptor(spawnDesc, cId, unitDef)
+    local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
     if not ok then
         local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
         ctld.utils.log("WARNING",
@@ -732,8 +641,7 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
     self:startLase(gname)
     ctld.utils.log("INFO",
         string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s spawnAs=%s alt=%dm",
-            gname, descriptor.unit, descriptor.spawnAs or "AIRPLANE",
-            ctld.gs("jtacDroneAltitude") or 4000))
+            gname, descriptor.unit, desc.spawnAs, ctld.gs("jtacDroneAltitude") or 4000))
     return true
 end
 

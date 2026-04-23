@@ -1175,6 +1175,127 @@ function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
 end
 
 --------------------------------------------------------------------------------------------------------
+--- Build a DCS group unitDef table ready for ctld.utils.spawnFromDescriptor.
+-- Handles GROUND and non-ground (AIRPLANE, HELICOPTER, SHIP, TRAIN) categories.
+-- STATIC objects use a different DCS schema and are not handled here.
+--
+-- For non-ground units with descriptor.isJTAC = true, an orbit + EPLRS route is embedded
+-- (required by DCS at spawn time; cannot be assigned post-spawn for loitering platforms).
+-- The orbit altitude is read from ctld.gs("jtacDroneAltitude") (default 4000 m).
+--
+-- @param desc   table   crate descriptor { unit, spawnAs, isJTAC, … }
+-- @param pos    vec3    world spawn position {x, y, z}
+-- @param gname  string  DCS group name (pre-allocated by caller)
+-- @param gid    number  DCS group id   (pre-allocated; used in non-ground groupId + EPLRS)
+-- @param uid    number  DCS unit id    (pre-allocated; used in non-ground unitId)
+-- @return table  unitDef
+function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
+    local spawnAs = (desc and desc.spawnAs) or "GROUND"
+    local isAir   = spawnAs ~= "GROUND" and spawnAs ~= "STATIC"
+
+    if not isAir then
+        -- GROUND: minimal DCS group definition
+        return {
+            name  = gname,
+            task  = "Ground Nothing",
+            units = {{
+                type    = desc.unit,
+                name    = gname,
+                x       = pos.x,
+                y       = pos.z,
+                heading = 0,
+            }},
+        }
+    else
+        -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
+        local alt   = ctld.gs("jtacDroneAltitude") or 4000
+        local speed = 54  -- m/s (~105 kts)
+        local uname = gname .. "_1"
+        local unitDef = {
+            ["name"]          = gname,
+            ["groupId"]       = gid,
+            ["communication"] = true,
+            ["frequency"]     = 124,
+            ["visible"]       = false,
+            ["hidden"]        = false,
+            ["start_time"]    = 0,
+            ["task"]          = "Ground Nothing",
+            ["x"]             = pos.x,
+            ["y"]             = pos.z,
+            ["units"] = {
+                [1] = {
+                    ["type"]     = desc.unit,
+                    ["name"]     = uname,
+                    ["unitId"]   = uid,
+                    ["x"]        = pos.x,
+                    ["y"]        = pos.z,
+                    ["heading"]  = 0,
+                    ["alt"]      = alt,
+                    ["alt_type"] = "RADIO",
+                    ["speed"]    = speed,
+                    ["skill"]    = "Excellent",
+                },
+            },
+        }
+        -- Orbit + EPLRS route: required at spawn time for loitering JTAC platforms
+        if desc and desc.isJTAC then
+            unitDef["route"] = {
+                ["points"] = {
+                    [1] = {
+                        ["alt"]                = alt,
+                        ["alt_type"]           = "RADIO",
+                        ["action"]             = "Turning Point",
+                        ["type"]               = "Turning Point",
+                        ["speed"]              = speed,
+                        ["ETA"]                = 0,
+                        ["ETA_locked"]         = true,
+                        ["speed_locked"]       = true,
+                        ["formation_template"] = "",
+                        ["properties"]         = { ["addopt"] = {} },
+                        ["x"]                  = pos.x,
+                        ["y"]                  = pos.z,
+                        ["task"] = {
+                            ["id"]     = "ComboTask",
+                            ["params"] = {
+                                ["tasks"] = {
+                                    [1] = {
+                                        ["number"]  = 1,
+                                        ["auto"]    = true,
+                                        ["id"]      = "WrappedAction",
+                                        ["enabled"] = true,
+                                        ["params"]  = {
+                                            ["action"] = {
+                                                ["id"]     = "EPLRS",
+                                                ["params"] = {
+                                                    ["value"]   = true,
+                                                    ["groupId"] = gid,
+                                                },
+                                            },
+                                        },
+                                    },
+                                    [2] = {
+                                        ["number"]  = 2,
+                                        ["auto"]    = false,
+                                        ["id"]      = "Orbit",
+                                        ["enabled"] = true,
+                                        ["params"]  = {
+                                            ["altitude"] = alt,
+                                            ["pattern"]  = "Circle",
+                                            ["speed"]    = speed,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            }
+        end
+        return unitDef
+    end
+end
+
+--------------------------------------------------------------------------------------------------------
 --- Spawns a dynamic group into the game world.
 -- Borrowed from mist.dynAddStatic and modified.
 -- Will generate groupId, groupName, unitId, and unitName if needed
