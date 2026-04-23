@@ -220,12 +220,25 @@ ctld.yamlConfigDatas = [[...]]   -- your param overrides above
 
 -- Add a new crate category (runs after CTLD loads)
 ctld.spawnableCrates["My Vehicles"] = {
-    { weight = 2000.01, desc = "My Custom Truck", unit = "Ural-375", side = 1 },
-    { weight = 2000.02, desc = "My Custom Humvee", unit = "M1043 HMMWV Armament", side = 2, cratesRequired = 2 },
+    { weight = 2000.01, desc = "My Custom Truck",  unit = "Ural-375",              side = 1 },
+    { weight = 2000.02, desc = "My Custom Humvee", unit = "M1043 HMMWV Armament",  side = 2, cratesRequired = 2 },
+    { weight = 2000.03, desc = "My Reaper JTAC",   unit = "MQ-9 Reaper",           side = 2, isJTAC = true, spawnAs = "AIRPLANE" },
 }
 ```
 
 > **Weight uniqueness:** each crate `weight` value must be globally unique across all categories — CTLD uses it as the crate identifier. Use values outside the `1000–1006` range to avoid conflicts with built-in crates.
+
+### Crate descriptor fields
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `weight` | number | — | **Required.** Unique crate identifier (also displayed as weight in kg) |
+| `desc` | string | — | **Required.** Human-readable name shown in F10 menu |
+| `unit` | string | — | **Required.** DCS unit type name, or `"FOB"` sentinel for FOB crates |
+| `side` | number | `nil` | `1` = RED only, `2` = BLUE only, `nil` = both coalitions |
+| `cratesRequired` | number | `1` | Number of crates of this type that must be within 300 m to unpack |
+| `spawnAs` | string | `"GROUND"` | DCS category for spawn: `"GROUND"`, `"AIRPLANE"`, `"HELICOPTER"`, `"SHIP"`, `"TRAIN"`, `"STATIC"` |
+| `isJTAC` | boolean | `false` | If `true`, the spawned unit starts auto-lasing immediately. For air units (`spawnAs = "AIRPLANE"` / `"HELICOPTER"`), an orbit + EPLRS route is embedded at spawn time |
 
 ---
 
@@ -1148,7 +1161,7 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 
 #### Unpack crate
 **Utility:** Consumes the crate(s) and deploys the vehicle, AA system, or triggers FOB construction.
-**How it works:** CTLD checks that the required number of matching crates (`cratesRequired`) are within 300 m. If met, crates are destroyed and the vehicle/AA group is spawned via `coalition.addGroup`.
+**How it works:** CTLD checks that the required number of matching crates (`cratesRequired`) are within 300 m. If met, crates are destroyed and the object is spawned via the unified spawn pipeline (`ctld.utils.buildGroupUnitDef` + `ctld.utils.spawnFromDescriptor`). The DCS API used depends on `spawnAs`: ground vehicles use `coalition.addGroup(GROUND)`, air units use `coalition.addGroup(AIRPLANE/HELICOPTER)`, static objects use `coalition.addStaticObject`.
 **Activation:** F10 → Crate Commands → Unpack Crate(s)
 **Conditions:** Must be on the ground, not inside a LGZ, crates within 300 m, not too close to friendly pickup zone (`minimumDeployDistance`).
 

@@ -100,7 +100,40 @@ Full event catalogue: `docs/specs/CTLD_Events.md`
 
 ---
 
-## 5. Build
+## 5. Crate spawn pipeline
+
+All crate unpack outcomes (ground vehicle, air JTAC, future static) go through a single three-step pipeline in `CTLDCrateManager`:
+
+```
+_spawnUnpacked(desc, pos, coa, cId)
+  ├── ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
+  │     ├── spawnAs == "GROUND"   → minimal {name, task, units[{x,y,heading}]}
+  │     └── spawnAs == "AIRPLANE" → full {groupId, units[{alt,speed}], route[orbit+EPLRS]}
+  │           (orbit + EPLRS embedded only when isJTAC = true)
+  ├── ctld.utils.spawnFromDescriptor(desc, countryId, unitDef)
+  │     ├── spawnAs == "STATIC"   → coalition.addStaticObject
+  │     └── otherwise             → coalition.addGroup(Group.Category[spawnAs])
+  └── _dispatchPostSpawn(desc, gname)
+        └── isJTAC = true → CTLDJTACManager:startLase(gname)
+```
+
+**Key rules:**
+- `coalition.addGroup` and `coalition.addStaticObject` must only be called via `ctld.utils.spawnFromDescriptor` — never directly.
+- `ctld.utils.buildGroupUnitDef` is the single builder for GROUND and AIR unitDefs. STATIC objects have a separate schema and go directly to `addStaticObject`.
+- Post-spawn role activation belongs exclusively in `_dispatchPostSpawn`. Do not add role logic elsewhere in the unpack path.
+- `CTLDJTACManager:deployAirJTAC` (legacy/script entry point) also routes through `buildGroupUnitDef` + `spawnFromDescriptor`.
+
+**Crate descriptor fields driving the pipeline:**
+
+| Field | Effect on pipeline |
+|---|---|
+| `spawnAs` (string, default `"GROUND"`) | Selects `addGroup` category or `addStaticObject` |
+| `isJTAC` (boolean) | Adds orbit+EPLRS to air unitDef; triggers `startLase` post-spawn |
+| `cratesRequired` (number) | Guards unpack — must be met before pipeline runs |
+
+---
+
+## 6. Build
 
 **Local (Windows):**
 ```
@@ -113,7 +146,7 @@ Output: `CTLD_Next.lua` at repo root (gitignored).
 
 ---
 
-## 6. Testing
+## 7. Testing
 
 **busted (unit, no DCS):**
 ```
@@ -129,7 +162,7 @@ Results in `recette/CTLD.log`.
 
 ---
 
-## 7. Migration v1 → v2
+## 8. Migration v1 → v2
 
 ### 7.1 Wrapper principle
 
@@ -234,7 +267,7 @@ lands near a packable vehicle.
 
 ---
 
-## 8. Internationalisation (i18n)
+## 9. Internationalisation (i18n)
 
 ### 8.1 How it works
 
