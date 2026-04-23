@@ -613,12 +613,12 @@ end
 
 --- Spawn a flying JTAC from an unpacked crate and start auto-lase.
 -- Handles the full deployment cycle for any air unit (AIRPLANE, HELICOPTER):
---   1. coalition.addGroup using descriptor.spawnCategory with orbit + EPLRS route
+--   1. ctld.utils.spawnFromDescriptor using descriptor.spawnAs with orbit + EPLRS route
 --   2. CTLDJTACManager:startLase (1-second delayed, mirrors legacy ctld.JTACStart)
--- Called by the unpack callback when descriptor.spawnCategory is set and descriptor.isJTAC = true.
+-- Called by the unpack callback when descriptor.isJTAC = true and descriptor.spawnAs ~= "GROUND".
 -- @param transport  Unit    transport unit (player helicopter)
 -- @param position   vec3    horizontal spawn position {x, y, z} (y = ground level)
--- @param descriptor table   crate descriptor { unit, desc, spawnCategory, isJTAC, ... }
+-- @param descriptor table   crate descriptor { unit, desc, spawnAs, isJTAC, ... }
 -- @param countryId  number  country.id.*
 -- @return boolean  true if spawn succeeded
 function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryId)
@@ -627,7 +627,7 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
         return false
     end
 
-    local dcsCategory = descriptor.spawnCategory or Group.Category.AIRPLANE
+    -- spawnAs drives ctld.utils.spawnFromDescriptor; default AIRPLANE for legacy compat
     local alt   = ctld.gs("jtacDroneAltitude") or 4000
     local speed = 54  -- m/s (~105 kts)
     local gid   = ctld.utils.getNextUniqId()
@@ -714,19 +714,21 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
     }
 
     local cId = countryId or country.id.USA
-    local ok, err = pcall(coalition.addGroup, cId, dcsCategory, unitDef)
+    -- Default spawnAs to "AIRPLANE" for legacy compat when field absent
+    local desc = descriptor.spawnAs and descriptor or { spawnAs = "AIRPLANE", unit = descriptor.unit }
+    local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
     if not ok then
         local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
         ctld.utils.log("WARNING",
-            "CTLDJTACManager:deployAirJTAC — coalition.addGroup failed: " .. errStr)
+            "CTLDJTACManager:deployAirJTAC — spawnFromDescriptor failed: " .. errStr)
         return false
     end
 
     -- Start auto-lase with 1s delay (DCS group units may be empty immediately after spawn)
     self:startLase(gname)
     ctld.utils.log("INFO",
-        string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s cat=%d alt=%dm",
-            gname, descriptor.unit, dcsCategory, alt))
+        string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s spawnAs=%s alt=%dm",
+            gname, descriptor.unit, descriptor.spawnAs or "AIRPLANE", alt))
     return true
 end
 

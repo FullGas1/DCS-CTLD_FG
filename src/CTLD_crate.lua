@@ -432,7 +432,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        if desc.spawnCategory then
+                        if desc.isJTAC and desc.spawnAs and desc.spawnAs ~= "GROUND" then
                             -- Flying JTAC (AIRPLANE/HELICOPTER): orbit + startLase via CTLDJTACManager
                             CTLDJTACManager.get():deployAirJTAC(t, spawnPos, desc, cId)
                         else

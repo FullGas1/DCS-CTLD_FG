@@ -706,7 +706,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
 end
 
 --- Low-level ground unit factory.
--- Calls coalition.addGroup and publishes OnGroundUnitSpawned so that
+-- Calls ctld.utils.spawnFromDescriptor (GROUND) and publishes OnGroundUnitSpawned so that
 -- nearby Pack Vehicle menus refresh automatically.
 -- @param spawnData  table  { vehicleType, groupName, unitName, coalitionId, country }
 -- @param position   vec3   world position {x, y, z}
@@ -724,9 +724,9 @@ function CTLDVehicleSpawner:_spawnGroundUnit(spawnData, position)
             heading = 0,
         }},
     }
-    local ok, err = pcall(coalition.addGroup, cId, Group.Category.GROUND, unitDef)
+    local ok, err = ctld.utils.spawnFromDescriptor(nil, cId, unitDef)
     if not ok then
-        ctld.utils.log("WARNING", "CTLDVehicleSpawner:_spawnGroundUnit - addGroup failed: " .. tostring(err))
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:_spawnGroundUnit - spawnFromDescriptor failed: " .. tostring(err))
         return
     end
     EventDispatcher.getInstance():publish("OnGroundUnitSpawned", {

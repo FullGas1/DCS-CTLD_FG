@@ -919,11 +919,11 @@ function CTLDConfig:load()
         },
         ["Drone"] = {
             --- BLUE MQ-9 Repear
-            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2, isJTAC = true, spawnCategory = Group.Category.AIRPLANE },
+            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2, isJTAC = true, spawnAs = "AIRPLANE" },
             -- End of BLUE MQ-9 Repear
 
             --- RED RQ-1A Predator
-            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1, isJTAC = true, spawnCategory = Group.Category.AIRPLANE },
+            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1, isJTAC = true, spawnAs = "AIRPLANE" },
             -- End of RED RQ-1A Predator
         },
     }
@@ -4095,6 +4095,39 @@ function ctld.utils.dynAddStatic(caller, n)
     ctld.logError("Failed to add static object due to missing or incorrect value. X: %s, Y: %s, Type: %s", newObj.x,
         newObj.y, newObj.type)
     return false
+end
+
+--------------------------------------------------------------------------------------------------------
+--- Unified DCS object spawner — single call-site for coalition.addGroup / coalition.addStaticObject.
+-- All CTLD spawners must route through this function instead of calling DCS APIs directly.
+--
+-- descriptor.spawnAs (string, optional, default "GROUND"):
+--   "GROUND"    → coalition.addGroup(..., Group.Category.GROUND, ...)
+--   "AIRPLANE"  → coalition.addGroup(..., Group.Category.AIRPLANE, ...)
+--   "HELICOPTER"→ coalition.addGroup(..., Group.Category.HELICOPTER, ...)
+--   "SHIP"      → coalition.addGroup(..., Group.Category.SHIP, ...)
+--   "TRAIN"     → coalition.addGroup(..., Group.Category.TRAIN, ...)
+--   "STATIC"    → coalition.addStaticObject(...)
+--
+-- @param descriptor table|nil  crate descriptor (reads .spawnAs); nil treated as GROUND
+-- @param countryId  number     country.id.*
+-- @param unitDef    table      DCS group or static definition
+-- @return boolean, any        pcall result: (true, group) or (false, errorMsg)
+local _SPAWN_CATEGORY_MAP = {
+    GROUND     = Group.Category.GROUND,
+    AIRPLANE   = Group.Category.AIRPLANE,
+    HELICOPTER = Group.Category.HELICOPTER,
+    SHIP       = Group.Category.SHIP,
+    TRAIN      = Group.Category.TRAIN,
+}
+function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
+    local spawnAs = (descriptor and descriptor.spawnAs) or "GROUND"
+    if spawnAs == "STATIC" then
+        return pcall(coalition.addStaticObject, countryId, unitDef)
+    else
+        local cat = _SPAWN_CATEGORY_MAP[spawnAs] or Group.Category.GROUND
+        return pcall(coalition.addGroup, countryId, cat, unitDef)
+    end
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -9196,7 +9229,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        if desc.spawnCategory then
+                        if desc.isJTAC and desc.spawnAs and desc.spawnAs ~= "GROUND" then
                             -- Flying JTAC (AIRPLANE/HELICOPTER): orbit + startLase via CTLDJTACManager
                             CTLDJTACManager.get():deployAirJTAC(t, spawnPos, desc, cId)
                         else
@@ -11443,7 +11476,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
 end
 
 --- Low-level ground unit factory.
--- Calls coalition.addGroup and publishes OnGroundUnitSpawned so that
+-- Calls ctld.utils.spawnFromDescriptor (GROUND) and publishes OnGroundUnitSpawned so that
 -- nearby Pack Vehicle menus refresh automatically.
 -- @param spawnData  table  { vehicleType, groupName, unitName, coalitionId, country }
 -- @param position   vec3   world position {x, y, z}
@@ -11461,9 +11494,9 @@ function CTLDVehicleSpawner:_spawnGroundUnit(spawnData, position)
             heading = 0,
         }},
     }
-    local ok, err = pcall(coalition.addGroup, cId, Group.Category.GROUND, unitDef)
+    local ok, err = ctld.utils.spawnFromDescriptor(nil, cId, unitDef)
     if not ok then
-        ctld.utils.log("WARNING", "CTLDVehicleSpawner:_spawnGroundUnit - addGroup failed: " .. tostring(err))
+        ctld.utils.log("WARNING", "CTLDVehicleSpawner:_spawnGroundUnit - spawnFromDescriptor failed: " .. tostring(err))
         return
     end
     EventDispatcher.getInstance():publish("OnGroundUnitSpawned", {
@@ -15147,12 +15180,12 @@ end
 
 --- Spawn a flying JTAC from an unpacked crate and start auto-lase.
 -- Handles the full deployment cycle for any air unit (AIRPLANE, HELICOPTER):
---   1. coalition.addGroup using descriptor.spawnCategory with orbit + EPLRS route
+--   1. ctld.utils.spawnFromDescriptor using descriptor.spawnAs with orbit + EPLRS route
 --   2. CTLDJTACManager:startLase (1-second delayed, mirrors legacy ctld.JTACStart)
--- Called by the unpack callback when descriptor.spawnCategory is set and descriptor.isJTAC = true.
+-- Called by the unpack callback when descriptor.isJTAC = true and descriptor.spawnAs ~= "GROUND".
 -- @param transport  Unit    transport unit (player helicopter)
 -- @param position   vec3    horizontal spawn position {x, y, z} (y = ground level)
--- @param descriptor table   crate descriptor { unit, desc, spawnCategory, isJTAC, ... }
+-- @param descriptor table   crate descriptor { unit, desc, spawnAs, isJTAC, ... }
 -- @param countryId  number  country.id.*
 -- @return boolean  true if spawn succeeded
 function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryId)
@@ -15161,7 +15194,7 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
         return false
     end
 
-    local dcsCategory = descriptor.spawnCategory or Group.Category.AIRPLANE
+    -- spawnAs drives ctld.utils.spawnFromDescriptor; default AIRPLANE for legacy compat
     local alt   = ctld.gs("jtacDroneAltitude") or 4000
     local speed = 54  -- m/s (~105 kts)
     local gid   = ctld.utils.getNextUniqId()
@@ -15248,19 +15281,21 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
     }
 
     local cId = countryId or country.id.USA
-    local ok, err = pcall(coalition.addGroup, cId, dcsCategory, unitDef)
+    -- Default spawnAs to "AIRPLANE" for legacy compat when field absent
+    local desc = descriptor.spawnAs and descriptor or { spawnAs = "AIRPLANE", unit = descriptor.unit }
+    local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
     if not ok then
         local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
         ctld.utils.log("WARNING",
-            "CTLDJTACManager:deployAirJTAC — coalition.addGroup failed: " .. errStr)
+            "CTLDJTACManager:deployAirJTAC — spawnFromDescriptor failed: " .. errStr)
         return false
     end
 
     -- Start auto-lase with 1s delay (DCS group units may be empty immediately after spawn)
     self:startLase(gname)
     ctld.utils.log("INFO",
-        string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s cat=%d alt=%dm",
-            gname, descriptor.unit, dcsCategory, alt))
+        string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s spawnAs=%s alt=%dm",
+            gname, descriptor.unit, descriptor.spawnAs or "AIRPLANE", alt))
     return true
 end
 

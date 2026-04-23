@@ -1142,6 +1142,39 @@ function ctld.utils.dynAddStatic(caller, n)
 end
 
 --------------------------------------------------------------------------------------------------------
+--- Unified DCS object spawner — single call-site for coalition.addGroup / coalition.addStaticObject.
+-- All CTLD spawners must route through this function instead of calling DCS APIs directly.
+--
+-- descriptor.spawnAs (string, optional, default "GROUND"):
+--   "GROUND"    → coalition.addGroup(..., Group.Category.GROUND, ...)
+--   "AIRPLANE"  → coalition.addGroup(..., Group.Category.AIRPLANE, ...)
+--   "HELICOPTER"→ coalition.addGroup(..., Group.Category.HELICOPTER, ...)
+--   "SHIP"      → coalition.addGroup(..., Group.Category.SHIP, ...)
+--   "TRAIN"     → coalition.addGroup(..., Group.Category.TRAIN, ...)
+--   "STATIC"    → coalition.addStaticObject(...)
+--
+-- @param descriptor table|nil  crate descriptor (reads .spawnAs); nil treated as GROUND
+-- @param countryId  number     country.id.*
+-- @param unitDef    table      DCS group or static definition
+-- @return boolean, any        pcall result: (true, group) or (false, errorMsg)
+local _SPAWN_CATEGORY_MAP = {
+    GROUND     = Group.Category.GROUND,
+    AIRPLANE   = Group.Category.AIRPLANE,
+    HELICOPTER = Group.Category.HELICOPTER,
+    SHIP       = Group.Category.SHIP,
+    TRAIN      = Group.Category.TRAIN,
+}
+function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
+    local spawnAs = (descriptor and descriptor.spawnAs) or "GROUND"
+    if spawnAs == "STATIC" then
+        return pcall(coalition.addStaticObject, countryId, unitDef)
+    else
+        local cat = _SPAWN_CATEGORY_MAP[spawnAs] or Group.Category.GROUND
+        return pcall(coalition.addGroup, countryId, cat, unitDef)
+    end
+end
+
+--------------------------------------------------------------------------------------------------------
 --- Spawns a dynamic group into the game world.
 -- Borrowed from mist.dynAddStatic and modified.
 -- Will generate groupId, groupName, unitId, and unitName if needed
