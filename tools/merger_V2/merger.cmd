@@ -54,4 +54,3 @@ for /f "usebackq delims=" %%F in ("%LIST%") do (
 
 echo.
 echo Merged file generated: "%OUT%"
-pause
