@@ -951,11 +951,12 @@ end
 -- @param dcsGroup  DCS Group
 -- @param targetPos table {x,y,z}
 function CTLDJTACManager:_setOrbitTask(jtacUnit, dcsGroup, targetPos)
-    local droneAlt = jtacUnit:getPoint().y
+    local droneAlt   = jtacUnit:getPoint().y
+    local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", targetPos)
     jtacUnit:getController():popTask()
     dcsGroup:getController():pushTask({
         id     = "Orbit",
-        params = { pattern = "Circle", point = targetPos, speed = 100 / 3.6, altitude = droneAlt },
+        params = { pattern = "Circle", point = orbitPoint, speed = 100 / 3.6, altitude = droneAlt },
     })
 end
 
