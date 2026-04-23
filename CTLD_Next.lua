@@ -15263,18 +15263,28 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         lockMode     = lockMode,
     })
 
+    self.jtacs[groupName] = jtac
+
     -- Store initial flight route for flying JTACs (before any orbit task replaces it).
-    -- Used by _orbitLoop to restore route when orbit ends.
-    -- Controller:getTask() is not guaranteed by the DCS API; pcall to avoid crash.
+    -- DCS bug: coalition.addGroup leaves the group empty for ~1s, so getTask() returns nil
+    -- immediately after spawn. We try once now, then retry after 2s to ensure capture.
     if isFlying then
-        local ctrl = dcsGroup:getController()
-        if ctrl then
-            local ok2, task = pcall(function() return ctrl:getTask() end)
-            if ok2 and task then jtac.initialRoute = task end
+        local function _tryCapture()
+            local j = CTLDJTACManager.get().jtacs[groupName]
+            if not j or j.initialRoute then return end
+            local g = Group.getByName(groupName)
+            if not g then return end
+            local ctrl = g:getController()
+            if ctrl then
+                local ok2, task = pcall(function() return ctrl:getTask() end)
+                if ok2 and task then j.initialRoute = task end
+            end
+        end
+        _tryCapture()
+        if not jtac.initialRoute then
+            timer.scheduleFunction(function() _tryCapture() end, nil, timer.getTime() + 2)
         end
     end
-
-    self.jtacs[groupName] = jtac
 
     -- Start the shared orbit loop on first flying JTAC
     if isFlying and not self._orbitScheduleId then
@@ -15721,6 +15731,9 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         -- Target lost — restore initial route
         if jtac.initialRoute then
             dcsGroup:getController():setTask(jtac.initialRoute)
+        else
+            -- initialRoute not captured (DCS timing); pop the pushed orbit to fall back to spawn route
+            dcsGroup:getController():popTask()
         end
 
         jtac:stopOrbit()
