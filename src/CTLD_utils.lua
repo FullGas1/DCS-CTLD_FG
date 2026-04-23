@@ -338,6 +338,28 @@ function ctld.utils.makeVec2FromVec3OrVec2(caller, vec)
 end
 
 --------------------------------------------------------------------------------------------------------
+--- Build a position string for a DCS unit (lat/lon + MGRS + altitude).
+-- Returns "" if JTAC_location config is false or unit is nil.
+-- @param unit DCS Unit object
+-- @return string  e.g. " @ 42°15.3'N 041°42.1'E - MGRS 38TML… - ALTI: 250 m / 820 ft"
+function ctld.utils.getPositionString(unit)
+    if ctld.gs("JTAC_location") == false or unit == nil then
+        return ""
+    end
+    local _lat, _lon  = coord.LOtoLL(unit:getPosition().p)
+    local _latLngStr  = ctld.utils.tostringLL("getPositionString", _lat, _lon, 3,
+        ctld.gs("location_DMS"))
+    local _mgrsString = ctld.utils.tostringMGRS("getPositionString",
+        coord.LLtoMGRS(coord.LOtoLL(unit:getPosition().p)), 5)
+    local _alt        = land.getHeight(ctld.utils.makeVec2FromVec3OrVec2("getPositionString",
+        unit:getPoint()))
+    return " @ " .. _latLngStr ..
+        " - MGRS " .. _mgrsString ..
+        " - ALTI: " .. ctld.utils.round("getPositionString", _alt, 0) ..
+        " m / " .. ctld.utils.round("getPositionString", _alt / 0.3048, 0) .. " ft"
+end
+
+--------------------------------------------------------------------------------------------------------
 --- @function ctld.utils:rotateVec3
 -- Calcule l'offset cartésien absolu en appliquant la rotation du cap de l'appareil.
 -- (Conçu pour le format de données : relative = {x, y, z})
@@ -674,7 +696,7 @@ end
 -- @tparam number acc the accuracy of each easting/northing.
 -- Can be: 0, 1, 2, 3, 4, or 5.
 function ctld.utils.tostringMGRS(caller, MGRS, acc)
-    if MGRS == nil or MGRS == "" or type(MGRS) ~= 'string' then
+    if MGRS == nil or type(MGRS) ~= 'table' or not MGRS.UTMZone or not MGRS.MGRSDigraph then
         if env and env.error then
             env.error("ctld.utils.tostringMGRS()." .. tostring(caller) .. ": Invalid MGRS coordinates provided.")
         end
@@ -1961,4 +1983,22 @@ end
 ---@param ... any
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
+end
+
+--- Send a text message to a coalition and optionally speak it via STTS.
+---@param message     string   Long message (displayed on screen)
+---@param displayFor  number   Display duration in seconds
+---@param side        number   coalition.side value
+---@param radio       table|nil  { freq, mod, volume, name, gender, culture, voice, googleTTS }
+---@param shortMessage string|nil  Short version for TTS (falls back to message)
+function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessage)
+    trigger.action.outTextForCoalition(side, message, displayFor)
+    local short = shortMessage or message
+    if STTS and STTS.TextToSpeech and radio and radio.freq then
+        STTS.TextToSpeech(short, radio.freq, radio.mod or "FM", radio.volume or "1.0",
+            radio.name or "JTAC", side, nil, 1, radio.gender or "male",
+            radio.culture or "en-US", radio.voice, radio.googleTTS or false)
+    else
+        trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
+    end
 end

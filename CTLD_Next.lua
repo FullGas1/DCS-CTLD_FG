@@ -3660,7 +3660,7 @@ end
 -- @tparam number acc the accuracy of each easting/northing.
 -- Can be: 0, 1, 2, 3, 4, or 5.
 function ctld.utils.tostringMGRS(caller, MGRS, acc)
-    if MGRS == nil or MGRS == "" or type(MGRS) ~= 'string' then
+    if MGRS == nil or type(MGRS) ~= 'table' or not MGRS.UTMZone or not MGRS.MGRSDigraph then
         if env and env.error then
             env.error("ctld.utils.tostringMGRS()." .. tostring(caller) .. ": Invalid MGRS coordinates provided.")
         end
@@ -4947,6 +4947,24 @@ end
 ---@param ... any
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
+end
+
+--- Send a text message to a coalition and optionally speak it via STTS.
+---@param message     string   Long message (displayed on screen)
+---@param displayFor  number   Display duration in seconds
+---@param side        number   coalition.side value
+---@param radio       table|nil  { freq, mod, volume, name, gender, culture, voice, googleTTS }
+---@param shortMessage string|nil  Short version for TTS (falls back to message)
+function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessage)
+    trigger.action.outTextForCoalition(side, message, displayFor)
+    local short = shortMessage or message
+    if STTS and STTS.TextToSpeech and radio and radio.freq then
+        STTS.TextToSpeech(short, radio.freq, radio.mod or "FM", radio.volume or "1.0",
+            radio.name or "JTAC", side, nil, 1, radio.gender or "male",
+            radio.culture or "en-US", radio.voice, radio.googleTTS or false)
+    else
+        trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
+    end
 end
 
 -- End : CTLD_utils.lua
@@ -15360,7 +15378,7 @@ function CTLDJTACManager:killJTAC(groupName, killer)
     jtac:kill()
 
     local kiaMsg = CTLDJTACMessage.build({ event = "kia", jtacName = groupName })
-    ctld.notifyCoalition(kiaMsg.full, 10, jtac.coalitionId, jtac.radio, kiaMsg.short)
+    ctld.utils.notifyCoalition(kiaMsg.full, 10, jtac.coalitionId, jtac.radio, kiaMsg.short)
 
     self:_publishEvent("OnJTACDead", {
         jtac = {
@@ -15613,7 +15631,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         wasSelected = (jtac.selectedTarget == found.unitName),
         standby     = jtac.standbyMode,
     })
-    ctld.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
+    ctld.utils.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
 
     self:_publishEvent("OnJTACLaseStart", {
         jtac = {
@@ -15744,7 +15762,7 @@ function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
             targetType  = prevTarget and prevTarget.unitType or nil,
             wasSelected = prevTarget ~= nil and (prevTarget.unitName == jtac.selectedTarget),
         })
-        ctld.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
+        ctld.utils.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
     end
 
     self:_publishEvent("OnJTACLaseStop", {

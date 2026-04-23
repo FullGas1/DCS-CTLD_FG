@@ -590,7 +590,7 @@ function CTLDJTACManager:killJTAC(groupName, killer)
     jtac:kill()
 
     local kiaMsg = CTLDJTACMessage.build({ event = "kia", jtacName = groupName })
-    ctld.notifyCoalition(kiaMsg.full, 10, jtac.coalitionId, jtac.radio, kiaMsg.short)
+    ctld.utils.notifyCoalition(kiaMsg.full, 10, jtac.coalitionId, jtac.radio, kiaMsg.short)
 
     self:_publishEvent("OnJTACDead", {
         jtac = {
@@ -843,7 +843,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         wasSelected = (jtac.selectedTarget == found.unitName),
         standby     = jtac.standbyMode,
     })
-    ctld.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
+    ctld.utils.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
 
     self:_publishEvent("OnJTACLaseStart", {
         jtac = {
@@ -974,7 +974,7 @@ function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
             targetType  = prevTarget and prevTarget.unitType or nil,
             wasSelected = prevTarget ~= nil and (prevTarget.unitName == jtac.selectedTarget),
         })
-        ctld.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
+        ctld.utils.notifyCoalition(msg.full, 10, jtac.coalitionId, jtac.radio, msg.short)
     end
 
     self:_publishEvent("OnJTACLaseStop", {
