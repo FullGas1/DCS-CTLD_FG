@@ -432,26 +432,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        if desc.isJTAC and desc.spawnAs and desc.spawnAs ~= "GROUND" then
-                            -- Flying JTAC (AIRPLANE/HELICOPTER): orbit + startLase via CTLDJTACManager
-                            CTLDJTACManager.get():deployAirJTAC(t, spawnPos, desc, cId)
-                        else
-                            local uid      = ctld.utils.getNextUniqId()
-                            local gname    = string.format("CTLD_UNP_%d", uid)
-                            CTLDVehicleSpawner.getInstance():spawnVehicleAt(
-                                {
-                                    vehicleType = desc.unit,
-                                    groupName   = gname,
-                                    unitName    = gname,
-                                    coalitionId = coa,
-                                    country     = cId,
-                                },
-                                spawnPos)
-                            -- Ground JTAC: any crate with isJTAC = true triggers auto-lase
-                            if desc.isJTAC then
-                                CTLDJTACManager.get():startLase(gname)
-                            end
-                        end
+                        mgr:_spawnUnpacked(desc, spawnPos, coa, cId)
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -1461,6 +1442,62 @@ function CTLDCrateManager:onBirth(event)
     if string.sub(unitName, 1, 5) == "CTLD_" then return end
     if self:getCrateByName(unitName) then return end   -- already registered
     self:registerMMCrate(obj, desc)
+end
+
+--- Spawn the DCS object described by a crate descriptor and activate its post-spawn role.
+-- Single dispatch point for all standard (non-AA, non-FOB) unpack outcomes:
+--   • Air JTAC  (isJTAC=true, spawnAs != "GROUND"): builds orbit unitDef via JTACManager,
+--     spawns via ctld.utils.spawnFromDescriptor, then calls _dispatchPostSpawn.
+--   • All other (ground vehicles, future statics …): delegates to CTLDVehicleSpawner,
+--     then calls _dispatchPostSpawn.
+-- @param desc  table  crate descriptor { unit, spawnAs, isJTAC, … }
+-- @param pos   vec3   world spawn position
+-- @param coa   number coalition.side.*
+-- @param cId   number country.id.*
+function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId)
+    if not (desc and desc.unit and pos) then return end
+
+    if desc.isJTAC and desc.spawnAs and desc.spawnAs ~= "GROUND" then
+        -- Air JTAC: JTAC_dropEnabled guard, then JTACManager builds specialized unitDef
+        if ctld.gs("JTAC_dropEnabled") == false then
+            ctld.utils.log("INFO", "CTLDCrateManager:_spawnUnpacked — JTAC_dropEnabled=false, skipped")
+            return
+        end
+        local gid     = ctld.utils.getNextUniqId()
+        local uid     = ctld.utils.getNextUniqId()
+        local gname   = string.format("CTLD_JTAC_AIR_%d", gid)
+        local unitDef = CTLDJTACManager.get():_buildAirUnitDef(desc, pos, gname, gid, uid)
+        local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
+        if not ok then
+            local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
+            ctld.utils.log("WARNING", "CTLDCrateManager:_spawnUnpacked — air spawn failed: " .. errStr)
+            return
+        end
+        self:_dispatchPostSpawn(desc, gname)
+    else
+        -- Ground (default) or non-JTAC non-ground: VehicleSpawner builds and spawns
+        local uid   = ctld.utils.getNextUniqId()
+        local gname = string.format("CTLD_UNP_%d", uid)
+        CTLDVehicleSpawner.getInstance():spawnVehicleAt({
+            vehicleType = desc.unit,
+            groupName   = gname,
+            unitName    = gname,
+            coalitionId = coa,
+            country     = cId,
+        }, pos)
+        self:_dispatchPostSpawn(desc, gname)
+    end
+end
+
+--- Activate post-spawn role behaviors for an unpacked crate.
+-- Called after successful spawn regardless of unit type.
+-- Add new role activations here as new crate types are introduced.
+-- @param desc   table  crate descriptor
+-- @param gname  string spawned DCS group name
+function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
+    if desc.isJTAC then
+        CTLDJTACManager.get():startLase(gname)
+    end
 end
 
 --- Cleanup: destroy all tracked crates.
