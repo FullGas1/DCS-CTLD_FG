@@ -1080,14 +1080,23 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
 
     menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
         function(arg)
-            trigger.action.outTextForGroup(arg.groupId,
-                ctld.tr("No active JTACs."), 10)
+            local mgr   = CTLDJTACManager.get()
+            local lines = {}
+            for gname, j in pairs(mgr.jtacs) do
+                if j.coalitionId == arg.coalition and j.state ~= CTLDJTAC.STATE.DEAD then
+                    local target = j.currentTarget and j.currentTarget.unitName or ctld.tr("no target")
+                    table.insert(lines, string.format("%s [%s] → %s (code %s)",
+                        gname, tostring(j.state), target, tostring(j.laserCode or "?")))
+                end
+            end
+            local msg = #lines > 0 and table.concat(lines, "\n") or ctld.tr("No active JTACs.")
+            trigger.action.outTextForGroup(arg.groupId, msg, 15)
         end,
-        { groupId = playerObj.groupId })
+        { groupId = playerObj.groupId, coalition = playerObj.coalition })
 
     -- Per-active-JTAC submenus for this coalition
     for groupName, jtac in pairs(self.jtacs) do
-        if jtac.coalition == playerObj.coalition and not jtac:isDead() then
+        if jtac.coalitionId == playerObj.coalition and jtac.state ~= CTLDJTAC.STATE.DEAD then
             menu:addSubMenu({ root, jtacSub }, groupName)
 
             if ctld.gs("JTAC_allowStandbyMode") then
