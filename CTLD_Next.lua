@@ -1,7 +1,8 @@
 ---@meta
 ---@diagnostic disable
 
--- ===== Start: lib/class.lua =====
+-- ====================================================================================================
+-- Start : lib/class.lua
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -38,9 +39,10 @@ function class(base)
     end
     return cls
 end
--- ===== End: lib/class.lua =====
 
--- ===== Start: CTLD_config.lua =====
+-- End : lib/class.lua
+-- ====================================================================================================
+-- Start : CTLD_config.lua
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -1185,9 +1187,10 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
--- ===== End: CTLD_config.lua =====
 
--- ===== Start: CTLD_i18n.lua =====
+-- End : CTLD_config.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n.lua
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1405,9 +1408,10 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
--- ===== End: CTLD_i18n.lua =====
 
--- ===== Start: CTLD_i18n_en.lua =====
+-- End : CTLD_i18n.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1795,9 +1799,10 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
--- ===== End: CTLD_i18n_en.lua =====
 
--- ===== Start: CTLD_i18n_fr.lua =====
+-- End : CTLD_i18n_en.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2179,9 +2184,10 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
--- ===== End: CTLD_i18n_fr.lua =====
 
--- ===== Start: CTLD_i18n_es.lua =====
+-- End : CTLD_i18n_fr.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2564,9 +2570,10 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
--- ===== End: CTLD_i18n_es.lua =====
 
--- ===== Start: CTLD_i18n_ko.lua =====
+-- End : CTLD_i18n_es.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_ko.lua
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2951,9 +2958,10 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
--- ===== End: CTLD_i18n_ko.lua =====
 
--- ===== Start: CTLD_utils.lua =====
+-- End : CTLD_i18n_ko.lua
+-- ====================================================================================================
+-- Start : CTLD_utils.lua
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -3291,6 +3299,28 @@ function ctld.utils.makeVec2FromVec3OrVec2(caller, vec)
     else
         return { x = vec.x, y = vec.y } -- it was actually already vec2.
     end
+end
+
+--------------------------------------------------------------------------------------------------------
+--- Build a position string for a DCS unit (lat/lon + MGRS + altitude).
+-- Returns "" if JTAC_location config is false or unit is nil.
+-- @param unit DCS Unit object
+-- @return string  e.g. " @ 42°15.3'N 041°42.1'E - MGRS 38TML… - ALTI: 250 m / 820 ft"
+function ctld.utils.getPositionString(unit)
+    if ctld.gs("JTAC_location") == false or unit == nil then
+        return ""
+    end
+    local _lat, _lon  = coord.LOtoLL(unit:getPosition().p)
+    local _latLngStr  = ctld.utils.tostringLL("getPositionString", _lat, _lon, 3,
+        ctld.gs("location_DMS"))
+    local _mgrsString = ctld.utils.tostringMGRS("getPositionString",
+        coord.LLtoMGRS(coord.LOtoLL(unit:getPosition().p)), 5)
+    local _alt        = land.getHeight(ctld.utils.makeVec2FromVec3OrVec2("getPositionString",
+        unit:getPoint()))
+    return " @ " .. _latLngStr ..
+        " - MGRS " .. _mgrsString ..
+        " - ALTI: " .. ctld.utils.round("getPositionString", _alt, 0) ..
+        " m / " .. ctld.utils.round("getPositionString", _alt / 0.3048, 0) .. " ft"
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -4918,9 +4948,10 @@ end
 function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
--- ===== End: CTLD_utils.lua =====
 
--- ===== Start: CTLD_menu.lua =====
+-- End : CTLD_utils.lua
+-- ====================================================================================================
+-- Start : CTLD_menu.lua
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5446,9 +5477,10 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
--- ===== End: CTLD_menu.lua =====
 
--- ===== Start: lib/CTLD_objectRegistry.lua =====
+-- End : CTLD_menu.lua
+-- ====================================================================================================
+-- Start : lib/CTLD_objectRegistry.lua
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5870,9 +5902,10 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
--- ===== End: lib/CTLD_objectRegistry.lua =====
 
--- ===== Start: lib/CTLDParachuteEffect.lua =====
+-- End : lib/CTLD_objectRegistry.lua
+-- ====================================================================================================
+-- Start : lib/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5924,9 +5957,10 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
--- ===== End: lib/CTLDParachuteEffect.lua =====
 
--- ===== Start: CTLD_sceneManager.lua =====
+-- End : lib/CTLDParachuteEffect.lua
+-- ====================================================================================================
+-- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6348,9 +6382,10 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ===== End: CTLD_sceneManager.lua =====
 
--- ===== Start: CTLD_zone.lua =====
+-- End : CTLD_sceneManager.lua
+-- ====================================================================================================
+-- Start : CTLD_zone.lua
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7400,9 +7435,10 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
--- ===== End: CTLD_zone.lua =====
 
--- ===== Start: CTLD_troop.lua =====
+-- End : CTLD_zone.lua
+-- ====================================================================================================
+-- Start : CTLD_troop.lua
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8913,9 +8949,10 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
--- ===== End: CTLD_troop.lua =====
 
--- ===== Start: CTLD_crate.lua =====
+-- End : CTLD_troop.lua
+-- ====================================================================================================
+-- Start : CTLD_crate.lua
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -10925,9 +10962,10 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
--- ===== End: CTLD_crate.lua =====
 
--- ===== Start: CTLD_vehicle.lua =====
+-- End : CTLD_crate.lua
+-- ====================================================================================================
+-- Start : CTLD_vehicle.lua
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -11906,9 +11944,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
--- ===== End: CTLD_vehicle.lua =====
 
--- ===== Start: CTLD_fob.lua =====
+-- End : CTLD_vehicle.lua
+-- ====================================================================================================
+-- Start : CTLD_fob.lua
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12408,9 +12447,10 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
--- ===== End: CTLD_fob.lua =====
 
--- ===== Start: CTLD_aasystem.lua =====
+-- End : CTLD_fob.lua
+-- ====================================================================================================
+-- Start : CTLD_aasystem.lua
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13107,9 +13147,10 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
--- ===== End: CTLD_aasystem.lua =====
 
--- ===== Start: CTLD_beacon.lua =====
+-- End : CTLD_aasystem.lua
+-- ====================================================================================================
+-- Start : CTLD_beacon.lua
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -13923,9 +13964,10 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
--- ===== End: CTLD_beacon.lua =====
 
--- ===== Start: CTLD_recon.lua =====
+-- End : CTLD_beacon.lua
+-- ====================================================================================================
+-- Start : CTLD_recon.lua
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -14722,9 +14764,10 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
--- ===== End: CTLD_recon.lua =====
 
--- ===== Start: CTLD_jtac.lua =====
+-- End : CTLD_recon.lua
+-- ====================================================================================================
+-- Start : CTLD_jtac.lua
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -15566,7 +15609,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         jtacName    = groupName,
         targetType  = found.unitType,
         laserCode   = jtac.laserCode,
-        positionStr = ctld.getPositionString(found.dcsUnit),
+        positionStr = ctld.utils.getPositionString(found.dcsUnit),
         wasSelected = (jtac.selectedTarget == found.unitName),
         standby     = jtac.standbyMode,
     })
@@ -15843,9 +15886,10 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
--- ===== End: CTLD_jtac.lua =====
 
--- ===== Start: CTLD_player.lua =====
+-- End : CTLD_jtac.lua
+-- ====================================================================================================
+-- Start : CTLD_player.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -16276,9 +16320,10 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
--- ===== End: CTLD_player.lua =====
 
--- ===== Start: CTLD_core.lua =====
+-- End : CTLD_player.lua
+-- ====================================================================================================
+-- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -16685,9 +16730,10 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
--- ===== End: CTLD_core.lua =====
 
--- ===== Start: scenes/CTLD_farpScene.lua =====
+-- End : CTLD_core.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_farpScene.lua
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -16788,9 +16834,10 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
--- ===== End: scenes/CTLD_farpScene.lua =====
 
--- ===== Start: scenes/CTLD_fobScene.lua =====
+-- End : scenes/CTLD_farpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_fobScene.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -16890,9 +16937,10 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
--- ===== End: scenes/CTLD_fobScene.lua =====
 
--- ===== Start: scenes/CTLD_mineFieldScene.lua =====
+-- End : scenes/CTLD_fobScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_mineFieldScene.lua
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -17157,9 +17205,10 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
--- ===== End: scenes/CTLD_mineFieldScene.lua =====
 
--- ===== Start: compat/legacy_api.lua =====
+-- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : compat/legacy_api.lua
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -17338,9 +17387,10 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
--- ===== End: compat/legacy_api.lua =====
 
--- ===== Start: CTLD_userConfig.lua =====
+-- End : compat/legacy_api.lua
+-- ====================================================================================================
+-- Start : CTLD_userConfig.lua
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -18310,5 +18360,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
--- ===== End: CTLD_userConfig.lua =====
 
+-- End : CTLD_userConfig.lua

@@ -839,7 +839,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         jtacName    = groupName,
         targetType  = found.unitType,
         laserCode   = jtac.laserCode,
-        positionStr = ctld.getPositionString(found.dcsUnit),
+        positionStr = ctld.utils.getPositionString(found.dcsUnit),
         wasSelected = (jtac.selectedTarget == found.unitName),
         standby     = jtac.standbyMode,
     })
