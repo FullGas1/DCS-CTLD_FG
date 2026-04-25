@@ -13553,7 +13553,13 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
     })
 
     self._beacons[beacon.beaconName] = beacon
-    self:_startTransmissions(beacon)
+    -- Delay transmissions by 1s: DCS coalition.addGroup leaves units uninitialized for ~1s;
+    -- calling radioTransmission immediately yields an invalid position (0,0,0 or stale).
+    local bname = beacon.beaconName
+    timer.scheduleFunction(function()
+        local b = CTLDBeaconManager.getInstance()._beacons[bname]
+        if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
+    end, nil, timer.getTime() + 1)
 
     -- Notify coalition
     trigger.action.outTextForCoalition(coalitionId,
@@ -13982,7 +13988,11 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     })
 
     self._beacons[beacon.beaconName] = beacon
-    self:_startTransmissions(beacon)
+    local bname2 = beacon.beaconName
+    timer.scheduleFunction(function()
+        local b = CTLDBeaconManager.getInstance()._beacons[bname2]
+        if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
+    end, nil, timer.getTime() + 1)
     self:_addBeaconToLayers(beacon)
 
     trigger.action.outTextForCoalition(coalitionId,
