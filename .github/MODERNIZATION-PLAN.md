@@ -242,6 +242,12 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           - system, AA, callsign : valeurs exactes à confirmer
           - 1 beacon max par unité → utiliser l'unité FM dédiée, VHF/UHF gardent radioTransmission
         radioTransmission reste pour VHF (ADF, fonctionne) et UHF (son silencieux FC3).
+        ⚠️ POINT CRITIQUE à vérifier AVANT d'implémenter :
+          "un seul beacon actif à la fois" = par unité ou global mission ?
+          - Si par unité → OK : chaque balise CTLD a sa propre unité FM dédiée
+          - Si global mission → activateBeacon inutilisable pour CTLD (N FOBs simultanés impossibles)
+            → fallback obligatoire : solution B (boucle timer pulsée par unité FM)
+        Test : spawner 2 balises FM sur freq différentes, vérifier réception simultanée des 2.
         → VÉRIFIER API Hoggit avant de coder : https://wiki.hoggitworld.com/view/DCS_command_activateBeacon
 
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
