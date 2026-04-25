@@ -230,19 +230,19 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         → Faire de meilleures propositions au moment du traitement, analyser impacts sur
           unpack pipeline, menu builder, AA assembly manager, et cas bords (FOB, multi-type existants).
 
-⬜  FG  Beacon FM — incompatibilité radioTransmission avec modules full fidelity (UH-1H etc.)
-        Constat : trigger.action.radioTransmission mode=1 (FM) n'est pas reçu par l'ARC-131
-        de l'UH-1H (et probablement d'autres modules full fidelity). Le VHF AM fonctionne
-        via l'ADF natif, mais le FM homing (indicateur de cap) reste muet.
-        Deux alternatives à évaluer et implémenter :
-          A. trigger.action.activateBeacon (beacon natif DCS) — reconnu par tous les modules
-             full fidelity, mais API différente et portée/comportement à vérifier sur Hoggit.
-          B. Boucle timer Lua : transmitOn(freq, power) → timer.scheduleFunction 7s →
-             stopTransmit → timer.scheduleFunction 1s → retour début. Simule le comportement
-             d'une émission pulsée reconnue par les systèmes radio full fidelity.
-             Avantage : ne nécessite pas de changer d'API DCS.
-             Inconvénient : consomme des schedules timer, fréquence de cycle à caler.
-        → Vérifier d'abord la doc Hoggit pour activateBeacon avant d'implémenter.
+⬜  FG  Beacon FM — remplacer radioTransmission par activateBeacon HOMER pour canal FM
+        Diagnostic confirmé : trigger.action.radioTransmission mode=1 (FM) ne produit pas un
+        signal carrier FM reçu par le module UH-1H (ARC-131 / ARN-83). Le VHF AM fonctionne
+        car il passe par l'ADF (chemin audio séparé). radioTransmission FM = audio overlay sans
+        carrier FM réel → invisible pour les radios FM full fidelity.
+        Solution : activer un beacon natif DCS type HOMER (type=8) sur l'unité FM via
+        Unit:getController():setCommand({id="ActivateBeacon", params={type=8, ...}})
+        Paramètres à vérifier sur Hoggit avant implémentation :
+          - type = 8 (BEACON_TYPE_HOMER) pour FM homing
+          - system, AA, callsign : valeurs exactes à confirmer
+          - 1 beacon max par unité → utiliser l'unité FM dédiée, VHF/UHF gardent radioTransmission
+        radioTransmission reste pour VHF (ADF, fonctionne) et UHF (son silencieux FC3).
+        → VÉRIFIER API Hoggit avant de coder : https://wiki.hoggitworld.com/view/DCS_command_activateBeacon
 
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
         trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
