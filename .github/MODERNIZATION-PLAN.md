@@ -222,6 +222,20 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         → Faire de meilleures propositions au moment du traitement, analyser impacts sur
           unpack pipeline, menu builder, AA assembly manager, et cas bords (FOB, multi-type existants).
 
+⬜  FG  Beacon FM — incompatibilité radioTransmission avec modules full fidelity (UH-1H etc.)
+        Constat : trigger.action.radioTransmission mode=1 (FM) n'est pas reçu par l'ARC-131
+        de l'UH-1H (et probablement d'autres modules full fidelity). Le VHF AM fonctionne
+        via l'ADF natif, mais le FM homing (indicateur de cap) reste muet.
+        Deux alternatives à évaluer et implémenter :
+          A. trigger.action.activateBeacon (beacon natif DCS) — reconnu par tous les modules
+             full fidelity, mais API différente et portée/comportement à vérifier sur Hoggit.
+          B. Boucle timer Lua : transmitOn(freq, power) → timer.scheduleFunction 7s →
+             stopTransmit → timer.scheduleFunction 1s → retour début. Simule le comportement
+             d'une émission pulsée reconnue par les systèmes radio full fidelity.
+             Avantage : ne nécessite pas de changer d'API DCS.
+             Inconvénient : consomme des schedules timer, fréquence de cycle à caler.
+        → Vérifier d'abord la doc Hoggit pour activateBeacon avant d'implémenter.
+
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
         trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
         la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui
