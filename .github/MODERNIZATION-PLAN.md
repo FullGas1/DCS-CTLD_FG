@@ -202,6 +202,26 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
         À planifier après STEP 2+3 terminés.
 
+⬜  FG  Refonte système multi-crates — génération automatique + redéfinition sémantique
+        Problème actuel : deux sources de vérité indépendantes faciles à désynchroniser.
+          Ex : Hummer cratesRequired=1, mais { multiple={1001.01, 1001.01} } en liste 2 → incohérence silencieuse.
+        À DISCUTER avant implémentation — proposition MM à soumettre :
+
+        Piste A (génération automatique des sets simples) :
+          Garde config : showMultiCrateSets = true/false
+          Si true, le menu builder génère automatiquement l'entrée "XX — All crates" à partir du
+          descriptor de la crate individuelle et de son attribut cratesRequired, sans ligne `multiple`
+          explicite dans la config. Supprime la redondance pour les sets mono-type.
+
+        Piste B (réservation de `multiple` aux sets multi-types) :
+          `multiple` n'est utilisé QUE pour les équipements nécessitant plusieurs types de crates
+          distincts (ex: systèmes AA : {launcherA, launcherA, radarA, commA, commA}).
+          Chaque type dans le set est défini par sa propre crate portant son cratesRequired.
+          Le set décrit la COMPOSITION (quels types, combien de chaque), pas la répétition d'une même crate.
+
+        → Faire de meilleures propositions au moment du traitement, analyser impacts sur
+          unpack pipeline, menu builder, AA assembly manager, et cas bords (FOB, multi-type existants).
+
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
         trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
         la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui
