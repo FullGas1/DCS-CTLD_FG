@@ -763,7 +763,7 @@ function CTLDConfig:load()
             { multiple = { 1001.03, 1001.03 },          desc = ctld.tr("M-978 Tanker - All crates"),        side = 2 },
 
             --- RED
-            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
             { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
             { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
             { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },

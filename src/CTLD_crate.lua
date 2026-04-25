@@ -1670,10 +1670,12 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
         menu:addSubMenu({ root, spawnSub }, lgzName)
         for category, crates in pairs(spawnableCrates) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
+            local crateOrder = 0
             for _, crate in ipairs(crates) do
                 local sideOk    = (crate.side == nil) or (crate.side == playerObj.coalition)
                 local crateJtac = _crateIsJTAC(crate)
                 if sideOk and (not crateJtac or jtacOk) then
+                    crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
                             local t = Unit.getByName(arg.unitName)
@@ -1729,7 +1731,8 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                           multiple  = crate.multiple,
                           zoneName  = lgzName,
                           unitName  = playerObj.unitName,
-                          coalition = playerObj.coalition })
+                          coalition = playerObj.coalition },
+                        { order = crateOrder })
                 end
             end
         end

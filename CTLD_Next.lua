@@ -808,7 +808,7 @@ function CTLDConfig:load()
             { multiple = { 1001.03, 1001.03 },          desc = ctld.tr("M-978 Tanker - All crates"),        side = 2 },
 
             --- RED
-            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
             { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
             { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
             { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
@@ -817,7 +817,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
             { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                        unit = "FOB",               side = nil,        cratesRequired = 3 }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                        unit = "FOB",               side = nil,        cratesRequired = 1 }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {

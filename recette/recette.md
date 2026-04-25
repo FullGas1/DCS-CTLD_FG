@@ -131,7 +131,7 @@ La mission de test doit contenir :
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-107)
+## Section F — Tests fonctionnels (F-01 à F-108)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -245,6 +245,7 @@ La mission de test doit contenir :
 | F-105 | CTLDi18n — audit complet ES+KO | i18n | audit("es") + audit("ko") : version_match, 0 missing, untranslated loggés | ✅ PASS 10/10 | — |
 | F-106 | JTAC drone full lifecycle — deployAirJTAC + orbit route + autoOrbit + restore | JTAC | Spawn MQ-9 → _setOrbitRoute (2s retry) → autoOrbit sur cible lasée → cible détruite → popTask + setTask(initialRoute) → drone retour route initiale complète (cercle 2000 m) | ✅ PASS visual [2026-04-25] | Witchcraft diag_jtac_deploy_test + diag_force_target_loss |
 | F-107 | Hummer JTAC — Request Equipment → unpack → autoLase | JTAC STEP1+3 | isJTAC=true sur Hummer → Request Equipment visible + unpack → startLase déclenché → laser code attribué → menu JTAC F10 actif | ✅ PASS visual [2026-04-25] | Mission réelle BLUE |
+| F-108 | FOB beacon radio — VHF/UHF/FM reçus après ajout sons mission | Beacon | Drop FOB → beacon spawné → VHF ADF actif + FM homing actif (ARC-131 UH-1H) après ajout beacon.ogg + beaconsilent.ogg dans Mission→Sons | ✅ PASS visual [2026-04-26] | Sons .ogg obligatoires dans .miz |
 
 ---
 
@@ -289,7 +290,8 @@ La mission de test doit contenir :
 - **i18n** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-90→U-96 43/43 + F-103→F-105 20/20 ✅) [2026-04-16]
 - **JTAC drone orbit** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-106 [2026-04-25])
 - **JTAC Hummer** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-107 [2026-04-25])
-- **Total** : **194 cas** — 914/914 PASS ✅
+- **FOB beacon radio** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-108 [2026-04-26]) — sons .ogg obligatoires dans .miz
+- **Total** : **195 cas** — 915/915 PASS ✅
 
 ---
 

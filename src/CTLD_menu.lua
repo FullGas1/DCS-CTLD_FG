@@ -326,7 +326,7 @@ end
 
 -- Add a command leaf at pathTable / commandName.
 -- anyArgument must be a table (or nil → defaults to {}).
-function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgument)
+function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgument, opts)
     pathTable = pathTable or {}
 
     if not commandName or type(commandName) ~= "string" then
@@ -360,6 +360,7 @@ function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgumen
         functionToCall = functionToCall,
         anyArgument    = anyArgument or {},
         enabled        = true,
+        order          = opts and opts.order or nil,
     }
 
     if not parent.children then parent.children = {} end

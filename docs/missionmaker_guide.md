@@ -1286,6 +1286,12 @@ If enemy forces destroy ≥ `fobDestructionThreshold` (50% by default) of the FO
 
 Radio beacons are deployable navigation aids. A player drops a beacon from their aircraft; it transmits on automatically-assigned VHF, UHF and FM frequencies for a configurable battery life. All coalition members see the beacon on the F10 map.
 
+> ⚠️ **Required: sound files must be embedded in the mission.**
+> CTLD does not bundle audio files — you must add them manually via the mission editor:
+> **Mission → Sounds → Add** → select `assets/beacon.ogg` and `assets/beaconsilent.ogg` from the CTLD repo.
+> **If these files are missing, all radio transmissions are silent and FM homing will not work.**
+> The VHF ADF needle may still respond (it reacts to the TACAN_beacon unit itself, not to the sound), but no audio will be heard on any frequency.
+
 ### 13.2 Actions
 
 #### Drop beacon
