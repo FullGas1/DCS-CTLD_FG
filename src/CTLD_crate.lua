@@ -1602,15 +1602,18 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     end
 end
 
---- Returns true if the unit type name is a JTAC-type unit.
--- Used to filter JTAC crates from the Request Equipment menu when JTAC_dropEnabled = false.
--- Matches known JTAC unit type names (case-insensitive substring).
-local _jtacUnitTypes = { "hummer", "skp-11", "jtac" }
-function CTLDCrateManager:_isJTACUnitType(unitType)
-    if not unitType then return false end
-    local lower = string.lower(unitType)
-    for _, t in ipairs(_jtacUnitTypes) do
-        if string.find(lower, t, 1, true) then return true end
+--- Returns true if a crate descriptor entry has the JTAC role.
+-- For single crates: checks desc.isJTAC == true.
+-- For multi-crates:  resolves each weight to its descriptor; true if any has isJTAC == true.
+-- @param desc  table  entry from spawnableCrates (may have .unit or .multiple)
+local function _crateIsJTAC(desc)
+    if desc.isJTAC then return true end
+    if desc.multiple then
+        local mgr = CTLDCrateManager.getInstance()
+        for _, w in ipairs(desc.multiple) do
+            local d = mgr:findDescriptorByWeight(w)
+            if d and d.isJTAC then return true end
+        end
     end
     return false
 end
@@ -1669,7 +1672,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
             for _, crate in ipairs(crates) do
                 local sideOk    = (crate.side == nil) or (crate.side == playerObj.coalition)
-                local crateJtac = self:_isJTACUnitType(crate.unit)
+                local crateJtac = _crateIsJTAC(crate)
                 if sideOk and (not crateJtac or jtacOk) then
                     menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
                         function(arg)
