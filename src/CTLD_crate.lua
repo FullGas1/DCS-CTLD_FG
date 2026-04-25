@@ -1498,7 +1498,7 @@ end
 -- @param gname  string spawned DCS group name
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
-        CTLDJTACManager.get():startLase(gname)
+        CTLDJTACManager.get():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
     end
 end
 

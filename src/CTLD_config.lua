@@ -358,6 +358,7 @@ function CTLDConfig:load()
     self.settings["JTAC_allow9Line"]                = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
     self.settings["JTAC_laseIntervalSeconds"]       = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
     self.settings["JTAC_searchIntervalSeconds"]     = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
+    self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
 
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh
@@ -876,11 +877,13 @@ function CTLDConfig:load()
         },
         ["Drone"] = {
             --- BLUE MQ-9 Repear
-            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2, isJTAC = true, spawnAs = "AIRPLANE" },
+            { weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"),    unit = "MQ-9 Reaper",    side = 2, isJTAC = true, spawnAs = "AIRPLANE",
+              specificParams = { speed = 150, alti = 3000, orbitRadiusNoLase = 2000, orbitRadiusOnLase = 1000 } },
             -- End of BLUE MQ-9 Repear
 
             --- RED RQ-1A Predator
-            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1, isJTAC = true, spawnAs = "AIRPLANE" },
+            { weight = 1006.11, desc = ctld.tr("RQ-1A Predator - JTAC"), unit = "RQ-1A Predator", side = 1, isJTAC = true, spawnAs = "AIRPLANE",
+              specificParams = { speed = 150, alti = 3000, orbitRadiusNoLase = 2000, orbitRadiusOnLase = 1000 } },
             -- End of RED RQ-1A Predator
         },
     }
@@ -954,8 +957,8 @@ function CTLDConfig:load()
         "SKP", "Hummer",                      -- there are some wierd encoding issues so if you write SKP-11 it wont match as the - sign is encoded differently...
         "MQ", "RQ"                            --"MQ-9 Repear", "RQ-1A Predator"}
     }
-    self.settings["jtacDroneRadius"]   = 1000 -- JTAC offset radius in meters for orbiting drones
-    self.settings["jtacDroneAltitude"] = 7000 -- JTAC altitude in meters for orbiting drones
+    self.settings["jtacDroneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
+    self.settings["jtacDroneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
     -- ******************************************************************
     -- ****************** END OF CONFIGURATION AREA *********************

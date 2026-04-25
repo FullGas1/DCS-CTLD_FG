@@ -1,3 +1,5 @@
-[REFRESH] forcing refreshMenuSection for Batumi_UH-1H_0-1
-[REFRESH] done — inAir=false
-[REFRESH] hasTroops=true
+[CTLD] Log started : 2026-04-25 18:42:02
+[CTLD][INFO] [diag] CTLD.log opened — debug logging active
+[CTLD][INFO] CTLDJTACManager:deployAirJTAC — spawned CTLD_AIR_1 as MQ-9 Reaper spawnAs=AIRPLANE
+[CTLD][INFO] [JTAC] _setOrbitRoute CTLD_AIR_1 center(-355941,618120) r=2000 altASL=3010 start_wp=5
+[CTLD][INFO] [JTAC] _updateOrbit: target lost, route restored for CTLD_AIR_1

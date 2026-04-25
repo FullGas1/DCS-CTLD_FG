@@ -131,7 +131,7 @@ La mission de test doit contenir :
 
 ---
 
-## Section F — Tests fonctionnels (F-01 à F-105)
+## Section F — Tests fonctionnels (F-01 à F-106)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
 |----|-----|--------|----------|--------|--------------|
@@ -243,6 +243,7 @@ La mission de test doit contenir :
 | F-103 | CTLDi18n — ctld.tr() fallback chain | i18n | FR→EN→key, paramètres %1/%2, langue inconnue, clé inconnue | ✅ PASS 6/6 | — |
 | F-104 | CTLDi18n — audit complet FR | i18n | audit("fr") : version_match, 0 missing (untranslated intentionnels loggés, pas d'échec) | ✅ PASS 4/4 | — |
 | F-105 | CTLDi18n — audit complet ES+KO | i18n | audit("es") + audit("ko") : version_match, 0 missing, untranslated loggés | ✅ PASS 10/10 | — |
+| F-106 | JTAC drone full lifecycle — deployAirJTAC + orbit route + autoOrbit + restore | JTAC | Spawn MQ-9 → _setOrbitRoute (2s retry) → autoOrbit sur cible lasée → cible détruite → popTask + setTask(initialRoute) → drone retour route initiale complète (cercle 2000 m) | ✅ PASS visual [2026-04-25] | Witchcraft diag_jtac_deploy_test + diag_force_target_loss |
 
 ---
 
@@ -285,7 +286,8 @@ La mission de test doit contenir :
 - **Q1** : 3 unitaires + 7 fonctionnels = **10 cas** ✅ PASS (U-81→U-83 62/62 + F-94→F-100 100/100 ✅) [2026-04-15]
 - **Config** : 6 unitaires + 2 fonctionnels = **8 cas** ✅ PASS (U-84→U-89 46/46 + F-101→F-102 11/11 ✅) [2026-04-16]
 - **i18n** : 7 unitaires + 3 fonctionnels = **10 cas** ✅ PASS (U-90→U-96 43/43 + F-103→F-105 20/20 ✅) [2026-04-16]
-- **Total** : **192 cas** — 914/914 PASS ✅
+- **JTAC drone orbit** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-106 [2026-04-25])
+- **Total** : **193 cas** — 914/914 PASS ✅
 
 ---
 

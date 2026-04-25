@@ -130,6 +130,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         with method="dcs_native". Refreshes Unpack/LoadCrate/RequestEquipment menus.
         [2026-04-22]
 
+✅  FG  JTAC drone orbit lifecycle — deployAirJTAC + initialRoute + autoOrbit + restore [2026-04-25]
+        CTLDJTACManager:deployAirJTAC() spawns MQ-9/drone, isFlying detected via _tryInitFlying()
+        with T+2s retry (DCS 1s spawn delay). _setOrbitRoute() builds 8-WP circular Mission route
+        (SwitchWaypoint on rotated[n] for full-circle coverage). _updateOrbit() branches:
+          • target acquired → GROUP pushTask(Circle) → onTargetOrbit=true (ORBITING)
+          • target lost     → GROUP popTask() + GROUP setTask(initialRoute) → IDLE
+        Validated F-106 [2026-04-25] via Witchcraft: full circle restoration confirmed.
+
 ⬜  FG  FOB construction scene — animated build sequence (120 s)
         Animate fobScene over the full buildTimeFOB (120 s) duration instead of
         playing all steps immediately:
@@ -142,6 +150,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Implementation: add timed sub-steps in CTLD_fobScene.lua using the
         CtldScene step engine (timer offsets); transition props registered in
         scene._transitionObjs for cleanup in the onComplete callback.
+
+⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
+        trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
+        la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui
+        crée des marks (RECON layers, orbit debug, beacons…) utilise un compteur global
+        monotoniquement croissant (type mIdx++) et jamais un compteur local réinitialisé.
+        Priorité : layers RECON — le toggle ON/OFF supprime puis recrée les marks ; si l'ID
+        est réutilisé, les marks ne réapparaissent pas → bug invisible.
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]
