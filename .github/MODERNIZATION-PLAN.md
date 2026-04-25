@@ -151,6 +151,31 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         CtldScene step engine (timer offsets); transition props registered in
         scene._transitionObjs for cleanup in the onComplete callback.
 
+✅  FG  STEP 1 — Factorisation rôle JTAC : isJTAC descriptor + suppression _jtacUnitTypes [2026-04-25]
+        Périmètre :
+          1. Ajouter isJTAC=true sur Hummer (1001.01) et SKP-11 (1001.11)
+          2. Remplacer _isJTACUnitType(crate.unit) par crate.isJTAC==true dans le menu builder
+             Pour les multi-crates (pas de champ unit): _multiIsJTAC(multiple) = true si au moins
+             un weight de la liste résout vers un descriptor avec isJTAC=true (via findDescriptorByWeight)
+          3. Supprimer _jtacUnitTypes locale + CTLDCrateManager:_isJTACUnitType()
+          4. Supprimer jtacUnitTypes de ctld_config.lua + section userConfig (ou marquer deprecated)
+        Priorité : HAUTE — prérequis pour les recettes JTAC sol
+
+⬜  FG  STEP 2 — Bug troop JTAC : hasJtac → startLase non implémenté en OOP (PRIORITÉ APRÈS STEP 1)
+        Bug parité legacy: deploy() d'un groupe avec hasJtac=true ne déclenche pas startLase.
+        Legacy: après spawnDroppedGroup(), si _onboard.troops.jtac ou nom contient "jtac" →
+        ctld.JTACStart(groupName, code). OOP: deploy() log seulement "JTAC group dropped" sans lase.
+        Fix: dans CTLDTroopManager:deploy(), après spawn DCS, si group.hasJtac → CTLDJTACManager:startLase()
+        Recette après fix (JTAC sol via troupes) :
+          • Déployer "JTAC Group" (inf=4, jtac=1) → autoLase → menu JTAC F10
+          • Déployer "Single JTAC" (jtac=1) → autoLase → menu JTAC F10
+
+⬜  FG  STEP 3 — Recette fonctions JTAC sur véhicules sol (après STEP 1+2)
+        Hummer (BLUE)  : Request Equipment → unpack → autoLase → menu JTAC F10
+        SKP-11 (RED)   : idem côté RED
+        Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
+        SKP-11 IN_TRANSIT : idem RED
+
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
         trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
         la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui

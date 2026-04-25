@@ -190,15 +190,11 @@ CTLD calculates group weight to check whether a troop group fits inside a transp
 
 ##### Pre-placed JTAC groups (auto-detection)
 
-CTLD automatically detects JTAC groups placed in the mission editor at startup. A group is recognised as a JTAC if **either** condition is met:
+CTLD automatically detects JTAC groups placed in the mission editor at startup. A group is recognised as a JTAC if its **group name contains `jtac`** (case-insensitive).
 
-1. **Group name contains `jtac`** (case-insensitive) — use this for infantry JTAC groups.
-   Examples: `jtac_blue_1`, `JTAC_Red_Forward`, `blue_jtac_drone`
+Examples: `jtac_blue_1`, `JTAC_Red_Forward`, `blue_jtac_drone`
 
-2. **At least one unit in the group has a type listed in `jtacUnitTypes`** (config) — use this for vehicle or drone JTACs.
-   Default types: `SKP`, `Hummer`, `MQ`, `RQ`
-
-> **Naming rule**: if your JTAC group does not use a recognised JTAC unit type (e.g. an infantry squad acting as JTAC), you **must** include `jtac` in the group name, otherwise CTLD will not detect it.
+> **Naming rule (mandatory):** any JTAC group placed in the mission editor **must** include `jtac` in its group name. CTLD uses the group name — not the unit type — to identify pre-placed JTACs. A group containing a Hummer or SKP-11 will NOT be detected unless its name contains `jtac`.
 
 Late-activation JTAC groups are supported: CTLD registers them automatically when they activate during the mission.
 
@@ -238,7 +234,10 @@ ctld.spawnableCrates["My Vehicles"] = {
 | `side` | number | `nil` | `1` = RED only, `2` = BLUE only, `nil` = both coalitions |
 | `cratesRequired` | number | `1` | Number of crates of this type that must be within 300 m to unpack |
 | `spawnAs` | string | `"GROUND"` | DCS category for spawn: `"GROUND"`, `"AIRPLANE"`, `"HELICOPTER"`, `"SHIP"`, `"TRAIN"`, `"STATIC"` |
-| `isJTAC` | boolean | `false` | If `true`, the spawned unit starts auto-lasing immediately. For air units (`spawnAs = "AIRPLANE"` / `"HELICOPTER"`), an orbit + EPLRS route is embedded at spawn time |
+| `isJTAC` | boolean | `false` | **JTAC role flag.** If `true`, the spawned unit starts auto-lasing immediately after unpack. For air units (`spawnAs = "AIRPLANE"` / `"HELICOPTER"`), an orbit route is embedded at spawn time and the drone follows its lased target. **This is the only mechanism that activates JTAC behaviour** — the unit type name is not used for detection. All built-in JTAC entries (Hummer, SKP-11, MQ-9, RQ-1A) already carry this flag. Any custom JTAC crate must set it explicitly. |
+| `specificParams` | table | `nil` | Air JTAC orbit tuning: `{ speed=kmh, alti=m_AGL, orbitRadiusNoLase=m, orbitRadiusOnLase=m }`. Only meaningful when `isJTAC=true` and `spawnAs` is `"AIRPLANE"` or `"HELICOPTER"`. |
+
+> **Menu visibility and `JTAC_dropEnabled`:** crates with `isJTAC=true` are hidden from the Request Equipment F10 menu when `JTAC_dropEnabled = false`. This applies to both single-crate and multi-crate (`multiple`) entries — a multi-crate set is considered JTAC if any of its component weights resolves to a descriptor with `isJTAC=true`.
 
 ---
 

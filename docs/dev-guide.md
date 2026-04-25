@@ -128,8 +128,20 @@ _spawnUnpacked(desc, pos, coa, cId)
 | Field | Effect on pipeline |
 |---|---|
 | `spawnAs` (string, default `"GROUND"`) | Selects `addGroup` category or `addStaticObject` |
-| `isJTAC` (boolean) | Adds orbit+EPLRS to air unitDef; triggers `startLase` post-spawn |
+| `isJTAC` (boolean) | **Source of truth for JTAC role.** Adds orbit route to air unitDef; triggers `startLase` post-spawn. The unit type name (`unit`) is NOT used for JTAC detection anywhere in the OOP stack. |
+| `specificParams` (table, air only) | Orbit tuning passed to `startLase` / `deployAirJTAC`: `speed`, `alti`, `orbitRadiusNoLase`, `orbitRadiusOnLase` |
 | `cratesRequired` (number) | Guards unpack — must be met before pipeline runs |
+
+**JTAC detection rules (summary — do not invert):**
+
+| Context | Rule |
+|---|---|
+| Request Equipment menu visibility | `_crateIsJTAC(desc)` — checks `desc.isJTAC` for single crates; for multi-crates resolves each weight via `findDescriptorByWeight` and returns true if any has `isJTAC=true` |
+| Post-unpack activation | `_dispatchPostSpawn`: `if desc.isJTAC → CTLDJTACManager:startLase()` |
+| Pre-placed MM group detection | Group name contains `"jtac"` (case-insensitive) — unit type not used |
+| Troop deploy with JTAC soldier | `tmpl.hasJtac == true` (computed from `jtac > 0` in template) → `startLase` after deploy |
+
+> **Do not add new JTAC detection paths.** If a new unit type needs JTAC behaviour, add `isJTAC=true` to its crate descriptor — never add it to a type-name list.
 
 ---
 
