@@ -176,6 +176,20 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
         SKP-11 IN_TRANSIT : idem RED
 
+⬜  FG  Recettes fonctionnelles avancées — workflow joueur end-to-end par entrée de menu
+        Objectif : garantir que chaque entrée de menu F10 fonctionne dans un flot d'actions réel.
+        Contrairement aux tests unitaires (mocks), ces recettes sont Witchcraft + mission réelle.
+        Scénarios prioritaires :
+          • JTAC sol (Hummer/SKP-11) : Request Equipment → pose caisse → unpack près d'un ennemi
+            → vérifier message lasing + laser code attribué + menu JTAC F10 accessible
+          • Drone JTAC (MQ-9) : unpack → drone sur route initiale (orbite) → approcher un ennemi
+            dans la LOS du drone → drone auto-orbite dessus et suit si mobile → éloigner la cible
+            hors LOS → drone reprend sa route d'origine (orbite initiale)
+          • Troupes JTAC : déployer "JTAC Group" → lasing actif → menu JTAC F10
+          • Chaque entrée IN_TRANSIT : embarquer JTAC sol dans hélico → débarquer → lasing reprend
+        Format : scripts diag Witchcraft + logs CTLD.log comme seule vérification (pas d'assert)
+        À planifier après STEP 2+3 terminés.
+
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
         trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
         la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui
