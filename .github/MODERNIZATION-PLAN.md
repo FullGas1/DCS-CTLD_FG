@@ -171,10 +171,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • Déployer "Single JTAC" (jtac=1) → autoLase → menu JTAC F10
 
 ⬜  FG  STEP 3 — Recette fonctions JTAC sur véhicules sol (après STEP 1+2)
-        Hummer (BLUE)  : Request Equipment → unpack → autoLase → menu JTAC F10
-        SKP-11 (RED)   : idem côté RED
-        Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
-        SKP-11 IN_TRANSIT : idem RED
+        ✅ Hummer (BLUE)  : Request Equipment → unpack → autoLase → menu JTAC F10 [2026-04-25] F-107
+        ⬜ SKP-11 (RED)   : idem côté RED
+        ⬜ Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
+        ⬜ SKP-11 IN_TRANSIT : idem RED
 
 ⬜  FG  Recettes fonctionnelles avancées — workflow joueur end-to-end par entrée de menu
         Objectif : garantir que chaque entrée de menu F10 fonctionne dans un flot d'actions réel.
