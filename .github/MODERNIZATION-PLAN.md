@@ -176,18 +176,30 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         ⬜ Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
         ⬜ SKP-11 IN_TRANSIT : idem RED
 
-⬜  FG  Recettes fonctionnelles avancées — workflow joueur end-to-end par entrée de menu
-        Objectif : garantir que chaque entrée de menu F10 fonctionne dans un flot d'actions réel.
-        Contrairement aux tests unitaires (mocks), ces recettes sont Witchcraft + mission réelle.
+⬜  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
+        Objectif : créer une bibliothèque de scripts Lua injectables via Witchcraft qui reproduisent
+        des séquences d'actions joueur réelles et vérifient leur bon déroulement.
+        Contrairement aux tests unitaires (mocks Lua standalone), ces scénarios tournent en mission
+        DCS réelle et valident le comportement observable de bout en bout.
+
+        Architecture :
+          • Répertoire : recette/scenarios/ (séparé des diag/)
+          • Chaque scénario = script Lua autonome injectable via Witchcraft
+          • Mode d'exécution : mission lancée en mode CTLD debug (ctld.debug = true)
+          • Tous les messages outText envoyés à l'écran doivent AUSSI être insérés dans CTLD.log
+            → ctld.utils.log("INFO", ...) systématique sur chaque point de contrôle
+          • Traces techniques supplémentaires (positions, distances, états internes) injectées
+            dans le script de test uniquement — jamais dans le code de production src/
+          • Vérification : lecture de CTLD.log seule (pas d'assert runtime)
+
         Scénarios prioritaires :
-          • JTAC sol (Hummer/SKP-11) : Request Equipment → pose caisse → unpack près d'un ennemi
-            → vérifier message lasing + laser code attribué + menu JTAC F10 accessible
-          • Drone JTAC (MQ-9) : unpack → drone sur route initiale (orbite) → approcher un ennemi
-            dans la LOS du drone → drone auto-orbite dessus et suit si mobile → éloigner la cible
-            hors LOS → drone reprend sa route d'origine (orbite initiale)
-          • Troupes JTAC : déployer "JTAC Group" → lasing actif → menu JTAC F10
-          • Chaque entrée IN_TRANSIT : embarquer JTAC sol dans hélico → débarquer → lasing reprend
-        Format : scripts diag Witchcraft + logs CTLD.log comme seule vérification (pas d'assert)
+          • JTAC sol (Hummer) : Request Equipment → unpack près ennemi → lasing actif
+            → laser code dans log → menu JTAC F10 → 9-Line → Toggle Lase
+          • Drone JTAC (MQ-9) : unpack → route initiale (orbite) → ennemi entre dans LOS
+            → autoOrbit sur cible → cible mobile suivie → cible hors LOS → retour route initiale
+          • Troupes JTAC : charger "JTAC Group" → déposer → lasing actif → menu JTAC F10
+          • IN_TRANSIT : embarquer JTAC sol → log IN_TRANSIT → débarquer → lasing reprend
+
         À planifier après STEP 2+3 terminés.
 
 ⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
