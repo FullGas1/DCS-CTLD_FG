@@ -199,6 +199,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             → autoOrbit sur cible → cible mobile suivie → cible hors LOS → retour route initiale
           • Troupes JTAC : charger "JTAC Group" → déposer → lasing actif → menu JTAC F10
           • IN_TRANSIT : embarquer JTAC sol → log IN_TRANSIT → débarquer → lasing reprend
+          • Beacon radio — vérification des 3 émetteurs :
+              - VHF (200–1250 kHz AM) : entendu sur ADF + aiguille ADF pointe vers balise
+              - UHF (220–399 MHz AM) : entendu par modules FC3 (son beaconsilent.ogg)
+              - FM  (30–76 MHz FM)   : bip entendu sur radio FM hélico full fidelity (UH-1H ARC-131)
+                                       + indicateur de cap FM actif en mode DF
+              Vérification : drop beacon depuis hélico → log fréquences → positionner à 500m
+              → accordes successives sur chaque freq → confirmer réception bip + comportement
+              navigation (ADF pour VHF, homing pour FM). Test post-fix délai 1s.
 
         À planifier après STEP 2+3 terminés.
 
