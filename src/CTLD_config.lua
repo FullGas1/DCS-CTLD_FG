@@ -739,14 +739,10 @@ function CTLDConfig:load()
 
             --- BLUE
             { weight = 1000.01,                                  desc = ctld.tr("Humvee - MG"),                      unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
-            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),                     unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
-            { multiple = { 1000.02, 1000.02 },                   desc = ctld.tr("Humvee - TOW - All crates"),        side = 2 },
-            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),                unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
-            { multiple = { 1000.03, 1000.03 },                   desc = ctld.tr("Light Tank - MRAP - All crates"),   side = 2 },
-            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),                unit = "LAV-25",               side = 2, cratesRequired = 3 },
-            { multiple = { 1000.04, 1000.04, 1000.04 },          desc = ctld.tr("Med Tank - LAV-25 - All crates"),   side = 2 },
-            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),              unit = "M-1 Abrams",           side = 2, cratesRequired = 4 },
-            { multiple = { 1000.05, 1000.05, 1000.05, 1000.05 }, desc = ctld.tr("Heavy Tank - Abrams - All crates"), side = 2 },
+            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),          unit = "M1045 HMMWV TOW", side = 2, cratesRequired = 2 },
+            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),     unit = "MaxxPro_MRAP",    side = 2, cratesRequired = 2 },
+            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),     unit = "LAV-25",          side = 2, cratesRequired = 3 },
+            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),   unit = "M-1 Abrams",      side = 2, cratesRequired = 4 },
 
             --- RED
             { weight = 1000.11,                                  desc = ctld.tr("BTR-D"),                            unit = "BTR_D",                side = 1 },
@@ -755,66 +751,45 @@ function CTLDConfig:load()
         },
         ["Support"] = {
             --- BLUE
-            { weight = 1001.01,                         desc = ctld.tr("Hummer - JTAC"),                    unit = "Hummer",            side = 2,          cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { multiple = { 1001.01, 1001.01 },          desc = ctld.tr("Hummer - JTAC - All crates"),       side = 2 },
-            { weight = 1001.02,                         desc = ctld.tr("M-818 Ammo Truck"),                 unit = "M 818",             side = 2,          cratesRequired = 2 },
-            { multiple = { 1001.02, 1001.02 },          desc = ctld.tr("M-818 Ammo Truck - All crates"),    side = 2 },
-            { weight = 1001.03,                         desc = ctld.tr("M-978 Tanker"),                     unit = "M978 HEMTT Tanker", side = 2,          cratesRequired = 2 },
-            { multiple = { 1001.03, 1001.03 },          desc = ctld.tr("M-978 Tanker - All crates"),        side = 2 },
+            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),      unit = "Hummer",            side = 2, cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"), unit = "M 818",             side = 2, cratesRequired = 2 },
+            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),     unit = "M978 HEMTT Tanker", side = 2, cratesRequired = 2 },
 
             --- RED
-            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
-            { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
-            { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
-            { multiple = { 1001.13, 1001.13 },          desc = ctld.tr("KAMAZ Ammo Truck - All crates"),    side = 1 },
+            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),         unit = "SKP-11",      side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"),   unit = "Ural-375",     side = 1, cratesRequired = 2 },
+            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),      unit = "KAMAZ Truck",  side = 1, cratesRequired = 2 },
 
             --- Both
-            { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
-            { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                        unit = "FOB",               side = nil,        cratesRequired = 3 }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.21, desc = ctld.tr("EWR Radar"),  unit = "FPS-117", cratesRequired = 3 },
+            { weight = 1001.22, desc = ctld.tr("FOB Crate"),  unit = "FOB",     side = nil, cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
             --- BLUE
-            { weight = 1002.01,                         desc = ctld.tr("MLRS"),                       unit = "MLRS",         side = 2, cratesRequired = 3 },
-            { multiple = { 1002.01, 1002.01, 1002.01 }, desc = ctld.tr("MLRS - All crates"),          side = 2 },
-            { weight = 1002.02,                         desc = ctld.tr("SpGH DANA"),                  unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
-            { multiple = { 1002.02, 1002.02, 1002.02 }, desc = ctld.tr("SpGH DANA - All crates"),     side = 2 },
-            { weight = 1002.03,                         desc = ctld.tr("T155 Firtina"),               unit = "T155_Firtina", side = 2, cratesRequired = 3 },
-            { multiple = { 1002.03, 1002.03, 1002.03 }, desc = ctld.tr("T155 Firtina - All crates"),  side = 2 },
-            { weight = 1002.04,                         desc = ctld.tr("Howitzer"),                   unit = "M-109",        side = 2, cratesRequired = 3 },
-            { multiple = { 1002.04, 1002.04, 1002.04 }, desc = ctld.tr("Howitzer - All crates"),      side = 2 },
+            { weight = 1002.01, desc = ctld.tr("MLRS"),         unit = "MLRS",         side = 2, cratesRequired = 3 },
+            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),    unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
+            { weight = 1002.03, desc = ctld.tr("T155 Firtina"), unit = "T155_Firtina", side = 2, cratesRequired = 3 },
+            { weight = 1002.04, desc = ctld.tr("Howitzer"),     unit = "M-109",        side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1002.11,                         desc = ctld.tr("SPH 2S19 Msta"),              unit = "SAU Msta",     side = 1, cratesRequired = 3 },
-            { multiple = { 1002.11, 1002.11, 1002.11 }, desc = ctld.tr("SPH 2S19 Msta - All crates"), side = 1 },
+            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta", side = 1, cratesRequired = 3 },
 
         },
         ["SAM short range"] = {
             --- BLUE
-            { weight = 1003.01,                         desc = ctld.tr("M1097 Avenger"),                unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
-            { multiple = { 1003.01, 1003.01, 1003.01 }, desc = ctld.tr("M1097 Avenger - All crates"),   side = 2 },
-            { weight = 1003.02,                         desc = ctld.tr("M48 Chaparral"),                unit = "M48 Chaparral",       side = 2, cratesRequired = 2 },
-            { multiple = { 1003.02, 1003.02 },          desc = ctld.tr("M48 Chaparral - All crates"),   side = 2 },
-            { weight = 1003.03,                         desc = ctld.tr("Roland ADS"),                   unit = "Roland ADS",          side = 2, cratesRequired = 3 },
-            { multiple = { 1003.03, 1003.03, 1003.03 }, desc = ctld.tr("Roland ADS - All crates"),      side = 2 },
-            { weight = 1003.04,                         desc = ctld.tr("Gepard AAA"),                   unit = "Gepard",              side = 2, cratesRequired = 3 },
-            { multiple = { 1003.04, 1003.04, 1003.04 }, desc = ctld.tr("Gepard AAA - All crates"),      side = 2 },
-            { weight = 1003.05,                         desc = ctld.tr("LPWS C-RAM"),                   unit = "HEMTT_C-RAM_Phalanx", side = 2, cratesRequired = 3 },
-            { multiple = { 1003.05, 1003.05, 1003.05 }, desc = ctld.tr("LPWS C-RAM - All crates"),      side = 2 },
+            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"), unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
+            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"), unit = "M48 Chaparral",      side = 2, cratesRequired = 2 },
+            { weight = 1003.03, desc = ctld.tr("Roland ADS"),    unit = "Roland ADS",         side = 2, cratesRequired = 3 },
+            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),    unit = "Gepard",             side = 2, cratesRequired = 3 },
+            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),    unit = "HEMTT_C-RAM_Phalanx",side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1003.11,                         desc = ctld.tr("9K33 Osa"),                     unit = "Osa 9A33 ln",         side = 1, cratesRequired = 3 },
-            { multiple = { 1003.11, 1003.11, 1003.11 }, desc = ctld.tr("9K33 Osa - All crates"),        side = 1 },
-            { weight = 1003.12,                         desc = ctld.tr("9P31 Strela-1"),                unit = "Strela-1 9P31",       side = 1, cratesRequired = 3 },
-            { multiple = { 1003.12, 1003.12, 1003.12 }, desc = ctld.tr("9P31 Strela-1 - All crates"),   side = 1 },
-            { weight = 1003.13,                         desc = ctld.tr("9K35M Strela-10"),              unit = "Strela-10M3",         side = 1, cratesRequired = 3 },
-            { multiple = { 1003.13, 1003.13, 1003.13 }, desc = ctld.tr("9K35M Strela-10 - All crates"), side = 1 },
-            { weight = 1003.14,                         desc = ctld.tr("9K331 Tor"),                    unit = "Tor 9A331",           side = 1, cratesRequired = 3 },
-            { multiple = { 1003.14, 1003.14, 1003.14 }, desc = ctld.tr("9K331 Tor - All crates"),       side = 1 },
-            { weight = 1003.15,                         desc = ctld.tr("2K22 Tunguska"),                unit = "2S6 Tunguska",        side = 1, cratesRequired = 3 },
-            { multiple = { 1003.15, 1003.15, 1003.15 }, desc = ctld.tr("2K22 Tunguska - All crates"),   side = 1 },
+            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",   side = 1, cratesRequired = 3 },
+            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31", side = 1, cratesRequired = 3 },
+            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",   side = 1, cratesRequired = 3 },
+            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",     side = 1, cratesRequired = 3 },
+            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",  side = 1, cratesRequired = 3 },
         },
         ["SAM mid range"] = {
             --- BLUE
@@ -825,7 +800,7 @@ function CTLDConfig:load()
             { weight = 1004.04,                         desc = ctld.tr("HAWK PCP"),                  unit = "Hawk pcp",             side = 2 },
             { weight = 1004.05,                         desc = ctld.tr("HAWK CWAR"),                 unit = "Hawk cwar",            side = 2 },
             { weight = 1004.06,                         desc = ctld.tr("HAWK Repair"),               unit = "HAWK Repair",          side = 2 },
-            { multiple = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
+            { mixedSet = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
             -- End of HAWK
 
             -- NASAMS Sysyem
@@ -833,7 +808,7 @@ function CTLDConfig:load()
             { weight = 1004.12,                         desc = ctld.tr("NASAMS Search/Track Radar"), unit = "NASAMS_Radar_MPQ64F1", side = 2 },
             { weight = 1004.13,                         desc = ctld.tr("NASAMS Command Post"),       unit = "NASAMS_Command_Post",  side = 2 },
             { weight = 1004.14,                         desc = ctld.tr("NASAMS Repair"),             unit = "NASAMS Repair",        side = 2 },
-            { multiple = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
+            { mixedSet = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
             -- End of NASAMS
 
             --- RED
@@ -841,7 +816,7 @@ function CTLDConfig:load()
             { weight = 1004.21,                         desc = ctld.tr("KUB Launcher"),              unit = "Kub 2P25 ln",          side = 1 },
             { weight = 1004.22,                         desc = ctld.tr("KUB Radar"),                 unit = "Kub 1S91 str",         side = 1 },
             { weight = 1004.23,                         desc = ctld.tr("KUB Repair"),                unit = "KUB Repair",           side = 1 },
-            { multiple = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
+            { mixedSet = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
             -- End of KUB
 
             -- BUK System
@@ -849,7 +824,7 @@ function CTLDConfig:load()
             { weight = 1004.32,                         desc = ctld.tr("BUK Search Radar"),          unit = "SA-11 Buk SR 9S18M1",  side = 1 },
             { weight = 1004.33,                         desc = ctld.tr("BUK CC Radar"),              unit = "SA-11 Buk CC 9S470M1", side = 1 },
             { weight = 1004.34,                         desc = ctld.tr("BUK Repair"),                unit = "BUK Repair",           side = 1 },
-            { multiple = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
+            { mixedSet = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
             -- END of BUK
         },
         ["SAM long range"] = {
@@ -862,7 +837,7 @@ function CTLDConfig:load()
             -- { weight = 1005.05, desc = ctld.tr("Patriot EPP"), unit = "Patriot EPP", side = 2 },
             { weight = 1005.06,                                           desc = ctld.tr("Patriot AMG (optional)"),      unit = "Patriot AMG",       side = 2 },
             { weight = 1005.07,                                           desc = ctld.tr("Patriot Repair"),              unit = "Patriot Repair",    side = 2 },
-            { multiple = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
+            { mixedSet = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
             -- End of Patriot
 
             -- S-300 SYSTEM
@@ -872,7 +847,7 @@ function CTLDConfig:load()
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
             { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
-            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
+            { mixedSet = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },
         ["Drone"] = {

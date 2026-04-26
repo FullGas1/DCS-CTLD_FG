@@ -81,7 +81,7 @@ Each line follows the pattern `ctld.parameterName: value`.
 | Parameter | Default | Description |
 |---|---|---|
 | `enableCrates` | `true` | Enable crate spawning and unpacking |
-| `enableAllCrates` | `true` | Show "all crates" shortcut menu entries |
+| `enableAllCrates` | `true` | Global toggle: show "All crates" shortcut entries in Request Equipment menus (both auto-generated single-type sets and manually defined mixed sets). Set to `false` to hide all set shortcuts and keep only individual crate entries. |
 | `slingLoad` | `false` | Use DCS sling-load physics instead of hover simulation |
 | `enableHoverSlingload` | `true` | Allow crate loading by hovering above it (simulated slingload). If `false`, crates can only be loaded via F10 menu (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Allow crate loading via F10 menu |
@@ -216,9 +216,14 @@ ctld.yamlConfigDatas = [[...]]   -- your param overrides above
 
 -- Add a new crate category (runs after CTLD loads)
 ctld.spawnableCrates["My Vehicles"] = {
-    { weight = 2000.01, desc = "My Custom Truck",  unit = "Ural-375",              side = 1 },
-    { weight = 2000.02, desc = "My Custom Humvee", unit = "M1043 HMMWV Armament",  side = 2, cratesRequired = 2 },
-    { weight = 2000.03, desc = "My Reaper JTAC",   unit = "MQ-9 Reaper",           side = 2, isJTAC = true, spawnAs = "AIRPLANE" },
+    -- singleCrate: 1 crate needed, no set shortcut generated
+    { weight = 2000.01, desc = "My Custom Truck",  unit = "Ural-375",             side = 1 },
+    -- singleCrate: cratesRequired=2 → auto-generates "My Custom Humvee - All crates" shortcut
+    { weight = 2000.02, desc = "My Custom Humvee", unit = "M1043 HMMWV Armament", side = 2, cratesRequired = 2 },
+    -- singleCrate: JTAC flag, hidden when JTAC_dropEnabled=false
+    { weight = 2000.03, desc = "My Reaper JTAC",   unit = "MQ-9 Reaper",          side = 2, isJTAC = true, spawnAs = "AIRPLANE" },
+    -- mixedSet: spawns multiple different crates in one click (components must be defined above)
+    { mixedSet = { 2000.01, 2000.02 }, desc = "My Bundle", side = 2 },
 }
 ```
 
@@ -226,18 +231,34 @@ ctld.spawnableCrates["My Vehicles"] = {
 
 ### Crate descriptor fields
 
+There are two entry types in `spawnableCrates`:
+
+**singleCrate** — one deliverable unit assembled from N identical crates:
+
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `weight` | number | — | **Required.** Unique crate identifier (also displayed as weight in kg) |
 | `desc` | string | — | **Required.** Human-readable name shown in F10 menu |
 | `unit` | string | — | **Required.** DCS unit type name, or `"FOB"` sentinel for FOB crates |
 | `side` | number | `nil` | `1` = RED only, `2` = BLUE only, `nil` = both coalitions |
-| `cratesRequired` | number | `1` | Number of crates of this type that must be within 300 m to unpack |
-| `spawnAs` | string | `"GROUND"` | DCS category for spawn: `"GROUND"`, `"AIRPLANE"`, `"HELICOPTER"`, `"SHIP"`, `"TRAIN"`, `"STATIC"` |
-| `isJTAC` | boolean | `false` | **JTAC role flag.** If `true`, the spawned unit starts auto-lasing immediately after unpack. For air units (`spawnAs = "AIRPLANE"` / `"HELICOPTER"`), an orbit route is embedded at spawn time and the drone follows its lased target. **This is the only mechanism that activates JTAC behaviour** — the unit type name is not used for detection. All built-in JTAC entries (Hummer, SKP-11, MQ-9, RQ-1A) already carry this flag. Any custom JTAC crate must set it explicitly. |
-| `specificParams` | table | `nil` | Air JTAC orbit tuning: `{ speed=kmh, alti=m_AGL, orbitRadiusNoLase=m, orbitRadiusOnLase=m }`. Only meaningful when `isJTAC=true` and `spawnAs` is `"AIRPLANE"` or `"HELICOPTER"`. |
+| `cratesRequired` | number | `1` | Number of identical crates needed to unpack. When `> 1` and `enableAllCrates = true`, a shortcut entry `"<desc> - All crates"` is **automatically generated** immediately below in the menu — no manual entry needed. |
+| `showSets` | boolean | `true` | Set to `false` to suppress the auto-generated "All crates" shortcut for this specific crate (useful for FOB Crate, sentinels, etc.). Only meaningful when `cratesRequired > 1`. |
+| `spawnAs` | string | `"GROUND"` | DCS spawn category: `"GROUND"`, `"AIRPLANE"`, `"HELICOPTER"`, `"SHIP"`, `"TRAIN"`, `"STATIC"` |
+| `isJTAC` | boolean | `false` | **JTAC role flag.** If `true`, the spawned unit starts auto-lasing immediately after unpack. For air units, an orbit route is embedded at spawn. **Only this flag activates JTAC behaviour** — unit type name is not used. All built-in JTAC entries (Hummer, SKP-11, MQ-9, RQ-1A) already carry it. |
+| `specificParams` | table | `nil` | Air JTAC orbit tuning: `{ speed=kmh, alti=m_AGL, orbitRadiusNoLase=m, orbitRadiusOnLase=m }`. Only meaningful with `isJTAC=true` and `spawnAs = "AIRPLANE"/"HELICOPTER"`. |
 
-> **Menu visibility and `JTAC_dropEnabled`:** crates with `isJTAC=true` are hidden from the Request Equipment F10 menu when `JTAC_dropEnabled = false`. This applies to both single-crate and multi-crate (`multiple`) entries — a multi-crate set is considered JTAC if any of its component weights resolves to a descriptor with `isJTAC=true`.
+**mixedSet** — one shortcut that spawns multiple **different** crates in a single click:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `mixedSet` | number[] | — | **Required.** Array of singleCrate weights to spawn (all must be defined in the same category). |
+| `desc` | string | — | **Required.** Name shown in F10 menu. |
+| `side` | number | `nil` | Coalition filter (same as singleCrate). |
+
+`mixedSet` entries always appear **after** all singleCrate entries in their category. They are only shown when `enableAllCrates = true`. If a weight in `mixedSet` does not match any singleCrate in the category, the entry is **excluded** and a warning is displayed in-game at mission start.
+
+> **Menu order guarantee:** within each category, singleCrates appear first (each immediately followed by its auto-generated "All crates" shortcut if applicable), then all mixedSet entries. This order is enforced by the engine — config order within each group is preserved.
+> **Menu visibility and `JTAC_dropEnabled`:** entries with `isJTAC=true` are hidden from the Request Equipment menu when `JTAC_dropEnabled = false`. A mixedSet is considered JTAC if any of its component weights resolves to a descriptor with `isJTAC=true`.
 
 ---
 

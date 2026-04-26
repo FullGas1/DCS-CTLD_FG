@@ -131,17 +131,37 @@ _spawnUnpacked(desc, pos, coa, cId)
 | `isJTAC` (boolean) | **Source of truth for JTAC role.** Adds orbit route to air unitDef; triggers `startLase` post-spawn. The unit type name (`unit`) is NOT used for JTAC detection anywhere in the OOP stack. |
 | `specificParams` (table, air only) | Orbit tuning passed to `startLase` / `deployAirJTAC`: `speed`, `alti`, `orbitRadiusNoLase`, `orbitRadiusOnLase` |
 | `cratesRequired` (number) | Guards unpack — must be met before pipeline runs |
+| `showSets` (boolean, default `true`) | When `false`, suppresses the auto-generated "All crates" singleTypeSet menu entry for this crate even if `enableAllCrates = true` |
 
 **JTAC detection rules (summary — do not invert):**
 
 | Context | Rule |
 |---|---|
-| Request Equipment menu visibility | `_crateIsJTAC(desc)` — checks `desc.isJTAC` for single crates; for multi-crates resolves each weight via `findDescriptorByWeight` and returns true if any has `isJTAC=true` |
+| Request Equipment menu visibility | `_crateIsJTAC(desc)` — checks `desc.isJTAC` for singleCrates; for singleTypeSets/mixedSets resolves each weight via `findDescriptorByWeight` and returns true if any has `isJTAC=true` |
 | Post-unpack activation | `_dispatchPostSpawn`: `if desc.isJTAC → CTLDJTACManager:startLase()` |
 | Pre-placed MM group detection | Group name contains `"jtac"` (case-insensitive) — unit type not used |
 | Troop deploy with JTAC soldier | `tmpl.hasJtac == true` (computed from `jtac > 0` in template) → `startLase` after deploy |
 
 > **Do not add new JTAC detection paths.** If a new unit type needs JTAC behaviour, add `isJTAC=true` to its crate descriptor — never add it to a type-name list.
+
+---
+
+### spawnableCrates internal processing
+
+`CTLDCrateManager:_processSpawnableCrates()` runs once at `getInstance()` time and transforms the raw `spawnableCrates` config into an internal structure used by the menu builder and all descriptor lookups.
+
+**Three-pass algorithm:**
+
+1. **Pass 1 — separation:** iterates `ipairs(category)` and routes each entry into `singleCrates` (has `weight` field) or `mixedSets` (has `mixedSet` field). Entries with neither are logged and skipped.
+2. **Pass 2 — singleTypeSet generation:** for each singleCrate with `cratesRequired > 1`, when `enableAllCrates = true` and `sc.showSets ~= false`, creates a virtual `singleTypeSet = { multiple={w,w,...}, desc=sc.desc.." - "..ctld.tr("All crates"), ... }` stored adjacent to its parent. The suffix is i18n-aware.
+3. **Pass 3 — mixedSet validation:** for each mixedSet, checks every weight against `catWeightIdx` (per-category index). Any unresolved weight marks the entire mixedSet as invalid (excluded from menu) and queues a startup MM warning via `trigger.action.outText`.
+
+**Stored results:**
+
+- `self._processedCrates[category] = { singleCrates=[{singleCrate, singleTypeSet?},...], mixedSets=[...] }`
+- `self._weightIndex[weight] = descriptor` — O(1) lookup for all `findDescriptorBy*` methods (singleCrates only; mixedSets have no `weight` field).
+
+**Menu rendering order** (`refreshRequestEquipmentSection`): for each category, iterates `data.singleCrates` (each followed immediately by its `singleTypeSet` if visible), then `data.mixedSets`. Coalition/JTAC filtering applied per player at render time. `crateOrder` counter ensures `_sortByOrder` produces a stable, deterministic sequence.
 
 ---
 

@@ -366,6 +366,7 @@ ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 k
 --- Request Equipment spawn messages
 ctld.i18n["fr"]["Land near logistics to request equipment"] = "Atterrissez près d'une logistique pour demander du matériel"
 ctld.i18n["fr"]["No logistics in range"] = "Aucune logistique à portée"
+ctld.i18n["fr"]["All crates"] = "Toutes les caisses"
 ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
 ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
 ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"

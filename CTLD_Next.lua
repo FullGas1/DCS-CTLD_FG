@@ -1,8 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ====================================================================================================
--- Start : lib/class.lua
+-- ===== Start : lib/class.lua =====
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -39,10 +38,9 @@ function class(base)
     end
     return cls
 end
+-- ===== End   : lib/class.lua =====
 
--- End : lib/class.lua
--- ====================================================================================================
--- Start : CTLD_config.lua
+-- ===== Start : CTLD_config.lua =====
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -784,14 +782,10 @@ function CTLDConfig:load()
 
             --- BLUE
             { weight = 1000.01,                                  desc = ctld.tr("Humvee - MG"),                      unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
-            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),                     unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
-            { multiple = { 1000.02, 1000.02 },                   desc = ctld.tr("Humvee - TOW - All crates"),        side = 2 },
-            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),                unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
-            { multiple = { 1000.03, 1000.03 },                   desc = ctld.tr("Light Tank - MRAP - All crates"),   side = 2 },
-            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),                unit = "LAV-25",               side = 2, cratesRequired = 3 },
-            { multiple = { 1000.04, 1000.04, 1000.04 },          desc = ctld.tr("Med Tank - LAV-25 - All crates"),   side = 2 },
-            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),              unit = "M-1 Abrams",           side = 2, cratesRequired = 4 },
-            { multiple = { 1000.05, 1000.05, 1000.05, 1000.05 }, desc = ctld.tr("Heavy Tank - Abrams - All crates"), side = 2 },
+            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),          unit = "M1045 HMMWV TOW", side = 2, cratesRequired = 2 },
+            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),     unit = "MaxxPro_MRAP",    side = 2, cratesRequired = 2 },
+            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),     unit = "LAV-25",          side = 2, cratesRequired = 3 },
+            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),   unit = "M-1 Abrams",      side = 2, cratesRequired = 4 },
 
             --- RED
             { weight = 1000.11,                                  desc = ctld.tr("BTR-D"),                            unit = "BTR_D",                side = 1 },
@@ -800,66 +794,45 @@ function CTLDConfig:load()
         },
         ["Support"] = {
             --- BLUE
-            { weight = 1001.01,                         desc = ctld.tr("Hummer - JTAC"),                    unit = "Hummer",            side = 2,          cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { multiple = { 1001.01, 1001.01 },          desc = ctld.tr("Hummer - JTAC - All crates"),       side = 2 },
-            { weight = 1001.02,                         desc = ctld.tr("M-818 Ammo Truck"),                 unit = "M 818",             side = 2,          cratesRequired = 2 },
-            { multiple = { 1001.02, 1001.02 },          desc = ctld.tr("M-818 Ammo Truck - All crates"),    side = 2 },
-            { weight = 1001.03,                         desc = ctld.tr("M-978 Tanker"),                     unit = "M978 HEMTT Tanker", side = 2,          cratesRequired = 2 },
-            { multiple = { 1001.03, 1001.03 },          desc = ctld.tr("M-978 Tanker - All crates"),        side = 2 },
+            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),      unit = "Hummer",            side = 2, cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"), unit = "M 818",             side = 2, cratesRequired = 2 },
+            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),     unit = "M978 HEMTT Tanker", side = 2, cratesRequired = 2 },
 
             --- RED
-            { weight = 1001.11,                         desc = ctld.tr("SKP-11 - JTAC"),                    unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.12,                         desc = ctld.tr("Ural-375 Ammo Truck"),              unit = "Ural-375",          side = 1,          cratesRequired = 2 },
-            { multiple = { 1001.12, 1001.12 },          desc = ctld.tr("Ural-375 Ammo Truck - All crates"), side = 1 },
-            { weight = 1001.13,                         desc = ctld.tr("KAMAZ Ammo Truck"),                 unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
-            { multiple = { 1001.13, 1001.13 },          desc = ctld.tr("KAMAZ Ammo Truck - All crates"),    side = 1 },
+            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),         unit = "SKP-11",      side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"),   unit = "Ural-375",     side = 1, cratesRequired = 2 },
+            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),      unit = "KAMAZ Truck",  side = 1, cratesRequired = 2 },
 
             --- Both
-            { weight = 1001.21,                         desc = ctld.tr("EWR Radar"),                        unit = "FPS-117",           cratesRequired = 3 },
-            { multiple = { 1001.21, 1001.21, 1001.21 }, desc = ctld.tr("EWR Radar - All crates") },
-            { weight = 1001.22,                         desc = ctld.tr("FOB Crate"),                        unit = "FOB",               side = nil,        cratesRequired = 1 }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.21, desc = ctld.tr("EWR Radar"),  unit = "FPS-117", cratesRequired = 3 },
+            { weight = 1001.22, desc = ctld.tr("FOB Crate"),  unit = "FOB",     side = nil, cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
             --- BLUE
-            { weight = 1002.01,                         desc = ctld.tr("MLRS"),                       unit = "MLRS",         side = 2, cratesRequired = 3 },
-            { multiple = { 1002.01, 1002.01, 1002.01 }, desc = ctld.tr("MLRS - All crates"),          side = 2 },
-            { weight = 1002.02,                         desc = ctld.tr("SpGH DANA"),                  unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
-            { multiple = { 1002.02, 1002.02, 1002.02 }, desc = ctld.tr("SpGH DANA - All crates"),     side = 2 },
-            { weight = 1002.03,                         desc = ctld.tr("T155 Firtina"),               unit = "T155_Firtina", side = 2, cratesRequired = 3 },
-            { multiple = { 1002.03, 1002.03, 1002.03 }, desc = ctld.tr("T155 Firtina - All crates"),  side = 2 },
-            { weight = 1002.04,                         desc = ctld.tr("Howitzer"),                   unit = "M-109",        side = 2, cratesRequired = 3 },
-            { multiple = { 1002.04, 1002.04, 1002.04 }, desc = ctld.tr("Howitzer - All crates"),      side = 2 },
+            { weight = 1002.01, desc = ctld.tr("MLRS"),         unit = "MLRS",         side = 2, cratesRequired = 3 },
+            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),    unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
+            { weight = 1002.03, desc = ctld.tr("T155 Firtina"), unit = "T155_Firtina", side = 2, cratesRequired = 3 },
+            { weight = 1002.04, desc = ctld.tr("Howitzer"),     unit = "M-109",        side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1002.11,                         desc = ctld.tr("SPH 2S19 Msta"),              unit = "SAU Msta",     side = 1, cratesRequired = 3 },
-            { multiple = { 1002.11, 1002.11, 1002.11 }, desc = ctld.tr("SPH 2S19 Msta - All crates"), side = 1 },
+            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta", side = 1, cratesRequired = 3 },
 
         },
         ["SAM short range"] = {
             --- BLUE
-            { weight = 1003.01,                         desc = ctld.tr("M1097 Avenger"),                unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
-            { multiple = { 1003.01, 1003.01, 1003.01 }, desc = ctld.tr("M1097 Avenger - All crates"),   side = 2 },
-            { weight = 1003.02,                         desc = ctld.tr("M48 Chaparral"),                unit = "M48 Chaparral",       side = 2, cratesRequired = 2 },
-            { multiple = { 1003.02, 1003.02 },          desc = ctld.tr("M48 Chaparral - All crates"),   side = 2 },
-            { weight = 1003.03,                         desc = ctld.tr("Roland ADS"),                   unit = "Roland ADS",          side = 2, cratesRequired = 3 },
-            { multiple = { 1003.03, 1003.03, 1003.03 }, desc = ctld.tr("Roland ADS - All crates"),      side = 2 },
-            { weight = 1003.04,                         desc = ctld.tr("Gepard AAA"),                   unit = "Gepard",              side = 2, cratesRequired = 3 },
-            { multiple = { 1003.04, 1003.04, 1003.04 }, desc = ctld.tr("Gepard AAA - All crates"),      side = 2 },
-            { weight = 1003.05,                         desc = ctld.tr("LPWS C-RAM"),                   unit = "HEMTT_C-RAM_Phalanx", side = 2, cratesRequired = 3 },
-            { multiple = { 1003.05, 1003.05, 1003.05 }, desc = ctld.tr("LPWS C-RAM - All crates"),      side = 2 },
+            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"), unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
+            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"), unit = "M48 Chaparral",      side = 2, cratesRequired = 2 },
+            { weight = 1003.03, desc = ctld.tr("Roland ADS"),    unit = "Roland ADS",         side = 2, cratesRequired = 3 },
+            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),    unit = "Gepard",             side = 2, cratesRequired = 3 },
+            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),    unit = "HEMTT_C-RAM_Phalanx",side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1003.11,                         desc = ctld.tr("9K33 Osa"),                     unit = "Osa 9A33 ln",         side = 1, cratesRequired = 3 },
-            { multiple = { 1003.11, 1003.11, 1003.11 }, desc = ctld.tr("9K33 Osa - All crates"),        side = 1 },
-            { weight = 1003.12,                         desc = ctld.tr("9P31 Strela-1"),                unit = "Strela-1 9P31",       side = 1, cratesRequired = 3 },
-            { multiple = { 1003.12, 1003.12, 1003.12 }, desc = ctld.tr("9P31 Strela-1 - All crates"),   side = 1 },
-            { weight = 1003.13,                         desc = ctld.tr("9K35M Strela-10"),              unit = "Strela-10M3",         side = 1, cratesRequired = 3 },
-            { multiple = { 1003.13, 1003.13, 1003.13 }, desc = ctld.tr("9K35M Strela-10 - All crates"), side = 1 },
-            { weight = 1003.14,                         desc = ctld.tr("9K331 Tor"),                    unit = "Tor 9A331",           side = 1, cratesRequired = 3 },
-            { multiple = { 1003.14, 1003.14, 1003.14 }, desc = ctld.tr("9K331 Tor - All crates"),       side = 1 },
-            { weight = 1003.15,                         desc = ctld.tr("2K22 Tunguska"),                unit = "2S6 Tunguska",        side = 1, cratesRequired = 3 },
-            { multiple = { 1003.15, 1003.15, 1003.15 }, desc = ctld.tr("2K22 Tunguska - All crates"),   side = 1 },
+            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",   side = 1, cratesRequired = 3 },
+            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31", side = 1, cratesRequired = 3 },
+            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",   side = 1, cratesRequired = 3 },
+            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",     side = 1, cratesRequired = 3 },
+            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",  side = 1, cratesRequired = 3 },
         },
         ["SAM mid range"] = {
             --- BLUE
@@ -870,7 +843,7 @@ function CTLDConfig:load()
             { weight = 1004.04,                         desc = ctld.tr("HAWK PCP"),                  unit = "Hawk pcp",             side = 2 },
             { weight = 1004.05,                         desc = ctld.tr("HAWK CWAR"),                 unit = "Hawk cwar",            side = 2 },
             { weight = 1004.06,                         desc = ctld.tr("HAWK Repair"),               unit = "HAWK Repair",          side = 2 },
-            { multiple = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
+            { mixedSet = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
             -- End of HAWK
 
             -- NASAMS Sysyem
@@ -878,7 +851,7 @@ function CTLDConfig:load()
             { weight = 1004.12,                         desc = ctld.tr("NASAMS Search/Track Radar"), unit = "NASAMS_Radar_MPQ64F1", side = 2 },
             { weight = 1004.13,                         desc = ctld.tr("NASAMS Command Post"),       unit = "NASAMS_Command_Post",  side = 2 },
             { weight = 1004.14,                         desc = ctld.tr("NASAMS Repair"),             unit = "NASAMS Repair",        side = 2 },
-            { multiple = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
+            { mixedSet = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
             -- End of NASAMS
 
             --- RED
@@ -886,7 +859,7 @@ function CTLDConfig:load()
             { weight = 1004.21,                         desc = ctld.tr("KUB Launcher"),              unit = "Kub 2P25 ln",          side = 1 },
             { weight = 1004.22,                         desc = ctld.tr("KUB Radar"),                 unit = "Kub 1S91 str",         side = 1 },
             { weight = 1004.23,                         desc = ctld.tr("KUB Repair"),                unit = "KUB Repair",           side = 1 },
-            { multiple = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
+            { mixedSet = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
             -- End of KUB
 
             -- BUK System
@@ -894,7 +867,7 @@ function CTLDConfig:load()
             { weight = 1004.32,                         desc = ctld.tr("BUK Search Radar"),          unit = "SA-11 Buk SR 9S18M1",  side = 1 },
             { weight = 1004.33,                         desc = ctld.tr("BUK CC Radar"),              unit = "SA-11 Buk CC 9S470M1", side = 1 },
             { weight = 1004.34,                         desc = ctld.tr("BUK Repair"),                unit = "BUK Repair",           side = 1 },
-            { multiple = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
+            { mixedSet = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
             -- END of BUK
         },
         ["SAM long range"] = {
@@ -907,7 +880,7 @@ function CTLDConfig:load()
             -- { weight = 1005.05, desc = ctld.tr("Patriot EPP"), unit = "Patriot EPP", side = 2 },
             { weight = 1005.06,                                           desc = ctld.tr("Patriot AMG (optional)"),      unit = "Patriot AMG",       side = 2 },
             { weight = 1005.07,                                           desc = ctld.tr("Patriot Repair"),              unit = "Patriot Repair",    side = 2 },
-            { multiple = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
+            { mixedSet = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
             -- End of Patriot
 
             -- S-300 SYSTEM
@@ -917,7 +890,7 @@ function CTLDConfig:load()
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
             { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
-            { multiple = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
+            { mixedSet = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },
         ["Drone"] = {
@@ -1201,10 +1174,9 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
+-- ===== End   : CTLD_config.lua =====
 
--- End : CTLD_config.lua
--- ====================================================================================================
--- Start : CTLD_i18n.lua
+-- ===== Start : CTLD_i18n.lua =====
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1422,10 +1394,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
+-- ===== End   : CTLD_i18n.lua =====
 
--- End : CTLD_i18n.lua
--- ====================================================================================================
--- Start : CTLD_i18n_en.lua
+-- ===== Start : CTLD_i18n_en.lua =====
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1799,6 +1770,7 @@ ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
 --- Request Equipment spawn messages
 ctld.i18n["en"]["Land near logistics to request equipment"] = "Land near logistics to request equipment"
+ctld.i18n["en"]["All crates"] = "All crates"
 ctld.i18n["en"]["No logistics in range"] = "No logistics in range"
 ctld.i18n["en"]["You must be landed to request a crate."] = "You must be landed to request a crate."
 ctld.i18n["en"]["You are not close enough to friendly logistics to get a crate!"] = "You are not close enough to friendly logistics to get a crate!"
@@ -1813,10 +1785,9 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+-- ===== End   : CTLD_i18n_en.lua =====
 
--- End : CTLD_i18n_en.lua
--- ====================================================================================================
--- Start : CTLD_i18n_fr.lua
+-- ===== Start : CTLD_i18n_fr.lua =====
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2185,6 +2156,7 @@ ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 k
 --- Request Equipment spawn messages
 ctld.i18n["fr"]["Land near logistics to request equipment"] = "Atterrissez près d'une logistique pour demander du matériel"
 ctld.i18n["fr"]["No logistics in range"] = "Aucune logistique à portée"
+ctld.i18n["fr"]["All crates"] = "Toutes les caisses"
 ctld.i18n["fr"]["You must be landed to request a crate."] = "Vous devez être posé pour demander une caisse."
 ctld.i18n["fr"]["You are not close enough to friendly logistics to get a crate!"] = "Vous n'êtes pas assez proche de la logistique alliée pour obtenir une caisse !"
 ctld.i18n["fr"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Une caisse %1 pesant %2 kg a été apportée et se trouve à vos %3 heures"
@@ -2198,10 +2170,9 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
+-- ===== End   : CTLD_i18n_fr.lua =====
 
--- End : CTLD_i18n_fr.lua
--- ====================================================================================================
--- Start : CTLD_i18n_es.lua
+-- ===== Start : CTLD_i18n_es.lua =====
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2571,6 +2542,7 @@ ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 --- Request Equipment spawn messages
 ctld.i18n["es"]["Land near logistics to request equipment"] = "Aterriza cerca de la logística para solicitar equipo"
 ctld.i18n["es"]["No logistics in range"] = "Sin logística en rango"
+ctld.i18n["es"]["All crates"] = "Todas las cajas"
 ctld.i18n["es"]["You must be landed to request a crate."] = "Debes estar posado para solicitar una caja."
 ctld.i18n["es"]["You are not close enough to friendly logistics to get a crate!"] = "¡No estás lo suficientemente cerca de la logística aliada para solicitar una caja!"
 ctld.i18n["es"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "Una caja %1 pesando %2 kg ha sido preparada y está a tus %3 en punto "
@@ -2584,10 +2556,9 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
+-- ===== End   : CTLD_i18n_es.lua =====
 
--- End : CTLD_i18n_es.lua
--- ====================================================================================================
--- Start : CTLD_i18n_ko.lua
+-- ===== Start : CTLD_i18n_ko.lua =====
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2968,14 +2939,14 @@ ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 --- Request Equipment spawn messages
 ctld.i18n["ko"]["Land near logistics to request equipment"] = ""
 ctld.i18n["ko"]["No logistics in range"] = ""
+ctld.i18n["ko"]["All crates"] = ""
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+-- ===== End   : CTLD_i18n_ko.lua =====
 
--- End : CTLD_i18n_ko.lua
--- ====================================================================================================
--- Start : CTLD_utils.lua
+-- ===== Start : CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4980,10 +4951,9 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
+-- ===== End   : CTLD_utils.lua =====
 
--- End : CTLD_utils.lua
--- ====================================================================================================
--- Start : CTLD_menu.lua
+-- ===== Start : CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5312,7 +5282,7 @@ end
 
 -- Add a command leaf at pathTable / commandName.
 -- anyArgument must be a table (or nil → defaults to {}).
-function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgument)
+function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgument, opts)
     pathTable = pathTable or {}
 
     if not commandName or type(commandName) ~= "string" then
@@ -5346,6 +5316,7 @@ function ctld.Menu:addCommand(pathTable, commandName, functionToCall, anyArgumen
         functionToCall = functionToCall,
         anyArgument    = anyArgument or {},
         enabled        = true,
+        order          = opts and opts.order or nil,
     }
 
     if not parent.children then parent.children = {} end
@@ -5509,10 +5480,9 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
+-- ===== End   : CTLD_menu.lua =====
 
--- End : CTLD_menu.lua
--- ====================================================================================================
--- Start : lib/CTLD_objectRegistry.lua
+-- ===== Start : lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5934,10 +5904,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
+-- ===== End   : lib/CTLD_objectRegistry.lua =====
 
--- End : lib/CTLD_objectRegistry.lua
--- ====================================================================================================
--- Start : lib/CTLDParachuteEffect.lua
+-- ===== Start : lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5989,10 +5958,9 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
+-- ===== End   : lib/CTLDParachuteEffect.lua =====
 
--- End : lib/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : CTLD_sceneManager.lua
+-- ===== Start : CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6414,10 +6382,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
+-- ===== End   : CTLD_sceneManager.lua =====
 
--- End : CTLD_sceneManager.lua
--- ====================================================================================================
--- Start : CTLD_zone.lua
+-- ===== Start : CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7467,10 +7434,9 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
+-- ===== End   : CTLD_zone.lua =====
 
--- End : CTLD_zone.lua
--- ====================================================================================================
--- Start : CTLD_troop.lua
+-- ===== Start : CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8981,10 +8947,9 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
+-- ===== End   : CTLD_troop.lua =====
 
--- End : CTLD_troop.lua
--- ====================================================================================================
--- Start : CTLD_crate.lua
+-- ===== Start : CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -9175,8 +9140,102 @@ function CTLDCrateManager.getInstance()
         timer.scheduleFunction(function()
             CTLDCrateManager.getInstance():checkHoverStatus()
         end, {}, timer.getTime() + 1)
+        -- Pre-process spawnableCrates config (two-pass: singleCrates + auto singleTypeSets + mixedSets validation)
+        _cmInstance:_processSpawnableCrates()
     end
     return _cmInstance
+end
+
+--- Pre-process spawnableCrates config into an internal structure used by the menu builder.
+-- Two-pass:
+--   Pass 1 — separate singleCrates (weight field) from mixedSets (mixedSet field).
+--   Pass 2 — auto-generate singleTypeSet for each singleCrate with cratesRequired > 1
+--             when enableAllCrates AND singleCrate.showSets are both true (default).
+-- Pass 3 — validate each mixedSet: all weights must resolve to a known singleCrate in
+--           the same category; invalid mixedSets are excluded and trigger a MM warning.
+-- Results stored in self._processedCrates[category] and self._weightIndex[weight].
+function CTLDCrateManager:_processSpawnableCrates()
+    local spawnableCrates = ctld.gs("spawnableCrates") or {}
+    local showCrateSets   = ctld.gs("enableAllCrates") ~= false
+    local allSuffix       = " - " .. ctld.tr("All crates")
+
+    self._processedCrates = {}
+    self._weightIndex     = {}
+    local warnings        = {}
+
+    for category, entries in pairs(spawnableCrates) do
+        local singleCrates  = {}
+        local mixedSets     = {}
+        local catWeightIdx  = {}
+
+        -- Pass 1: separate entries by type
+        for _, entry in ipairs(entries) do
+            if entry.weight then
+                table.insert(singleCrates, entry)
+                catWeightIdx[entry.weight]    = entry
+                self._weightIndex[entry.weight] = entry
+            elseif entry.mixedSet then
+                table.insert(mixedSets, entry)
+            else
+                ctld.logWarning("_processSpawnableCrates: entry in '%s' has neither weight nor mixedSet — skipped", category)
+            end
+        end
+
+        -- Pass 2: generate singleTypeSet for qualifying singleCrates
+        local processedSingle = {}
+        for _, sc in ipairs(singleCrates) do
+            local entry = { singleCrate = sc }
+            local cr    = sc.cratesRequired or 1
+            if cr > 1 and showCrateSets and (sc.showSets ~= false) then
+                local weights = {}
+                for i = 1, cr do weights[i] = sc.weight end
+                entry.singleTypeSet = {
+                    multiple       = weights,
+                    desc           = sc.desc .. allSuffix,
+                    side           = sc.side,
+                    isJTAC         = sc.isJTAC,
+                    _autoGenerated = true,
+                }
+            end
+            table.insert(processedSingle, entry)
+        end
+
+        -- Pass 3: validate mixedSets
+        local processedMixed = {}
+        for _, ms in ipairs(mixedSets) do
+            local valid = true
+            for _, w in ipairs(ms.mixedSet) do
+                if not catWeightIdx[w] then
+                    local msg = string.format(
+                        "CTLD config error: mixedSet '%s' references weight %.4f not found in category '%s'",
+                        tostring(ms.desc), w, category)
+                    ctld.logWarning(msg)
+                    table.insert(warnings, msg)
+                    valid = false
+                end
+            end
+            if valid then
+                -- Build processed entry: alias mixedSet → multiple for spawn compatibility
+                local proc = {}
+                for k, v in pairs(ms) do proc[k] = v end
+                proc.multiple = ms.mixedSet
+                table.insert(processedMixed, proc)
+            end
+        end
+
+        self._processedCrates[category] = {
+            singleCrates = processedSingle,
+            mixedSets    = processedMixed,
+        }
+    end
+
+    -- Display MM startup warnings if any validation errors found
+    if #warnings > 0 then
+        local msg = "CTLD — spawnableCrates config errors:\n" .. table.concat(warnings, "\n")
+        timer.scheduleFunction(function()
+            trigger.action.outText(msg, 30)
+        end, {}, timer.getTime() + 5)
+    end
 end
 
 --- Refresh the "Load Crate" submenu for all players within 200 m of a position.
@@ -10301,29 +10360,43 @@ function CTLDCrateManager:destroyCrate(crateName)
 end
 
 --- Find a CTLD descriptor by the DCS unit field (vehicle typeName for pack lookup).
--- Searches ctld.gs("spawnableCrates") for an entry whose unit field matches exactly.
+-- Uses self._weightIndex (singleCrates only) built by _processSpawnableCrates.
 -- @param typeName string  DCS typeName (e.g. "M-1 Abrams")
 -- @return descriptor table or nil
 function CTLDCrateManager:findDescriptorByUnitType(typeName)
     if not typeName then return nil end
+    if self._weightIndex then
+        for _, descriptor in pairs(self._weightIndex) do
+            if descriptor.unit == typeName then return descriptor end
+        end
+        return nil
+    end
+    -- Fallback: raw config scan (before _processSpawnableCrates ran)
     local spawnableCrates = ctld.gs("spawnableCrates")
     if not spawnableCrates then return nil end
     for _, category in pairs(spawnableCrates) do
         for _, descriptor in ipairs(category) do
-            if descriptor.unit == typeName then
-                return descriptor
-            end
+            if descriptor.unit == typeName then return descriptor end
         end
     end
     return nil
 end
 
---- Find a CTLD descriptor matching a DCS typeName.
--- Searches ctld.gs("spawnableCrates") for a matching unit or type field.
+--- Find a CTLD descriptor matching a DCS typeName (unit or type field).
+-- Uses self._weightIndex (singleCrates only) built by _processSpawnableCrates.
 -- @param typeName string  DCS typeName (e.g. "M92_Ammo_Pallet")
 -- @return descriptor table or nil
 function CTLDCrateManager:findDescriptorByTypeName(typeName)
     if not typeName then return nil end
+    if self._weightIndex then
+        for _, descriptor in pairs(self._weightIndex) do
+            if descriptor.unit == typeName or descriptor.type == typeName then
+                return descriptor
+            end
+        end
+        return nil
+    end
+    -- Fallback: raw config scan (before _processSpawnableCrates ran)
     local spawnableCrates = ctld.gs("spawnableCrates")
     if not spawnableCrates then return nil end
     for _, category in pairs(spawnableCrates) do
@@ -10649,74 +10722,102 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
         return
     end
 
-    local jtacOk       = ctld.gs("JTAC_dropEnabled") == true
-    local spawnableCrates = ctld.gs("spawnableCrates") or {}
+    local jtacOk      = ctld.gs("JTAC_dropEnabled") == true
+    local showSets    = ctld.gs("enableAllCrates") ~= false
+    local processed   = self._processedCrates or {}
+
+    -- Shared spawn callback: handles both single crate (arg.unit) and set (arg.multiple).
+    local function spawnFn(arg)
+        local t = Unit.getByName(arg.unitName)
+        if not (t and t:isExist()) then return end
+        if ctld.utils.inAir(t) then
+            trigger.action.outTextForGroup(t:getGroup():getID(),
+                ctld.tr("You must be landed to request a crate."), 10)
+            return
+        end
+        local selZone = CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName)
+        if not (selZone and selZone.active and selZone:isAlive()
+                and selZone:isInZone(t:getPoint())) then
+            trigger.action.outTextForGroup(t:getGroup():getID(),
+                ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
+            return
+        end
+        local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+        local mgr      = CTLDCrateManager.getInstance()
+        local gid      = t:getGroup():getID()
+        if arg.multiple then
+            local descriptors = {}
+            for _, weight in ipairs(arg.multiple) do
+                local d = mgr:findDescriptorByWeight(weight)
+                if d then table.insert(descriptors, d) end
+            end
+            local spawned, spawnInfo = mgr:spawnCratesAligned(
+                descriptors, t, arg.coalition, arg.unitName, CTLDCrate.SPAWN_METHOD.MENU_CTLD)
+            if spawned > 0 then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("%1 crates have been brought out at your %2 o'clock",
+                        spawned, spawnInfo.clock), 20)
+            end
+        else
+            local mKey      = mgr:_crateModelKey(t)
+            local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
+            local pos       = spawnInfo.positions[1]
+            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+            if descriptor then
+                local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
+                    CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
+                if spawned then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
+                            descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                end
+            end
+        end
+    end
 
     for _, lgz in ipairs(lgZones) do
         local lgzName = lgz.name
         menu:addSubMenu({ root, spawnSub }, lgzName)
-        for category, crates in pairs(spawnableCrates) do
+        for category, data in pairs(processed) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
-            for _, crate in ipairs(crates) do
-                local sideOk    = (crate.side == nil) or (crate.side == playerObj.coalition)
-                local crateJtac = _crateIsJTAC(crate)
-                if sideOk and (not crateJtac or jtacOk) then
-                    menu:addCommand({ root, spawnSub, lgzName, category }, crate.desc,
-                        function(arg)
-                            local t = Unit.getByName(arg.unitName)
-                            if not (t and t:isExist()) then return end
-                            if ctld.utils.inAir(t) then
-                                trigger.action.outTextForGroup(t:getGroup():getID(),
-                                    ctld.tr("You must be landed to request a crate."), 10)
-                                return
-                            end
-                            -- Verify unit is still within the selected zone
-                            local selZone = CTLDZoneManager.getInstance():getLogisticZone(arg.zoneName)
-                            if not (selZone and selZone.active and selZone:isAlive()
-                                    and selZone:isInZone(t:getPoint())) then
-                                trigger.action.outTextForGroup(t:getGroup():getID(),
-                                    ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
-                                return
-                            end
-                            local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-                            local mgr      = CTLDCrateManager.getInstance()
-                            local gid      = t:getGroup():getID()
+            local crateOrder = 0
 
-                            if arg.multiple then
-                                local descriptors = {}
-                                for _, weight in ipairs(arg.multiple) do
-                                    local d = mgr:findDescriptorByWeight(weight)
-                                    if d then table.insert(descriptors, d) end
-                                end
-                                local spawned, spawnInfo = mgr:spawnCratesAligned(
-                                    descriptors, t, arg.coalition, arg.unitName,
-                                    CTLDCrate.SPAWN_METHOD.MENU_CTLD)
-                                if spawned > 0 then
-                                    trigger.action.outTextForGroup(gid,
-                                        ctld.tr("%1 crates have been brought out at your %2 o'clock",
-                                            spawned, spawnInfo.clock), 20)
-                                end
-                            else
-                                local mKey      = mgr:_crateModelKey(t)
-                                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
-                                local pos       = spawnInfo.positions[1]
-                                local descriptor = mgr:findDescriptorByTypeName(arg.unit)
-                                if descriptor then
-                                    local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
-                                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
-                                    if spawned then
-                                        trigger.action.outTextForGroup(gid,
-                                            ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
-                                                descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
-                                    end
-                                end
-                            end
-                        end,
-                        { unit      = crate.unit,
-                          multiple  = crate.multiple,
-                          zoneName  = lgzName,
-                          unitName  = playerObj.unitName,
-                          coalition = playerObj.coalition })
+            -- singleCrates, each immediately followed by its singleTypeSet (if visible)
+            for _, entry in ipairs(data.singleCrates) do
+                local sc     = entry.singleCrate
+                local sideOk = (sc.side == nil) or (sc.side == playerObj.coalition)
+                if sideOk and (not _crateIsJTAC(sc) or jtacOk) then
+                    crateOrder = crateOrder + 1
+                    menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
+                        spawnFn,
+                        { unit = sc.unit, zoneName = lgzName, unitName = playerObj.unitName,
+                          coalition = playerObj.coalition },
+                        { order = crateOrder })
+
+                    local sts = entry.singleTypeSet
+                    if sts and (not _crateIsJTAC(sts) or jtacOk) then
+                        crateOrder = crateOrder + 1
+                        menu:addCommand({ root, spawnSub, lgzName, category }, sts.desc,
+                            spawnFn,
+                            { multiple = sts.multiple, zoneName = lgzName, unitName = playerObj.unitName,
+                              coalition = playerObj.coalition },
+                            { order = crateOrder })
+                    end
+                end
+            end
+
+            -- mixedSets at the end (shown only when enableAllCrates is true)
+            if showSets then
+                for _, ms in ipairs(data.mixedSets) do
+                    local sideOk = (ms.side == nil) or (ms.side == playerObj.coalition)
+                    if sideOk and (not _crateIsJTAC(ms) or jtacOk) then
+                        crateOrder = crateOrder + 1
+                        menu:addCommand({ root, spawnSub, lgzName, category }, ms.desc,
+                            spawnFn,
+                            { multiple = ms.multiple, zoneName = lgzName, unitName = playerObj.unitName,
+                              coalition = playerObj.coalition },
+                            { order = crateOrder })
+                    end
                 end
             end
         end
@@ -10915,11 +11016,15 @@ end
 -- ============================================================
 
 --- Find a crate descriptor by weight number.
--- Searches all spawnableCrates categories for a descriptor whose weight matches.
+-- Uses self._weightIndex (O(1)) built by _processSpawnableCrates (singleCrates only).
 -- @param weight number
 -- @return table|nil  descriptor
 function CTLDCrateManager:findDescriptorByWeight(weight)
     if not weight then return nil end
+    if self._weightIndex then
+        return self._weightIndex[weight]
+    end
+    -- Fallback: raw config scan (before _processSpawnableCrates ran)
     local spawnableCrates = ctld.gs("spawnableCrates")
     if not spawnableCrates then return nil end
     for _, category in pairs(spawnableCrates) do
@@ -10997,10 +11102,9 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
+-- ===== End   : CTLD_crate.lua =====
 
--- End : CTLD_crate.lua
--- ====================================================================================================
--- Start : CTLD_vehicle.lua
+-- ===== Start : CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -11979,10 +12083,9 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
+-- ===== End   : CTLD_vehicle.lua =====
 
--- End : CTLD_vehicle.lua
--- ====================================================================================================
--- Start : CTLD_fob.lua
+-- ===== Start : CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12482,10 +12585,9 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
+-- ===== End   : CTLD_fob.lua =====
 
--- End : CTLD_fob.lua
--- ====================================================================================================
--- Start : CTLD_aasystem.lua
+-- ===== Start : CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13182,10 +13284,9 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
+-- ===== End   : CTLD_aasystem.lua =====
 
--- End : CTLD_aasystem.lua
--- ====================================================================================================
--- Start : CTLD_beacon.lua
+-- ===== Start : CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -14009,10 +14110,9 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
+-- ===== End   : CTLD_beacon.lua =====
 
--- End : CTLD_beacon.lua
--- ====================================================================================================
--- Start : CTLD_recon.lua
+-- ===== Start : CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -14809,10 +14909,9 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
+-- ===== End   : CTLD_recon.lua =====
 
--- End : CTLD_recon.lua
--- ====================================================================================================
--- Start : CTLD_jtac.lua
+-- ===== Start : CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -16105,10 +16204,9 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
+-- ===== End   : CTLD_jtac.lua =====
 
--- End : CTLD_jtac.lua
--- ====================================================================================================
--- Start : CTLD_player.lua
+-- ===== Start : CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -16539,10 +16637,9 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
+-- ===== End   : CTLD_player.lua =====
 
--- End : CTLD_player.lua
--- ====================================================================================================
--- Start : CTLD_core.lua
+-- ===== Start : CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -16949,10 +17046,9 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
+-- ===== End   : CTLD_core.lua =====
 
--- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
+-- ===== Start : scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -17053,10 +17149,9 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+-- ===== End   : scenes/CTLD_farpScene.lua =====
 
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
+-- ===== Start : scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -17156,10 +17251,9 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+-- ===== End   : scenes/CTLD_fobScene.lua =====
 
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
+-- ===== Start : scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -17424,10 +17518,9 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+-- ===== End   : scenes/CTLD_mineFieldScene.lua =====
 
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : compat/legacy_api.lua
+-- ===== Start : compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -17606,10 +17699,9 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
+-- ===== End   : compat/legacy_api.lua =====
 
--- End : compat/legacy_api.lua
--- ====================================================================================================
--- Start : CTLD_userConfig.lua
+-- ===== Start : CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -18563,5 +18655,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+-- ===== End   : CTLD_userConfig.lua =====
 
--- End : CTLD_userConfig.lua
