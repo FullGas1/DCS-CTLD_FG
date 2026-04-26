@@ -210,25 +210,16 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
         À planifier après STEP 2+3 terminés.
 
-⬜  FG  Refonte système multi-crates — génération automatique + redéfinition sémantique
-        Problème actuel : deux sources de vérité indépendantes faciles à désynchroniser.
-          Ex : Hummer cratesRequired=1, mais { multiple={1001.01, 1001.01} } en liste 2 → incohérence silencieuse.
-        À DISCUTER avant implémentation — proposition MM à soumettre :
-
-        Piste A (génération automatique des sets simples) :
-          Garde config : showMultiCrateSets = true/false
-          Si true, le menu builder génère automatiquement l'entrée "XX — All crates" à partir du
-          descriptor de la crate individuelle et de son attribut cratesRequired, sans ligne `multiple`
-          explicite dans la config. Supprime la redondance pour les sets mono-type.
-
-        Piste B (réservation de `multiple` aux sets multi-types) :
-          `multiple` n'est utilisé QUE pour les équipements nécessitant plusieurs types de crates
-          distincts (ex: systèmes AA : {launcherA, launcherA, radarA, commA, commA}).
-          Chaque type dans le set est défini par sa propre crate portant son cratesRequired.
-          Le set décrit la COMPOSITION (quels types, combien de chaque), pas la répétition d'une même crate.
-
-        → Faire de meilleures propositions au moment du traitement, analyser impacts sur
-          unpack pipeline, menu builder, AA assembly manager, et cas bords (FOB, multi-type existants).
+✅  FG  Refonte système spawnableCrates — singleTypeSets auto + mixedSet [2026-04-26]
+        - Suppression ~25 entrées multiple={w,w,...} manuelles dans config
+        - Renommage multiple → mixedSet pour sets multi-types (HAWK, NASAMS, KUB, BUK, Patriot, S-300)
+        - showSets=false sur FOB Crate (sentinel), enableAllCrates garde global
+        - _processSpawnableCrates() : 3 passes (séparation / auto-génération / validation)
+        - singleTypeSet auto-généré : desc = sc.desc + ctld.tr("All crates"), adjacent dans menu
+        - mixedSet validé : weights résolus dans catégorie, entrée bloquée + alerte MM si manquant
+        - findDescriptorByWeight/ByTypeName/ByUnitType : O(1) via _weightIndex
+        - Ordre menu garanti : singleCrates (+ singleTypeSet adjacent) → mixedSets en fin
+        - Recette visuelle ✅ PASS [2026-04-26] F-109
 
 ⬜  FG  Beacon FM — remplacer radioTransmission par activateBeacon HOMER pour canal FM
         Diagnostic confirmé : trigger.action.radioTransmission mode=1 (FM) ne produit pas un

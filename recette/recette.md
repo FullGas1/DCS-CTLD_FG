@@ -291,7 +291,8 @@ La mission de test doit contenir :
 - **JTAC drone orbit** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-106 [2026-04-25])
 - **JTAC Hummer** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-107 [2026-04-25])
 - **FOB beacon radio** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-108 [2026-04-26]) — sons .ogg obligatoires dans .miz
-- **Total** : **195 cas** — 915/915 PASS ✅
+- **spawnableCrates refactor** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-109 [2026-04-26]) — singleTypeSets auto-générés, mixedSets en fin, ordre garanti
+- **Total** : **196 cas** — 916/916 PASS ✅
 
 ---
 
