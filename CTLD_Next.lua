@@ -5053,8 +5053,11 @@ function ctld.MenuManager:refreshMenuForGroup(groupId)
     end
     local menu = self.menus[groupId]
 
-    -- Atomic wipe: remove every DCS menu item for this group in one call.
-    missionCommands.removeItemForGroup(groupId, nil)
+    -- Remove only CTLD's own top-level entries — never wipe the whole group menu
+    -- (nil path would also destroy standard DCS entries such as Ground Crew / ATC).
+    for _, item in ipairs(menu.children) do
+        missionCommands.removeItemForGroup(groupId, { item.name })
+    end
 
     local count = 0
     for _, item in ipairs(ctld.MenuManager:_sortByOrder(menu.children)) do
@@ -16438,7 +16441,14 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     local playerObj = self._players[unitName]
     if not playerObj then return end
 
-    missionCommands.removeItemForGroup(playerObj.groupId, nil)
+    local mmgr     = ctld.MenuManager:getInstance()
+    local menuData = mmgr.menus and mmgr.menus[playerObj.groupId]
+    if menuData then
+        for _, item in ipairs(menuData.children or {}) do
+            missionCommands.removeItemForGroup(playerObj.groupId, { item.name })
+        end
+        mmgr.menus[playerObj.groupId] = nil
+    end
     self._players[unitName] = nil
 
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)

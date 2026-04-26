@@ -171,10 +171,17 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • Déployer "Single JTAC" (jtac=1) → autoLase → menu JTAC F10
 
 ⬜  FG  STEP 3 — Recette fonctions JTAC sur véhicules sol (après STEP 1+2)
+        Crates JTAC confirmées isJTAC=true (parité legacy jtacUnitTypes "SKP","Hummer","MQ","RQ") :
+          • weight=1001.01 Hummer - JTAC        (unit="Hummer",        side=2, isJTAC=true)
+          • weight=1001.11 SKP-11 - JTAC        (unit="SKP-11",        side=1, isJTAC=true)
+          • weight=1006.01 MQ-9 Repear - JTAC   (unit="MQ-9 Reaper",   side=2, isJTAC=true)
+          • weight=1006.11 RQ-1A Predator - JTAC (unit="RQ-1A Predator", side=1, isJTAC=true)
+        Scénario injectable : recette/scenarios/scenario_jtac_vehicle.lua (à créer)
         ✅ Hummer (BLUE)  : Request Equipment → unpack → autoLase → menu JTAC F10 [2026-04-25] F-107
-        ⬜ SKP-11 (RED)   : idem côté RED
-        ⬜ Hummer IN_TRANSIT : embarquer dans hélico → état IN_TRANSIT → débarquer → IDLE
+        ✅ SKP-11 (RED)   : scenario_jtac_vehicle_red.lua — lasing BLUE enemy + target lost [2026-04-26]
+        ⬜ Hummer IN_TRANSIT : spawn → CTLDJTACManager lase → vérif lasing → move enemy → vérif target lost
         ⬜ SKP-11 IN_TRANSIT : idem RED
+        ⬜ MQ-9 / RQ-1A  : couverts par diag/diag_jtac_deploy_test.lua (drone orbit)
 
 ⬜  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
         Objectif : créer une bibliothèque de scripts Lua injectables via Witchcraft qui reproduisent

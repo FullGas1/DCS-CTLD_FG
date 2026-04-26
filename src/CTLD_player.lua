@@ -229,7 +229,14 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     local playerObj = self._players[unitName]
     if not playerObj then return end
 
-    missionCommands.removeItemForGroup(playerObj.groupId, nil)
+    local mmgr     = ctld.MenuManager:getInstance()
+    local menuData = mmgr.menus and mmgr.menus[playerObj.groupId]
+    if menuData then
+        for _, item in ipairs(menuData.children or {}) do
+            missionCommands.removeItemForGroup(playerObj.groupId, { item.name })
+        end
+        mmgr.menus[playerObj.groupId] = nil
+    end
     self._players[unitName] = nil
 
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
