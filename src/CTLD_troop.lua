@@ -564,8 +564,8 @@ function CTLDTroopManager:deploy(unit)
         self._droppedTemplates[dcsGroup:getName()] = group.templateKey
 
         if group.hasJtac then
-            -- Signal: CTLDJtacManager will handle laser attribution when built
-            ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s'", dcsGroup:getName())
+            ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s', starting autoLase", dcsGroup:getName())
+            CTLDJTACManager.getInstance():startLase(dcsGroup:getName())
         end
 
         -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
