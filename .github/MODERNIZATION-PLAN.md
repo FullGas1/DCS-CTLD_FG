@@ -251,13 +251,15 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Test : spawner 2 balises FM sur freq différentes, vérifier réception simultanée des 2.
         → VÉRIFIER API Hoggit avant de coder : https://wiki.hoggitworld.com/view/DCS_command_activateBeacon
 
-⬜  FG  Mark IDs — vérifier compteur global à usage unique (app-wide monotonic)
-        trigger.action.removeMark(id) : un ID supprimé ne peut JAMAIS être réutilisé dans
-        la même mission (DCS l'ignore silencieusement). Vérifier que tout le code CTLD qui
-        crée des marks (RECON layers, orbit debug, beacons…) utilise un compteur global
-        monotoniquement croissant (type mIdx++) et jamais un compteur local réinitialisé.
-        Priorité : layers RECON — le toggle ON/OFF supprime puis recrée les marks ; si l'ID
-        est réutilisé, les marks ne réapparaissent pas → bug invisible.
+✅  FG  Mark IDs — compteur global monotonique app-wide [2026-04-27]
+        ctld.utils.getNextMarkId() / MarkIdCounter : compteur partagé par Recon, Beacon, drawQuad.
+        Fix bugs :
+          - CTLDReconManager._nextMark() + CTLDBeaconManager._nextMark() : délèguent désormais
+            à getNextMarkId() (suppression des compteurs locaux démarrant à 1 → collisions silencieuses)
+          - drawQuad : utilise getNextMarkId() au lieu de getNextUniqId() (séparation mark/unit IDs)
+          - _doRefresh moved-target : alloue un nouveau markId après removeIcon (DCS invalide
+            définitivement tout ID passé à removeMark — réutilisation = mark invisible)
+        Recette F-115 : 11/11 PASS [2026-04-27]
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]

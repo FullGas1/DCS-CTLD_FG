@@ -296,7 +296,8 @@ La mission de test doit contenir :
 - **FOB beacon radio** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-108 [2026-04-26]) — sons .ogg obligatoires dans .miz
 - **spawnableCrates refactor** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-109 [2026-04-26]) — singleTypeSets auto-générés, mixedSets en fin, ordre garanti
 - **JTAC InTransit (UH-1H)** : 3 fonctionnels = **3 cas** ✅ PASS (F-110 10/10 + F-111 6/6 + F-112 7/7 [2026-04-27]) — Request JTAC Vehicle config + spawn + repack anti-false-KIA
-- **Total** : **199 cas** — 939/939 PASS ✅
+- **Mark IDs** : 1 fonctionnel = **1 cas** ✅ PASS (F-115 11/11 [2026-04-27]) — compteur global monotonique partagé Recon/Beacon/drawQuad, fix moved-target icon
+- **Total** : **200 cas** — 950/950 PASS ✅
 
 ---
 
