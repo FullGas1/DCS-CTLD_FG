@@ -122,7 +122,7 @@ function CTLDBeaconManager:init()
     self._beacons         = {}   -- beaconName -> CTLDBeacon
     self._beaconCount     = 0    -- monotonic counter for display names
     self._layerState      = {}   -- playerName -> { enabled=bool, marks={} }
-    self._nextMarkId      = 1
+    -- Mark IDs are allocated from ctld.utils.getNextMarkId() (app-wide monotonic counter)
 
     -- Frequency pools
     self._freeVHF  = {}
@@ -596,9 +596,7 @@ end
 -- ============================================================
 
 function CTLDBeaconManager:_nextMark()
-    local mid = self._nextMarkId
-    self._nextMarkId = self._nextMarkId + 1
-    return mid
+    return ctld.utils.getNextMarkId()
 end
 
 function CTLDBeaconManager:_drawBeaconIcon(beacon, markId)

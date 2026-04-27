@@ -246,6 +246,9 @@ La mission de test doit contenir :
 | F-106 | JTAC drone full lifecycle — deployAirJTAC + orbit route + autoOrbit + restore | JTAC | Spawn MQ-9 → _setOrbitRoute (2s retry) → autoOrbit sur cible lasée → cible détruite → popTask + setTask(initialRoute) → drone retour route initiale complète (cercle 2000 m) | ✅ PASS visual [2026-04-25] | Witchcraft diag_jtac_deploy_test + diag_force_target_loss |
 | F-107 | Hummer JTAC — Request Equipment → unpack → autoLase | JTAC STEP1+3 | isJTAC=true sur Hummer → Request Equipment visible + unpack → startLase déclenché → laser code attribué → menu JTAC F10 actif | ✅ PASS visual [2026-04-25] | Mission réelle BLUE |
 | F-108 | FOB beacon radio — VHF/UHF/FM reçus après ajout sons mission | Beacon | Drop FOB → beacon spawné → VHF ADF actif + FM homing actif (ARC-131 UH-1H) après ajout beacon.ogg + beaconsilent.ogg dans Mission→Sons | ✅ PASS visual [2026-04-26] | Sons .ogg obligatoires dans .miz |
+| F-110 | JTAC InTransit — Request JTAC Vehicle config visibility | JTAC STEP3 | JTAC_unitTypeNames[1] RED + [2] BLUE définis, strings valides, Hummer+MQ-9/SKP-11+RQ-1A Predator présents | ✅ PASS 10/10 [2026-04-27] | UH-1H uniquement |
+| F-111 | JTAC InTransit — spawnJTACVehicleForTransport + registration | JTAC STEP3 | spawnJTACVehicleForTransport → CTLDVehicle retourné, gname set, deregisterJTAC→nil, registerJTACVehicle→_vehicles (startLase async → live F-109b visual ✅) | ✅ PASS 6/6 [2026-04-27] | UH-1H uniquement |
+| F-112 | JTAC InTransit — Repack → deregisterJTAC, no OnJTACDead | JTAC STEP3 | inject fake jtac → deregisterJTAC → jtacs nil, OnJTACDead NOT published, laser code freed, idempotent | ✅ PASS 7/7 [2026-04-27] | UH-1H uniquement |
 
 ---
 
@@ -292,7 +295,8 @@ La mission de test doit contenir :
 - **JTAC Hummer** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-107 [2026-04-25])
 - **FOB beacon radio** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-108 [2026-04-26]) — sons .ogg obligatoires dans .miz
 - **spawnableCrates refactor** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-109 [2026-04-26]) — singleTypeSets auto-générés, mixedSets en fin, ordre garanti
-- **Total** : **196 cas** — 916/916 PASS ✅
+- **JTAC InTransit (UH-1H)** : 3 fonctionnels = **3 cas** ✅ PASS (F-110 10/10 + F-111 6/6 + F-112 7/7 [2026-04-27]) — Request JTAC Vehicle config + spawn + repack anti-false-KIA
+- **Total** : **199 cas** — 939/939 PASS ✅
 
 ---
 

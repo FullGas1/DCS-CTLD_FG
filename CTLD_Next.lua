@@ -1,7 +1,8 @@
 ---@meta
 ---@diagnostic disable
 
--- ===== Start : lib/class.lua =====
+-- ====================================================================================================
+-- Start : lib/class.lua
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -38,9 +39,10 @@ function class(base)
     end
     return cls
 end
--- ===== End   : lib/class.lua =====
 
--- ===== Start : CTLD_config.lua =====
+-- End : lib/class.lua
+-- ====================================================================================================
+-- Start : CTLD_config.lua
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -402,6 +404,19 @@ function CTLDConfig:load()
     self.settings["JTAC_laseIntervalSeconds"]             = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
     self.settings["JTAC_searchIntervalSeconds"]           = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
     self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
+
+    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
+    self.settings["JTAC_droneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
+    self.settings["JTAC_droneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
+
+    -- JTAC vehicles requestable via F10 JTAC > Request JTAC Vehicle, per coalition.
+    -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
+    -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
+    -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.
+    self.settings["JTAC_unitTypeNames"] = {
+        [1] = { "SKP-11", "RQ-1A Predator" },  -- RED: JTAC vehicles available to RED coalition
+        [2] = { "Hummer", "MQ-9 Reaper" },     -- BLUE: JTAC vehicles available to BLUE coalition
+    }
 
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh
@@ -781,58 +796,58 @@ function CTLDConfig:load()
             -- Some descriptions are filtered to determine if JTAC or not!
 
             --- BLUE
-            { weight = 1000.01,                                  desc = ctld.tr("Humvee - MG"),                      unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
-            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),          unit = "M1045 HMMWV TOW", side = 2, cratesRequired = 2 },
-            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),     unit = "MaxxPro_MRAP",    side = 2, cratesRequired = 2 },
-            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),     unit = "LAV-25",          side = 2, cratesRequired = 3 },
-            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),   unit = "M-1 Abrams",      side = 2, cratesRequired = 4 },
+            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 },                                               --careful with the names as the script matches the desc to JTAC types
+            { weight = 1000.02, desc = ctld.tr("Humvee - TOW"),        unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
+            { weight = 1000.03, desc = ctld.tr("Light Tank - MRAP"),   unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
+            { weight = 1000.04, desc = ctld.tr("Med Tank - LAV-25"),   unit = "LAV-25",               side = 2, cratesRequired = 3 },
+            { weight = 1000.05, desc = ctld.tr("Heavy Tank - Abrams"), unit = "M-1 Abrams",           side = 2, cratesRequired = 4 },
 
             --- RED
-            { weight = 1000.11,                                  desc = ctld.tr("BTR-D"),                            unit = "BTR_D",                side = 1 },
-            { weight = 1000.12,                                  desc = ctld.tr("BRDM-2"),                           unit = "BRDM-2",               side = 1 },
+            { weight = 1000.11, desc = ctld.tr("BTR-D"),               unit = "BTR_D",                side = 1 },
+            { weight = 1000.12, desc = ctld.tr("BRDM-2"),              unit = "BRDM-2",               side = 1 },
             -- need more redfor!
         },
         ["Support"] = {
             --- BLUE
-            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),      unit = "Hummer",            side = 2, cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"), unit = "M 818",             side = 2, cratesRequired = 2 },
-            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),     unit = "M978 HEMTT Tanker", side = 2, cratesRequired = 2 },
+            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),       unit = "Hummer",            side = 2,          cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"),    unit = "M 818",             side = 2,          cratesRequired = 2 },
+            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),        unit = "M978 HEMTT Tanker", side = 2,          cratesRequired = 2 },
 
             --- RED
-            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),         unit = "SKP-11",      side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"),   unit = "Ural-375",     side = 1, cratesRequired = 2 },
-            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),      unit = "KAMAZ Truck",  side = 1, cratesRequired = 2 },
+            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),       unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"), unit = "Ural-375",          side = 1,          cratesRequired = 2 },
+            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),    unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
 
             --- Both
-            { weight = 1001.21, desc = ctld.tr("EWR Radar"),  unit = "FPS-117", cratesRequired = 3 },
-            { weight = 1001.22, desc = ctld.tr("FOB Crate"),  unit = "FOB",     side = nil, cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
+            { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
             --- BLUE
-            { weight = 1002.01, desc = ctld.tr("MLRS"),         unit = "MLRS",         side = 2, cratesRequired = 3 },
-            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),    unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
-            { weight = 1002.03, desc = ctld.tr("T155 Firtina"), unit = "T155_Firtina", side = 2, cratesRequired = 3 },
-            { weight = 1002.04, desc = ctld.tr("Howitzer"),     unit = "M-109",        side = 2, cratesRequired = 3 },
+            { weight = 1002.01, desc = ctld.tr("MLRS"),          unit = "MLRS",         side = 2, cratesRequired = 3 },
+            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),     unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
+            { weight = 1002.03, desc = ctld.tr("T155 Firtina"),  unit = "T155_Firtina", side = 2, cratesRequired = 3 },
+            { weight = 1002.04, desc = ctld.tr("Howitzer"),      unit = "M-109",        side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta", side = 1, cratesRequired = 3 },
+            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta",     side = 1, cratesRequired = 3 },
 
         },
         ["SAM short range"] = {
             --- BLUE
-            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"), unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
-            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"), unit = "M48 Chaparral",      side = 2, cratesRequired = 2 },
-            { weight = 1003.03, desc = ctld.tr("Roland ADS"),    unit = "Roland ADS",         side = 2, cratesRequired = 3 },
-            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),    unit = "Gepard",             side = 2, cratesRequired = 3 },
-            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),    unit = "HEMTT_C-RAM_Phalanx",side = 2, cratesRequired = 3 },
+            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"),   unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
+            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"),   unit = "M48 Chaparral",       side = 2, cratesRequired = 2 },
+            { weight = 1003.03, desc = ctld.tr("Roland ADS"),      unit = "Roland ADS",          side = 2, cratesRequired = 3 },
+            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),      unit = "Gepard",              side = 2, cratesRequired = 3 },
+            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),      unit = "HEMTT_C-RAM_Phalanx", side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",   side = 1, cratesRequired = 3 },
-            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31", side = 1, cratesRequired = 3 },
-            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",   side = 1, cratesRequired = 3 },
-            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",     side = 1, cratesRequired = 3 },
-            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",  side = 1, cratesRequired = 3 },
+            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",         side = 1, cratesRequired = 3 },
+            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31",       side = 1, cratesRequired = 3 },
+            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",         side = 1, cratesRequired = 3 },
+            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",           side = 1, cratesRequired = 3 },
+            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",        side = 1, cratesRequired = 3 },
         },
         ["SAM mid range"] = {
             --- BLUE
@@ -983,10 +998,6 @@ function CTLDConfig:load()
         ["shape_name"] = "trunks_small_cargo",
         ["type"] = "trunks_small_cargo",
 ]] --
-
-    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
-    self.settings["jtacDroneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
-    self.settings["jtacDroneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
     -- ******************************************************************
     -- ****************** END OF CONFIGURATION AREA *********************
@@ -1174,9 +1185,10 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
--- ===== End   : CTLD_config.lua =====
 
--- ===== Start : CTLD_i18n.lua =====
+-- End : CTLD_config.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n.lua
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1394,9 +1406,10 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
--- ===== End   : CTLD_i18n.lua =====
 
--- ===== Start : CTLD_i18n_en.lua =====
+-- End : CTLD_i18n.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1785,9 +1798,10 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
--- ===== End   : CTLD_i18n_en.lua =====
 
--- ===== Start : CTLD_i18n_fr.lua =====
+-- End : CTLD_i18n_en.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2170,9 +2184,10 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_fr.lua =====
 
--- ===== Start : CTLD_i18n_es.lua =====
+-- End : CTLD_i18n_fr.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2556,9 +2571,10 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = ""
--- ===== End   : CTLD_i18n_es.lua =====
 
--- ===== Start : CTLD_i18n_ko.lua =====
+-- End : CTLD_i18n_es.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_ko.lua
 --[[
     CTLD — Korean dictionary
     Translation version: 1.7
@@ -2944,9 +2960,10 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
--- ===== End   : CTLD_i18n_ko.lua =====
 
--- ===== Start : CTLD_utils.lua =====
+-- End : CTLD_i18n_ko.lua
+-- ====================================================================================================
+-- Start : CTLD_utils.lua
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -2968,7 +2985,7 @@ if not ctld.utils.marks then ctld.utils.marks = {}; end
 
 function ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
     local coalitionId = coalitionId or 2
-    local markId = ctld.utils.getNextUniqId()
+    local markId = ctld.utils.getNextMarkId()
 
     -- Color
     local tableColor = { 0, 0, 255, 0.4 }  --blue  by default
@@ -3676,6 +3693,20 @@ function ctld.utils.getNextUniqId()
     return ctld.utils.UniqIdCounter
 end
 
+-- Mark ID counter — monotonically increasing, app-wide.
+-- DCS: once removeMark(id) is called, that id is permanently invalid and must never be reused.
+-- All Draw API callers (RECON, Beacon, drawQuad) share this counter to avoid collisions.
+-- Encoded IDs use markId * 10 + offset (1–3 elements per logical mark).
+ctld.utils.MarkIdCounter = 0
+
+--- Allocate the next unique mark ID for DCS Draw API calls.
+-- Never reuse a previously allocated ID after removeMark() has been called on it.
+-- @return number
+function ctld.utils.getNextMarkId()
+    ctld.utils.MarkIdCounter = ctld.utils.MarkIdCounter + 1
+    return ctld.utils.MarkIdCounter
+end
+
 --- Converts angle in radians to degrees.
 -- @param angleInRadians angle in radians
 -- @return angle in degrees
@@ -4152,7 +4183,7 @@ end
 --
 -- For non-ground units with descriptor.isJTAC = true, an orbit + EPLRS route is embedded
 -- (required by DCS at spawn time; cannot be assigned post-spawn for loitering platforms).
--- The orbit altitude is read from ctld.gs("jtacDroneAltitude") (default 4000 m).
+-- The orbit altitude is read from ctld.gs("JTAC_droneAltitude") (default 4000 m).
 --
 -- @param desc   table   crate descriptor { unit, spawnAs, isJTAC, … }
 -- @param pos    vec3    world spawn position {x, y, z}
@@ -4179,7 +4210,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
         }
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
-        local alt   = ctld.gs("jtacDroneAltitude") or 4000
+        local alt   = ctld.gs("JTAC_droneAltitude") or 4000
         local speed = 54  -- m/s (~105 kts)
         local uname = gname .. "_1"
         local unitDef = {
@@ -4951,9 +4982,10 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
--- ===== End   : CTLD_utils.lua =====
 
--- ===== Start : CTLD_menu.lua =====
+-- End : CTLD_utils.lua
+-- ====================================================================================================
+-- Start : CTLD_menu.lua
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5483,9 +5515,10 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
--- ===== End   : CTLD_menu.lua =====
 
--- ===== Start : lib/CTLD_objectRegistry.lua =====
+-- End : CTLD_menu.lua
+-- ====================================================================================================
+-- Start : lib/CTLD_objectRegistry.lua
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5907,9 +5940,10 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
--- ===== End   : lib/CTLD_objectRegistry.lua =====
 
--- ===== Start : lib/CTLDParachuteEffect.lua =====
+-- End : lib/CTLD_objectRegistry.lua
+-- ====================================================================================================
+-- Start : lib/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5961,9 +5995,10 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
--- ===== End   : lib/CTLDParachuteEffect.lua =====
 
--- ===== Start : CTLD_sceneManager.lua =====
+-- End : lib/CTLDParachuteEffect.lua
+-- ====================================================================================================
+-- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6385,9 +6420,10 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ===== End   : CTLD_sceneManager.lua =====
 
--- ===== Start : CTLD_zone.lua =====
+-- End : CTLD_sceneManager.lua
+-- ====================================================================================================
+-- Start : CTLD_zone.lua
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7437,9 +7473,10 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
--- ===== End   : CTLD_zone.lua =====
 
--- ===== Start : CTLD_troop.lua =====
+-- End : CTLD_zone.lua
+-- ====================================================================================================
+-- Start : CTLD_troop.lua
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8950,9 +8987,10 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
--- ===== End   : CTLD_troop.lua =====
 
--- ===== Start : CTLD_crate.lua =====
+-- End : CTLD_troop.lua
+-- ====================================================================================================
+-- Start : CTLD_crate.lua
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -10562,6 +10600,8 @@ end
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
         CTLDJTACManager.get():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
+        -- Register in CTLDVehicleSpawner so load/unload can suspend/resume JTAC lasing.
+        CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
     end
 end
 
@@ -11105,9 +11145,10 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
--- ===== End   : CTLD_crate.lua =====
 
--- ===== Start : CTLD_vehicle.lua =====
+-- End : CTLD_crate.lua
+-- ====================================================================================================
+-- Start : CTLD_vehicle.lua
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -11410,6 +11451,63 @@ function CTLDVehicleSpawner:spawnVehicleForTransport(vehicleType, spawner, logis
     return vehicle
 end
 
+--- Register an externally-spawned JTAC vehicle (from unpack or Request JTAC Vehicle)
+-- into the CTLDVehicleSpawner registry so that load/unload can track it.
+-- @param groupName   string   DCS group name of the spawned unit
+-- @param vehicleType string   DCS type name
+-- @param spawner     DCS Unit transport that requested it (or nil for unpack)
+-- @param logisticZone table|nil
+-- @return CTLDVehicle or nil
+function CTLDVehicleSpawner:registerJTACVehicle(groupName, vehicleType, spawner, logisticZone)
+    self._vehicleCount = self._vehicleCount + 1
+    local id      = string.format("veh_%d", self._vehicleCount)
+    local g       = Group.getByName(groupName)
+    local unit    = g and g:getUnit(1) or nil
+    local coa     = unit and unit:getCoalition() or (spawner and spawner:getCoalition() or 2)
+    local country = unit and unit:getCountry()   or (spawner and spawner:getCountry()   or 2)
+
+    local spawnData = {
+        groupName   = groupName,
+        unitName    = groupName,
+        vehicleType = vehicleType,
+        countryId   = country,
+        coalitionId = coa,
+    }
+
+    local vehicle = CTLDVehicle:new({
+        id           = id,
+        vehicleType  = vehicleType,
+        unit         = unit,
+        spawner      = spawner,
+        logisticZone = logisticZone,
+        spawnData    = spawnData,
+    })
+
+    self._vehicles[id] = vehicle
+    if unit then
+        self._unitToVehicle[unit:getName()] = id
+    end
+
+    ctld.utils.log("INFO", string.format(
+        "CTLDVehicleSpawner:registerJTACVehicle — %s id=%s group=%s",
+        vehicleType, id, groupName))
+    return vehicle
+end
+
+--- Spawn a JTAC vehicle near a transport (Request JTAC Vehicle menu action).
+-- Delegates spawn to spawnVehicleForTransport then starts JTAC lasing.
+-- @param vehicleType  string        DCS type name from JTAC_unitTypeNames
+-- @param spawner      DCS Unit      requesting transport
+-- @param logisticZone CTLDLogisticZone
+-- @return CTLDVehicle or nil
+function CTLDVehicleSpawner:spawnJTACVehicleForTransport(vehicleType, spawner, logisticZone)
+    local vehicle = self:spawnVehicleForTransport(vehicleType, spawner, logisticZone)
+    if not vehicle then return nil end
+    -- Register as JTAC and start lasing
+    CTLDJTACManager.get():startLase(vehicle.spawnData.groupName)
+    return vehicle
+end
+
 -- ============================================================
 -- loadVehicle
 -- ============================================================
@@ -11431,23 +11529,38 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
 
     local unitPos = vehicle.unit and vehicle.unit:getPoint() or transport:getPoint()
 
-    -- Destroy DCS unit (virtual load — unit disappears from map)
-    if vehicle.unit and vehicle.unit:isExist() then
-        vehicle.unit:destroy()
-        EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
-            vehicleType = vehicle.vehicleType,
-            position    = unitPos,
-            reason      = "loaded",
-            timestamp   = timer.getAbsTime(),
-        })
+    -- Suspend JTAC lasing if this vehicle is a registered JTAC (any load method).
+    -- For menu_ctld: unit is about to be destroyed so lasing must stop immediately.
+    -- For dcs_native: unit stays alive inside aircraft but lasing from inside a soute is nonsensical.
+    local groupName = vehicle.spawnData and vehicle.spawnData.groupName
+    if groupName then
+        CTLDJTACManager.get():setJTACInTransit(groupName,
+            { unitName = transport:getName(), playerName = player })
     end
 
-    -- Update reverse lookup
-    if vehicle.unit then
-        self._unitToVehicle[vehicle.unit:getName()] = nil
+    if method == "dcs_native" then
+        -- DCS manages the unit physically (linked inside aircraft) — do not destroy it.
+        -- Remove from reverse lookup so onDead doesn't misfire if DCS sends a stale event.
+        if vehicle.unit then
+            self._unitToVehicle[vehicle.unit:getName()] = nil
+        end
+    else
+        -- Virtual load: destroy the DCS unit from the map.
+        if vehicle.unit and vehicle.unit:isExist() then
+            vehicle.unit:destroy()
+            EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+                vehicleType = vehicle.vehicleType,
+                position    = unitPos,
+                reason      = "loaded",
+                timestamp   = timer.getAbsTime(),
+            })
+        end
+        if vehicle.unit then
+            self._unitToVehicle[vehicle.unit:getName()] = nil
+        end
+        vehicle.unit = nil
     end
 
-    vehicle.unit              = nil
     vehicle.loadMethod        = method
     vehicle.loadTransportName = transport:getName()
     vehicle.loadTime          = timer.getTime()
@@ -11455,10 +11568,10 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
 
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
         vehicleId            = vehicle.id,
-        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
-        dcsUnitObject        = nil,              -- DCS unit no longer exists in world
+        ctldVehicleObject    = vehicle,
+        dcsUnitObject        = method == "dcs_native" and vehicle.unit or nil,
         vehicleType          = vehicle.vehicleType,
-        transportUnitObject  = transport,        -- DCS Unit carrying the vehicle
+        transportUnitObject  = transport,
         player               = player,
         method               = method,
         spawnMethod          = "request_vehicle",
@@ -11477,7 +11590,8 @@ end
 -- ============================================================
 
 --- Unload a vehicle from a transport.
--- Respawns the DCS unit near the transport using the original group / unit names.
+-- For menu_ctld / parachute: respawns DCS unit near transport via dynAdd.
+-- For dcs_native: DCS has already placed the unit on the ground — just refresh the ref.
 -- Publishes OnVehicleUnloaded.
 --
 -- @param vehicle   CTLDVehicle
@@ -11491,55 +11605,67 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
         return
     end
 
-    local spawnPos  = _computeSpawnPosition(transport)
-    local spawnHdg  = ctld.utils.getHeadingInRadians(
-                          "CTLDVehicleSpawner:unloadVehicle", transport, true)
-    local sd        = vehicle.spawnData
+    local sd       = vehicle.spawnData
+    local spawnPos = _computeSpawnPosition(transport)
+    local unloadedUnit
 
-    local groupData = {
-        visible  = true,
-        hidden   = false,
-        category = Group.Category.GROUND,
-        country  = sd.countryId,
-        name     = sd.groupName,
-        task     = {},
-        units    = {
-            {
-                type           = sd.vehicleType,
-                name           = sd.unitName,
-                x              = spawnPos.x,
-                y              = spawnPos.z,
-                heading        = spawnHdg,
-                skill          = "Random",
-                playerCanDrive = false,
-            }
-        },
-    }
-
-    local result = ctld.utils.dynAdd("CTLDVehicleSpawner:unloadVehicle", groupData)
-    if not result then
-        ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle — dynAdd failed for id="
-            .. vehicle.id)
-        return
+    if method == "dcs_native" then
+        -- DCS has already placed the unit on the ground — recover the live ref.
+        local g = Group.getByName(sd.groupName)
+        unloadedUnit = g and g:getUnit(1) or nil
+    else
+        -- Virtual unload: respawn unit near transport.
+        local spawnHdg = ctld.utils.getHeadingInRadians(
+                             "CTLDVehicleSpawner:unloadVehicle", transport, true)
+        local groupData = {
+            visible  = true,
+            hidden   = false,
+            category = Group.Category.GROUND,
+            country  = sd.countryId,
+            name     = sd.groupName,
+            task     = {},
+            units    = {
+                {
+                    type           = sd.vehicleType,
+                    name           = sd.unitName,
+                    x              = spawnPos.x,
+                    y              = spawnPos.z,
+                    heading        = spawnHdg,
+                    skill          = "Random",
+                    playerCanDrive = false,
+                }
+            },
+        }
+        local result = ctld.utils.dynAdd("CTLDVehicleSpawner:unloadVehicle", groupData)
+        if not result then
+            ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle — dynAdd failed for id="
+                .. vehicle.id)
+            return
+        end
+        local respawnedGroup = Group.getByName(result.name)
+        unloadedUnit = respawnedGroup and respawnedGroup:getUnit(1) or nil
     end
 
-    local respawnedGroup = Group.getByName(result.name)
-    local respawnedUnit  = respawnedGroup and respawnedGroup:getUnit(1) or nil
-
-    vehicle.unit = respawnedUnit
+    vehicle.unit = unloadedUnit
     vehicle:setState(CTLDVehicle.STATE.DELIVERED)
 
     -- Re-register reverse lookup
-    if respawnedUnit then
-        self._unitToVehicle[respawnedUnit:getName()] = vehicle.id
+    if unloadedUnit then
+        self._unitToVehicle[unloadedUnit:getName()] = vehicle.id
+    end
+
+    -- Resume JTAC lasing if this vehicle is a registered JTAC.
+    local groupName = sd and sd.groupName
+    if groupName then
+        CTLDJTACManager.get():resumeJTAC(groupName)
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
         vehicleId            = vehicle.id,
-        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
-        dcsUnitObject        = respawnedUnit,    -- newly spawned DCS unit (may be nil on failure)
+        ctldVehicleObject    = vehicle,
+        dcsUnitObject        = unloadedUnit,
         vehicleType          = vehicle.vehicleType,
-        transportUnitObject  = transport,        -- DCS Unit that was carrying the vehicle
+        transportUnitObject  = transport,
         player               = player,
         method               = method,
         spawnMethod          = "request_vehicle",
@@ -11964,6 +12090,12 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     local tPos         = transport:getPoint()
     local packPos      = packableUnit:getPoint()   -- capture before destroy
 
+    -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
+    local packGroup = packableUnit:getGroup()
+    if packGroup then
+        CTLDJTACManager.get():deregisterJTAC(packGroup:getName())
+    end
+
     packableUnit:destroy()
     EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
         vehicleType = packableUnit:getTypeName(),
@@ -12086,9 +12218,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
--- ===== End   : CTLD_vehicle.lua =====
 
--- ===== Start : CTLD_fob.lua =====
+-- End : CTLD_vehicle.lua
+-- ====================================================================================================
+-- Start : CTLD_fob.lua
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12588,9 +12721,10 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
--- ===== End   : CTLD_fob.lua =====
 
--- ===== Start : CTLD_aasystem.lua =====
+-- End : CTLD_fob.lua
+-- ====================================================================================================
+-- Start : CTLD_aasystem.lua
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13287,9 +13421,10 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
--- ===== End   : CTLD_aasystem.lua =====
 
--- ===== Start : CTLD_beacon.lua =====
+-- End : CTLD_aasystem.lua
+-- ====================================================================================================
+-- Start : CTLD_beacon.lua
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -13414,7 +13549,7 @@ function CTLDBeaconManager:init()
     self._beacons         = {}   -- beaconName -> CTLDBeacon
     self._beaconCount     = 0    -- monotonic counter for display names
     self._layerState      = {}   -- playerName -> { enabled=bool, marks={} }
-    self._nextMarkId      = 1
+    -- Mark IDs are allocated from ctld.utils.getNextMarkId() (app-wide monotonic counter)
 
     -- Frequency pools
     self._freeVHF  = {}
@@ -13888,9 +14023,7 @@ end
 -- ============================================================
 
 function CTLDBeaconManager:_nextMark()
-    local mid = self._nextMarkId
-    self._nextMarkId = self._nextMarkId + 1
-    return mid
+    return ctld.utils.getNextMarkId()
 end
 
 function CTLDBeaconManager:_drawBeaconIcon(beacon, markId)
@@ -14113,9 +14246,10 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
--- ===== End   : CTLD_beacon.lua =====
 
--- ===== Start : CTLD_recon.lua =====
+-- End : CTLD_beacon.lua
+-- ====================================================================================================
+-- Start : CTLD_recon.lua
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -14302,7 +14436,7 @@ end
 function CTLDReconManager:init()
     self._activeScans  = {}   -- player -> scan state
     self._playerLayers = {}   -- player -> array of layer copies
-    self._nextMarkId   = 1
+    -- Mark IDs are allocated from ctld.utils.getNextMarkId() (app-wide monotonic counter)
 
     CTLDPlayerManager.getInstance():registerMenuSection({
         key       = "recon",
@@ -14439,11 +14573,9 @@ function CTLDReconManager:_matchLayer(unit, enabledLayers)
     return nil
 end
 
--- Allocate next unique mark ID.
+-- Allocate next unique mark ID (delegates to shared app-wide counter).
 function CTLDReconManager:_nextMark()
-    local id = self._nextMarkId
-    self._nextMarkId = self._nextMarkId + 1
-    return id
+    return ctld.utils.getNextMarkId()
 end
 
 -- Core LOS scan. Returns array of target records.
@@ -14766,11 +14898,13 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
         else
             local d = ctld.utils.getDistance(
                 "CTLDReconManager:_doRefresh", prev.position, tgt.position)
-            tgt.markId = prev.markId
             if d > 5 then
-                -- Moved: recreate icon at new position
+                -- Moved: remove old icon (invalidates its DCS ID permanently),
+                -- allocate a fresh ID for the new icon (DCS IDs must never be reused).
                 CTLDReconRenderer.removeIcon(prev.markId)
-                CTLDReconRenderer.createIcon(tgt, prev.markId)
+                local newMid = self:_nextMark()
+                tgt.markId = newMid
+                CTLDReconRenderer.createIcon(tgt, newMid)
                 tgt.status        = "moved"
                 tgt.hasMoved      = true
                 tgt.distanceMoved = d
@@ -14781,7 +14915,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
                     positionOld   = prev.position,
                     positionNew   = tgt.position,
                     distanceMoved = d,
-                    markId        = prev.markId,
+                    markId        = newMid,
                 }
             else
                 tgt.status = "existing"
@@ -14912,9 +15046,10 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName, playerName = playerObj.unitName })
 end
--- ===== End   : CTLD_recon.lua =====
 
--- ===== Start : CTLD_jtac.lua =====
+-- End : CTLD_recon.lua
+-- ====================================================================================================
+-- Start : CTLD_jtac.lua
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -15497,6 +15632,30 @@ function CTLDJTACManager:setJTACInTransit(groupName, transport)
     })
 end
 
+--- Silently deregister a JTAC (vehicle repacked into crates).
+-- Stops lasing, frees laser code, removes from registry.
+-- Does NOT publish OnJTACDead — repack is not a combat death.
+-- @param groupName string
+function CTLDJTACManager:deregisterJTAC(groupName)
+    local jtac = self.jtacs[groupName]
+    if not jtac then return end
+    jtac:stopLase(CTLDJTAC.STOP_REASON.IN_TRANSIT)
+    self:_freeLaserCode(jtac.laserCode)
+    self.jtacs[groupName] = nil
+    ctld.utils.log("INFO", "CTLDJTACManager:deregisterJTAC — '%s' silently deregistered", groupName)
+end
+
+--- Resume auto-lase for a JTAC after vehicle unload.
+-- Restores state to IDLE and restarts the _autoLaseLoop.
+-- @param groupName string
+function CTLDJTACManager:resumeJTAC(groupName)
+    local jtac = self.jtacs[groupName]
+    if not jtac then return end
+    jtac.state = CTLDJTAC.STATE.IDLE
+    self:startLase(groupName)
+    ctld.utils.log("INFO", "CTLDJTACManager:resumeJTAC — '%s' resumed after unload", groupName)
+end
+
 --- Smoke current target on demand (F10 menu action).
 -- Applies JTAC_smokeMarginOfError offset.
 -- @param groupName string
@@ -15673,7 +15832,24 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
     if not jtac then return nil end
     if jtac.state == CTLDJTAC.STATE.DEAD then return nil end
 
-    -- Verify group still alive
+    local searchInterval = ctld.gs("JTAC_searchIntervalSeconds")
+    local laseInterval   = ctld.gs("JTAC_laseIntervalSeconds")
+
+    -- In transit: unit intentionally absent from map — do not probe DCS group existence.
+    -- (virtual load: unit destroyed; dcs_native load: unit inside aircraft — both absent from ground)
+    if jtac.state == CTLDJTAC.STATE.IN_TRANSIT then
+        return t + searchInterval
+    end
+
+    -- Standby mode: stop lasing if active, wait
+    if jtac.standbyMode then
+        if jtac.currentTarget then
+            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
+        end
+        return t + searchInterval
+    end
+
+    -- Verify group still alive (only when NOT in transit)
     local dcsGroup = Group.getByName(groupName)
     if not dcsGroup or not dcsGroup:isExist() then
         self:killJTAC(groupName, nil)
@@ -15685,22 +15861,6 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         -- Unit gone but group still reported alive — treat as dead
         self:killJTAC(groupName, nil)
         return nil
-    end
-
-    local searchInterval = ctld.gs("JTAC_searchIntervalSeconds")
-    local laseInterval   = ctld.gs("JTAC_laseIntervalSeconds")
-
-    -- Standby mode: stop lasing if active, wait
-    if jtac.standbyMode then
-        if jtac.currentTarget then
-            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
-        end
-        return t + searchInterval
-    end
-
-    -- In transit: no lasing
-    if jtac.state == CTLDJTAC.STATE.IN_TRANSIT then
-        return t + searchInterval
     end
 
     -- ── Check existing target ──────────────────────────────────
@@ -15870,7 +16030,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
-        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("jtacDroneRadius") or 1000
+        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
         self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
         jtac.onTargetOrbit = true
         jtac:startOrbit(t)
@@ -15886,7 +16046,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
-                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("jtacDroneRadius") or 1000
+                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
                 self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
                 jtac.orbitStartTime = t
             end
@@ -15911,7 +16071,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     elseif not hasCurrent and not inOrbit and not jtac.initialRouteAssigned then
         -- Just spawned, initialPosition captured — assign initial looping route (once only)
         if jtac.initialPosition then
-            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("jtacDroneRadius") or 1000
+            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius") or 1000
             self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, jtac.orbitParams, rNoLase)
             jtac.initialRouteAssigned = true
             jtac.onTargetOrbit        = false
@@ -15930,7 +16090,7 @@ end
 local ORBIT_ROUTE_PTS = 8   -- 8 waypoints = 45° segments, reasonable turn radius
 function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, orbitParams, radius)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("jtacDroneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
     local vec2     = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitRoute", center)
     local cx, cz   = vec2.x, vec2.y
     local terrainH = land.getHeight({ x = cx, y = cz })
@@ -16024,7 +16184,7 @@ end
 function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, _radius)
     local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", center)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("jtacDroneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
     local terrainH = land.getHeight({ x = orbitPoint.x, y = orbitPoint.y })
     local orbit = {
         id     = "Orbit",
@@ -16160,6 +16320,44 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     local jtacSub = ctld.tr("JTAC")
     menu:addSubMenu({ root }, jtacSub, { order = 90 })
 
+    -- Request JTAC Vehicle: only when landed near logistics and JTAC_dropEnabled
+    if ctld.gs("JTAC_dropEnabled") ~= false and playerObj.isTransport then
+        local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
+        if #typeNames > 0 then
+            local reqSub = ctld.tr("Request JTAC Vehicle")
+            menu:addSubMenu({ root, jtacSub }, reqSub)
+            for _, typeName in ipairs(typeNames) do
+                menu:addCommand({ root, jtacSub, reqSub }, typeName,
+                    function(arg)
+                        local transport = Unit.getByName(arg.unitName)
+                        if not (transport and transport:isExist()) then return end
+                        if ctld.utils.inAir(transport) then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                ctld.tr("You must be landed to request a JTAC vehicle."), 10)
+                            return
+                        end
+                        local zm   = CTLDZoneManager.getInstance()
+                        local zone = zm:getLogisticZoneAtPoint(transport:getPoint(), arg.coalition)
+                        if not zone then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                ctld.tr("You are not close enough to friendly logistics."), 10)
+                            return
+                        end
+                        local vehicle = CTLDVehicleSpawner.getInstance()
+                            :spawnJTACVehicleForTransport(arg.typeName, transport, zone)
+                        if vehicle then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                string.format(ctld.tr("%s is ready for pickup."), arg.typeName), 10)
+                        end
+                    end,
+                    { unitName   = playerObj.unitName,
+                      groupId    = playerObj.groupId,
+                      coalition  = playerObj.coalition,
+                      typeName   = typeName })
+            end
+        end
+    end
+
     menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
         function(arg)
             local mgr   = CTLDJTACManager.get()
@@ -16207,9 +16405,10 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
--- ===== End   : CTLD_jtac.lua =====
 
--- ===== Start : CTLD_player.lua =====
+-- End : CTLD_jtac.lua
+-- ====================================================================================================
+-- Start : CTLD_player.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -16647,9 +16846,10 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
--- ===== End   : CTLD_player.lua =====
 
--- ===== Start : CTLD_core.lua =====
+-- End : CTLD_player.lua
+-- ====================================================================================================
+-- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -17056,9 +17256,10 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
--- ===== End   : CTLD_core.lua =====
 
--- ===== Start : scenes/CTLD_farpScene.lua =====
+-- End : CTLD_core.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_farpScene.lua
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -17159,9 +17360,10 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
--- ===== End   : scenes/CTLD_farpScene.lua =====
 
--- ===== Start : scenes/CTLD_fobScene.lua =====
+-- End : scenes/CTLD_farpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_fobScene.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -17261,9 +17463,10 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
--- ===== End   : scenes/CTLD_fobScene.lua =====
 
--- ===== Start : scenes/CTLD_mineFieldScene.lua =====
+-- End : scenes/CTLD_fobScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_mineFieldScene.lua
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -17528,9 +17731,10 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
--- ===== End   : scenes/CTLD_mineFieldScene.lua =====
 
--- ===== Start : compat/legacy_api.lua =====
+-- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : compat/legacy_api.lua
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -17709,9 +17913,10 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
--- ===== End   : compat/legacy_api.lua =====
 
--- ===== Start : CTLD_userConfig.lua =====
+-- End : compat/legacy_api.lua
+-- ====================================================================================================
+-- Start : CTLD_userConfig.lua
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -18068,10 +18273,10 @@ ctld.yamlConfigDatas = [[
 # ctld.JTAC_searchIntervalSeconds: 10
 
 # Orbit radius (m) used by drone JTAC units around their target.
-# ctld.jtacDroneRadius: 1000
+# ctld.JTAC_droneRadius: 1000
 
 # Orbit altitude (m) for drone JTAC units.
-# ctld.jtacDroneAltitude: 7000
+# ctld.JTAC_droneAltitude: 7000
 
 
 # ============================================================
@@ -18665,5 +18870,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
--- ===== End   : CTLD_userConfig.lua =====
 
+-- End : CTLD_userConfig.lua

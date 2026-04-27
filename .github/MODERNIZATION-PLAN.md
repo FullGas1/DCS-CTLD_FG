@@ -161,27 +161,30 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           4. Supprimer jtacUnitTypes de ctld_config.lua + section userConfig (ou marquer deprecated)
         Priorité : HAUTE — prérequis pour les recettes JTAC sol
 
-⬜  FG  STEP 2 — Bug troop JTAC : hasJtac → startLase non implémenté en OOP (PRIORITÉ APRÈS STEP 1)
-        Bug parité legacy: deploy() d'un groupe avec hasJtac=true ne déclenche pas startLase.
-        Legacy: après spawnDroppedGroup(), si _onboard.troops.jtac ou nom contient "jtac" →
-        ctld.JTACStart(groupName, code). OOP: deploy() log seulement "JTAC group dropped" sans lase.
-        Fix: dans CTLDTroopManager:deploy(), après spawn DCS, si group.hasJtac → CTLDJTACManager:startLase()
-        Recette après fix (JTAC sol via troupes) :
-          • Déployer "JTAC Group" (inf=4, jtac=1) → autoLase → menu JTAC F10
-          • Déployer "Single JTAC" (jtac=1) → autoLase → menu JTAC F10
+✅  FG  STEP 2 — Bug troop JTAC : hasJtac → startLase non implémenté en OOP [2026-04-26]
+        Fix: CTLDTroopManager:deploy(), si group.hasJtac → CTLDJTACManager:startLase()
+        Recette: scenario_troop_jtac.lua — 2/2 PASS [2026-04-26]
 
-⬜  FG  STEP 3 — Recette fonctions JTAC sur véhicules sol (après STEP 1+2)
+✅  FG  STEP 3 — JTAC InTransit : suspend/resume cycle + Request JTAC Vehicle menu [2026-04-27]
+        Implémentations :
+          • setJTACInTransit() appelé dans loadVehicle avant destroy/suspend
+          • _autoLaseLoop : check IN_TRANSIT AVANT Group.getByName (anti-faux killJTAC)
+          • deregisterJTAC() : silencieux, sans OnJTACDead — appelé dans packVehicle avant destroy
+          • resumeJTAC() : relance autoLaseLoop après unload, laser code préservé
+          • spawnJTACVehicleForTransport() : spawn + startLase combiné
+          • registerJTACVehicle() : enregistre un véhicule JTAC externe dans CTLDVehicleSpawner
+          • Menu F10 "Request JTAC Vehicle" : sous JTAC Commands, par coalition (JTAC_unitTypeNames)
+          • JTAC_droneRadius + JTAC_droneAltitude + JTAC_unitTypeNames dans bloc [9] config
         Crates JTAC confirmées isJTAC=true (parité legacy jtacUnitTypes "SKP","Hummer","MQ","RQ") :
           • weight=1001.01 Hummer - JTAC        (unit="Hummer",        side=2, isJTAC=true)
           • weight=1001.11 SKP-11 - JTAC        (unit="SKP-11",        side=1, isJTAC=true)
-          • weight=1006.01 MQ-9 Repear - JTAC   (unit="MQ-9 Reaper",   side=2, isJTAC=true)
+          • weight=1006.01 MQ-9 Reaper - JTAC   (unit="MQ-9 Reaper",   side=2, isJTAC=true)
           • weight=1006.11 RQ-1A Predator - JTAC (unit="RQ-1A Predator", side=1, isJTAC=true)
-        Scénario injectable : recette/scenarios/scenario_jtac_vehicle.lua (à créer)
-        ✅ Hummer (BLUE)  : Request Equipment → unpack → autoLase → menu JTAC F10 [2026-04-25] F-107
-        ✅ SKP-11 (RED)   : scenario_jtac_vehicle_red.lua — lasing BLUE enemy + target lost [2026-04-26]
-        ⬜ Hummer IN_TRANSIT : spawn → CTLDJTACManager lase → vérif lasing → move enemy → vérif target lost
-        ⬜ SKP-11 IN_TRANSIT : idem RED
-        ⬜ MQ-9 / RQ-1A  : couverts par diag/diag_jtac_deploy_test.lua (drone orbit)
+        ✅ F-110: config JTAC_unitTypeNames — 10/10 PASS [2026-04-27]
+        ✅ F-111: spawnJTACVehicleForTransport + registerJTACVehicle + deregister — 6/6 PASS [2026-04-27]
+        ✅ F-112: deregisterJTAC anti-false-KIA + laser pool freed + idempotent — 7/7 PASS [2026-04-27]
+        ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
+        ⬜ F-114: DCS native bbox load/unload — différé (C-130J-30 ou CH-47Fbl1 requis)
 
 ⬜  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
         Objectif : créer une bibliothèque de scripts Lua injectables via Witchcraft qui reproduisent

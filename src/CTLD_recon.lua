@@ -184,7 +184,7 @@ end
 function CTLDReconManager:init()
     self._activeScans  = {}   -- player -> scan state
     self._playerLayers = {}   -- player -> array of layer copies
-    self._nextMarkId   = 1
+    -- Mark IDs are allocated from ctld.utils.getNextMarkId() (app-wide monotonic counter)
 
     CTLDPlayerManager.getInstance():registerMenuSection({
         key       = "recon",
@@ -321,11 +321,9 @@ function CTLDReconManager:_matchLayer(unit, enabledLayers)
     return nil
 end
 
--- Allocate next unique mark ID.
+-- Allocate next unique mark ID (delegates to shared app-wide counter).
 function CTLDReconManager:_nextMark()
-    local id = self._nextMarkId
-    self._nextMarkId = self._nextMarkId + 1
-    return id
+    return ctld.utils.getNextMarkId()
 end
 
 -- Core LOS scan. Returns array of target records.
@@ -648,11 +646,13 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
         else
             local d = ctld.utils.getDistance(
                 "CTLDReconManager:_doRefresh", prev.position, tgt.position)
-            tgt.markId = prev.markId
             if d > 5 then
-                -- Moved: recreate icon at new position
+                -- Moved: remove old icon (invalidates its DCS ID permanently),
+                -- allocate a fresh ID for the new icon (DCS IDs must never be reused).
                 CTLDReconRenderer.removeIcon(prev.markId)
-                CTLDReconRenderer.createIcon(tgt, prev.markId)
+                local newMid = self:_nextMark()
+                tgt.markId = newMid
+                CTLDReconRenderer.createIcon(tgt, newMid)
                 tgt.status        = "moved"
                 tgt.hasMoved      = true
                 tgt.distanceMoved = d
@@ -663,7 +663,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
                     positionOld   = prev.position,
                     positionNew   = tgt.position,
                     distanceMoved = d,
-                    markId        = prev.markId,
+                    markId        = newMid,
                 }
             else
                 tgt.status = "existing"

@@ -19,7 +19,7 @@ if not ctld.utils.marks then ctld.utils.marks = {}; end
 
 function ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
     local coalitionId = coalitionId or 2
-    local markId = ctld.utils.getNextUniqId()
+    local markId = ctld.utils.getNextMarkId()
 
     -- Color
     local tableColor = { 0, 0, 255, 0.4 }  --blue  by default
@@ -727,6 +727,20 @@ function ctld.utils.getNextUniqId()
     return ctld.utils.UniqIdCounter
 end
 
+-- Mark ID counter — monotonically increasing, app-wide.
+-- DCS: once removeMark(id) is called, that id is permanently invalid and must never be reused.
+-- All Draw API callers (RECON, Beacon, drawQuad) share this counter to avoid collisions.
+-- Encoded IDs use markId * 10 + offset (1–3 elements per logical mark).
+ctld.utils.MarkIdCounter = 0
+
+--- Allocate the next unique mark ID for DCS Draw API calls.
+-- Never reuse a previously allocated ID after removeMark() has been called on it.
+-- @return number
+function ctld.utils.getNextMarkId()
+    ctld.utils.MarkIdCounter = ctld.utils.MarkIdCounter + 1
+    return ctld.utils.MarkIdCounter
+end
+
 --- Converts angle in radians to degrees.
 -- @param angleInRadians angle in radians
 -- @return angle in degrees
@@ -1203,7 +1217,7 @@ end
 --
 -- For non-ground units with descriptor.isJTAC = true, an orbit + EPLRS route is embedded
 -- (required by DCS at spawn time; cannot be assigned post-spawn for loitering platforms).
--- The orbit altitude is read from ctld.gs("jtacDroneAltitude") (default 4000 m).
+-- The orbit altitude is read from ctld.gs("JTAC_droneAltitude") (default 4000 m).
 --
 -- @param desc   table   crate descriptor { unit, spawnAs, isJTAC, … }
 -- @param pos    vec3    world spawn position {x, y, z}
@@ -1230,7 +1244,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
         }
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
-        local alt   = ctld.gs("jtacDroneAltitude") or 4000
+        local alt   = ctld.gs("JTAC_droneAltitude") or 4000
         local speed = 54  -- m/s (~105 kts)
         local uname = gname .. "_1"
         local unitDef = {
