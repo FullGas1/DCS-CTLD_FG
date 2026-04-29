@@ -357,6 +357,25 @@ function CTLDPlayerManager:buildMenu(playerObj)
                 total = total + tGroup.weight
             end
 
+            -- Whole vehicles loaded on this transport (GAP-1)
+            if transport then
+                local vehSpawner = CTLDVehicleSpawner.getInstance()
+                local loadedVehs = vehSpawner:findLoadedVehicles(transport)
+                local vehCount = {}
+                local vehOrder = {}
+                for _, v in ipairs(loadedVehs) do
+                    local vt = v.vehicleType or "?"
+                    if not vehCount[vt] then
+                        vehCount[vt] = 0
+                        table.insert(vehOrder, vt)
+                    end
+                    vehCount[vt] = vehCount[vt] + 1
+                end
+                for _, vt in ipairs(vehOrder) do
+                    table.insert(lines, ctld.tr("%1: %2 vehicle(s) onboard", vt, vehCount[vt]))
+                end
+            end
+
             local msg
             if #lines == 0 then
                 msg = ctld.tr("No cargo on board.")

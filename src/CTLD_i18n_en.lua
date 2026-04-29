@@ -377,6 +377,7 @@ ctld.i18n["en"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — incomplete"
 ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
 ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
+ctld.i18n["en"]["%1: %2 vehicle(s) onboard"] = "%1: %2 vehicle(s) onboard"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 
 --- Request JTAC Equipment menu

@@ -230,6 +230,7 @@ ctld.i18n["ko"]["  %1: %2/%3 — incomplete"] = "  %1: %2/%3 — 불완전"
 ctld.i18n["ko"]["No cargo on board."] = "탑재 화물 없음."
 ctld.i18n["ko"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2개 크레이트 탑재 중 (%3 kg)"
 ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg)"
+ctld.i18n["ko"]["%1: %2 vehicle(s) onboard"] = "%1: %2대 차량 탑재 중"
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 
 --- Request JTAC Equipment menu
