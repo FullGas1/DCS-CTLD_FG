@@ -55,8 +55,8 @@ local okUnload = pcall(function()
 end)
 
 ctld_test.assert(okUnload, "unloadVehicle ne crash pas")
-ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.DELIVERED,
-    "vehicle en état DELIVERED après unload")
+ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.WAITING,
+    "vehicle en état WAITING après unload (re-loadable)")
 
 -- L'unité DCS est respawnée (dans la mission réelle), en test DCS sim :
 -- dynAdd retourne une table, Group.getByName peut retourner nil si DCS ne persiste pas
@@ -86,7 +86,7 @@ local okDoubleUnload = pcall(function()
     vs:unloadVehicle(vehicle, transport, nil, "menu_ctld")
 end)
 ctld_test.assert(okDoubleUnload, "double unloadVehicle ne crash pas (ignored silently)")
-ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.DELIVERED,
-    "état reste DELIVERED après double-unload ignoré")
+ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.WAITING,
+    "état reste WAITING après double-unload ignoré")
 
 ctld_test.finish()

@@ -82,7 +82,7 @@ end
 spawner:unloadVehicle(jtacVeh, transport, transport:getName(), "menu_ctld")
 assert_eq("F-04 resumeJTAC called once", #_resumeCalls, 1)
 assert_eq("F-04 correct group name",     _resumeCalls[1], "F122_JTAC_GROUP")
-assert_eq("F-04 state DELIVERED",        jtacVeh:getState(), CTLDVehicle.STATE.DELIVERED)
+assert_eq("F-04 state WAITING",          jtacVeh:getState(), CTLDVehicle.STATE.WAITING)
 
 -- Cleanup
 _jtacMgr.setJTACInTransit        = _origSetTransit

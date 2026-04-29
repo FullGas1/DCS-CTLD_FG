@@ -65,7 +65,7 @@ spawner._vehicles["f121_other"] = otherVeh
 loaded = spawner:findLoadedVehicles(transport)
 assert_eq("U-06 other-transport excluded", #loaded, 1)
 
--- ── F-02 unloadVehicle menu_ctld: state → DELIVERED ──────────────────────────
+-- ── F-02 unloadVehicle menu_ctld: state → WAITING (re-loadable) ─────────────
 local _origDynAdd = ctld.utils.dynAdd
 local _dynAddCalled = false
 ctld.utils.dynAdd = function(_, data) _dynAddCalled = true; return { name = data.name } end
@@ -81,7 +81,7 @@ Group.getByName = function(name)
 end
 
 spawner:unloadVehicle(loadedVeh, transport, tName, "menu_ctld")
-assert_eq("F-02 state DELIVERED", loadedVeh:getState(), CTLDVehicle.STATE.DELIVERED)
+assert_eq("F-02 state WAITING",   loadedVeh:getState(), CTLDVehicle.STATE.WAITING)
 assert_eq("F-02 dynAdd called",   _dynAddCalled,        true)
 
 -- ── U-07 findLoadedVehicles: empty after unload ──────────────────────────────

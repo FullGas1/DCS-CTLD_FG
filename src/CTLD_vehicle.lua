@@ -516,7 +516,9 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     end
 
     vehicle.unit = unloadedUnit
-    vehicle:setState(CTLDVehicle.STATE.DELIVERED)
+    -- Vehicle is physically back on the ground — return to WAITING so it can be re-loaded.
+    -- DELIVERED is reserved for parachute delivery (_parachuteVehicle).
+    vehicle:setState(CTLDVehicle.STATE.WAITING)
 
     -- Re-register reverse lookup
     if unloadedUnit then

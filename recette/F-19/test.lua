@@ -55,8 +55,8 @@ local okUnload = pcall(function()
 end)
 
 ctld_test.assert(okUnload, "unloadVehicle dcs_native ne crash pas")
-ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.DELIVERED,
-    "vehicle en DELIVERED après dcs_native unload")
+ctld_test.assertEqual(vehicle:getState(), CTLDVehicle.STATE.WAITING,
+    "vehicle en WAITING après dcs_native unload (re-loadable)")
 
 -- Event OnVehicleUnloaded
 ctld_test.assertNotNil(unloadedPayload, "OnVehicleUnloaded publié")
