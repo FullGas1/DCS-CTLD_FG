@@ -1,8 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ====================================================================================================
--- Start : lib/class.lua
+-- ===== Start: lib/class.lua =====
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -39,10 +38,9 @@ function class(base)
     end
     return cls
 end
+-- ===== End: lib/class.lua =====
 
--- End : lib/class.lua
--- ====================================================================================================
--- Start : CTLD_config.lua
+-- ===== Start: CTLD_config.lua =====
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -421,13 +419,12 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh
     -- ═══════════════════════════════════════════════════════════
-    self.settings["reconF10Menu"]                         = true             -- enables F10 RECON menu
-    self.settings["reconMenuName"]                        = ctld.tr("RECON") --name of the CTLD JTAC radio menu
-    self.settings["reconRadioAdded"]                      = {}               --stores the groups that have had the radio menu added
-    self.settings["reconLosSearchRadius"]                 = 2000             -- search radius in meters
-    self.settings["reconLosMarkRadius"]                   = 100              -- mark radius dimension in meters
-    self.settings["reconAutoRefreshLosTargetMarks"]       = false            -- if true recon LOS marks are automaticaly refreshed on F10 map
-    self.settings["reconLastScheduleIdAutoRefresh"]       = 0                -- last schedule ID for auto refresh
+    self.settings["reconF10Menu"]                         = true  -- enable RECON submenu in F10 CTLD menu
+    self.settings["reconEnabled"]                         = false -- master switch: set to true to activate RECON functionality
+    self.settings["reconSearchRadius"]                    = 5000  -- LOS detection radius (m) around the scanning unit
+    self.settings["reconMinAltitude"]                     = 50    -- minimum AGL altitude (m) required to perform a scan
+    self.settings["reconRefreshInterval"]                 = 10    -- auto-refresh interval (s) between target position updates
+    self.settings["reconIconScale"]                       = 1.0   -- icon size multiplier (1.0 = default sizes; increase for larger icons)
 
     -- ═══════════════════════════════════════════════════════════
     -- [M10] MINEFIELD — Landmine deployment options
@@ -1185,10 +1182,9 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
+-- ===== End: CTLD_config.lua =====
 
--- End : CTLD_config.lua
--- ====================================================================================================
--- Start : CTLD_i18n.lua
+-- ===== Start: CTLD_i18n.lua =====
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1406,10 +1402,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
+-- ===== End: CTLD_i18n.lua =====
 
--- End : CTLD_i18n.lua
--- ====================================================================================================
--- Start : CTLD_i18n_en.lua
+-- ===== Start: CTLD_i18n_en.lua =====
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1717,6 +1712,8 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
+ctld.i18n["en"]["RECON [Start]"] = "RECON [Start]"
+ctld.i18n["en"]["RECON [Stop]"] = "RECON [Stop]"
 ctld.i18n["en"]["Scan Area"] = "Scan Area"
 ctld.i18n["en"]["Hide All Targets"] = "Hide All Targets"
 ctld.i18n["en"]["Toggle %s"] = "Toggle %s"
@@ -1798,10 +1795,9 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+-- ===== End: CTLD_i18n_en.lua =====
 
--- End : CTLD_i18n_en.lua
--- ====================================================================================================
--- Start : CTLD_i18n_fr.lua
+-- ===== Start: CTLD_i18n_fr.lua =====
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -1834,21 +1830,21 @@ ctld.i18n["fr"]["5x - Mortar Squad"] = "5x - Groupes mortiers"
 ctld.i18n["fr"]["Mortar Squad Red"] = "Groupe mortier rouge"
 
 --- crates names (untranslated = keep EN via fallback)
-ctld.i18n["fr"]["Humvee - MG"] = ""
-ctld.i18n["fr"]["Humvee - TOW"] = ""
-ctld.i18n["fr"]["Light Tank - MRAP"] = ""
-ctld.i18n["fr"]["Med Tank - LAV-25"] = ""
-ctld.i18n["fr"]["Heavy Tank - Abrams"] = ""
-ctld.i18n["fr"]["BTR-D"] = ""
-ctld.i18n["fr"]["BRDM-2"] = ""
-ctld.i18n["fr"]["Hummer - JTAC"] = ""
-ctld.i18n["fr"]["M-818 Ammo Truck"] = ""
-ctld.i18n["fr"]["M-978 Tanker"] = ""
-ctld.i18n["fr"]["SKP-11 - JTAC"] = ""
-ctld.i18n["fr"]["Ural-375 Ammo Truck"] = ""
-ctld.i18n["fr"]["KAMAZ Ammo Truck"] = ""
-ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = ""
-ctld.i18n["fr"]["EWR Radar"] = ""
+ctld.i18n["fr"]["Humvee - MG"] = "Humvee - MG"
+ctld.i18n["fr"]["Humvee - TOW"] = "Humvee - TOW"
+ctld.i18n["fr"]["Light Tank - MRAP"] = "Char léger - MRAP"
+ctld.i18n["fr"]["Med Tank - LAV-25"] = "Char moyen - LAV-25"
+ctld.i18n["fr"]["Heavy Tank - Abrams"] = "Char lourd - Abrams"
+ctld.i18n["fr"]["BTR-D"] = "BTR-D"
+ctld.i18n["fr"]["BRDM-2"] = "BRDM-2"
+ctld.i18n["fr"]["Hummer - JTAC"] = "Hummer - JTAC"
+ctld.i18n["fr"]["M-818 Ammo Truck"] = "M-818 Camion de munitions"
+ctld.i18n["fr"]["M-978 Tanker"] = "M-978 Citerne"
+ctld.i18n["fr"]["SKP-11 - JTAC"] = "SKP-11 - JTAC"
+ctld.i18n["fr"]["Ural-375 Ammo Truck"] = "Ural-375 Camion de munitions"
+ctld.i18n["fr"]["KAMAZ Ammo Truck"] = "KAMAZ Camion de munitions"
+ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Camion de munitions - Toutes les caisses"
+ctld.i18n["fr"]["EWR Radar"] = "Radar de détection TEL"
 ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
 ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
@@ -1856,53 +1852,53 @@ ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = 
 ctld.i18n["fr"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Deploiement FOB bloque : eloignez-vous d'au moins %1 m d'une zone logistique."
 ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Pret dans %3 secondes."
 ctld.i18n["fr"]["FOB established by %1 - logistics hub now active."] = "FOB établi par %1 - hub logistique opérationnel."
-ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = ""
-ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = ""
-ctld.i18n["fr"]["MLRS"] = ""
-ctld.i18n["fr"]["SpGH DANA"] = ""
-ctld.i18n["fr"]["T155 Firtina"] = ""
-ctld.i18n["fr"]["Howitzer"] = ""
-ctld.i18n["fr"]["SPH 2S19 Msta"] = ""
-ctld.i18n["fr"]["M1097 Avenger"] = ""
-ctld.i18n["fr"]["M48 Chaparral"] = ""
-ctld.i18n["fr"]["Roland ADS"] = ""
-ctld.i18n["fr"]["Gepard AAA"] = ""
-ctld.i18n["fr"]["LPWS C-RAM"] = ""
-ctld.i18n["fr"]["9K33 Osa"] = ""
-ctld.i18n["fr"]["9P31 Strela-1"] = ""
-ctld.i18n["fr"]["9K35M Strela-10"] = ""
-ctld.i18n["fr"]["9K331 Tor"] = ""
-ctld.i18n["fr"]["2K22 Tunguska"] = ""
-ctld.i18n["fr"]["HAWK Launcher"] = ""
-ctld.i18n["fr"]["HAWK Search Radar"] = ""
-ctld.i18n["fr"]["HAWK Track Radar"] = ""
-ctld.i18n["fr"]["HAWK PCP"] = ""
-ctld.i18n["fr"]["HAWK CWAR"] = ""
-ctld.i18n["fr"]["HAWK Repair"] = ""
-ctld.i18n["fr"]["NASAMS Launcher 120C"] = ""
-ctld.i18n["fr"]["NASAMS Search/Track Radar"] = ""
-ctld.i18n["fr"]["NASAMS Command Post"] = ""
-ctld.i18n["fr"]["NASAMS Repair"] = ""
-ctld.i18n["fr"]["KUB Launcher"] = ""
-ctld.i18n["fr"]["KUB Radar"] = ""
-ctld.i18n["fr"]["KUB Repair"] = ""
-ctld.i18n["fr"]["BUK Launcher"] = ""
-ctld.i18n["fr"]["BUK Search Radar"] = ""
-ctld.i18n["fr"]["BUK CC Radar"] = ""
-ctld.i18n["fr"]["BUK Repair"] = ""
-ctld.i18n["fr"]["Patriot Launcher"] = ""
-ctld.i18n["fr"]["Patriot Radar"] = ""
-ctld.i18n["fr"]["Patriot ECS"] = ""
-ctld.i18n["fr"]["Patriot ICC"] = ""
-ctld.i18n["fr"]["Patriot EPP"] = ""
-ctld.i18n["fr"]["Patriot AMG (optional)"] = ""
-ctld.i18n["fr"]["Patriot Repair"] = ""
-ctld.i18n["fr"]["S-300 Grumble TEL C"] = ""
-ctld.i18n["fr"]["S-300 Grumble Flap Lid-A TR"] = ""
-ctld.i18n["fr"]["S-300 Grumble Clam Shell SR"] = ""
-ctld.i18n["fr"]["S-300 Grumble Big Bird SR"] = ""
-ctld.i18n["fr"]["S-300 Grumble C2"] = ""
-ctld.i18n["fr"]["S-300 Repair"] = ""
+ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = "MQ-9 Reaper - JTAC"
+ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
+ctld.i18n["fr"]["MLRS"] = "MLRS"
+ctld.i18n["fr"]["SpGH DANA"] = "SpGH DANA"
+ctld.i18n["fr"]["T155 Firtina"] = "T155 Firtina"
+ctld.i18n["fr"]["Howitzer"] = "Obusier"
+ctld.i18n["fr"]["SPH 2S19 Msta"] = "SPH 2S19 Msta"
+ctld.i18n["fr"]["M1097 Avenger"] = "M1097 Avenger"
+ctld.i18n["fr"]["M48 Chaparral"] = "M48 Chaparral"
+ctld.i18n["fr"]["Roland ADS"] = "Roland ADS"
+ctld.i18n["fr"]["Gepard AAA"] = "Gepard AAA"
+ctld.i18n["fr"]["LPWS C-RAM"] = "LPWS C-RAM"
+ctld.i18n["fr"]["9K33 Osa"] = "9K33 Osa"
+ctld.i18n["fr"]["9P31 Strela-1"] = "9P31 Strela-1"
+ctld.i18n["fr"]["9K35M Strela-10"] = "9K35M Strela-10"
+ctld.i18n["fr"]["9K331 Tor"] = "9K331 Tor"
+ctld.i18n["fr"]["2K22 Tunguska"] = "2K22 Tunguska"
+ctld.i18n["fr"]["HAWK Launcher"] = "HAWK - Lanceur"
+ctld.i18n["fr"]["HAWK Search Radar"] = "HAWK - Radar de recherche"
+ctld.i18n["fr"]["HAWK Track Radar"] = "HAWK - Radar de poursuite"
+ctld.i18n["fr"]["HAWK PCP"] = "HAWK - PCP"
+ctld.i18n["fr"]["HAWK CWAR"] = "HAWK - CWAR"
+ctld.i18n["fr"]["HAWK Repair"] = "HAWK - Réparation"
+ctld.i18n["fr"]["NASAMS Launcher 120C"] = "NASAMS - Lanceur 120C"
+ctld.i18n["fr"]["NASAMS Search/Track Radar"] = "NASAMS - Radar recherche/poursuite"
+ctld.i18n["fr"]["NASAMS Command Post"] = "NASAMS - Poste de commandement"
+ctld.i18n["fr"]["NASAMS Repair"] = "NASAMS - Réparation"
+ctld.i18n["fr"]["KUB Launcher"] = "KUB - Lanceur"
+ctld.i18n["fr"]["KUB Radar"] = "KUB - Radar"
+ctld.i18n["fr"]["KUB Repair"] = "KUB - Réparation"
+ctld.i18n["fr"]["BUK Launcher"] = "BUK - Lanceur"
+ctld.i18n["fr"]["BUK Search Radar"] = "BUK - Radar de recherche"
+ctld.i18n["fr"]["BUK CC Radar"] = "BUK - Radar de contrôle"
+ctld.i18n["fr"]["BUK Repair"] = "BUK - Réparation"
+ctld.i18n["fr"]["Patriot Launcher"] = "Patriot - Lanceur"
+ctld.i18n["fr"]["Patriot Radar"] = "Patriot - Radar"
+ctld.i18n["fr"]["Patriot ECS"] = "Patriot - ECS"
+ctld.i18n["fr"]["Patriot ICC"] = "Patriot - ICC"
+ctld.i18n["fr"]["Patriot EPP"] = "Patriot - EPP"
+ctld.i18n["fr"]["Patriot AMG (optional)"] = "Patriot - AMG (optionnel)"
+ctld.i18n["fr"]["Patriot Repair"] = "Patriot - Réparation"
+ctld.i18n["fr"]["S-300 Grumble TEL C"] = "S-300 Grumble TEL C"
+ctld.i18n["fr"]["S-300 Grumble Flap Lid-A TR"] = "S-300 Grumble Flap Lid-A TR"
+ctld.i18n["fr"]["S-300 Grumble Clam Shell SR"] = "S-300 Grumble Clam Shell SR"
+ctld.i18n["fr"]["S-300 Grumble Big Bird SR"] = "S-300 Grumble Big Bird SR"
+ctld.i18n["fr"]["S-300 Grumble C2"] = "S-300 Grumble C2"
+ctld.i18n["fr"]["S-300 Repair"] = "S-300 - Réparation"
 ctld.i18n["fr"]["Humvee - TOW - All crates"] = "Humvee - TOW - Toutes les caisses"
 ctld.i18n["fr"]["Light Tank - MRAP - All crates"] = "Light Tank - MRAP - Toutes les caisses"
 ctld.i18n["fr"]["Med Tank - LAV-25 - All crates"] = "Med Tank - LAV-25 - Toutes les caisses"
@@ -2102,7 +2098,11 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 -- STALE: ctld.i18n["fr"]["Reset TGT Selection"] = "Réinitialiser sélection TGT"
 
 --- F10 RECON menus
+ctld.i18n["fr"]["activate"] = "activer"
+ctld.i18n["fr"]["deactivate"] = "désactiver"
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
+ctld.i18n["fr"]["RECON [Start]"] = "RECON [Démarrer]"
+ctld.i18n["fr"]["RECON [Stop]"] = "RECON [Arrêter]"
 ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
 ctld.i18n["fr"]["Hide All Targets"] = "Masquer toutes les cibles"
 ctld.i18n["fr"]["Toggle %s"] = "Basculer %s"
@@ -2183,11 +2183,10 @@ ctld.i18n["fr"]["No active FOBs."] = "Aucun FOB actif."
 ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["fr"]["→ Next Page"] = ""
+ctld.i18n["fr"]["→ Next Page"] = "→ Page suivante"
+-- ===== End: CTLD_i18n_fr.lua =====
 
--- End : CTLD_i18n_fr.lua
--- ====================================================================================================
--- Start : CTLD_i18n_es.lua
+-- ===== Start: CTLD_i18n_es.lua =====
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2282,7 +2281,7 @@ ctld.i18n["es"]["Patriot Radar"] = "Patriot - Radar de Búsqueda"
 ctld.i18n["es"]["Patriot ECS"] = "Patriot - Puesto de Mando"
 ctld.i18n["es"]["Patriot ICC"] = "Patriot - Sistema de Control de Fuego"
 ctld.i18n["es"]["Patriot EPP"] = "Patriot - Generador"
-ctld.i18n["es"]["Patriot AMG (optional)"] = ""
+ctld.i18n["es"]["Patriot AMG (optional)"] = "Patriot - AMG (opcional)"
 ctld.i18n["es"]["Patriot Repair"] = "Reparar Patriot"
 ctld.i18n["es"]["S-300 Grumble TEL C"] = "S-300 Grumble TEL C - Lanzador"
 ctld.i18n["es"]["S-300 Grumble Flap Lid-A TR"] = "S-300 Grumble Flap Lid-A TR - Radar de Seguimiento"
@@ -2489,7 +2488,11 @@ ctld.i18n["es"]["List Beacons"] = "Listar balizas"
 -- STALE: ctld.i18n["es"]["Reset TGT Selection"] = "Restablecer selección de objetivo"
 
 --- F10 RECON menus
+ctld.i18n["es"]["activate"] = "activar"
+ctld.i18n["es"]["deactivate"] = "desactivar"
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
+ctld.i18n["es"]["RECON [Start]"] = "RECON [Iniciar]"
+ctld.i18n["es"]["RECON [Stop]"] = "RECON [Detener]"
 ctld.i18n["es"]["Scan Area"] = "Escanear zona"
 ctld.i18n["es"]["Hide All Targets"] = "Ocultar todos los objetivos"
 ctld.i18n["es"]["Toggle %s"] = "Alternar %s"
@@ -2570,25 +2573,23 @@ ctld.i18n["es"]["No active FOBs."] = "No hay FOBs activos."
 ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["es"]["→ Next Page"] = ""
+ctld.i18n["es"]["→ Next Page"] = "→ Página siguiente"
+-- ===== End: CTLD_i18n_es.lua =====
 
--- End : CTLD_i18n_es.lua
--- ====================================================================================================
--- Start : CTLD_i18n_ko.lua
+-- ===== Start: CTLD_i18n_ko.lua =====
 --[[
     CTLD — Korean dictionary
-    Translation version: 1.7
+    Translation version: 1.9
 
-    Translator: rising_star
-    Note: some entries are intentionally empty (untranslated) — ctld.tr() will fall back to English.
-    Note: "Pack Vehicles" was absent from the original KO dictionary — added with empty placeholder.
+    Translator: rising_star (original), Claude AI (RECON + new entries 2026-04-28)
+    Note: weapon system proper nouns (BTR-D, BRDM-2, MLRS, etc.) are kept in their original form.
     To update: run tools/merger_V2/generate_i18n_dicts.ps1 after any ctld.tr() change.
 ]]
 if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.8"
+ctld.i18n["ko"].translation_version = "1.9"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -2608,21 +2609,21 @@ ctld.i18n["ko"]["3x - Mortar Squad"] = "박격포 분대 3x"
 ctld.i18n["ko"]["5x - Mortar Squad"] = "박격포 분대 5x"
 ctld.i18n["ko"]["Mortar Squad Red"] = "레드 박격포 분대"
 
---- crates names (empty = untranslated, ctld.tr() falls back to EN)
+--- crates names
 ctld.i18n["ko"]["Humvee - MG"] = "험비 - MG"
 ctld.i18n["ko"]["Humvee - TOW"] = "험비 - TOW"
-ctld.i18n["ko"]["Light Tank - MRAP"] = ""
-ctld.i18n["ko"]["Med Tank - LAV-25"] = ""
+ctld.i18n["ko"]["Light Tank - MRAP"] = "경전차 - MRAP"
+ctld.i18n["ko"]["Med Tank - LAV-25"] = "중형 전차 - LAV-25"
 ctld.i18n["ko"]["Heavy Tank - Abrams"] = "M1 에이브럼스"
-ctld.i18n["ko"]["BTR-D"] = ""
-ctld.i18n["ko"]["BRDM-2"] = ""
+ctld.i18n["ko"]["BTR-D"] = "BTR-D"
+ctld.i18n["ko"]["BRDM-2"] = "BRDM-2"
 ctld.i18n["ko"]["Hummer - JTAC"] = "험머 - JTAC"
 ctld.i18n["ko"]["M-818 Ammo Truck"] = "M-818 탄약 차량"
 ctld.i18n["ko"]["M-978 Tanker"] = "M-978 연료 차량"
-ctld.i18n["ko"]["SKP-11 - JTAC"] = ""
+ctld.i18n["ko"]["SKP-11 - JTAC"] = "SKP-11 - JTAC"
 ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
-ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = ""
+ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ 탄약 차량 - 전체 화물"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
@@ -2630,19 +2631,19 @@ ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Ready in %3 seconds."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). %3초 후 완료."
-ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."] = ""
-ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = ""
-ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = ""
-ctld.i18n["ko"]["MLRS"] = ""
+ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."] = "%1이(가) FOB를 설립했습니다. 군수 거점 활성화."
+ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = "MQ-9 리퍼 - JTAC"
+ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = "RQ-1A 프레데터 - JTAC"
+ctld.i18n["ko"]["MLRS"] = "MLRS"
 ctld.i18n["ko"]["SpGH DANA"] = "DANA 자주곡사포"
 ctld.i18n["ko"]["T155 Firtina"] = "T-155 프르트나"
-ctld.i18n["ko"]["Howitzer"] = ""
+ctld.i18n["ko"]["Howitzer"] = "곡사포"
 ctld.i18n["ko"]["SPH 2S19 Msta"] = "2S19 므스타 자주곡사포"
 ctld.i18n["ko"]["M1097 Avenger"] = "M1097 어벤저"
 ctld.i18n["ko"]["M48 Chaparral"] = "M48 채퍼럴"
 ctld.i18n["ko"]["Roland ADS"] = "롤랑 ADS"
 ctld.i18n["ko"]["Gepard AAA"] = "게파트 자주대공포"
-ctld.i18n["ko"]["LPWS C-RAM"] = ""
+ctld.i18n["ko"]["LPWS C-RAM"] = "LPWS C-RAM"
 ctld.i18n["ko"]["9K33 Osa"] = "9K33 오사"
 ctld.i18n["ko"]["9P31 Strela-1"] = "9P31 스트렐라-1"
 ctld.i18n["ko"]["9K35M Strela-10"] = "9K35M 스트렐라-10"
@@ -2678,82 +2679,7 @@ ctld.i18n["ko"]["S-300 Grumble Clam Shell SR"] = "S-300 Clam Shell 탐지 레이
 ctld.i18n["ko"]["S-300 Grumble Big Bird SR"] = "S-300 Big Bird 탐지 레이더"
 ctld.i18n["ko"]["S-300 Grumble C2"] = "S-300 관제소"
 ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
--- "All crates" shortcuts not translated in original KO source
 
---- mission design error messages
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find trigger called %1"] = "CTLD.lua 오류 : %1 트리거를 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone called %1"] = "CTLD.lua 오류 : %1 존을 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find zone or ship called %1"] = "CTLD.lua 오류 : %1 존 또는 함선을 찾을 수 없음"
--- STALE: ctld.i18n["ko"]["CTLD.lua ERROR: Can't find crate with weight %1"] = "CTLD.lua 오류 : %1 의 무게를 가진 화물을 찾을 수 없음"
-
---- runtime messages
--- STALE: ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
--- STALE: ctld.i18n["ko"]["No more JTAC Crates Left!"] = "JTAC 화물이 남아있지 않습니다!"
--- STALE: ctld.i18n["ko"]["Sorry you must wait %1 seconds before you can get another crate"] = "죄송합니다, 다른 화물을 얻기까지 %1 초 기다려야 합니다."
--- STALE: ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
--- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into combat"] = "%1 이(가) %2 에서 공수부대를 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into combat"] = "%1 이(가) %2 에서 병력을 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 fast-ropped troops from %2 into %3"] = "%1 이(가) %2 에서 %3 로 공수부대를 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped troops from %2 into %3"] = "%1 이(가) %2에서 %3 로 병력을 투입했습니다."
--- STALE: ctld.i18n["ko"]["Too high or too fast to drop troops into combat! Hover below %1 feet or land."] = "병력을 투입하기에 너무 빠르거나 너무 높습니다! %1 피트 아래로 호버링 하거나 착륙하십시오."
--- STALE: ctld.i18n["ko"]["%1 dropped vehicles from %2 into combat"] = "%1 이(가) %2 에서 차량(들)을 투입했습니다."
--- STALE: ctld.i18n["ko"]["%1 loaded troops into %2"] = "%1 이 %2 로 병력을 실었습니다."
--- STALE: ctld.i18n["ko"]["%1 loaded %2 vehicles into %3"] = "%1 이 %2 대의 차량을 %3 로 실었습니다."
--- STALE: ctld.i18n["ko"]["%1 delivered a FOB Crate"] = "%1 이 FOB 화물을 배달했습니다."
--- STALE: ctld.i18n["ko"]["Delivered FOB Crate 60m at 6'oclock to you"] = "FOB 화물이 6시 방향 60m 거리에 있습니다."
--- STALE: ctld.i18n["ko"]["FOB Crate dropped back to base"] = "FOB 화물이 기지로 돌아갔습니다."
--- STALE: ctld.i18n["ko"]["FOB Crate Loaded"] = "FOB 화물 적재 완료"
--- STALE: ctld.i18n["ko"]["%1 loaded a FOB Crate ready for delivery!"] = "%1 이 배달 준비가 완료된 FOB 화물을 실었습니다!"
--- STALE: ctld.i18n["ko"]["There are no friendly logistic units nearby to load a FOB crate from!"] = "아군 보급계가 FOB 화물을 싣기에 충분한 거리에 있지 않습니다!"
--- STALE: ctld.i18n["ko"]["This area has no more reinforcements available!"] = "이 구역은 지원이 불가합니다!"
--- STALE: ctld.i18n["ko"]["You are not in a pickup zone and no one is nearby to extract"] = "픽업 구역이 아니고 근처에 철수할 병력이 없습니다."
--- STALE: ctld.i18n["ko"]["You are not in a pickup zone"] = "픽업 구역이 아닙니다."
--- STALE: ctld.i18n["ko"]["No one to unload"] = "내릴 사람 없음"
--- STALE: ctld.i18n["ko"]["Dropped troops back to base"] = "병력을 기지로 돌려보냈습니다."
--- STALE: ctld.i18n["ko"]["Dropped vehicles back to base"] = "차량을 기지로 돌려보냈습니다."
--- STALE: ctld.i18n["ko"]["You already have troops onboard."] = "이미 병력이 탑승중입니다."
--- STALE: ctld.i18n["ko"]["Count Infantries limit in the mission reached, you can't load more troops"] = ""
--- STALE: ctld.i18n["ko"]["You already have vehicles onboard."] = "이미 차량이 적재되어 있습니다."
--- STALE: ctld.i18n["ko"]["Sorry - The group of %1 is too large to fit. \n\nLimit is %2 for %3"] = "죄송합니다. %1 그룹이 너무 무겁습니다. \n\n%3 의 무게 제한은 %2 입니다."
--- STALE: ctld.i18n["ko"]["%1 extracted troops in %2 from combat"] = "%1 이 %2 에서 병력을 철수시켰습니다."
--- STALE: ctld.i18n["ko"]["No extractable troops nearby!"] = "철수시킬 병력이 근처에 없습니다!"
--- STALE: ctld.i18n["ko"]["%1 extracted vehicles in %2 from combat"] = "%1 이 %2 에서 차량을 철수시켰습니다."
--- STALE: ctld.i18n["ko"]["No extractable vehicles nearby!"] = "철수시킬 차량이 근처에 없습니다!"
--- STALE: ctld.i18n["ko"]["%1 troops onboard (%2 kg)\n"] = "탑승중인 병력 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["%1 vehicles onboard (%2)\n"] = "적재된 차량 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["1 FOB Crate oboard (%1 kg)\n"] = "FOB 화물 1개 적재됨 (%1 kg)\n"
--- STALE: ctld.i18n["ko"]["%1 crate onboard (%2 kg)\n"] = "적재된 화물 : %1 (%2 kg)\n"
--- STALE: ctld.i18n["ko"]["Total weight of cargo : %1 kg\n"] = "총 화물 무게 : %1 kg\n"
--- STALE: ctld.i18n["ko"]["No cargo."] = "화물 없음."
--- STALE: ctld.i18n["ko"]["Hovering above %1 crate. \n\nHold hover for %2 seconds! \n\nIf the countdown stops you're too far away!"] = "%1 화물 위 호버링 중. \n\n%2 초 동안 호버링하세요! \n\n카운트다운이 멈추면 너무 멀다는 뜻입니다!"
--- STALE: ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
--- STALE: ctld.i18n["ko"]["Too low to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 화물을 싣기에 너무 낮습니다.\n\n%2 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["Too high to hook %1 crate.\n\nHold hover for %2 seconds"] = "%1 화물을 싣기에 너무 높습니다.\n\n%2 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
--- STALE: ctld.i18n["ko"]["No Crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
--- STALE: ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
--- STALE: ctld.i18n["ko"]["%1\n%2 crate - kg %3 - %4 m - %5 o'clock"] = "%1\n%2 화물 - kg %3 - %4 m - %5 시 방향"
--- STALE: ctld.i18n["ko"]["FOB Crate - %1 m - %2 o'clock\n"] = "FOB 화물 - %1 m - %2 시 방향\n"
--- STALE: ctld.i18n["ko"]["No Nearby Crates"] = "근처 화물 없음."
--- STALE: ctld.i18n["ko"]["Nearby Crates:\n%1"] = "근처 화물:\n%1"
--- STALE: ctld.i18n["ko"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "근처 FOB 화물 (슬링로드 불가):\n%1"
--- STALE: ctld.i18n["ko"]["FOB Positions:"] = "FOB 위치:"
--- STALE: ctld.i18n["ko"]["%1\nFOB @ %2"] = ""
--- STALE: ctld.i18n["ko"]["Sorry, there are no active FOBs!"] = "죄송합니다, 활성화된 FOB가 없습니다."
--- STALE: ctld.i18n["ko"]["You can't unpack that here! Take it to where it's needed!"] = "여기에 풀 수 없습니다! 필요한 곳에 가져가세요!"
--- STALE: ctld.i18n["ko"]["Sorry you must move this crate before you unpack it!"] = "죄송합니다, 풀기 전에 이 화물을 옮겨야 합니다!"
--- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field"] = "%1 이 %2 를 성공적으로 배치했습니다."
--- STALE: ctld.i18n["ko"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "풀 아군 화물이 가깝지 않거나 너무 가깝습니다."
--- STALE: ctld.i18n["ko"]["Finished building FOB! Crates and Troops can now be picked up."] = "FOB 건설 완료! 이제 화물과 병력을 실을 수 있습니다."
--- STALE: ctld.i18n["ko"]["Finished building FOB! Crates can now be picked up."] = "FOB 건설 완료! 이제 화물을 실을 수 있습니다."
--- STALE: ctld.i18n["ko"]["%1 started building FOB using %2 FOB crates, it will be finished in %3 seconds.\nPosition marked with smoke."] = "%1 이 %2 개의 FOB 화물을 이용하여 FOB 건설을 시작했습니다. %3 초 후 완료됩니다.\n위치가 연막으로 표시됐습니다."
--- STALE: ctld.i18n["ko"]["Cannot build FOB!\n\nIt requires %1 Large FOB crates ( 3 small FOB crates equal 1 large FOB Crate) and there are the equivalent of %2 large FOB crates nearby\n\nOr the crates are not within 750m of each other"] = "FOB를 건설할 수 없습니다!\n\n%1 개의 FOB 화물 - 大 가 필요합니다! (3개의 FOB 화물 - 小 는 1개의 FOB 화물 - 大 와 동일합니다.) 근처에 %2 개의 FOB 화물 - 大 가 있습니다.\n\n또는 화물들이 서로 750m 거리보다 멀리 있습니다."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate or land and use F10 Crate Commands."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 화물 위에서 %1 초 동안 호버링하거나 착륙하여 F10 화물 명령어를 사용하세요."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, hover for %1 seconds above the crate."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 화물 위에서 %1 초 동안 호버링하세요."
--- STALE: ctld.i18n["ko"]["You are not currently transporting any crates. \n\nTo Pickup a crate, land and use F10 Crate Commands to load one."] = "현재 화물을 운송하고 있지 않습니다. \n\n화물을 실으려면, 착륙하여 F10 화물 명령어를 사용하세요."
--- STALE: ctld.i18n["ko"]["%1 crate has been safely unhooked and is at your %2 o'clock"] = "%1 화물이 안전하게 내려졌고 %2 시 방향에 있습니다."
--- STALE: ctld.i18n["ko"]["%1 crate has been safely dropped below you"] = "%1 화물이 밑에 안전하게 내려졌습니다."
--- STALE: ctld.i18n["ko"]["You were too high! The crate has been destroyed"] = "너무 높았습니다! 화물이 파괴되었습니다."
 --- Radio Beacon messages
 ctld.i18n["ko"]["No Radio Beacons within 500m."] = "500m 내에 라디오 비콘 없음."
 ctld.i18n["ko"]["Navigation beacon deployed - %1"] = "항법 비콘 배치됨 - %1"
@@ -2767,109 +2693,34 @@ ctld.i18n["ko"]["Radio Beacons"] = "라디오 비콘"
 ctld.i18n["ko"]["Drop Beacon"] = "비콘 투하"
 ctld.i18n["ko"]["Remove Closest Beacon"] = "가까운 비콘 제거"
 ctld.i18n["ko"]["List Beacons"] = "비콘 목록"
--- STALE: ctld.i18n["ko"]["Radio Beacons:\n%1"] = "라디오 비콘 :\n%1"
--- STALE: ctld.i18n["ko"]["%1 deployed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 배치했습니다.\n\n%2"
--- STALE: ctld.i18n["ko"]["You need to land before you can deploy a Radio Beacon!"] = "라디오 비콘을 배치하려면 착륙해야 합니다!"
--- STALE: ctld.i18n["ko"]["%1 removed a Radio Beacon.\n\n%2"] = "%1 이(가) 라디오 비콘을 제거했습니다.\n\n%2"
--- STALE: ctld.i18n["ko"]["You need to land before remove a Radio Beacon"] = "라디오 비콘을 제거하려면 착륙해야 합니다."
--- STALE: ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = "%1 이(가) %2 을(를) 성공적으로 재무장 시켰습니다."
--- STALE: ctld.i18n["ko"]["Missing %1\n"] = "%1 없음\n"
--- STALE: ctld.i18n["ko"]["Out of parts for AA Systems. Current limit is %1\n"] = "방공 시스템 필요 부분 없음. 현재 제한 : %1\n"
--- STALE: ctld.i18n["ko"]["Cannot build %1\n%2\n\nOr the crates are not close enough together"] = "%1 건설 불가\n%2\n\n또는 화물이 서로 가까이 있지 않습니다."
--- STALE: ctld.i18n["ko"]["%1 successfully deployed a full %2 in the field. \n\nAA Active System limit is: %3\nActive: %4"] = "%1 이(가) 완전한 %2 를 성공적으로 투입했습니다. \n\n방공 시스템 제한 : %3\n활성화된 방공 시스템 : %4"
--- STALE: ctld.i18n["ko"]["%1 successfully repaired a full %2 in the field."] = "%1 이(가) 완전한 %2 을(를) 성공적으로 수리했습니다."
--- STALE: ctld.i18n["ko"]["Cannot repair %1. No damaged %2 within 300m"] = "%1 수리 불가. 300m 내에 손상을 입은 %2 없음."
--- STALE: ctld.i18n["ko"]["%1 successfully deployed %2 to the field using %3 crates."] = "%1 이 %3 개의 화물을 이용하여 %2 을(를) 성공적으로 배치했습니다."
--- STALE: ctld.i18n["ko"]["Cannot build %1!\n\nIt requires %2 crates and there are %3 \n\nOr the crates are not within 300m of each other"] = "%1 건설 불가!\n\n%2 개의 화물이 필요하지만 %3 개 있습니다. \n\n또는 화물들이 서로 300m 내의 거리에 있지 않습니다."
--- STALE: ctld.i18n["ko"]["%1 dropped %2 smoke."] = "%1 이(가) %2 연막을 투하했습니다."
 
---- JTAC messages
--- STALE: ctld.i18n["ko"]["JTAC Group %1 KIA!"] = "JTAC 그룹 %1 전사!"
--- STALE: ctld.i18n["ko"]["%1, selected target reacquired, %2"] = "%1, 선택된 목표물 재습득, %2"
--- STALE: ctld.i18n["ko"][". CODE: %1. POSITION: %2"] = ". 코드: %1. 위치: %2"
--- STALE: ctld.i18n["ko"]["new target, "] = "새 목표물, "
--- STALE: ctld.i18n["ko"]["standing by on %1"] = "%1 대기 중"
--- STALE: ctld.i18n["ko"]["lasing %1"] = "%1 레이저 조준 중"
--- STALE: ctld.i18n["ko"][", temporarily %1"] = ", 임시로 %1"
--- STALE: ctld.i18n["ko"]["target lost"] = "목표물 놓침"
--- STALE: ctld.i18n["ko"]["target destroyed"] = "목표물 파괴됨"
--- STALE: ctld.i18n["ko"][", selected %1"] = ", %1 선택 완료"
--- STALE: ctld.i18n["ko"]["%1 %2 target lost."] = "%1 %2 목표물 놓침."
--- STALE: ctld.i18n["ko"]["%1 %2 target destroyed."] = "%1 %2 목표물 파괴됨."
--- STALE: ctld.i18n["ko"]["JTAC STATUS: \n\n"] = "JTAC 상태 : \n\n"
--- STALE: ctld.i18n["ko"][", available on %1 %2,"] = ", %1 %2 가능,"
--- STALE: ctld.i18n["ko"]["UNKNOWN"] = "미상"
--- STALE: ctld.i18n["ko"][" targeting "] = " 조준 중 : "
--- STALE: ctld.i18n["ko"][" targeting selected unit "] = " 선택한 유닛 조준 중 "
--- STALE: ctld.i18n["ko"][" attempting to find selected unit, temporarily targeting "] = " 선택한 유닛 찾는 중, 임시로 조준 중 : "
--- STALE: ctld.i18n["ko"]["(Laser OFF) "] = "(레이저 끔) "
--- STALE: ctld.i18n["ko"]["Visual On: "] = "육안 식별 : "
--- STALE: ctld.i18n["ko"][" searching for targets %1\n"] = " %1 목표물 찾는 중\n"
--- STALE: ctld.i18n["ko"]["No Active JTACs"] = "활성화된 JTAC 없음"
--- STALE: ctld.i18n["ko"][", targeting selected unit, %1"] = ", 선택한 유닛 조준 중, %1"
--- STALE: ctld.i18n["ko"][", target selection reset."] = ", 목표물 선택 초기화."
--- STALE: ctld.i18n["ko"]["%1, laser and smokes enabled"] = "%1, 레이저 및 연막 사용"
--- STALE: ctld.i18n["ko"]["%1, laser and smokes disabled"] = "%1, 레이저 및 연막 미사용"
--- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations enabled"] = "%1, 바람, 목표물 속도 보정 사용"
--- STALE: ctld.i18n["ko"]["%1, wind and target speed laser spot compensations disabled"] = "%1, 바람, 목표물 속도 보정 미사용"
--- STALE: ctld.i18n["ko"]["%1, WHITE smoke deployed near target"] = "%1, 목표물 근처 백색 연막"
-
---- F10 menu messages
--- STALE: ctld.i18n["ko"]["Actions"] = "행동"
--- STALE: ctld.i18n["ko"]["Troop Transport"] = "병력 수송"
--- STALE: ctld.i18n["ko"]["Unload / Extract Troops"] = "병력 하차 / 철수"
--- STALE: ctld.i18n["ko"]["Next page"] = "다음 페이지"
--- STALE: ctld.i18n["ko"]["Load "] = "싣기 : "
--- STALE: ctld.i18n["ko"]["Vehicle / FOB Transport"] = "차량 / FOB 수송"
--- STALE: ctld.i18n["ko"]["Crates: Vehicle / FOB / Drone"] = "차량 / FOB 화물"
--- STALE: ctld.i18n["ko"]["Unload Vehicles"] = "차량 하역"
--- STALE: ctld.i18n["ko"]["Load / Extract Vehicles"] = "차량 적재 / 철수"
--- STALE: ctld.i18n["ko"]["Load / Unload FOB Crate"] = "FOB 화물 적재 / 철수"
--- STALE: ctld.i18n["ko"]["Pack Vehicles"] = ""
--- STALE: ctld.i18n["ko"]["CTLD Commands"] = "CTLD 명령"
--- STALE: ctld.i18n["ko"]["CTLD"] = "CTLD"
--- STALE: ctld.i18n["ko"]["Check Cargo"] = "화물 확인"
--- STALE: ctld.i18n["ko"]["Load Nearby Crate(s)"] = "근처 화물 싣기"
--- STALE: ctld.i18n["ko"]["Unpack Any Crate"] = "화물 풀기"
--- STALE: ctld.i18n["ko"]["Drop Crate(s)"] = "화물 투하"
--- STALE: ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
--- STALE: ctld.i18n["ko"]["List FOBs"] = "FOB 목록"
--- STALE: ctld.i18n["ko"]["List Beacons"] = "비콘 목록"
--- STALE: ctld.i18n["ko"]["List Radio Beacons"] = "라디오 비콘 목록"
--- STALE: ctld.i18n["ko"]["Smoke Markers"] = "연막 마커"
--- STALE: ctld.i18n["ko"]["Drop Red Smoke"] = "적색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Blue Smoke"] = "청색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Orange Smoke"] = "주황색 연막 투하"
--- STALE: ctld.i18n["ko"]["Drop Green Smoke"] = "녹색 연막 투하"
--- STALE: ctld.i18n["ko"]["JTAC Status"] = "JTAC 상태"
--- STALE: ctld.i18n["ko"]["DISABLE "] = "비활성화 "
--- STALE: ctld.i18n["ko"]["ENABLE "] = "활성화 "
--- STALE: ctld.i18n["ko"]["REQUEST "] = "요청 "
--- STALE: ctld.i18n["ko"]["Reset TGT Selection"] = "TGT 선택 초기화"
-
---- F10 RECON menus (not in original KO source - falling back to EN)
-ctld.i18n["ko"]["RECON"] = ""
-ctld.i18n["ko"]["Scan Area"] = ""
-ctld.i18n["ko"]["Hide All Targets"] = ""
-ctld.i18n["ko"]["Toggle %s"] = ""
-ctld.i18n["ko"]["Auto-Refresh: [OFF]"] = ""
-ctld.i18n["ko"]["Auto-Refresh: [ON]"] = ""
-ctld.i18n["ko"]["Altitude too low for recon scan (min %1 m)"] = ""
-ctld.i18n["ko"]["No recon layers enabled. Activate layers first."] = ""
-ctld.i18n["ko"]["Recon stopped. %1 targets hidden."] = ""
-ctld.i18n["ko"]["No active recon scan to hide."] = ""
-ctld.i18n["ko"]["No active recon scan. Use 'Scan Area' first."] = ""
-ctld.i18n["ko"]["Auto-refresh enabled. Targets update every %1 s."] = ""
-ctld.i18n["ko"]["Auto-refresh disabled. Current targets frozen on map."] = ""
-ctld.i18n["ko"]["Recon layer '%1': %2"] = ""
--- STALE: ctld.i18n["ko"]["Layers"] = ""
--- STALE: ctld.i18n["ko"]["Show targets in LOS (refresh)"] = ""
--- STALE: ctld.i18n["ko"]["Hide targets in LOS"] = ""
--- STALE: ctld.i18n["ko"]["Scan targets in LOS"] = ""
--- STALE: ctld.i18n["ko"]["START autoRefresh"] = ""
--- STALE: ctld.i18n["ko"]["STOP autoRefresh"] = ""
--- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = ""
--- STALE: ctld.i18n["ko"]["STOP autoRefresh targets in LOS"] = ""
+--- F10 RECON menus
+ctld.i18n["ko"]["activate"] = "활성화"
+ctld.i18n["ko"]["deactivate"] = "비활성화"
+ctld.i18n["ko"]["RECON"] = "정찰"
+ctld.i18n["ko"]["RECON [Start]"] = "정찰 [시작]"
+ctld.i18n["ko"]["RECON [Stop]"] = "정찰 [정지]"
+ctld.i18n["ko"]["Scan Area"] = "구역 스캔"
+ctld.i18n["ko"]["Hide All Targets"] = "모든 목표 숨기기"
+ctld.i18n["ko"]["Toggle %s"] = "%s 전환"
+ctld.i18n["ko"]["Auto-Refresh: [OFF]"] = "자동 갱신: [꺼짐]"
+ctld.i18n["ko"]["Auto-Refresh: [ON]"] = "자동 갱신: [켜짐]"
+ctld.i18n["ko"]["Altitude too low for recon scan (min %1 m)"] = "정찰 스캔 고도 부족 (최소 %1 m)"
+ctld.i18n["ko"]["No recon layers enabled. Activate layers first."] = "활성화된 정찰 레이어 없음. 먼저 레이어를 활성화하세요."
+ctld.i18n["ko"]["Recon stopped. %1 targets hidden."] = "정찰 중지. %1 목표 숨김."
+ctld.i18n["ko"]["No active recon scan to hide."] = "숨길 활성 정찰 스캔 없음."
+ctld.i18n["ko"]["No active recon scan. Use 'Scan Area' first."] = "활성 정찰 스캔 없음."
+ctld.i18n["ko"]["Auto-refresh enabled. Targets update every %1 s."] = "자동 갱신 활성화. %1 초마다 목표 업데이트."
+ctld.i18n["ko"]["Auto-refresh disabled. Current targets frozen on map."] = "자동 갱신 비활성화. 현재 목표 지도에 고정."
+ctld.i18n["ko"]["Recon layer '%1': %2"] = "정찰 레이어 '%1': %2"
+-- STALE: ctld.i18n["ko"]["Layers"] = "레이어"
+-- STALE: ctld.i18n["ko"]["Show targets in LOS (refresh)"] = "시야 내 목표 표시 (갱신)"
+-- STALE: ctld.i18n["ko"]["Hide targets in LOS"] = "시야 내 목표 숨기기"
+-- STALE: ctld.i18n["ko"]["Scan targets in LOS"] = "시야 내 목표 스캔"
+-- STALE: ctld.i18n["ko"]["START autoRefresh"] = "자동 갱신 시작"
+-- STALE: ctld.i18n["ko"]["STOP autoRefresh"] = "자동 갱신 정지"
+-- STALE: ctld.i18n["ko"]["START autoRefresh targets in LOS"] = "시야 내 목표 자동 갱신 시작"
+-- STALE: ctld.i18n["ko"]["STOP autoRefresh targets in LOS"] = "시야 내 목표 자동 갱신 정지"
 
 --- FOBs List menu
 ctld.i18n["ko"]["FOBs List"] = "FOB 목록"
@@ -2877,38 +2728,38 @@ ctld.i18n["ko"]["List active FOBs"] = "활성 FOB 나열"
 ctld.i18n["ko"]["No active FOBs."] = "활성 FOB 없음."
 ctld.i18n["ko"]["FOB Positions:"] = "FOB 위치:"
 
---- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["ko"]["→ Next Page"] = ""
-ctld.i18n["ko"]["2K22 Tunguska - All crates"] = ""
-ctld.i18n["ko"]["9K33 Osa - All crates"] = ""
-ctld.i18n["ko"]["9K331 Tor - All crates"] = ""
-ctld.i18n["ko"]["9K35M Strela-10 - All crates"] = ""
-ctld.i18n["ko"]["9P31 Strela-1 - All crates"] = ""
-ctld.i18n["ko"]["BUK - All crates"] = ""
-ctld.i18n["ko"]["EWR Radar - All crates"] = ""
-ctld.i18n["ko"]["Gepard AAA - All crates"] = ""
-ctld.i18n["ko"]["HAWK - All crates"] = ""
-ctld.i18n["ko"]["Heavy Tank - Abrams - All crates"] = ""
-ctld.i18n["ko"]["Howitzer - All crates"] = ""
-ctld.i18n["ko"]["Hummer - JTAC - All crates"] = ""
-ctld.i18n["ko"]["Humvee - TOW - All crates"] = ""
-ctld.i18n["ko"]["KUB - All crates"] = ""
-ctld.i18n["ko"]["Light Tank - MRAP - All crates"] = ""
-ctld.i18n["ko"]["LPWS C-RAM - All crates"] = ""
-ctld.i18n["ko"]["M1097 Avenger - All crates"] = ""
-ctld.i18n["ko"]["M48 Chaparral - All crates"] = ""
-ctld.i18n["ko"]["M-818 Ammo Truck - All crates"] = ""
-ctld.i18n["ko"]["M-978 Tanker - All crates"] = ""
-ctld.i18n["ko"]["Med Tank - LAV-25 - All crates"] = ""
-ctld.i18n["ko"]["MLRS - All crates"] = ""
-ctld.i18n["ko"]["NASAMS - All crates"] = ""
-ctld.i18n["ko"]["Patriot - All crates"] = ""
-ctld.i18n["ko"]["S-300 - All crates"] = ""
-ctld.i18n["ko"]["Roland ADS - All crates"] = ""
-ctld.i18n["ko"]["SpGH DANA - All crates"] = ""
-ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = ""
-ctld.i18n["ko"]["T155 Firtina - All crates"] = ""
-ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = ""
+--- "All crates" shortcuts
+ctld.i18n["ko"]["→ Next Page"] = "→ 다음 페이지"
+ctld.i18n["ko"]["2K22 Tunguska - All crates"] = "2K22 퉁구스카 - 전체 화물"
+ctld.i18n["ko"]["9K33 Osa - All crates"] = "9K33 오사 - 전체 화물"
+ctld.i18n["ko"]["9K331 Tor - All crates"] = "9K331 토르 - 전체 화물"
+ctld.i18n["ko"]["9K35M Strela-10 - All crates"] = "9K35M 스트렐라-10 - 전체 화물"
+ctld.i18n["ko"]["9P31 Strela-1 - All crates"] = "9P31 스트렐라-1 - 전체 화물"
+ctld.i18n["ko"]["BUK - All crates"] = "SA-11 - 전체 화물"
+ctld.i18n["ko"]["EWR Radar - All crates"] = "조기경보 레이더 - 전체 화물"
+ctld.i18n["ko"]["Gepard AAA - All crates"] = "게파트 자주대공포 - 전체 화물"
+ctld.i18n["ko"]["HAWK - All crates"] = "호크 - 전체 화물"
+ctld.i18n["ko"]["Heavy Tank - Abrams - All crates"] = "M1 에이브럼스 - 전체 화물"
+ctld.i18n["ko"]["Howitzer - All crates"] = "곡사포 - 전체 화물"
+ctld.i18n["ko"]["Hummer - JTAC - All crates"] = "험머 - JTAC - 전체 화물"
+ctld.i18n["ko"]["Humvee - TOW - All crates"] = "험비 - TOW - 전체 화물"
+ctld.i18n["ko"]["KUB - All crates"] = "SA-6 - 전체 화물"
+ctld.i18n["ko"]["Light Tank - MRAP - All crates"] = "경전차 - MRAP - 전체 화물"
+ctld.i18n["ko"]["LPWS C-RAM - All crates"] = "LPWS C-RAM - 전체 화물"
+ctld.i18n["ko"]["M1097 Avenger - All crates"] = "M1097 어벤저 - 전체 화물"
+ctld.i18n["ko"]["M48 Chaparral - All crates"] = "M48 채퍼럴 - 전체 화물"
+ctld.i18n["ko"]["M-818 Ammo Truck - All crates"] = "M-818 탄약 차량 - 전체 화물"
+ctld.i18n["ko"]["M-978 Tanker - All crates"] = "M-978 연료 차량 - 전체 화물"
+ctld.i18n["ko"]["Med Tank - LAV-25 - All crates"] = "중형 전차 - LAV-25 - 전체 화물"
+ctld.i18n["ko"]["MLRS - All crates"] = "MLRS - 전체 화물"
+ctld.i18n["ko"]["NASAMS - All crates"] = "NASAMS - 전체 화물"
+ctld.i18n["ko"]["Patriot - All crates"] = "패트리어트 - 전체 화물"
+ctld.i18n["ko"]["S-300 - All crates"] = "S-300 - 전체 화물"
+ctld.i18n["ko"]["Roland ADS - All crates"] = "롤랑 ADS - 전체 화물"
+ctld.i18n["ko"]["SpGH DANA - All crates"] = "DANA 자주곡사포 - 전체 화물"
+ctld.i18n["ko"]["SPH 2S19 Msta - All crates"] = "2S19 므스타 - 전체 화물"
+ctld.i18n["ko"]["T155 Firtina - All crates"] = "T-155 프르트나 - 전체 화물"
+ctld.i18n["ko"]["Ural-375 Ammo Truck - All crates"] = "Ural-375 탄약 차량 - 전체 화물"
 
 --- Load Crate submenu
 ctld.i18n["ko"]["Load Crate"] = "화물 적재"
@@ -2953,17 +2804,16 @@ ctld.i18n["ko"]["%1 troop(s) onboard (%2 kg)"] = "%1명 병사 탑재 중 (%2 kg
 ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 
 --- Request Equipment spawn messages
-ctld.i18n["ko"]["Land near logistics to request equipment"] = ""
-ctld.i18n["ko"]["No logistics in range"] = ""
-ctld.i18n["ko"]["All crates"] = ""
+ctld.i18n["ko"]["Land near logistics to request equipment"] = "장비 요청을 위해 군수 근처에 착륙하세요"
+ctld.i18n["ko"]["No logistics in range"] = "범위 내 군수 없음"
+ctld.i18n["ko"]["All crates"] = "전체 화물"
 ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+-- ===== End: CTLD_i18n_ko.lua =====
 
--- End : CTLD_i18n_ko.lua
--- ====================================================================================================
--- Start : CTLD_utils.lua
+-- ===== Start: CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4982,10 +4832,9 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
+-- ===== End: CTLD_utils.lua =====
 
--- End : CTLD_utils.lua
--- ====================================================================================================
--- Start : CTLD_menu.lua
+-- ===== Start: CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5515,10 +5364,9 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
+-- ===== End: CTLD_menu.lua =====
 
--- End : CTLD_menu.lua
--- ====================================================================================================
--- Start : lib/CTLD_objectRegistry.lua
+-- ===== Start: lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5940,10 +5788,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
+-- ===== End: lib/CTLD_objectRegistry.lua =====
 
--- End : lib/CTLD_objectRegistry.lua
--- ====================================================================================================
--- Start : lib/CTLDParachuteEffect.lua
+-- ===== Start: lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5995,10 +5842,9 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
+-- ===== End: lib/CTLDParachuteEffect.lua =====
 
--- End : lib/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : CTLD_sceneManager.lua
+-- ===== Start: CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6420,10 +6266,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
+-- ===== End: CTLD_sceneManager.lua =====
 
--- End : CTLD_sceneManager.lua
--- ====================================================================================================
--- Start : CTLD_zone.lua
+-- ===== Start: CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7473,10 +7318,9 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
+-- ===== End: CTLD_zone.lua =====
 
--- End : CTLD_zone.lua
--- ====================================================================================================
--- Start : CTLD_troop.lua
+-- ===== Start: CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8987,10 +8831,9 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
+-- ===== End: CTLD_troop.lua =====
 
--- End : CTLD_troop.lua
--- ====================================================================================================
--- Start : CTLD_crate.lua
+-- ===== Start: CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -11145,10 +10988,9 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
+-- ===== End: CTLD_crate.lua =====
 
--- End : CTLD_crate.lua
--- ====================================================================================================
--- Start : CTLD_vehicle.lua
+-- ===== Start: CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -12218,10 +12060,9 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
+-- ===== End: CTLD_vehicle.lua =====
 
--- End : CTLD_vehicle.lua
--- ====================================================================================================
--- Start : CTLD_fob.lua
+-- ===== Start: CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12721,10 +12562,9 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
+-- ===== End: CTLD_fob.lua =====
 
--- End : CTLD_fob.lua
--- ====================================================================================================
--- Start : CTLD_aasystem.lua
+-- ===== Start: CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13421,10 +13261,9 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
+-- ===== End: CTLD_aasystem.lua =====
 
--- End : CTLD_aasystem.lua
--- ====================================================================================================
--- Start : CTLD_beacon.lua
+-- ===== Start: CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -13935,6 +13774,8 @@ function CTLDBeaconManager:toggleLayer(player, transport)
         totalBeaconsDisplayed = #beaconsDisplayed,
         timestamp         = timer.getAbsTime(),
     })
+
+    self:_rebuildBeaconBranch(player, transport)
 end
 
 -- ============================================================
@@ -14132,6 +13973,66 @@ end
 -- F10 Menu section
 -- ============================================================
 
+--- Internal: add all Beacon commands to an already-existing "Radio Beacons" submenu node.
+-- Labels reflect current per-player state: [activate] when layer OFF, [deactivate] when ON.
+-- @param menu     ctld.Menu
+-- @param unitName string  player/unit key
+function CTLDBeaconManager:_addBeaconCommands(menu, unitName)
+    local root      = ctld.tr("CTLD")
+    local beaconSub = ctld.tr("Radio Beacons")
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
+        end,
+        { unitName = unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
+        end,
+        { unitName = unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():listBeacons(transport) end
+        end,
+        { unitName = unitName })
+
+    -- Beacon layer toggle — label shows the action that will be taken on click.
+    if ctld.gs("beaconLayerEnabled") then
+        local state  = self._layerState[unitName]
+        local layOn  = state and state.enabled or false
+        local action = layOn and ctld.tr("deactivate") or ctld.tr("activate")
+        local label  = string.format("Beacon Layer [%s]", action)
+        menu:addCommand({ root, beaconSub }, label,
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if transport then
+                    CTLDBeaconManager.getInstance():toggleLayer(arg.unitName, transport)
+                end
+            end,
+            { unitName = unitName })
+    end
+end
+
+--- Internal: clear the Beacon branch commands and re-add them with current state labels.
+-- Call after toggleLayer to update the layer toggle label.
+-- @param unitName  string  player/unit key
+-- @param transport DCS Unit object
+function CTLDBeaconManager:_rebuildBeaconBranch(unitName, transport)
+    local menu = ctld.MenuManager:getInstance():getMenuByUnitName(unitName)
+    if not menu then return end
+    local root      = ctld.tr("CTLD")
+    local beaconSub = ctld.tr("Radio Beacons")
+    menu:clearBranch({ root, beaconSub })
+    self:_addBeaconCommands(menu, unitName)
+    menu:refresh()
+end
+
 --- Build the "Radio Beacons" F10 submenu for a player.
 -- Requires enabledRadioBeaconDrop = true (configKey gate) AND isTransport.
 -- @param playerObj CTLDPlayer
@@ -14143,26 +14044,7 @@ function CTLDBeaconManager:buildMenuSection(playerObj, menu)
     local beaconSub = ctld.tr("Radio Beacons")
     menu:addSubMenu({ root }, beaconSub, { order = 60 })
 
-    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
-        end,
-        { unitName = playerObj.unitName })
-
-    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
-        end,
-        { unitName = playerObj.unitName })
-
-    menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():listBeacons(transport) end
-        end,
-        { unitName = playerObj.unitName })
+    self:_addBeaconCommands(menu, playerObj.unitName)
 end
 
 -- ============================================================
@@ -14246,10 +14128,9 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
+-- ===== End: CTLD_beacon.lua =====
 
--- End : CTLD_beacon.lua
--- ====================================================================================================
--- Start : CTLD_recon.lua
+-- ===== Start: CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -14297,6 +14178,7 @@ CTLDReconRenderer = {}
 
 --- Remove all draw elements for a markId (3 sub-elements max).
 function CTLDReconRenderer.removeIcon(markId)
+    if not markId then return end
     for i = 1, 3 do
         trigger.action.removeMark(markId * 10 + i)
     end
@@ -14304,7 +14186,7 @@ end
 
 --- Infantry icon: circle + horizontal + vertical cross (⊕).
 function CTLDReconRenderer.drawInfantryIcon(pos, markId, color)
-    local r    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").infantry) or 30
+    local r    = 30 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     local p    = { x = pos.x, y = 0, z = pos.z }
     trigger.action.circleToAll(-1, markId * 10 + 1, p, r, color, fill, 1, true, "Infantry")
@@ -14318,7 +14200,7 @@ end
 
 --- Vehicle icon: rectangle + diagonal (▭╱).
 function CTLDReconRenderer.drawVehicleIcon(pos, markId, color)
-    local s    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").vehicle) or 40
+    local s    = 40 * (ctld.gs("reconIconScale") or 1.0)
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(-1, markId * 10 + 1,
@@ -14333,7 +14215,7 @@ end
 
 --- AA icon: triangle (3 lines: bottom-left, bottom-right, apex).
 function CTLDReconRenderer.drawAAIcon(pos, markId, color)
-    local s  = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").aa) or 35
+    local s  = 35 * (ctld.gs("reconIconScale") or 1.0)
     local hs = s / 2
     local p1 = { x = pos.x - hs, y = 0, z = pos.z - hs }
     local p2 = { x = pos.x + hs, y = 0, z = pos.z - hs }
@@ -14345,7 +14227,7 @@ end
 
 --- Aircraft icon: perpendicular cross (2 lines) + small center circle.
 function CTLDReconRenderer.drawAircraftIcon(pos, markId, color)
-    local s  = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").aircraft) or 40
+    local s  = 40 * (ctld.gs("reconIconScale") or 1.0)
     local hs = s / 2
     trigger.action.lineToAll(-1, markId * 10 + 1,
         { x = pos.x,      y = 0, z = pos.z + hs },
@@ -14362,7 +14244,7 @@ end
 
 --- Helicopter icon: circle + H shape (2 vertical bars).
 function CTLDReconRenderer.drawHelicopterIcon(pos, markId, color)
-    local r    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").helicopter) or 25
+    local r    = 25 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.circleToAll(-1, markId * 10 + 1,
         { x = pos.x, y = 0, z = pos.z }, r, color, fill, 1, true, "Helicopter")
@@ -14378,8 +14260,8 @@ end
 
 --- Ship icon: elongated rectangle + bow arrow (2 lines converging to point).
 function CTLDReconRenderer.drawShipIcon(pos, markId, color)
-    local sw   = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").ship_width)  or 50
-    local sh   = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").ship_height) or 20
+    local sw   = 50 * (ctld.gs("reconIconScale") or 1.0)
+    local sh   = 20 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(-1, markId * 10 + 1,
         { x = pos.x - sw / 2, y = 0, z = pos.z - sh / 2 },
@@ -14401,7 +14283,14 @@ end
 function CTLDReconRenderer.createIcon(target, markId)
     local r   = target.layer.iconRenderer
     local pos = target.position
-    local col = target.layer.color
+    -- Color follows detected unit's coalition (RED=1, BLUE=2, NEUTRAL=0).
+    -- Shape already distinguishes layer type, so color conveys coalition.
+    local COALITION_COLORS = {
+        [0] = { 0.70, 0.70, 0.70, 1.0 },  -- neutral  → grey
+        [1] = { 1.00, 0.15, 0.15, 1.0 },  -- RED      → red
+        [2] = { 0.15, 0.40, 1.00, 1.0 },  -- BLUE     → blue
+    }
+    local col = COALITION_COLORS[target.coalition] or target.layer.color
     if     r == "infantry"   then CTLDReconRenderer.drawInfantryIcon(pos, markId, col)
     elseif r == "vehicle"    then CTLDReconRenderer.drawVehicleIcon(pos, markId, col)
     elseif r == "aa"         then CTLDReconRenderer.drawAAIcon(pos, markId, col)
@@ -14453,6 +14342,10 @@ end
 -- ============================================================
 
 -- DCS attribute names (case-sensitive, from DCS unit type tables)
+-- Layer order matters: _matchLayer returns the FIRST matching layer.
+-- More specific attributes must come before broader ones to avoid misclassification:
+--   "Air Defence" ⊂ "Vehicles"  → air_defense before ground_vehicles
+--   "Helicopters" ⊂ "Planes"    → helicopters before aircraft
 CTLDReconManager._defaultLayers = {
     {
         layerId      = "infantry",
@@ -14463,6 +14356,14 @@ CTLDReconManager._defaultLayers = {
         iconRenderer = "infantry",
     },
     {
+        layerId      = "air_defense",
+        name         = "Air Defense (AA)",
+        enabled      = false,
+        color        = { 0.91, 0.30, 0.24, 1.0 },
+        filterAttrib = "Air Defence",  -- more specific than "Vehicles"
+        iconRenderer = "aa",
+    },
+    {
         layerId      = "ground_vehicles",
         name         = "Ground Vehicles",
         enabled      = false,
@@ -14471,28 +14372,20 @@ CTLDReconManager._defaultLayers = {
         iconRenderer = "vehicle",
     },
     {
-        layerId      = "air_defense",
-        name         = "Air Defense (AA)",
+        layerId      = "helicopters",
+        name         = "Helicopters",
         enabled      = false,
-        color        = { 0.91, 0.30, 0.24, 1.0 },
-        filterAttrib = "Air Defence",
-        iconRenderer = "aa",
+        color        = { 0.90, 0.49, 0.13, 1.0 },
+        filterAttrib = "Helicopters",  -- more specific than "Planes"
+        iconRenderer = "helicopter",
     },
     {
         layerId      = "aircraft",
         name         = "Aircraft",
         enabled      = false,
         color        = { 0.95, 0.77, 0.06, 1.0 },
-        filterAttrib = "Planes",       -- fixed-wing only (not "Air" which includes helos)
+        filterAttrib = "Planes",
         iconRenderer = "aircraft",
-    },
-    {
-        layerId      = "helicopters",
-        name         = "Helicopters",
-        enabled      = false,
-        color        = { 0.90, 0.49, 0.13, 1.0 },
-        filterAttrib = "Helicopters",
-        iconRenderer = "helicopter",
     },
     {
         layerId      = "ships",
@@ -14564,11 +14457,19 @@ function CTLDReconManager:_getEnemyUnitNames(coalitionId)
         })
 end
 
--- Find the first enabled layer matching unit attributes, or nil.
-function CTLDReconManager:_matchLayer(unit, enabledLayers)
-    for _, layer in ipairs(enabledLayers) do
+--- Find the highest-priority layer matching a unit's attributes.
+--- Uses the FULL ordered layer list so that priority (air_defense > ground_vehicles,
+--- helicopters > aircraft) is always respected regardless of which layers are enabled.
+--- Returns the layer only if it is currently enabled; returns nil otherwise.
+--- This prevents a unit from "falling through" to a lower-priority layer when its
+--- best-match layer is disabled (e.g. Mi-8MT must not show as Aircraft when
+--- Helicopters layer is OFF; ZU-23 must not show as Vehicle when AA layer is OFF).
+function CTLDReconManager:_matchLayer(unit, allLayers)
+    for _, layer in ipairs(allLayers) do
         local ok, has = pcall(function() return unit:hasAttribute(layer.filterAttrib) end)
-        if ok and has then return layer end
+        if ok and has then
+            return layer.enabled and layer or nil
+        end
     end
     return nil
 end
@@ -14633,7 +14534,8 @@ end
 -- Public actions
 -- ============================================================
 
---- Manual scan (menu F10 "Scan Area" / "Rescan Area").
+--- Scan and start RECON with auto-refresh (menu F10 "RECON [Start]").
+-- Also called internally on layer toggle while RECON is active (re-scan with updated layers).
 -- @param playerUnit DCS Unit
 -- @param player     string  playerName
 function CTLDReconManager:scan(playerUnit, player)
@@ -14665,7 +14567,8 @@ function CTLDReconManager:scan(playerUnit, player)
     end
 
     local radius  = ctld.gs("reconSearchRadius") or 5000
-    local targets = self:_scanLOS(playerUnit, enabledLayers, radius)
+    -- Pass ALL layers (not just enabled) so _matchLayer can enforce priority correctly.
+    local targets = self:_scanLOS(playerUnit, self:_getPlayerLayers(player), radius)
 
     -- Create icons + count per layer
     local targetsByLayer = {}
@@ -14706,21 +14609,27 @@ function CTLDReconManager:scan(playerUnit, player)
         targetsByLayer       = targetsByLayer,
         totalTargetsDetected = #targets,
         totalMarksCreated    = #targets,
-        autoRefresh          = false,
+        autoRefresh          = true,
         timestamp            = timer.getAbsTime(),
     })
+
+    -- Auto-refresh always enabled when RECON starts.
+    -- Pass _fromScan=true so enableAutoRefresh skips its own rebuild
+    -- (scan() already calls _rebuildReconBranch below).
+    self:enableAutoRefresh(playerUnit, player, true)
+
+    -- Single menu rebuild after scan (covers both start and layer-toggle re-scan).
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
---- Hide all marks for player (menu F10 "Hide All Targets").
+--- Stop RECON for player (menu F10 "RECON [Stop]").
+-- Stops auto-refresh timer, removes all marks, sets RECON to idle state.
+-- Layer enabled/disabled states are preserved for the next Start.
 -- @param playerUnit DCS Unit
 -- @param player     string
-function CTLDReconManager:hideScan(playerUnit, player)
+function CTLDReconManager:stopScan(playerUnit, player)
     local scan = self._activeScans[player]
-    if not scan then
-        trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("No active recon scan to hide."), 10)
-        return
-    end
+    if not scan then return end
 
     local refreshStopped = scan.autoRefresh
     if scan.refreshTimer then
@@ -14753,12 +14662,16 @@ function CTLDReconManager:hideScan(playerUnit, player)
         refreshStopped    = refreshStopped,
         timestamp         = timer.getAbsTime(),
     })
+
+    -- Rebuild menu: RECON [Start] + all layer labels switch to (X) suffix.
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
 --- Enable auto-refresh (menu F10 "Auto-Refresh: [OFF]" → ON).
 -- @param playerUnit DCS Unit
 -- @param player     string
-function CTLDReconManager:enableAutoRefresh(playerUnit, player)
+-- @param _fromScan  boolean  internal flag — skip menu rebuild when called from scan()
+function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
@@ -14790,6 +14703,10 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
         refreshInterval = interval,
         timestamp       = timer.getAbsTime(),
     })
+
+    if not _fromScan then
+        self:_rebuildReconBranch(player, playerUnit)
+    end
 end
 
 --- Disable auto-refresh (menu F10 "Auto-Refresh: [ON]" → OFF).
@@ -14819,6 +14736,8 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
         refreshInterval = interval,
         timestamp       = timer.getAbsTime(),
     })
+
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
 --- Toggle a recon layer ON/OFF for a player.
@@ -14839,9 +14758,12 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
         ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
 
-    -- Immediate re-scan if scan is active (applies new layer state)
+    -- Immediate re-scan if scan is active (applies new layer state).
+    -- scan() handles its own menu rebuild so we skip the extra call below.
+    local didScan = false
     if self._activeScans[player] then
         self:scan(playerUnit, player)
+        didScan = true
     end
 
     EventDispatcher.getInstance():publish("OnReconLayerToggled", {
@@ -14852,6 +14774,11 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
         player    = player,
         timestamp = timer.getAbsTime(),
     })
+
+    -- Only rebuild menu if scan() didn't already do it.
+    if not didScan then
+        self:_rebuildReconBranch(player, playerUnit)
+    end
 end
 
 -- ============================================================
@@ -14874,7 +14801,8 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
     end
 
     local radius         = ctld.gs("reconSearchRadius") or 5000
-    local currentTargets = self:_scanLOS(playerUnit, scan.layers, radius)
+    -- Use full layer list so _matchLayer enforces priority on disabled layers.
+    local currentTargets = self:_scanLOS(playerUnit, self:_getPlayerLayers(playerName), radius)
 
     -- Index previous targets by unitName
     local prevIndex = {}
@@ -14918,6 +14846,8 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
                     markId        = newMid,
                 }
             else
+                -- Carry forward the existing markId so stopScan/removeAllMarks can remove it.
+                tgt.markId = prev.markId
                 tgt.status = "existing"
             end
             prevIndex[tgt.unitName] = nil
@@ -14995,61 +14925,78 @@ end
 -- F10 Menu section
 -- ============================================================
 
+--- Internal: add all RECON commands to an already-existing RECON submenu node.
+-- "RECON [Start/Stop]": single toggle entry for RECON active state.
+-- Layer labels: [activate/deactivate] when RECON active, [activate/deactivate (X)] when idle.
+-- @param menu     ctld.Menu
+-- @param unitName string  used as DCS unit key and player-state key
+function CTLDReconManager:_addReconCommands(menu, unitName)
+    local root      = ctld.tr("CTLD")
+    local reconSub  = ctld.tr("RECON")
+    local isActive  = self._activeScans[unitName] ~= nil
+
+    -- RECON [Start] / RECON [Stop] — single start/stop toggle.
+    local reconLabel = isActive and ctld.tr("RECON [Stop]") or ctld.tr("RECON [Start]")
+    menu:addCommand({ root, reconSub }, reconLabel,
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if not unit then return end
+            local rmgr = CTLDReconManager.getInstance()
+            if rmgr._activeScans[arg.unitName] then
+                rmgr:stopScan(unit, arg.unitName)
+            else
+                rmgr:scan(unit, arg.unitName)
+            end
+        end,
+        { unitName = unitName })
+
+    -- Per-layer toggles.
+    -- RECON active  : "Layer [activate]"      / "Layer [deactivate]"
+    -- RECON idle    : "Layer [activate (X)]"  / "Layer [deactivate (X)]"
+    -- (X) signals the toggle prepares for next Start but has no immediate map effect.
+    local layers = self:_getPlayerLayers(unitName)
+    for _, layer in ipairs(layers) do
+        local actionBase = layer.enabled and ctld.tr("deactivate") or ctld.tr("activate")
+        local action     = isActive and actionBase or (actionBase .. " (X)")
+        local label      = string.format("%s [%s]", layer.name, action)
+        menu:addCommand({ root, reconSub }, label,
+            function(arg)
+                local unit = Unit.getByName(arg.unitName)
+                if unit then
+                    CTLDReconManager.getInstance():toggleLayer(arg.unitName, unit, arg.layerId)
+                end
+            end,
+            { unitName = unitName, layerId = layer.layerId })
+    end
+end
+
+--- Internal: clear the RECON branch commands and re-add them with current state labels.
+-- Call after any state change: scan start/stop, layer toggle.
+-- @param unitName  string  player/unit key
+-- @param playerUnit DCS Unit object
+function CTLDReconManager:_rebuildReconBranch(unitName, playerUnit)
+    local menu = ctld.MenuManager:getInstance():getMenuByUnitName(unitName)
+    if not menu then return end
+    local root     = ctld.tr("CTLD")
+    local reconSub = ctld.tr("RECON")
+    menu:clearBranch({ root, reconSub })
+    self:_addReconCommands(menu, unitName)
+    menu:refresh()
+end
+
 --- Build the "RECON" F10 submenu for a player.
 -- Requires reconF10Menu = true (configKey gate).
--- Adds Scan, Hide, per-layer toggles, and AutoRefresh commands.
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDReconManager:buildMenuSection(playerObj, menu)
     local root     = ctld.tr("CTLD")
     local reconSub = ctld.tr("RECON")
     menu:addSubMenu({ root }, reconSub, { order = 70 })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Scan Area"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():scan(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Hide All Targets"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():hideScan(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    -- Per-layer toggle commands
-    for _, layer in ipairs(CTLDReconManager._defaultLayers) do
-        menu:addCommand({ root, reconSub },
-            string.format(ctld.tr("Toggle %s"), layer.name),
-            function(arg)
-                local unit = Unit.getByName(arg.unitName)
-                if unit then
-                    CTLDReconManager.getInstance():toggleLayer(arg.playerName, unit, arg.layerId)
-                end
-            end,
-            { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
-    end
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [OFF]"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():enableAutoRefresh(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [ON]"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():disableAutoRefresh(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+    self:_addReconCommands(menu, playerObj.unitName)
 end
+-- ===== End: CTLD_recon.lua =====
 
--- End : CTLD_recon.lua
--- ====================================================================================================
--- Start : CTLD_jtac.lua
+-- ===== Start: CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -16405,10 +16352,9 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
+-- ===== End: CTLD_jtac.lua =====
 
--- End : CTLD_jtac.lua
--- ====================================================================================================
--- Start : CTLD_player.lua
+-- ===== Start: CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -16846,10 +16792,9 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
+-- ===== End: CTLD_player.lua =====
 
--- End : CTLD_player.lua
--- ====================================================================================================
--- Start : CTLD_core.lua
+-- ===== Start: CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -17256,10 +17201,9 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
+-- ===== End: CTLD_core.lua =====
 
--- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
+-- ===== Start: scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -17360,10 +17304,9 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+-- ===== End: scenes/CTLD_farpScene.lua =====
 
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
+-- ===== Start: scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -17463,10 +17406,9 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+-- ===== End: scenes/CTLD_fobScene.lua =====
 
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
+-- ===== Start: scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -17731,10 +17673,9 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+-- ===== End: scenes/CTLD_mineFieldScene.lua =====
 
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : compat/legacy_api.lua
+-- ===== Start: compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -17913,10 +17854,9 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
+-- ===== End: compat/legacy_api.lua =====
 
--- End : compat/legacy_api.lua
--- ====================================================================================================
--- Start : CTLD_userConfig.lua
+-- ===== Start: CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -18283,17 +18223,29 @@ ctld.yamlConfigDatas = [[
 # Recon
 # ============================================================
 
-# Enable the RECON entry in the F10 menu.
+# Enable the RECON submenu in the F10 CTLD menu.
 # ctld.reconF10Menu: true
 
-# Radius (m) around the recon unit in which Line-Of-Sight target detection is performed.
-# ctld.reconLosSearchRadius: 2000
+# Master switch — set to true to activate RECON functionality.
+# When false, the Scan Area command does nothing even if the menu is visible.
+# ctld.reconEnabled: false
 
-# Radius (m) of the F10 map circle drawn around each detected target.
-# ctld.reconLosMarkRadius: 100
+# LOS detection radius (m) around the scanning unit.
+# All enemy units within this radius are tested for line-of-sight.
+# ctld.reconSearchRadius: 5000
 
-# Automatically refresh recon LOS marks on the F10 map.
-# ctld.reconAutoRefreshLosTargetMarks: false
+# Minimum AGL altitude (m) required to perform a scan.
+# The pilot must be at or above this height, otherwise the scan is rejected.
+# ctld.reconMinAltitude: 50
+
+# Auto-refresh interval (s) between successive target position updates.
+# Decrease to track fast-moving targets more accurately (increases CPU load).
+# ctld.reconRefreshInterval: 10
+
+# Icon size multiplier applied to all RECON icons on the F10 map.
+# 1.0 = default sizes (infantry=30m, vehicle=40m, aa=35m, aircraft=40m,
+#        helicopter=25m, ship=50×20m).  Use 2.0 to double all icon sizes.
+# ctld.reconIconScale: 1.0
 
 
 # ============================================================
@@ -18870,5 +18822,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+-- ===== End: CTLD_userConfig.lua =====
 
--- End : CTLD_userConfig.lua

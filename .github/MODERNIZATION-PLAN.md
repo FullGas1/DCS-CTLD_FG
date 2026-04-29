@@ -186,6 +186,26 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
         ⬜ F-114: DCS native bbox load/unload — différé (C-130J-30 ou CH-47Fbl1 requis)
 
+⬜  FG  JTAC InTransit — recettes live manquantes + cas option A/B/C MM-placed vehicle
+        À revenir quand modules C-130J-30 ou CH-47Fbl1 disponibles :
+          • F-113 + F-114 (voir ci-dessus)
+        Question spec non tranchée :
+          • Cas 3 (MM-placed vehicle chargé) — critère isJTAC au load :
+            A = nom groupe contient "jtac"
+            B = typename dans JTAC_unitTypeNames
+            C = A OU B
+          → Trancher avant d'implémenter le hook load dans CTLDVehicleSpawner pour ce cas.
+
+⬜  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
+        Use case : spawn d'un véhicule via "Request Vehicle" (logistic zone) → load dans transport
+        → drop à un autre endroit, sans aucune crate intermédiaire.
+        Points à valider :
+          • CTLDVehicleSpawner.spawnVehicleForTransport() → loadVehicle() → unloadVehicle() :
+            cycle complet sans passer par spawnableCrates / unpack
+          • Menu F10 "Load Vehicle" / "Unload Vehicle" : visibilité, déclenchement, guard zones
+          • État CTLDVehicle : WAITING → LOADED → DELIVERED (pas de WAITING_FOR_UNPACK)
+          • Recette end-to-end (Witchcraft ou sandbox) à créer
+
 ⬜  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
         Objectif : créer une bibliothèque de scripts Lua injectables via Witchcraft qui reproduisent
         des séquences d'actions joueur réelles et vérifient leur bon déroulement.

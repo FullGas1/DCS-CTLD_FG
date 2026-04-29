@@ -354,27 +354,39 @@ ctld.yamlConfigDatas = [[
 # ctld.JTAC_searchIntervalSeconds: 10
 
 # Orbit radius (m) used by drone JTAC units around their target.
-# ctld.jtacDroneRadius: 1000
+# ctld.JTAC_droneRadius: 1000
 
 # Orbit altitude (m) for drone JTAC units.
-# ctld.jtacDroneAltitude: 7000
+# ctld.JTAC_droneAltitude: 7000
 
 
 # ============================================================
 # Recon
 # ============================================================
 
-# Enable the RECON entry in the F10 menu.
+# Enable the RECON submenu in the F10 CTLD menu.
 # ctld.reconF10Menu: true
 
-# Radius (m) around the recon unit in which Line-Of-Sight target detection is performed.
-# ctld.reconLosSearchRadius: 2000
+# Master switch — set to true to activate RECON functionality.
+# When false, the Scan Area command does nothing even if the menu is visible.
+# ctld.reconEnabled: false
 
-# Radius (m) of the F10 map circle drawn around each detected target.
-# ctld.reconLosMarkRadius: 100
+# LOS detection radius (m) around the scanning unit.
+# All enemy units within this radius are tested for line-of-sight.
+# ctld.reconSearchRadius: 5000
 
-# Automatically refresh recon LOS marks on the F10 map.
-# ctld.reconAutoRefreshLosTargetMarks: false
+# Minimum AGL altitude (m) required to perform a scan.
+# The pilot must be at or above this height, otherwise the scan is rejected.
+# ctld.reconMinAltitude: 50
+
+# Auto-refresh interval (s) between successive target position updates.
+# Decrease to track fast-moving targets more accurately (increases CPU load).
+# ctld.reconRefreshInterval: 10
+
+# Icon size multiplier applied to all RECON icons on the F10 map.
+# 1.0 = default sizes (infantry=30m, vehicle=40m, aa=35m, aircraft=40m,
+#        helicopter=25m, ship=50×20m).  Use 2.0 to double all icon sizes.
+# ctld.reconIconScale: 1.0
 
 
 # ============================================================

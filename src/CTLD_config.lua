@@ -360,16 +360,28 @@ function CTLDConfig:load()
     self.settings["JTAC_searchIntervalSeconds"]           = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
     self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
 
+    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
+    self.settings["JTAC_droneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
+    self.settings["JTAC_droneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
+
+    -- JTAC vehicles requestable via F10 JTAC > Request JTAC Vehicle, per coalition.
+    -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
+    -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
+    -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.
+    self.settings["JTAC_unitTypeNames"] = {
+        [1] = { "SKP-11", "RQ-1A Predator" },  -- RED: JTAC vehicles available to RED coalition
+        [2] = { "Hummer", "MQ-9 Reaper" },     -- BLUE: JTAC vehicles available to BLUE coalition
+    }
+
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh
     -- ═══════════════════════════════════════════════════════════
-    self.settings["reconF10Menu"]                         = true             -- enables F10 RECON menu
-    self.settings["reconMenuName"]                        = ctld.tr("RECON") --name of the CTLD JTAC radio menu
-    self.settings["reconRadioAdded"]                      = {}               --stores the groups that have had the radio menu added
-    self.settings["reconLosSearchRadius"]                 = 2000             -- search radius in meters
-    self.settings["reconLosMarkRadius"]                   = 100              -- mark radius dimension in meters
-    self.settings["reconAutoRefreshLosTargetMarks"]       = false            -- if true recon LOS marks are automaticaly refreshed on F10 map
-    self.settings["reconLastScheduleIdAutoRefresh"]       = 0                -- last schedule ID for auto refresh
+    self.settings["reconF10Menu"]                         = true  -- enable RECON submenu in F10 CTLD menu
+    self.settings["reconEnabled"]                         = false -- master switch: set to true to activate RECON functionality
+    self.settings["reconSearchRadius"]                    = 5000  -- LOS detection radius (m) around the scanning unit
+    self.settings["reconMinAltitude"]                     = 50    -- minimum AGL altitude (m) required to perform a scan
+    self.settings["reconRefreshInterval"]                 = 10    -- auto-refresh interval (s) between target position updates
+    self.settings["reconIconScale"]                       = 1.0   -- icon size multiplier (1.0 = default sizes; increase for larger icons)
 
     -- ═══════════════════════════════════════════════════════════
     -- [M10] MINEFIELD — Landmine deployment options
@@ -738,58 +750,58 @@ function CTLDConfig:load()
             -- Some descriptions are filtered to determine if JTAC or not!
 
             --- BLUE
-            { weight = 1000.01,                                  desc = ctld.tr("Humvee - MG"),                      unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
-            { weight = 1000.02,                                  desc = ctld.tr("Humvee - TOW"),          unit = "M1045 HMMWV TOW", side = 2, cratesRequired = 2 },
-            { weight = 1000.03,                                  desc = ctld.tr("Light Tank - MRAP"),     unit = "MaxxPro_MRAP",    side = 2, cratesRequired = 2 },
-            { weight = 1000.04,                                  desc = ctld.tr("Med Tank - LAV-25"),     unit = "LAV-25",          side = 2, cratesRequired = 3 },
-            { weight = 1000.05,                                  desc = ctld.tr("Heavy Tank - Abrams"),   unit = "M-1 Abrams",      side = 2, cratesRequired = 4 },
+            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 },                                               --careful with the names as the script matches the desc to JTAC types
+            { weight = 1000.02, desc = ctld.tr("Humvee - TOW"),        unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
+            { weight = 1000.03, desc = ctld.tr("Light Tank - MRAP"),   unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
+            { weight = 1000.04, desc = ctld.tr("Med Tank - LAV-25"),   unit = "LAV-25",               side = 2, cratesRequired = 3 },
+            { weight = 1000.05, desc = ctld.tr("Heavy Tank - Abrams"), unit = "M-1 Abrams",           side = 2, cratesRequired = 4 },
 
             --- RED
-            { weight = 1000.11,                                  desc = ctld.tr("BTR-D"),                            unit = "BTR_D",                side = 1 },
-            { weight = 1000.12,                                  desc = ctld.tr("BRDM-2"),                           unit = "BRDM-2",               side = 1 },
+            { weight = 1000.11, desc = ctld.tr("BTR-D"),               unit = "BTR_D",                side = 1 },
+            { weight = 1000.12, desc = ctld.tr("BRDM-2"),              unit = "BRDM-2",               side = 1 },
             -- need more redfor!
         },
         ["Support"] = {
             --- BLUE
-            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),      unit = "Hummer",            side = 2, cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"), unit = "M 818",             side = 2, cratesRequired = 2 },
-            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),     unit = "M978 HEMTT Tanker", side = 2, cratesRequired = 2 },
+            { weight = 1001.01, desc = ctld.tr("Hummer - JTAC"),       unit = "Hummer",            side = 2,          cratesRequired = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.02, desc = ctld.tr("M-818 Ammo Truck"),    unit = "M 818",             side = 2,          cratesRequired = 2 },
+            { weight = 1001.03, desc = ctld.tr("M-978 Tanker"),        unit = "M978 HEMTT Tanker", side = 2,          cratesRequired = 2 },
 
             --- RED
-            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),         unit = "SKP-11",      side = 1, isJTAC = true }, -- hidden when JTAC_dropEnabled=false
-            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"),   unit = "Ural-375",     side = 1, cratesRequired = 2 },
-            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),      unit = "KAMAZ Truck",  side = 1, cratesRequired = 2 },
+            { weight = 1001.11, desc = ctld.tr("SKP-11 - JTAC"),       unit = "SKP-11",            side = 1,          isJTAC = true }, -- hidden when JTAC_dropEnabled=false
+            { weight = 1001.12, desc = ctld.tr("Ural-375 Ammo Truck"), unit = "Ural-375",          side = 1,          cratesRequired = 2 },
+            { weight = 1001.13, desc = ctld.tr("KAMAZ Ammo Truck"),    unit = "KAMAZ Truck",       side = 1,          cratesRequired = 2 },
 
             --- Both
-            { weight = 1001.21, desc = ctld.tr("EWR Radar"),  unit = "FPS-117", cratesRequired = 3 },
-            { weight = 1001.22, desc = ctld.tr("FOB Crate"),  unit = "FOB",     side = nil, cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
+            { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
 
         },
         ["Artillery"] = {
             --- BLUE
-            { weight = 1002.01, desc = ctld.tr("MLRS"),         unit = "MLRS",         side = 2, cratesRequired = 3 },
-            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),    unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
-            { weight = 1002.03, desc = ctld.tr("T155 Firtina"), unit = "T155_Firtina", side = 2, cratesRequired = 3 },
-            { weight = 1002.04, desc = ctld.tr("Howitzer"),     unit = "M-109",        side = 2, cratesRequired = 3 },
+            { weight = 1002.01, desc = ctld.tr("MLRS"),          unit = "MLRS",         side = 2, cratesRequired = 3 },
+            { weight = 1002.02, desc = ctld.tr("SpGH DANA"),     unit = "SpGH_Dana",    side = 2, cratesRequired = 3 },
+            { weight = 1002.03, desc = ctld.tr("T155 Firtina"),  unit = "T155_Firtina", side = 2, cratesRequired = 3 },
+            { weight = 1002.04, desc = ctld.tr("Howitzer"),      unit = "M-109",        side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta", side = 1, cratesRequired = 3 },
+            { weight = 1002.11, desc = ctld.tr("SPH 2S19 Msta"), unit = "SAU Msta",     side = 1, cratesRequired = 3 },
 
         },
         ["SAM short range"] = {
             --- BLUE
-            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"), unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
-            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"), unit = "M48 Chaparral",      side = 2, cratesRequired = 2 },
-            { weight = 1003.03, desc = ctld.tr("Roland ADS"),    unit = "Roland ADS",         side = 2, cratesRequired = 3 },
-            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),    unit = "Gepard",             side = 2, cratesRequired = 3 },
-            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),    unit = "HEMTT_C-RAM_Phalanx",side = 2, cratesRequired = 3 },
+            { weight = 1003.01, desc = ctld.tr("M1097 Avenger"),   unit = "M1097 Avenger",       side = 2, cratesRequired = 3 },
+            { weight = 1003.02, desc = ctld.tr("M48 Chaparral"),   unit = "M48 Chaparral",       side = 2, cratesRequired = 2 },
+            { weight = 1003.03, desc = ctld.tr("Roland ADS"),      unit = "Roland ADS",          side = 2, cratesRequired = 3 },
+            { weight = 1003.04, desc = ctld.tr("Gepard AAA"),      unit = "Gepard",              side = 2, cratesRequired = 3 },
+            { weight = 1003.05, desc = ctld.tr("LPWS C-RAM"),      unit = "HEMTT_C-RAM_Phalanx", side = 2, cratesRequired = 3 },
 
             --- RED
-            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",   side = 1, cratesRequired = 3 },
-            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31", side = 1, cratesRequired = 3 },
-            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",   side = 1, cratesRequired = 3 },
-            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",     side = 1, cratesRequired = 3 },
-            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",  side = 1, cratesRequired = 3 },
+            { weight = 1003.11, desc = ctld.tr("9K33 Osa"),        unit = "Osa 9A33 ln",         side = 1, cratesRequired = 3 },
+            { weight = 1003.12, desc = ctld.tr("9P31 Strela-1"),   unit = "Strela-1 9P31",       side = 1, cratesRequired = 3 },
+            { weight = 1003.13, desc = ctld.tr("9K35M Strela-10"), unit = "Strela-10M3",         side = 1, cratesRequired = 3 },
+            { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",           side = 1, cratesRequired = 3 },
+            { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",        side = 1, cratesRequired = 3 },
         },
         ["SAM mid range"] = {
             --- BLUE
@@ -940,10 +952,6 @@ function CTLDConfig:load()
         ["shape_name"] = "trunks_small_cargo",
         ["type"] = "trunks_small_cargo",
 ]] --
-
-    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
-    self.settings["jtacDroneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
-    self.settings["jtacDroneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
     -- ******************************************************************
     -- ****************** END OF CONFIGURATION AREA *********************

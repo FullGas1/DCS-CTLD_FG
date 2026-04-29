@@ -45,6 +45,7 @@ CTLDReconRenderer = {}
 
 --- Remove all draw elements for a markId (3 sub-elements max).
 function CTLDReconRenderer.removeIcon(markId)
+    if not markId then return end
     for i = 1, 3 do
         trigger.action.removeMark(markId * 10 + i)
     end
@@ -52,7 +53,7 @@ end
 
 --- Infantry icon: circle + horizontal + vertical cross (⊕).
 function CTLDReconRenderer.drawInfantryIcon(pos, markId, color)
-    local r    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").infantry) or 30
+    local r    = 30 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     local p    = { x = pos.x, y = 0, z = pos.z }
     trigger.action.circleToAll(-1, markId * 10 + 1, p, r, color, fill, 1, true, "Infantry")
@@ -66,7 +67,7 @@ end
 
 --- Vehicle icon: rectangle + diagonal (▭╱).
 function CTLDReconRenderer.drawVehicleIcon(pos, markId, color)
-    local s    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").vehicle) or 40
+    local s    = 40 * (ctld.gs("reconIconScale") or 1.0)
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(-1, markId * 10 + 1,
@@ -81,7 +82,7 @@ end
 
 --- AA icon: triangle (3 lines: bottom-left, bottom-right, apex).
 function CTLDReconRenderer.drawAAIcon(pos, markId, color)
-    local s  = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").aa) or 35
+    local s  = 35 * (ctld.gs("reconIconScale") or 1.0)
     local hs = s / 2
     local p1 = { x = pos.x - hs, y = 0, z = pos.z - hs }
     local p2 = { x = pos.x + hs, y = 0, z = pos.z - hs }
@@ -93,7 +94,7 @@ end
 
 --- Aircraft icon: perpendicular cross (2 lines) + small center circle.
 function CTLDReconRenderer.drawAircraftIcon(pos, markId, color)
-    local s  = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").aircraft) or 40
+    local s  = 40 * (ctld.gs("reconIconScale") or 1.0)
     local hs = s / 2
     trigger.action.lineToAll(-1, markId * 10 + 1,
         { x = pos.x,      y = 0, z = pos.z + hs },
@@ -110,7 +111,7 @@ end
 
 --- Helicopter icon: circle + H shape (2 vertical bars).
 function CTLDReconRenderer.drawHelicopterIcon(pos, markId, color)
-    local r    = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").helicopter) or 25
+    local r    = 25 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.circleToAll(-1, markId * 10 + 1,
         { x = pos.x, y = 0, z = pos.z }, r, color, fill, 1, true, "Helicopter")
@@ -126,8 +127,8 @@ end
 
 --- Ship icon: elongated rectangle + bow arrow (2 lines converging to point).
 function CTLDReconRenderer.drawShipIcon(pos, markId, color)
-    local sw   = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").ship_width)  or 50
-    local sh   = (ctld.gs("reconIconSizes") and ctld.gs("reconIconSizes").ship_height) or 20
+    local sw   = 50 * (ctld.gs("reconIconScale") or 1.0)
+    local sh   = 20 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(-1, markId * 10 + 1,
         { x = pos.x - sw / 2, y = 0, z = pos.z - sh / 2 },
@@ -149,7 +150,14 @@ end
 function CTLDReconRenderer.createIcon(target, markId)
     local r   = target.layer.iconRenderer
     local pos = target.position
-    local col = target.layer.color
+    -- Color follows detected unit's coalition (RED=1, BLUE=2, NEUTRAL=0).
+    -- Shape already distinguishes layer type, so color conveys coalition.
+    local COALITION_COLORS = {
+        [0] = { 0.70, 0.70, 0.70, 1.0 },  -- neutral  → grey
+        [1] = { 1.00, 0.15, 0.15, 1.0 },  -- RED      → red
+        [2] = { 0.15, 0.40, 1.00, 1.0 },  -- BLUE     → blue
+    }
+    local col = COALITION_COLORS[target.coalition] or target.layer.color
     if     r == "infantry"   then CTLDReconRenderer.drawInfantryIcon(pos, markId, col)
     elseif r == "vehicle"    then CTLDReconRenderer.drawVehicleIcon(pos, markId, col)
     elseif r == "aa"         then CTLDReconRenderer.drawAAIcon(pos, markId, col)
@@ -201,6 +209,10 @@ end
 -- ============================================================
 
 -- DCS attribute names (case-sensitive, from DCS unit type tables)
+-- Layer order matters: _matchLayer returns the FIRST matching layer.
+-- More specific attributes must come before broader ones to avoid misclassification:
+--   "Air Defence" ⊂ "Vehicles"  → air_defense before ground_vehicles
+--   "Helicopters" ⊂ "Planes"    → helicopters before aircraft
 CTLDReconManager._defaultLayers = {
     {
         layerId      = "infantry",
@@ -211,6 +223,14 @@ CTLDReconManager._defaultLayers = {
         iconRenderer = "infantry",
     },
     {
+        layerId      = "air_defense",
+        name         = "Air Defense (AA)",
+        enabled      = false,
+        color        = { 0.91, 0.30, 0.24, 1.0 },
+        filterAttrib = "Air Defence",  -- more specific than "Vehicles"
+        iconRenderer = "aa",
+    },
+    {
         layerId      = "ground_vehicles",
         name         = "Ground Vehicles",
         enabled      = false,
@@ -219,28 +239,20 @@ CTLDReconManager._defaultLayers = {
         iconRenderer = "vehicle",
     },
     {
-        layerId      = "air_defense",
-        name         = "Air Defense (AA)",
+        layerId      = "helicopters",
+        name         = "Helicopters",
         enabled      = false,
-        color        = { 0.91, 0.30, 0.24, 1.0 },
-        filterAttrib = "Air Defence",
-        iconRenderer = "aa",
+        color        = { 0.90, 0.49, 0.13, 1.0 },
+        filterAttrib = "Helicopters",  -- more specific than "Planes"
+        iconRenderer = "helicopter",
     },
     {
         layerId      = "aircraft",
         name         = "Aircraft",
         enabled      = false,
         color        = { 0.95, 0.77, 0.06, 1.0 },
-        filterAttrib = "Planes",       -- fixed-wing only (not "Air" which includes helos)
+        filterAttrib = "Planes",
         iconRenderer = "aircraft",
-    },
-    {
-        layerId      = "helicopters",
-        name         = "Helicopters",
-        enabled      = false,
-        color        = { 0.90, 0.49, 0.13, 1.0 },
-        filterAttrib = "Helicopters",
-        iconRenderer = "helicopter",
     },
     {
         layerId      = "ships",
@@ -312,11 +324,19 @@ function CTLDReconManager:_getEnemyUnitNames(coalitionId)
         })
 end
 
--- Find the first enabled layer matching unit attributes, or nil.
-function CTLDReconManager:_matchLayer(unit, enabledLayers)
-    for _, layer in ipairs(enabledLayers) do
+--- Find the highest-priority layer matching a unit's attributes.
+--- Uses the FULL ordered layer list so that priority (air_defense > ground_vehicles,
+--- helicopters > aircraft) is always respected regardless of which layers are enabled.
+--- Returns the layer only if it is currently enabled; returns nil otherwise.
+--- This prevents a unit from "falling through" to a lower-priority layer when its
+--- best-match layer is disabled (e.g. Mi-8MT must not show as Aircraft when
+--- Helicopters layer is OFF; ZU-23 must not show as Vehicle when AA layer is OFF).
+function CTLDReconManager:_matchLayer(unit, allLayers)
+    for _, layer in ipairs(allLayers) do
         local ok, has = pcall(function() return unit:hasAttribute(layer.filterAttrib) end)
-        if ok and has then return layer end
+        if ok and has then
+            return layer.enabled and layer or nil
+        end
     end
     return nil
 end
@@ -381,7 +401,8 @@ end
 -- Public actions
 -- ============================================================
 
---- Manual scan (menu F10 "Scan Area" / "Rescan Area").
+--- Scan and start RECON with auto-refresh (menu F10 "RECON [Start]").
+-- Also called internally on layer toggle while RECON is active (re-scan with updated layers).
 -- @param playerUnit DCS Unit
 -- @param player     string  playerName
 function CTLDReconManager:scan(playerUnit, player)
@@ -413,7 +434,8 @@ function CTLDReconManager:scan(playerUnit, player)
     end
 
     local radius  = ctld.gs("reconSearchRadius") or 5000
-    local targets = self:_scanLOS(playerUnit, enabledLayers, radius)
+    -- Pass ALL layers (not just enabled) so _matchLayer can enforce priority correctly.
+    local targets = self:_scanLOS(playerUnit, self:_getPlayerLayers(player), radius)
 
     -- Create icons + count per layer
     local targetsByLayer = {}
@@ -454,21 +476,27 @@ function CTLDReconManager:scan(playerUnit, player)
         targetsByLayer       = targetsByLayer,
         totalTargetsDetected = #targets,
         totalMarksCreated    = #targets,
-        autoRefresh          = false,
+        autoRefresh          = true,
         timestamp            = timer.getAbsTime(),
     })
+
+    -- Auto-refresh always enabled when RECON starts.
+    -- Pass _fromScan=true so enableAutoRefresh skips its own rebuild
+    -- (scan() already calls _rebuildReconBranch below).
+    self:enableAutoRefresh(playerUnit, player, true)
+
+    -- Single menu rebuild after scan (covers both start and layer-toggle re-scan).
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
---- Hide all marks for player (menu F10 "Hide All Targets").
+--- Stop RECON for player (menu F10 "RECON [Stop]").
+-- Stops auto-refresh timer, removes all marks, sets RECON to idle state.
+-- Layer enabled/disabled states are preserved for the next Start.
 -- @param playerUnit DCS Unit
 -- @param player     string
-function CTLDReconManager:hideScan(playerUnit, player)
+function CTLDReconManager:stopScan(playerUnit, player)
     local scan = self._activeScans[player]
-    if not scan then
-        trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("No active recon scan to hide."), 10)
-        return
-    end
+    if not scan then return end
 
     local refreshStopped = scan.autoRefresh
     if scan.refreshTimer then
@@ -501,12 +529,16 @@ function CTLDReconManager:hideScan(playerUnit, player)
         refreshStopped    = refreshStopped,
         timestamp         = timer.getAbsTime(),
     })
+
+    -- Rebuild menu: RECON [Start] + all layer labels switch to (X) suffix.
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
 --- Enable auto-refresh (menu F10 "Auto-Refresh: [OFF]" → ON).
 -- @param playerUnit DCS Unit
 -- @param player     string
-function CTLDReconManager:enableAutoRefresh(playerUnit, player)
+-- @param _fromScan  boolean  internal flag — skip menu rebuild when called from scan()
+function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
@@ -538,6 +570,10 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player)
         refreshInterval = interval,
         timestamp       = timer.getAbsTime(),
     })
+
+    if not _fromScan then
+        self:_rebuildReconBranch(player, playerUnit)
+    end
 end
 
 --- Disable auto-refresh (menu F10 "Auto-Refresh: [ON]" → OFF).
@@ -567,6 +603,8 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
         refreshInterval = interval,
         timestamp       = timer.getAbsTime(),
     })
+
+    self:_rebuildReconBranch(player, playerUnit)
 end
 
 --- Toggle a recon layer ON/OFF for a player.
@@ -587,9 +625,12 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
         ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
 
-    -- Immediate re-scan if scan is active (applies new layer state)
+    -- Immediate re-scan if scan is active (applies new layer state).
+    -- scan() handles its own menu rebuild so we skip the extra call below.
+    local didScan = false
     if self._activeScans[player] then
         self:scan(playerUnit, player)
+        didScan = true
     end
 
     EventDispatcher.getInstance():publish("OnReconLayerToggled", {
@@ -600,6 +641,11 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
         player    = player,
         timestamp = timer.getAbsTime(),
     })
+
+    -- Only rebuild menu if scan() didn't already do it.
+    if not didScan then
+        self:_rebuildReconBranch(player, playerUnit)
+    end
 end
 
 -- ============================================================
@@ -622,7 +668,8 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
     end
 
     local radius         = ctld.gs("reconSearchRadius") or 5000
-    local currentTargets = self:_scanLOS(playerUnit, scan.layers, radius)
+    -- Use full layer list so _matchLayer enforces priority on disabled layers.
+    local currentTargets = self:_scanLOS(playerUnit, self:_getPlayerLayers(playerName), radius)
 
     -- Index previous targets by unitName
     local prevIndex = {}
@@ -666,6 +713,8 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
                     markId        = newMid,
                 }
             else
+                -- Carry forward the existing markId so stopScan/removeAllMarks can remove it.
+                tgt.markId = prev.markId
                 tgt.status = "existing"
             end
             prevIndex[tgt.unitName] = nil
@@ -743,54 +792,72 @@ end
 -- F10 Menu section
 -- ============================================================
 
+--- Internal: add all RECON commands to an already-existing RECON submenu node.
+-- "RECON [Start/Stop]": single toggle entry for RECON active state.
+-- Layer labels: [activate/deactivate] when RECON active, [activate/deactivate (X)] when idle.
+-- @param menu     ctld.Menu
+-- @param unitName string  used as DCS unit key and player-state key
+function CTLDReconManager:_addReconCommands(menu, unitName)
+    local root      = ctld.tr("CTLD")
+    local reconSub  = ctld.tr("RECON")
+    local isActive  = self._activeScans[unitName] ~= nil
+
+    -- RECON [Start] / RECON [Stop] — single start/stop toggle.
+    local reconLabel = isActive and ctld.tr("RECON [Stop]") or ctld.tr("RECON [Start]")
+    menu:addCommand({ root, reconSub }, reconLabel,
+        function(arg)
+            local unit = Unit.getByName(arg.unitName)
+            if not unit then return end
+            local rmgr = CTLDReconManager.getInstance()
+            if rmgr._activeScans[arg.unitName] then
+                rmgr:stopScan(unit, arg.unitName)
+            else
+                rmgr:scan(unit, arg.unitName)
+            end
+        end,
+        { unitName = unitName })
+
+    -- Per-layer toggles.
+    -- RECON active  : "Layer [activate]"      / "Layer [deactivate]"
+    -- RECON idle    : "Layer [activate (X)]"  / "Layer [deactivate (X)]"
+    -- (X) signals the toggle prepares for next Start but has no immediate map effect.
+    local layers = self:_getPlayerLayers(unitName)
+    for _, layer in ipairs(layers) do
+        local actionBase = layer.enabled and ctld.tr("deactivate") or ctld.tr("activate")
+        local action     = isActive and actionBase or (actionBase .. " (X)")
+        local label      = string.format("%s [%s]", layer.name, action)
+        menu:addCommand({ root, reconSub }, label,
+            function(arg)
+                local unit = Unit.getByName(arg.unitName)
+                if unit then
+                    CTLDReconManager.getInstance():toggleLayer(arg.unitName, unit, arg.layerId)
+                end
+            end,
+            { unitName = unitName, layerId = layer.layerId })
+    end
+end
+
+--- Internal: clear the RECON branch commands and re-add them with current state labels.
+-- Call after any state change: scan start/stop, layer toggle.
+-- @param unitName  string  player/unit key
+-- @param playerUnit DCS Unit object
+function CTLDReconManager:_rebuildReconBranch(unitName, playerUnit)
+    local menu = ctld.MenuManager:getInstance():getMenuByUnitName(unitName)
+    if not menu then return end
+    local root     = ctld.tr("CTLD")
+    local reconSub = ctld.tr("RECON")
+    menu:clearBranch({ root, reconSub })
+    self:_addReconCommands(menu, unitName)
+    menu:refresh()
+end
+
 --- Build the "RECON" F10 submenu for a player.
 -- Requires reconF10Menu = true (configKey gate).
--- Adds Scan, Hide, per-layer toggles, and AutoRefresh commands.
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDReconManager:buildMenuSection(playerObj, menu)
     local root     = ctld.tr("CTLD")
     local reconSub = ctld.tr("RECON")
     menu:addSubMenu({ root }, reconSub, { order = 70 })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Scan Area"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():scan(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Hide All Targets"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():hideScan(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    -- Per-layer toggle commands
-    for _, layer in ipairs(CTLDReconManager._defaultLayers) do
-        menu:addCommand({ root, reconSub },
-            string.format(ctld.tr("Toggle %s"), layer.name),
-            function(arg)
-                local unit = Unit.getByName(arg.unitName)
-                if unit then
-                    CTLDReconManager.getInstance():toggleLayer(arg.playerName, unit, arg.layerId)
-                end
-            end,
-            { unitName = playerObj.unitName, playerName = playerObj.unitName, layerId = layer.layerId })
-    end
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [OFF]"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():enableAutoRefresh(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
-
-    menu:addCommand({ root, reconSub }, ctld.tr("Auto-Refresh: [ON]"),
-        function(arg)
-            local unit = Unit.getByName(arg.unitName)
-            if unit then CTLDReconManager.getInstance():disableAutoRefresh(unit, arg.playerName) end
-        end,
-        { unitName = playerObj.unitName, playerName = playerObj.unitName })
+    self:_addReconCommands(menu, playerObj.unitName)
 end
