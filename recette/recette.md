@@ -267,6 +267,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-121 | GAP-1 : findLoadedVehicles + unloadVehicle menu_ctld | CTLDVehicleSpawner | LOADED vehicle sur ce transport → listé ; autre transport → exclu ; unloadVehicle → state DELIVERED + dynAdd ; après unload → liste vide | ✅ PASS 6/6 [2026-04-29] | UH-1H |
 | F-122 | GAP-1 : lifecycle JTAC sur load/unload menu_ctld | CTLDVehicleSpawner + CTLDJTACManager | loadVehicle → setJTACInTransit(groupName) ; unloadVehicle → resumeJTAC(groupName) ; états LOADED/DELIVERED corrects | ✅ PASS 6/6 [2026-04-29] | UH-1H |
 | F-123 | GAP-1 bugfix : _dispatchPostSpawn enregistre véhicule GROUND dans CTLDVehicleSpawner | CTLDCrateManager + CTLDVehicleSpawner | après _spawnUnpacked(desc non-JTAC GROUND) → count spawner +1 ; findLoadableVehicles retourne le véhicule | ✅ PASS 2/2 [2026-04-29] | UH-1H (vehicleTransportEnabled) |
+| F-124 | GAP-1 fix : refresh menu Load + Pack après unpack | CTLDCrateManager:_spawnUnpacked + CTLDVehicleSpawner | après unpack, refreshLoadSectionForUnit(playerName) + refreshPackSectionForUnit(playerName) appelés → Hummer visible dans Load ET Pack sans re-entry menu | ✅ PASS live [2026-04-30] | UH-1H |
 
 ---
 
@@ -319,7 +320,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **RECON bugfixes** : 3 fonctionnels = **19 cas** ✅ PASS (F-117 3/3 + F-118 5/5 + F-119 11/11 [2026-04-29]) — reconEnabled=false message, toggle-OFF immédiat, AA icon circleToAll+apex
 - **GAP-1 Load/Unload vehicle menu** : 3 fonctionnels = **21 cas** ✅ PASS (F-120 9/9 + F-121 6/6 + F-122 6/6 [2026-04-29]) — findLoadableVehicles, findLoadedVehicles, loadVehicle/unloadVehicle menu_ctld, lifecycle JTAC
 - **GAP-1 bugfix — unpack register** : 1 fonctionnel = **2 cas** ✅ PASS (F-123 2/2 [2026-04-29]) — _dispatchPostSpawn enregistre véhicules GROUND dans CTLDVehicleSpawner + UH-1H dans vehicleTransportEnabled
-- **Total** : **213 cas** — 998/998 PASS ✅
+- **GAP-1 fix — refresh Load+Pack menus après unpack** : 1 fonctionnel = **1 cas** ✅ PASS live (F-124 [2026-04-30]) — _spawnUnpacked refreshLoadSectionForUnit + refreshPackSectionForUnit → Hummer visible dans Load ET Pack sans re-entry menu
+- **GAP-1 scénario end-to-end** : 1 scénario = **4 étapes** ✅ PASS (scenario_vehicle_load_unload [2026-04-29]) — cleanup→crate→unpack→load→unload cycle complet UH-1H, lazy unit-ref resolve
+- **Total** : **214 cas** — 1000/1000 PASS ✅
 
 ---
 

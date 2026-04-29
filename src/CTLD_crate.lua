@@ -526,7 +526,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        mgr:_spawnUnpacked(desc, spawnPos, coa, cId)
+                        mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
                     end
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -1557,12 +1557,14 @@ end
 --   build unitDef (ctld.utils.buildGroupUnitDef)
 --   → spawn       (ctld.utils.spawnFromDescriptor)
 --   → post-spawn  (_dispatchPostSpawn)
+--   → refresh     (refreshLoadSectionForUnit on playerName)
 -- JTAC_dropEnabled is checked here for air JTAC descriptors.
--- @param desc  table  crate descriptor { unit, spawnAs, isJTAC, … }
--- @param pos   vec3   world spawn position
--- @param coa   number coalition.side.*
--- @param cId   number country.id.*
-function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId)
+-- @param desc       table    crate descriptor { unit, spawnAs, isJTAC, … }
+-- @param pos        vec3     world spawn position
+-- @param coa        number   coalition.side.*
+-- @param cId        number   country.id.*
+-- @param playerName string   unit name of the player who unpacked (optional — triggers menu refresh)
+function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
     if not (desc and desc.unit and pos) then return end
 
     local spawnAs = desc.spawnAs or "GROUND"
@@ -1597,6 +1599,11 @@ function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId)
     end
 
     self:_dispatchPostSpawn(desc, gname)
+
+    if playerName then
+        CTLDVehicleSpawner.getInstance():refreshLoadSectionForUnit(playerName)
+        CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(playerName)
+    end
 end
 
 --- Activate post-spawn role behaviors for an unpacked crate.

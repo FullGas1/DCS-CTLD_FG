@@ -1216,6 +1216,7 @@ end
 --- Refresh the "Load / Extract Vehicles" submenu for a player by unit name.
 -- @param unitName string
 function CTLDVehicleSpawner:refreshLoadSectionForUnit(unitName)
+    ctld.utils.log("INFO", string.format("CTLDVehicleSpawner:refreshLoadSectionForUnit unitName=%s", unitName))
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
     if playerObj then self:refreshLoadSection(playerObj) end
 end

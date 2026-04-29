@@ -211,15 +211,18 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             C = A OU B
           → Trancher avant d'implémenter le hook load dans CTLDVehicleSpawner pour ce cas.
 
-✅  FG  GAP-1 — Load / Unload vehicle menu  [2026-04-29]
-        findLoadableVehicles + refreshLoadSection + findLoadedVehicles + refreshUnloadSection
-        buildMenuSection : deux sous-menus dynamiques (pattern refreshPackSection)
-        JTAC : setJTACInTransit / resumeJTAC déjà dans loadVehicle / unloadVehicle
-        Refresh : OnVehicleLoaded / OnVehicleUnloaded + _refreshNearbyPackPlayers étendu
-        i18n : 6 clés EN/FR/ES/KO ajoutées
-        Recette : F-120 (9/9) + F-121 (6/6) + F-122 (6/6) = 21/21 PASS — UH-1H
-        Bugfix [2026-04-29] : UH-1H + Mi-8 ajoutés vehicleTransportEnabled ; _dispatchPostSpawn
-        enregistre les véhicules GROUND dans CTLDVehicleSpawner (F-123 2/2 PASS)
+✅  FG  GAP-1 — Load / Unload vehicle menu  [2026-04-30]
+         findLoadableVehicles + refreshLoadSection + findLoadedVehicles + refreshUnloadSection
+         buildMenuSection : deux sous-menus dynamiques (pattern refreshPackSection)
+         JTAC : setJTACInTransit / resumeJTAC déjà dans loadVehicle / unloadVehicle
+         Refresh : OnVehicleLoaded / OnVehicleUnloaded + _refreshNearbyPackPlayers étendu
+         i18n : 6 clés EN/FR/ES/KO ajoutées
+         Recette : F-120 (9/9) + F-121 (6/6) + F-122 (6/6) = 21/21 PASS — UH-1H
+         Bugfix [2026-04-29] : UH-1H + Mi-8 ajoutés vehicleTransportEnabled ; _dispatchPostSpawn
+         enregistre les véhicules GROUND dans CTLDVehicleSpawner (F-123 2/2 PASS)
+         Fix [2026-04-30] : _spawnUnpacked — après registerJTACVehicle, appel de
+         refreshLoadSectionForUnit + refreshPackSectionForUnit(playerName) → menu Load ET Pack
+         rafraîchis après unpack sans re-entry F10 (F-124 1/1 PASS live)
 
 ⬜  FG  GAP-2 — Auto-unpack post-parachute crates (subscriber manquant)
         Contexte : config autoUnpackRadiusParachute=1000m existe et OnCrateParachuteLanded est
