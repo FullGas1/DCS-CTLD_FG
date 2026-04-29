@@ -211,6 +211,14 @@ ctld.i18n["ko"]["No packable vehicles nearby"] = "근처에 포장 가능한 차
 ctld.i18n["ko"]["Vehicle no longer exists."] = "차량이 더 이상 존재하지 않습니다."
 ctld.i18n["ko"]["Cannot pack this vehicle type."] = "이 유형의 차량은 포장할 수 없습니다."
 
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["ko"]["Land to load vehicles"] = "차량을 탑재하려면 착륙하세요"
+ctld.i18n["ko"]["No vehicles nearby"] = "근처에 차량 없음"
+ctld.i18n["ko"]["Vehicle no longer available."] = "차량을 더 이상 사용할 수 없습니다."
+ctld.i18n["ko"]["Land to unload vehicles"] = "차량을 하역하려면 착륙하세요"
+ctld.i18n["ko"]["No vehicle loaded."] = "탑재된 차량이 없습니다."
+ctld.i18n["ko"]["Vehicle no longer loaded."] = "차량이 더 이상 탑재되어 있지 않습니다."
+
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
 ctld.i18n["ko"]["No crates within 300m."] = "300m 이내에 화물 없음."

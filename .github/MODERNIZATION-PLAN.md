@@ -211,22 +211,13 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             C = A OU B
           → Trancher avant d'implémenter le hook load dans CTLDVehicleSpawner pour ce cas.
 
-⬜  FG  GAP-1 — Load / Unload vehicle menu (stubs à implémenter)
-        Contexte : les deux entrées menu "Load / Extract Vehicles" et "Unload Vehicles" dans
-        CTLDVehicleSpawner:buildMenuSection() sont des stubs — elles passent nil à loadVehicle()
-        / unloadVehicle() et crashent.
-        À implémenter :
-          • "Load / Extract Vehicles" : proximity scan (findPackableVehicles pattern) →
-            liste des véhicules CTLDVehicle en WAITING dans maximumDistancePackableUnitsSearch
-            → sélection joueur → loadVehicle(vehicle, transport, player, "menu_ctld")
-            → JTAC suspend via setJTACInTransit() (déjà géré dans loadVehicle)
-          • "Unload Vehicles" : liste des CTLDVehicle LOADED sur ce transport →
-            si 1 seul : unload direct ; si N : sous-menu de sélection →
-            unloadVehicle(vehicle, transport, player, "menu_ctld")
-            → JTAC resume via resumeJTAC() (déjà géré dans unloadVehicle)
-            → pas de contrainte inAir (unload sol uniquement par ce menu ; parachute = menu séparé)
-          • Rafraîchissement du menu après load/unload (pattern refreshPackSection)
-        Note : ne pas confondre avec packVehicle (→ caisse) — ici transport entier.
+✅  FG  GAP-1 — Load / Unload vehicle menu  [2026-04-29]
+        findLoadableVehicles + refreshLoadSection + findLoadedVehicles + refreshUnloadSection
+        buildMenuSection : deux sous-menus dynamiques (pattern refreshPackSection)
+        JTAC : setJTACInTransit / resumeJTAC déjà dans loadVehicle / unloadVehicle
+        Refresh : OnVehicleLoaded / OnVehicleUnloaded + _refreshNearbyPackPlayers étendu
+        i18n : 6 clés EN/FR/ES/KO ajoutées
+        Recette : F-120 (9/9) + F-121 (6/6) + F-122 (6/6) = 21/21 PASS — UH-1H
 
 ⬜  FG  GAP-2 — Auto-unpack post-parachute crates (subscriber manquant)
         Contexte : config autoUnpackRadiusParachute=1000m existe et OnCrateParachuteLanded est
@@ -347,6 +338,17 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • Pas de merge multi-joueur côté rendu (limitation DCS irréconciliable)
         À distinguer d'un éventuel "kneeboard" (infos coa friendly — scope différent, feature séparée).
         Spec + implémentation à planifier.
+
+⬜  FG  SVG troops transport flows — schéma visuel transport troupes
+        Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
+        (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
+          • Flow BOARD : héli posé + menu → troops embarquées
+          • Flow DEPLOY : héli posé + menu → troops déployées (DZ) / LZ
+          • Flow EXTRACT : héli en LZ + menu → troops récupérées
+          • Parachute virtuel (Feature A) : altitude ≥ parachuteMinAltitudeTroops
+          • DCS native slingload troops (si applicable)
+          • JTAC annotations si une troupe déployée est JTAC
+        Ajouter lien dans missionmaker_guide.md §5 (Troop Transport).
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]

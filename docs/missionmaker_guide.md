@@ -1152,6 +1152,9 @@ Crates are the core CTLD mechanic. A transport helicopter flies to a logistics z
 LGZ (spawn) → load (hover or menu) → fly → unload → unpack → vehicle / FOB / AA
 ```
 
+> **Transport flows reference diagram** — for a complete visual overview of all equipment transport modes (crates, whole vehicles, JTAC lifecycle) with per-method status indicators:
+> [docs/assets/transport_flows.svg](assets/transport_flows.svg)
+
 ### 10.2 Actions
 
 #### Spawn crate
@@ -1216,6 +1219,8 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 ### 11.1 Overview
 
 CTLD supports two vehicle operations: **requesting** a vehicle at a logistics zone (spawns it from a crate remotely) and **packing** an existing ground vehicle back into crates for transport.
+
+> See also: [Transport flows diagram](assets/transport_flows.svg) — all load/unload methods for whole-vehicle transport (Flow 2) including GAP-1/GAP-2 status.
 
 ### 11.2 Actions
 

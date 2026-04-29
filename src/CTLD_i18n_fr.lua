@@ -354,6 +354,14 @@ ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à 
 ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
 ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
 
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["fr"]["Land to load vehicles"] = "Atterrissez pour charger des véhicules"
+ctld.i18n["fr"]["No vehicles nearby"] = "Aucun véhicule à proximité"
+ctld.i18n["fr"]["Vehicle no longer available."] = "Le véhicule n'est plus disponible."
+ctld.i18n["fr"]["Land to unload vehicles"] = "Atterrissez pour décharger des véhicules"
+ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
+ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
+
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
 ctld.i18n["fr"]["No crates within 300m."] = "Aucune caisse dans un rayon de 300m."

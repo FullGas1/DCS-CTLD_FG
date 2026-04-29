@@ -161,6 +161,26 @@ function CTLDVehicleSpawner:init()
         end
     end)
 
+    -- Load / Unload vehicle: refresh both submenus for the transport player
+    ed:subscribe("OnVehicleLoaded", function(payload)
+        local t = payload and payload.transportUnitObject
+        if t then
+            local tName = t:getName()
+            local inst  = CTLDVehicleSpawner.getInstance()
+            inst:refreshLoadSectionForUnit(tName)
+            inst:refreshUnloadSectionForUnit(tName)
+        end
+    end)
+    ed:subscribe("OnVehicleUnloaded", function(payload)
+        local t = payload and payload.transportUnitObject
+        if t then
+            local tName = t:getName()
+            local inst  = CTLDVehicleSpawner.getInstance()
+            inst:refreshLoadSectionForUnit(tName)
+            inst:refreshUnloadSectionForUnit(tName)
+        end
+    end)
+
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
 end
 
@@ -829,7 +849,8 @@ function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
     self:_spawnGroundUnit(spawnData, position)
 end
 
---- Refresh Pack Vehicle menus for all players within maximumDistancePackableUnitsSearch of a position.
+--- Refresh Pack Vehicle and Load Vehicle menus for all players within
+-- maximumDistancePackableUnitsSearch of a position.
 -- @param position vec3
 function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
     if not position then return end
@@ -840,6 +861,7 @@ function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
         if unit and unit:isExist() then
             if ctld.utils.getDistance("_refreshNearbyPackPlayers", unit:getPoint(), position) <= maxDist then
                 self:refreshPackSectionForUnit(unitName)
+                self:refreshLoadSectionForUnit(unitName)
             end
         end
     end
@@ -1030,6 +1052,167 @@ function CTLDVehicleSpawner:refreshPackSection(playerObj)
     menu:refresh()
 end
 
+-- ============================================================
+-- GAP-1 — Load / Unload vehicle via menu
+-- ============================================================
+
+--- Return loadable (WAITING) vehicles within maximumDistancePackableUnitsSearch of a transport.
+-- @param transport DCS Unit
+-- @return table  array of CTLDVehicle
+function CTLDVehicleSpawner:findLoadableVehicles(transport)
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local tPos    = transport:getPoint()
+    local result  = {}
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.WAITING
+            and veh.unit and veh.unit:isExist() then
+            local dist = ctld.utils.getDistance(
+                "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
+            if dist <= maxDist then
+                table.insert(result, veh)
+            end
+        end
+    end
+    return result
+end
+
+--- Return vehicles currently LOADED on a transport (by unit name).
+-- @param transport DCS Unit
+-- @return table  array of CTLDVehicle
+function CTLDVehicleSpawner:findLoadedVehicles(transport)
+    local tName  = transport:getName()
+    local result = {}
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.LOADED
+            and veh.loadTransportName == tName then
+            table.insert(result, veh)
+        end
+    end
+    return result
+end
+
+--- Rebuild the "Load / Extract Vehicles" dynamic submenu for playerObj.
+-- Transport must be landed; lists nearby WAITING vehicles.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshLoadSection(playerObj)
+    if not playerObj.canCarryVehicles then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root    = ctld.tr("CTLD")
+    local vehSub  = ctld.tr("Vehicle Commands")
+    local loadSub = ctld.tr("Load / Extract Vehicles")
+
+    menu:clearBranch({ root, vehSub, loadSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, vehSub, loadSub },
+            ctld.tr("Land to load vehicles"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local loadable = self:findLoadableVehicles(transport)
+    if #loadable == 0 then
+        menu:addCommand({ root, vehSub, loadSub },
+            ctld.tr("No vehicles nearby"), function() end, {})
+    else
+        for _, veh in ipairs(loadable) do
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
+            local label = desc and desc.desc or veh.vehicleType
+            menu:addCommand({ root, vehSub, loadSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
+                    if not v or v:getState() ~= CTLDVehicle.STATE.WAITING then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Vehicle no longer available."), 8)
+                        return
+                    end
+                    CTLDVehicleSpawner.getInstance():loadVehicle(v, t, arg.unitName, "menu_ctld")
+                    CTLDPlayerManager.getInstance():refreshForUnit(arg.unitName)
+                end,
+                { unitName  = playerObj.unitName,
+                  groupId   = playerObj.groupId,
+                  vehicleId = veh.id,
+                  coalition = playerObj.coalition })
+        end
+    end
+    menu:refresh()
+end
+
+--- Rebuild the "Unload Vehicles" dynamic submenu for playerObj.
+-- Transport must be landed; lists vehicles currently LOADED on this transport.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
+    if not playerObj.canCarryVehicles then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local vehSub    = ctld.tr("Vehicle Commands")
+    local unloadSub = ctld.tr("Unload Vehicles")
+
+    menu:clearBranch({ root, vehSub, unloadSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, vehSub, unloadSub },
+            ctld.tr("Land to unload vehicles"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local loaded = self:findLoadedVehicles(transport)
+    if #loaded == 0 then
+        menu:addCommand({ root, vehSub, unloadSub },
+            ctld.tr("No vehicle loaded."), function() end, {})
+    else
+        for _, veh in ipairs(loaded) do
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
+            local label = desc and desc.desc or veh.vehicleType
+            menu:addCommand({ root, vehSub, unloadSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
+                    if not v or v:getState() ~= CTLDVehicle.STATE.LOADED then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Vehicle no longer loaded."), 8)
+                        return
+                    end
+                    CTLDVehicleSpawner.getInstance():unloadVehicle(v, t, arg.unitName, "menu_ctld")
+                    CTLDPlayerManager.getInstance():refreshForUnit(arg.unitName)
+                end,
+                { unitName  = playerObj.unitName,
+                  groupId   = playerObj.groupId,
+                  vehicleId = veh.id,
+                  coalition = playerObj.coalition })
+        end
+    end
+    menu:refresh()
+end
+
+--- Refresh the "Load / Extract Vehicles" submenu for a player by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshLoadSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshLoadSection(playerObj) end
+end
+
+--- Refresh the "Unload Vehicles" submenu for a player by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshUnloadSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshUnloadSection(playerObj) end
+end
+
 --- Build the "Vehicle Commands" F10 submenu for a player.
 -- Added only when the unit can carry vehicles (canCarryVehicles = true).
 -- @param playerObj CTLDPlayer
@@ -1041,18 +1224,13 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     local vehSub = ctld.tr("Vehicle Commands")
     menu:addSubMenu({ root }, vehSub, { order = 30 })
 
-    menu:addCommand({ root, vehSub }, ctld.tr("Unload Vehicles"),
-        function(arg)
-            CTLDVehicleSpawner.getInstance():unloadVehicle(nil, nil, nil, "menu_ctld")
-        end,
-        { unitName = playerObj.unitName })
+    -- Dynamic load submenu (rebuilt by refreshLoadSection)
+    menu:addSubMenu({ root, vehSub }, ctld.tr("Load / Extract Vehicles"))
+    self:refreshLoadSection(playerObj)
 
-    menu:addCommand({ root, vehSub }, ctld.tr("Load / Extract Vehicles"),
-        function(arg)
-            -- Placeholder: actual load triggers vehicle proximity scan
-            ctld.utils.log("INFO", "Load/Extract Vehicles requested by " .. tostring(arg.unitName))
-        end,
-        { unitName = playerObj.unitName })
+    -- Dynamic unload submenu (rebuilt by refreshUnloadSection)
+    menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
+    self:refreshUnloadSection(playerObj)
 
     -- Parachute Vehicle: only if canParachute=true for this unit type
     local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]

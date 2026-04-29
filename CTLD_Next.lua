@@ -1765,6 +1765,14 @@ ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
 ctld.i18n["en"]["Vehicle no longer exists."] = "Vehicle no longer exists."
 ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle type."
 
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["en"]["Land to load vehicles"] = "Land to load vehicles"
+ctld.i18n["en"]["No vehicles nearby"] = "No vehicles nearby"
+ctld.i18n["en"]["Vehicle no longer available."] = "Vehicle no longer available."
+ctld.i18n["en"]["Land to unload vehicles"] = "Land to unload vehicles"
+ctld.i18n["en"]["No vehicle loaded."] = "No vehicle loaded."
+ctld.i18n["en"]["Vehicle no longer loaded."] = "Vehicle no longer loaded."
+
 --- List Nearby Crates
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
 ctld.i18n["en"]["No crates within 300m."] = "No crates within 300m."
@@ -2159,6 +2167,14 @@ ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhic
 ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"
 ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
 ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
+
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["fr"]["Land to load vehicles"] = "Atterrissez pour charger des véhicules"
+ctld.i18n["fr"]["No vehicles nearby"] = "Aucun véhicule à proximité"
+ctld.i18n["fr"]["Vehicle no longer available."] = "Le véhicule n'est plus disponible."
+ctld.i18n["fr"]["Land to unload vehicles"] = "Atterrissez pour décharger des véhicules"
+ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
+ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
@@ -2556,6 +2572,14 @@ ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetable
 ctld.i18n["es"]["Vehicle no longer exists."] = "El vehículo ya no existe."
 ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehículo."
 
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["es"]["Land to load vehicles"] = "Aterriza para cargar vehículos"
+ctld.i18n["es"]["No vehicles nearby"] = "No hay vehículos cercanos"
+ctld.i18n["es"]["Vehicle no longer available."] = "El vehículo ya no está disponible."
+ctld.i18n["es"]["Land to unload vehicles"] = "Aterriza para descargar vehículos"
+ctld.i18n["es"]["No vehicle loaded."] = "No hay ningún vehículo cargado."
+ctld.i18n["es"]["Vehicle no longer loaded."] = "El vehículo ya no está cargado."
+
 --- List Nearby Crates
 ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
 ctld.i18n["es"]["No crates within 300m."] = "No hay cajas en un radio de 300m."
@@ -2807,6 +2831,14 @@ ctld.i18n["ko"]["Land to pack vehicles"] = "차량을 포장하려면 착륙하�
 ctld.i18n["ko"]["No packable vehicles nearby"] = "근처에 포장 가능한 차량 없음"
 ctld.i18n["ko"]["Vehicle no longer exists."] = "차량이 더 이상 존재하지 않습니다."
 ctld.i18n["ko"]["Cannot pack this vehicle type."] = "이 유형의 차량은 포장할 수 없습니다."
+
+--- Load / Unload Vehicle submenu (GAP-1)
+ctld.i18n["ko"]["Land to load vehicles"] = "차량을 탑재하려면 착륙하세요"
+ctld.i18n["ko"]["No vehicles nearby"] = "근처에 차량 없음"
+ctld.i18n["ko"]["Vehicle no longer available."] = "차량을 더 이상 사용할 수 없습니다."
+ctld.i18n["ko"]["Land to unload vehicles"] = "차량을 하역하려면 착륙하세요"
+ctld.i18n["ko"]["No vehicle loaded."] = "탑재된 차량이 없습니다."
+ctld.i18n["ko"]["Vehicle no longer loaded."] = "차량이 더 이상 탑재되어 있지 않습니다."
 
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
@@ -11178,6 +11210,26 @@ function CTLDVehicleSpawner:init()
         end
     end)
 
+    -- Load / Unload vehicle: refresh both submenus for the transport player
+    ed:subscribe("OnVehicleLoaded", function(payload)
+        local t = payload and payload.transportUnitObject
+        if t then
+            local tName = t:getName()
+            local inst  = CTLDVehicleSpawner.getInstance()
+            inst:refreshLoadSectionForUnit(tName)
+            inst:refreshUnloadSectionForUnit(tName)
+        end
+    end)
+    ed:subscribe("OnVehicleUnloaded", function(payload)
+        local t = payload and payload.transportUnitObject
+        if t then
+            local tName = t:getName()
+            local inst  = CTLDVehicleSpawner.getInstance()
+            inst:refreshLoadSectionForUnit(tName)
+            inst:refreshUnloadSectionForUnit(tName)
+        end
+    end)
+
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
 end
 
@@ -11846,7 +11898,8 @@ function CTLDVehicleSpawner:spawnVehicleAt(spawnData, position)
     self:_spawnGroundUnit(spawnData, position)
 end
 
---- Refresh Pack Vehicle menus for all players within maximumDistancePackableUnitsSearch of a position.
+--- Refresh Pack Vehicle and Load Vehicle menus for all players within
+-- maximumDistancePackableUnitsSearch of a position.
 -- @param position vec3
 function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
     if not position then return end
@@ -11857,6 +11910,7 @@ function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
         if unit and unit:isExist() then
             if ctld.utils.getDistance("_refreshNearbyPackPlayers", unit:getPoint(), position) <= maxDist then
                 self:refreshPackSectionForUnit(unitName)
+                self:refreshLoadSectionForUnit(unitName)
             end
         end
     end
@@ -12047,6 +12101,167 @@ function CTLDVehicleSpawner:refreshPackSection(playerObj)
     menu:refresh()
 end
 
+-- ============================================================
+-- GAP-1 — Load / Unload vehicle via menu
+-- ============================================================
+
+--- Return loadable (WAITING) vehicles within maximumDistancePackableUnitsSearch of a transport.
+-- @param transport DCS Unit
+-- @return table  array of CTLDVehicle
+function CTLDVehicleSpawner:findLoadableVehicles(transport)
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local tPos    = transport:getPoint()
+    local result  = {}
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.WAITING
+            and veh.unit and veh.unit:isExist() then
+            local dist = ctld.utils.getDistance(
+                "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
+            if dist <= maxDist then
+                table.insert(result, veh)
+            end
+        end
+    end
+    return result
+end
+
+--- Return vehicles currently LOADED on a transport (by unit name).
+-- @param transport DCS Unit
+-- @return table  array of CTLDVehicle
+function CTLDVehicleSpawner:findLoadedVehicles(transport)
+    local tName  = transport:getName()
+    local result = {}
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.LOADED
+            and veh.loadTransportName == tName then
+            table.insert(result, veh)
+        end
+    end
+    return result
+end
+
+--- Rebuild the "Load / Extract Vehicles" dynamic submenu for playerObj.
+-- Transport must be landed; lists nearby WAITING vehicles.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshLoadSection(playerObj)
+    if not playerObj.canCarryVehicles then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root    = ctld.tr("CTLD")
+    local vehSub  = ctld.tr("Vehicle Commands")
+    local loadSub = ctld.tr("Load / Extract Vehicles")
+
+    menu:clearBranch({ root, vehSub, loadSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, vehSub, loadSub },
+            ctld.tr("Land to load vehicles"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local loadable = self:findLoadableVehicles(transport)
+    if #loadable == 0 then
+        menu:addCommand({ root, vehSub, loadSub },
+            ctld.tr("No vehicles nearby"), function() end, {})
+    else
+        for _, veh in ipairs(loadable) do
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
+            local label = desc and desc.desc or veh.vehicleType
+            menu:addCommand({ root, vehSub, loadSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
+                    if not v or v:getState() ~= CTLDVehicle.STATE.WAITING then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Vehicle no longer available."), 8)
+                        return
+                    end
+                    CTLDVehicleSpawner.getInstance():loadVehicle(v, t, arg.unitName, "menu_ctld")
+                    CTLDPlayerManager.getInstance():refreshForUnit(arg.unitName)
+                end,
+                { unitName  = playerObj.unitName,
+                  groupId   = playerObj.groupId,
+                  vehicleId = veh.id,
+                  coalition = playerObj.coalition })
+        end
+    end
+    menu:refresh()
+end
+
+--- Rebuild the "Unload Vehicles" dynamic submenu for playerObj.
+-- Transport must be landed; lists vehicles currently LOADED on this transport.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
+    if not playerObj.canCarryVehicles then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local vehSub    = ctld.tr("Vehicle Commands")
+    local unloadSub = ctld.tr("Unload Vehicles")
+
+    menu:clearBranch({ root, vehSub, unloadSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, vehSub, unloadSub },
+            ctld.tr("Land to unload vehicles"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local loaded = self:findLoadedVehicles(transport)
+    if #loaded == 0 then
+        menu:addCommand({ root, vehSub, unloadSub },
+            ctld.tr("No vehicle loaded."), function() end, {})
+    else
+        for _, veh in ipairs(loaded) do
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
+            local label = desc and desc.desc or veh.vehicleType
+            menu:addCommand({ root, vehSub, unloadSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
+                    if not v or v:getState() ~= CTLDVehicle.STATE.LOADED then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Vehicle no longer loaded."), 8)
+                        return
+                    end
+                    CTLDVehicleSpawner.getInstance():unloadVehicle(v, t, arg.unitName, "menu_ctld")
+                    CTLDPlayerManager.getInstance():refreshForUnit(arg.unitName)
+                end,
+                { unitName  = playerObj.unitName,
+                  groupId   = playerObj.groupId,
+                  vehicleId = veh.id,
+                  coalition = playerObj.coalition })
+        end
+    end
+    menu:refresh()
+end
+
+--- Refresh the "Load / Extract Vehicles" submenu for a player by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshLoadSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshLoadSection(playerObj) end
+end
+
+--- Refresh the "Unload Vehicles" submenu for a player by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshUnloadSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshUnloadSection(playerObj) end
+end
+
 --- Build the "Vehicle Commands" F10 submenu for a player.
 -- Added only when the unit can carry vehicles (canCarryVehicles = true).
 -- @param playerObj CTLDPlayer
@@ -12058,18 +12273,13 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     local vehSub = ctld.tr("Vehicle Commands")
     menu:addSubMenu({ root }, vehSub, { order = 30 })
 
-    menu:addCommand({ root, vehSub }, ctld.tr("Unload Vehicles"),
-        function(arg)
-            CTLDVehicleSpawner.getInstance():unloadVehicle(nil, nil, nil, "menu_ctld")
-        end,
-        { unitName = playerObj.unitName })
+    -- Dynamic load submenu (rebuilt by refreshLoadSection)
+    menu:addSubMenu({ root, vehSub }, ctld.tr("Load / Extract Vehicles"))
+    self:refreshLoadSection(playerObj)
 
-    menu:addCommand({ root, vehSub }, ctld.tr("Load / Extract Vehicles"),
-        function(arg)
-            -- Placeholder: actual load triggers vehicle proximity scan
-            ctld.utils.log("INFO", "Load/Extract Vehicles requested by " .. tostring(arg.unitName))
-        end,
-        { unitName = playerObj.unitName })
+    -- Dynamic unload submenu (rebuilt by refreshUnloadSection)
+    menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
+    self:refreshUnloadSection(playerObj)
 
     -- Parachute Vehicle: only if canParachute=true for this unit type
     local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]

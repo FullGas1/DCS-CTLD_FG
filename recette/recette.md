@@ -263,6 +263,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-117 | RECON reconEnabled=false → message explicite (non silencieux) | CTLDReconManager | reconEnabled=false → outTextForGroup émis contenant "reconEnabled" ; reconEnabled=true → pas de message disabled | ✅ PASS 3/3 [2026-04-29] | — |
 | F-118 | RECON toggle-OFF → suppression immédiate des marks | CTLDReconManager | scan() avec prevScan injecté + toutes layers OFF → _activeScans[player]=nil immédiatement, mark circle DCS supprimé | ✅ PASS 5/5 [2026-04-29] | — |
 | F-119 | RECON icône AA — circleToAll rempli + 2 apex lineToAll | CTLDReconRenderer | drawAAIcon : 1 circleToAll(slot+1) fill alpha=0.3 + 2 lineToAll(slot+2,+3) ; radius=hs*0.9 scale=1.0→15.75 / scale=2.0→31.5 | ✅ PASS 11/11 [2026-04-29] | — |
+| F-120 | GAP-1 : findLoadableVehicles + loadVehicle menu_ctld | CTLDVehicleSpawner | WAITING vehicle dans rayon → listé ; hors rayon → exclu ; LOADED → exclu ; loadVehicle → state LOADED + destroy + loadMethod + loadTransportName | ✅ PASS 9/9 [2026-04-29] | UH-1H (vehicleTransportEnabled override) |
+| F-121 | GAP-1 : findLoadedVehicles + unloadVehicle menu_ctld | CTLDVehicleSpawner | LOADED vehicle sur ce transport → listé ; autre transport → exclu ; unloadVehicle → state DELIVERED + dynAdd ; après unload → liste vide | ✅ PASS 6/6 [2026-04-29] | UH-1H |
+| F-122 | GAP-1 : lifecycle JTAC sur load/unload menu_ctld | CTLDVehicleSpawner + CTLDJTACManager | loadVehicle → setJTACInTransit(groupName) ; unloadVehicle → resumeJTAC(groupName) ; états LOADED/DELIVERED corrects | ✅ PASS 6/6 [2026-04-29] | UH-1H |
 
 ---
 
@@ -313,7 +316,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Mark IDs** : 1 fonctionnel = **1 cas** ✅ PASS (F-115 11/11 [2026-04-27]) — compteur global monotonique partagé Recon/Beacon/drawQuad, fix moved-target icon
 - **RECON layers scenario** : 1 scénario = **6 cas** ✅ PASS visual (F-116 6/6 [2026-04-28]) — détection par couche (Infantry/GV/AA/Aircraft/Helo/Ships), menu [Start]/[Stop], coalition color (rouge=RED), reconEnabled patch scenario
 - **RECON bugfixes** : 3 fonctionnels = **19 cas** ✅ PASS (F-117 3/3 + F-118 5/5 + F-119 11/11 [2026-04-29]) — reconEnabled=false message, toggle-OFF immédiat, AA icon circleToAll+apex
-- **Total** : **209 cas** — 975/975 PASS ✅
+- **GAP-1 Load/Unload vehicle menu** : 3 fonctionnels = **21 cas** ✅ PASS (F-120 9/9 + F-121 6/6 + F-122 6/6 [2026-04-29]) — findLoadableVehicles, findLoadedVehicles, loadVehicle/unloadVehicle menu_ctld, lifecycle JTAC
+- **Total** : **212 cas** — 996/996 PASS ✅
 
 ---
 
