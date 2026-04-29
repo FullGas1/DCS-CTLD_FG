@@ -211,6 +211,33 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             C = A OU B
           → Trancher avant d'implémenter le hook load dans CTLDVehicleSpawner pour ce cas.
 
+⬜  FG  GAP-1 — Load / Unload vehicle menu (stubs à implémenter)
+        Contexte : les deux entrées menu "Load / Extract Vehicles" et "Unload Vehicles" dans
+        CTLDVehicleSpawner:buildMenuSection() sont des stubs — elles passent nil à loadVehicle()
+        / unloadVehicle() et crashent.
+        À implémenter :
+          • "Load / Extract Vehicles" : proximity scan (findPackableVehicles pattern) →
+            liste des véhicules CTLDVehicle en WAITING dans maximumDistancePackableUnitsSearch
+            → sélection joueur → loadVehicle(vehicle, transport, player, "menu_ctld")
+            → JTAC suspend via setJTACInTransit() (déjà géré dans loadVehicle)
+          • "Unload Vehicles" : liste des CTLDVehicle LOADED sur ce transport →
+            si 1 seul : unload direct ; si N : sous-menu de sélection →
+            unloadVehicle(vehicle, transport, player, "menu_ctld")
+            → JTAC resume via resumeJTAC() (déjà géré dans unloadVehicle)
+            → pas de contrainte inAir (unload sol uniquement par ce menu ; parachute = menu séparé)
+          • Rafraîchissement du menu après load/unload (pattern refreshPackSection)
+        Note : ne pas confondre avec packVehicle (→ caisse) — ici transport entier.
+
+⬜  FG  GAP-2 — Auto-unpack post-parachute crates (subscriber manquant)
+        Contexte : config autoUnpackRadiusParachute=1000m existe et OnCrateParachuteLanded est
+        publié par parachutesCrates(), mais AUCUN subscriber ne déclenche l'unpack automatique.
+        À implémenter :
+          • Subscribe à OnCrateParachuteLanded dans CTLDCrateManager (ou CTLDCrateAssemblyManager)
+          • À la réception : scanner les crates au sol dans autoUnpackRadiusParachute autour
+            du point d'atterrissage → si crateSet complet trouvé → unpackCrate() automatique
+          • Publier OnCrateUnpacked normalement (startLase si isJTAC)
+          • Config : autoUnpackRadiusParachute (déjà existant, défaut 1000m)
+
 ⬜  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
         Use case : spawn d'un véhicule via "Request Vehicle" (logistic zone) → load dans transport
         → drop à un autre endroit, sans aucune crate intermédiaire.
