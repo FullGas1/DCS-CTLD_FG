@@ -423,18 +423,22 @@ function CTLDReconManager:scan(playerUnit, player)
         return
     end
 
-    local enabledLayers = self:_enabledLayers(player)
-    if #enabledLayers == 0 then
-        trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("No recon layers enabled. Activate layers first."), 10)
-        return
-    end
-
-    -- Cancel previous auto-refresh timer if any
+    -- Cancel previous auto-refresh timer and remove marks BEFORE any early-return check.
+    -- This ensures that toggling the last active layer OFF immediately clears the map,
+    -- rather than waiting for the next _doRefresh() tick.
     local prevScan = self._activeScans[player]
     if prevScan then
         if prevScan.refreshTimer then timer.removeFunction(prevScan.refreshTimer) end
         self:_removeAllMarks(prevScan)
+        self._activeScans[player] = nil
+    end
+
+    local enabledLayers = self:_enabledLayers(player)
+    if #enabledLayers == 0 then
+        trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
+            ctld.tr("No recon layers enabled. Activate layers first."), 10)
+        self:_rebuildReconBranch(player, playerUnit)
+        return
     end
 
     local radius  = ctld.gs("reconSearchRadius") or 5000
