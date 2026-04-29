@@ -52,16 +52,20 @@ local LAYERS = {
         uType    = "Su-25",
         useOrbit = true,      -- absolute position + square orbit around Batumi
         spawnAlt = 500,       -- metres AGL
+        color    = { 0.95, 0.77, 0.06, 0.8 },  -- yellow (matches aircraft layer icon)
     },
     {
         layerId  = "helicopters",
-        label    = "Helicopters",
-        cat      = Group.Category.HELICOPTER,
-        grpName  = "RECON_TEST_helo",
-        uName    = "RECON_TEST_helo_1",
-        uType    = "Mi-8MT",
-        useOrbit = true,      -- absolute position + square orbit around Batumi
-        spawnAlt = 300,       -- metres AGL
+        label      = "Helicopters",
+        cat        = Group.Category.HELICOPTER,
+        grpName    = "RECON_TEST_helo",
+        uName      = "RECON_TEST_helo_1",
+        uType      = "Mi-8MT",
+        useOrbit   = true,        -- orbit centred on player position
+        usePlayer  = true,        -- orbit centre = pPos (not BATUMI)
+        orbitSide  = 500,         -- small orbit: max side ~1120m, always within 2km
+        spawnAlt   = 300,         -- metres AGL
+        color      = { 0.90, 0.49, 0.13, 0.8 },  -- orange (matches helicopters layer icon)
     },
     {
         layerId   = "ships",
@@ -109,6 +113,34 @@ local function destroyBlueGroundUnits()
 end
 
 local function nextId() return ctld.utils.getNextUniqId() end
+
+-- Route mark IDs: 90001-90010 (cleared by clearAllMarks at each injection).
+local _routeMarkId = 90000
+local function nextRouteMarkId()
+    _routeMarkId = _routeMarkId + 1
+    return _routeMarkId
+end
+
+--- Draw the looping triangle route on the F10 map (3 lines WP1→WP2, WP2→WP3, WP3→WP1).
+--- @param cx number  centre X (DCS)
+--- @param cz number  centre Z (DCS)
+--- @param alt number altitude (m)
+--- @param side number half-edge length (m)
+--- @param color table {r,g,b,a}
+local function drawOrbitRoute(cx, cz, alt, side, color)
+    local wps = {
+        { x = cx,        z = cz + side },  -- north
+        { x = cx - side, z = cz - side },  -- south-west
+        { x = cx + side, z = cz - side },  -- south-east
+    }
+    for i = 1, 3 do
+        local j = (i % 3) + 1
+        trigger.action.lineToAll(-1, nextRouteMarkId(),
+            { x = wps[i].x, y = alt, z = wps[i].z },
+            { x = wps[j].x, y = alt, z = wps[j].z },
+            color, 2, true, "")
+    end
+end
 
 -- Build a 4-WP square orbit centred on (cx,cz) at altitude alt_m.
 -- side = half-edge length in metres (default NM10).
@@ -158,9 +190,12 @@ local function spawnUnit(lay, pPos)
     local ok, err
 
     if lay.useOrbit then
-        -- Air unit: looping 3-WP triangle around Batumi, never lands.
-        local spawnX = BATUMI.x
-        local spawnZ = BATUMI.z
+        -- Air unit: looping 3-WP triangle.
+        -- usePlayer=true → centred on player position with orbitSide radius (stays close).
+        -- default     → centred on BATUMI with NM1 side (good for fixed-wing at altitude).
+        local spawnX = lay.usePlayer and pPos.x or BATUMI.x
+        local spawnZ = lay.usePlayer and pPos.z or BATUMI.z
+        local side   = lay.orbitSide or NM1
         local alt    = lay.spawnAlt or 500
         ok, err = pcall(function()
             coalition.addGroup(RUSSIA, lay.cat, {
@@ -171,9 +206,14 @@ local function spawnUnit(lay, pPos)
                     x = spawnX, y = spawnZ, heading = 0,
                     skill = "Average", playerCanDrive = false, alt = alt,
                 }},
-                route = loopingTriangleRoute(spawnX, spawnZ, alt, NM1),
+                route = loopingTriangleRoute(spawnX, spawnZ, alt, side),
             })
         end)
+        if ok then
+            -- Draw the triangle route on the F10 map (color matches layer icon color).
+            local color = lay.color or { 1.0, 0.5, 0.0, 0.8 }
+            drawOrbitRoute(spawnX, spawnZ, alt, side, color)
+        end
 
     elseif lay.useAbs then
         -- Ship or unit at absolute position (not relative to player).
@@ -392,8 +432,9 @@ end
 
 -- ── 4. Scan after 2s (air units need time to appear; extend radius for air/ship) ─
 
--- Air and ship layers use absolute positions 10+ nm away — use a 40 km radius.
-local needsWideRadius = current.useOrbit or current.useAbs
+-- Wide radius needed for: fixed-wing orbit (NM1 side, far from player) or ship (abs pos).
+-- usePlayer=true helo orbit stays close → no wide radius needed.
+local needsWideRadius = (current.useOrbit and not current.usePlayer) or current.useAbs
 
 timer.scheduleFunction(function()
     local pu = playerUnit:isExist() and playerUnit or nil
