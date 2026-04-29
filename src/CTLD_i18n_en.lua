@@ -305,6 +305,8 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
+ctld.i18n["en"]["RECON [Start]"] = "RECON [Start]"
+ctld.i18n["en"]["RECON [Stop]"] = "RECON [Stop]"
 ctld.i18n["en"]["Scan Area"] = "Scan Area"
 ctld.i18n["en"]["Hide All Targets"] = "Hide All Targets"
 ctld.i18n["en"]["Toggle %s"] = "Toggle %s"
@@ -368,6 +370,12 @@ ctld.i18n["en"]["No cargo on board."] = "No cargo on board."
 ctld.i18n["en"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 crate(s) onboard (%3 kg)"
 ctld.i18n["en"]["%1 troop(s) onboard (%2 kg)"] = "%1 troop(s) onboard (%2 kg)"
 ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
+
+--- Request JTAC Equipment menu
+ctld.i18n["en"]["Request JTAC Equipment"] = "Request JTAC Equipment"
+ctld.i18n["en"]["You must be landed to request JTAC equipment."] = "You must be landed to request JTAC equipment."
+ctld.i18n["en"]["You are not close enough to friendly logistics."] = "You are not close enough to friendly logistics."
+ctld.i18n["en"]["%s is ready for pickup."] = "%s is ready for pickup."
 
 --- Request Equipment spawn messages
 ctld.i18n["en"]["Land near logistics to request equipment"] = "Land near logistics to request equipment"

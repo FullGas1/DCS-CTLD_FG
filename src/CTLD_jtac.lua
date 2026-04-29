@@ -580,6 +580,30 @@ function CTLDJTACManager:setJTACInTransit(groupName, transport)
     })
 end
 
+--- Silently deregister a JTAC (vehicle repacked into crates).
+-- Stops lasing, frees laser code, removes from registry.
+-- Does NOT publish OnJTACDead — repack is not a combat death.
+-- @param groupName string
+function CTLDJTACManager:deregisterJTAC(groupName)
+    local jtac = self.jtacs[groupName]
+    if not jtac then return end
+    jtac:stopLase(CTLDJTAC.STOP_REASON.IN_TRANSIT)
+    self:_freeLaserCode(jtac.laserCode)
+    self.jtacs[groupName] = nil
+    ctld.utils.log("INFO", "CTLDJTACManager:deregisterJTAC — '%s' silently deregistered", groupName)
+end
+
+--- Resume auto-lase for a JTAC after vehicle unload.
+-- Restores state to IDLE and restarts the _autoLaseLoop.
+-- @param groupName string
+function CTLDJTACManager:resumeJTAC(groupName)
+    local jtac = self.jtacs[groupName]
+    if not jtac then return end
+    jtac.state = CTLDJTAC.STATE.IDLE
+    self:startLase(groupName)
+    ctld.utils.log("INFO", "CTLDJTACManager:resumeJTAC — '%s' resumed after unload", groupName)
+end
+
 --- Smoke current target on demand (F10 menu action).
 -- Applies JTAC_smokeMarginOfError offset.
 -- @param groupName string
@@ -756,7 +780,24 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
     if not jtac then return nil end
     if jtac.state == CTLDJTAC.STATE.DEAD then return nil end
 
-    -- Verify group still alive
+    local searchInterval = ctld.gs("JTAC_searchIntervalSeconds")
+    local laseInterval   = ctld.gs("JTAC_laseIntervalSeconds")
+
+    -- In transit: unit intentionally absent from map — do not probe DCS group existence.
+    -- (virtual load: unit destroyed; dcs_native load: unit inside aircraft — both absent from ground)
+    if jtac.state == CTLDJTAC.STATE.IN_TRANSIT then
+        return t + searchInterval
+    end
+
+    -- Standby mode: stop lasing if active, wait
+    if jtac.standbyMode then
+        if jtac.currentTarget then
+            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
+        end
+        return t + searchInterval
+    end
+
+    -- Verify group still alive (only when NOT in transit)
     local dcsGroup = Group.getByName(groupName)
     if not dcsGroup or not dcsGroup:isExist() then
         self:killJTAC(groupName, nil)
@@ -768,22 +809,6 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         -- Unit gone but group still reported alive — treat as dead
         self:killJTAC(groupName, nil)
         return nil
-    end
-
-    local searchInterval = ctld.gs("JTAC_searchIntervalSeconds")
-    local laseInterval   = ctld.gs("JTAC_laseIntervalSeconds")
-
-    -- Standby mode: stop lasing if active, wait
-    if jtac.standbyMode then
-        if jtac.currentTarget then
-            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
-        end
-        return t + searchInterval
-    end
-
-    -- In transit: no lasing
-    if jtac.state == CTLDJTAC.STATE.IN_TRANSIT then
-        return t + searchInterval
     end
 
     -- ── Check existing target ──────────────────────────────────
@@ -953,7 +978,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
-        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("jtacDroneRadius") or 1000
+        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
         self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
         jtac.onTargetOrbit = true
         jtac:startOrbit(t)
@@ -969,7 +994,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
-                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("jtacDroneRadius") or 1000
+                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
                 self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
                 jtac.orbitStartTime = t
             end
@@ -994,7 +1019,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     elseif not hasCurrent and not inOrbit and not jtac.initialRouteAssigned then
         -- Just spawned, initialPosition captured — assign initial looping route (once only)
         if jtac.initialPosition then
-            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("jtacDroneRadius") or 1000
+            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius") or 1000
             self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, jtac.orbitParams, rNoLase)
             jtac.initialRouteAssigned = true
             jtac.onTargetOrbit        = false
@@ -1013,7 +1038,7 @@ end
 local ORBIT_ROUTE_PTS = 8   -- 8 waypoints = 45° segments, reasonable turn radius
 function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, orbitParams, radius)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("jtacDroneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
     local vec2     = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitRoute", center)
     local cx, cz   = vec2.x, vec2.y
     local terrainH = land.getHeight({ x = cx, y = cz })
@@ -1107,7 +1132,7 @@ end
 function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, _radius)
     local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", center)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("jtacDroneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
     local terrainH = land.getHeight({ x = orbitPoint.x, y = orbitPoint.y })
     local orbit = {
         id     = "Orbit",
@@ -1242,6 +1267,44 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     local root    = ctld.tr("CTLD")
     local jtacSub = ctld.tr("JTAC")
     menu:addSubMenu({ root }, jtacSub, { order = 90 })
+
+    -- Request JTAC Equipment: only when landed near logistics and JTAC_dropEnabled
+    if ctld.gs("JTAC_dropEnabled") ~= false and playerObj.isTransport then
+        local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
+        if #typeNames > 0 then
+            local reqSub = ctld.tr("Request JTAC Equipment")
+            menu:addSubMenu({ root, jtacSub }, reqSub)
+            for _, typeName in ipairs(typeNames) do
+                menu:addCommand({ root, jtacSub, reqSub }, typeName,
+                    function(arg)
+                        local transport = Unit.getByName(arg.unitName)
+                        if not (transport and transport:isExist()) then return end
+                        if ctld.utils.inAir(transport) then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                ctld.tr("You must be landed to request JTAC equipment."), 10)
+                            return
+                        end
+                        local zm   = CTLDZoneManager.getInstance()
+                        local zone = zm:getLogisticZoneAtPoint(transport:getPoint(), arg.coalition)
+                        if not zone then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                ctld.tr("You are not close enough to friendly logistics."), 10)
+                            return
+                        end
+                        local vehicle = CTLDVehicleSpawner.getInstance()
+                            :spawnJTACVehicleForTransport(arg.typeName, transport, zone)
+                        if vehicle then
+                            trigger.action.outTextForGroup(arg.groupId,
+                                string.format(ctld.tr("%s is ready for pickup."), arg.typeName), 10)
+                        end
+                    end,
+                    { unitName   = playerObj.unitName,
+                      groupId    = playerObj.groupId,
+                      coalition  = playerObj.coalition,
+                      typeName   = typeName })
+            end
+        end
+    end
 
     menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
         function(arg)

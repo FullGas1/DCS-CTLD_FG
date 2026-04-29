@@ -92,7 +92,7 @@ ctld.i18n["es"]["Patriot Radar"] = "Patriot - Radar de Búsqueda"
 ctld.i18n["es"]["Patriot ECS"] = "Patriot - Puesto de Mando"
 ctld.i18n["es"]["Patriot ICC"] = "Patriot - Sistema de Control de Fuego"
 ctld.i18n["es"]["Patriot EPP"] = "Patriot - Generador"
-ctld.i18n["es"]["Patriot AMG (optional)"] = ""
+ctld.i18n["es"]["Patriot AMG (optional)"] = "Patriot - AMG (opcional)"
 ctld.i18n["es"]["Patriot Repair"] = "Reparar Patriot"
 ctld.i18n["es"]["S-300 Grumble TEL C"] = "S-300 Grumble TEL C - Lanzador"
 ctld.i18n["es"]["S-300 Grumble Flap Lid-A TR"] = "S-300 Grumble Flap Lid-A TR - Radar de Seguimiento"
@@ -299,7 +299,11 @@ ctld.i18n["es"]["List Beacons"] = "Listar balizas"
 -- STALE: ctld.i18n["es"]["Reset TGT Selection"] = "Restablecer selección de objetivo"
 
 --- F10 RECON menus
+ctld.i18n["es"]["activate"] = "activar"
+ctld.i18n["es"]["deactivate"] = "desactivar"
 ctld.i18n["es"]["RECON"] = "RECONOCIMIENTO"
+ctld.i18n["es"]["RECON [Start]"] = "RECON [Iniciar]"
+ctld.i18n["es"]["RECON [Stop]"] = "RECON [Detener]"
 ctld.i18n["es"]["Scan Area"] = "Escanear zona"
 ctld.i18n["es"]["Hide All Targets"] = "Ocultar todos los objetivos"
 ctld.i18n["es"]["Toggle %s"] = "Alternar %s"
@@ -364,6 +368,12 @@ ctld.i18n["es"]["%1: %2 crate(s) onboard (%3 kg)"] = "%1: %2 caja(s) a bordo (%3
 ctld.i18n["es"]["%1 troop(s) onboard (%2 kg)"] = "%1 soldado(s) a bordo (%2 kg)"
 ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 
+--- Request JTAC Equipment menu
+ctld.i18n["es"]["Request JTAC Equipment"] = "Solicitar equipo JTAC"
+ctld.i18n["es"]["You must be landed to request JTAC equipment."] = "Debes estar posado para solicitar equipo JTAC."
+ctld.i18n["es"]["You are not close enough to friendly logistics."] = "No estás suficientemente cerca de la logística aliada."
+ctld.i18n["es"]["%s is ready for pickup."] = "%s listo para embarque."
+
 --- Request Equipment spawn messages
 ctld.i18n["es"]["Land near logistics to request equipment"] = "Aterriza cerca de la logística para solicitar equipo"
 ctld.i18n["es"]["No logistics in range"] = "Sin logística en rango"
@@ -380,4 +390,4 @@ ctld.i18n["es"]["No active FOBs."] = "No hay FOBs activos."
 ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
-ctld.i18n["es"]["→ Next Page"] = ""
+ctld.i18n["es"]["→ Next Page"] = "→ Página siguiente"

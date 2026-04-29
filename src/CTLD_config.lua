@@ -364,7 +364,7 @@ function CTLDConfig:load()
     self.settings["JTAC_droneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
     self.settings["JTAC_droneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
-    -- JTAC vehicles requestable via F10 JTAC > Request JTAC Vehicle, per coalition.
+    -- JTAC equipment requestable via F10 JTAC > Request JTAC Equipment, per coalition.
     -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
     -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
     -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.

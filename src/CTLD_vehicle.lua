@@ -300,6 +300,63 @@ function CTLDVehicleSpawner:spawnVehicleForTransport(vehicleType, spawner, logis
     return vehicle
 end
 
+--- Register an externally-spawned JTAC vehicle (from unpack or Request JTAC Equipment)
+-- into the CTLDVehicleSpawner registry so that load/unload can track it.
+-- @param groupName   string   DCS group name of the spawned unit
+-- @param vehicleType string   DCS type name
+-- @param spawner     DCS Unit transport that requested it (or nil for unpack)
+-- @param logisticZone table|nil
+-- @return CTLDVehicle or nil
+function CTLDVehicleSpawner:registerJTACVehicle(groupName, vehicleType, spawner, logisticZone)
+    self._vehicleCount = self._vehicleCount + 1
+    local id      = string.format("veh_%d", self._vehicleCount)
+    local g       = Group.getByName(groupName)
+    local unit    = g and g:getUnit(1) or nil
+    local coa     = unit and unit:getCoalition() or (spawner and spawner:getCoalition() or 2)
+    local country = unit and unit:getCountry()   or (spawner and spawner:getCountry()   or 2)
+
+    local spawnData = {
+        groupName   = groupName,
+        unitName    = groupName,
+        vehicleType = vehicleType,
+        countryId   = country,
+        coalitionId = coa,
+    }
+
+    local vehicle = CTLDVehicle:new({
+        id           = id,
+        vehicleType  = vehicleType,
+        unit         = unit,
+        spawner      = spawner,
+        logisticZone = logisticZone,
+        spawnData    = spawnData,
+    })
+
+    self._vehicles[id] = vehicle
+    if unit then
+        self._unitToVehicle[unit:getName()] = id
+    end
+
+    ctld.utils.log("INFO", string.format(
+        "CTLDVehicleSpawner:registerJTACVehicle — %s id=%s group=%s",
+        vehicleType, id, groupName))
+    return vehicle
+end
+
+--- Spawn a JTAC vehicle near a transport (Request JTAC Equipment menu action).
+-- Delegates spawn to spawnVehicleForTransport then starts JTAC lasing.
+-- @param vehicleType  string        DCS type name from JTAC_unitTypeNames
+-- @param spawner      DCS Unit      requesting transport
+-- @param logisticZone CTLDLogisticZone
+-- @return CTLDVehicle or nil
+function CTLDVehicleSpawner:spawnJTACVehicleForTransport(vehicleType, spawner, logisticZone)
+    local vehicle = self:spawnVehicleForTransport(vehicleType, spawner, logisticZone)
+    if not vehicle then return nil end
+    -- Register as JTAC and start lasing
+    CTLDJTACManager.get():startLase(vehicle.spawnData.groupName)
+    return vehicle
+end
+
 -- ============================================================
 -- loadVehicle
 -- ============================================================
@@ -321,23 +378,38 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
 
     local unitPos = vehicle.unit and vehicle.unit:getPoint() or transport:getPoint()
 
-    -- Destroy DCS unit (virtual load — unit disappears from map)
-    if vehicle.unit and vehicle.unit:isExist() then
-        vehicle.unit:destroy()
-        EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
-            vehicleType = vehicle.vehicleType,
-            position    = unitPos,
-            reason      = "loaded",
-            timestamp   = timer.getAbsTime(),
-        })
+    -- Suspend JTAC lasing if this vehicle is a registered JTAC (any load method).
+    -- For menu_ctld: unit is about to be destroyed so lasing must stop immediately.
+    -- For dcs_native: unit stays alive inside aircraft but lasing from inside a soute is nonsensical.
+    local groupName = vehicle.spawnData and vehicle.spawnData.groupName
+    if groupName then
+        CTLDJTACManager.get():setJTACInTransit(groupName,
+            { unitName = transport:getName(), playerName = player })
     end
 
-    -- Update reverse lookup
-    if vehicle.unit then
-        self._unitToVehicle[vehicle.unit:getName()] = nil
+    if method == "dcs_native" then
+        -- DCS manages the unit physically (linked inside aircraft) — do not destroy it.
+        -- Remove from reverse lookup so onDead doesn't misfire if DCS sends a stale event.
+        if vehicle.unit then
+            self._unitToVehicle[vehicle.unit:getName()] = nil
+        end
+    else
+        -- Virtual load: destroy the DCS unit from the map.
+        if vehicle.unit and vehicle.unit:isExist() then
+            vehicle.unit:destroy()
+            EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+                vehicleType = vehicle.vehicleType,
+                position    = unitPos,
+                reason      = "loaded",
+                timestamp   = timer.getAbsTime(),
+            })
+        end
+        if vehicle.unit then
+            self._unitToVehicle[vehicle.unit:getName()] = nil
+        end
+        vehicle.unit = nil
     end
 
-    vehicle.unit              = nil
     vehicle.loadMethod        = method
     vehicle.loadTransportName = transport:getName()
     vehicle.loadTime          = timer.getTime()
@@ -345,10 +417,10 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
 
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
         vehicleId            = vehicle.id,
-        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
-        dcsUnitObject        = nil,              -- DCS unit no longer exists in world
+        ctldVehicleObject    = vehicle,
+        dcsUnitObject        = method == "dcs_native" and vehicle.unit or nil,
         vehicleType          = vehicle.vehicleType,
-        transportUnitObject  = transport,        -- DCS Unit carrying the vehicle
+        transportUnitObject  = transport,
         player               = player,
         method               = method,
         spawnMethod          = "request_vehicle",
@@ -367,7 +439,8 @@ end
 -- ============================================================
 
 --- Unload a vehicle from a transport.
--- Respawns the DCS unit near the transport using the original group / unit names.
+-- For menu_ctld / parachute: respawns DCS unit near transport via dynAdd.
+-- For dcs_native: DCS has already placed the unit on the ground — just refresh the ref.
 -- Publishes OnVehicleUnloaded.
 --
 -- @param vehicle   CTLDVehicle
@@ -381,55 +454,67 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
         return
     end
 
-    local spawnPos  = _computeSpawnPosition(transport)
-    local spawnHdg  = ctld.utils.getHeadingInRadians(
-                          "CTLDVehicleSpawner:unloadVehicle", transport, true)
-    local sd        = vehicle.spawnData
+    local sd       = vehicle.spawnData
+    local spawnPos = _computeSpawnPosition(transport)
+    local unloadedUnit
 
-    local groupData = {
-        visible  = true,
-        hidden   = false,
-        category = Group.Category.GROUND,
-        country  = sd.countryId,
-        name     = sd.groupName,
-        task     = {},
-        units    = {
-            {
-                type           = sd.vehicleType,
-                name           = sd.unitName,
-                x              = spawnPos.x,
-                y              = spawnPos.z,
-                heading        = spawnHdg,
-                skill          = "Random",
-                playerCanDrive = false,
-            }
-        },
-    }
-
-    local result = ctld.utils.dynAdd("CTLDVehicleSpawner:unloadVehicle", groupData)
-    if not result then
-        ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle — dynAdd failed for id="
-            .. vehicle.id)
-        return
+    if method == "dcs_native" then
+        -- DCS has already placed the unit on the ground — recover the live ref.
+        local g = Group.getByName(sd.groupName)
+        unloadedUnit = g and g:getUnit(1) or nil
+    else
+        -- Virtual unload: respawn unit near transport.
+        local spawnHdg = ctld.utils.getHeadingInRadians(
+                             "CTLDVehicleSpawner:unloadVehicle", transport, true)
+        local groupData = {
+            visible  = true,
+            hidden   = false,
+            category = Group.Category.GROUND,
+            country  = sd.countryId,
+            name     = sd.groupName,
+            task     = {},
+            units    = {
+                {
+                    type           = sd.vehicleType,
+                    name           = sd.unitName,
+                    x              = spawnPos.x,
+                    y              = spawnPos.z,
+                    heading        = spawnHdg,
+                    skill          = "Random",
+                    playerCanDrive = false,
+                }
+            },
+        }
+        local result = ctld.utils.dynAdd("CTLDVehicleSpawner:unloadVehicle", groupData)
+        if not result then
+            ctld.utils.log("ERROR", "CTLDVehicleSpawner:unloadVehicle — dynAdd failed for id="
+                .. vehicle.id)
+            return
+        end
+        local respawnedGroup = Group.getByName(result.name)
+        unloadedUnit = respawnedGroup and respawnedGroup:getUnit(1) or nil
     end
 
-    local respawnedGroup = Group.getByName(result.name)
-    local respawnedUnit  = respawnedGroup and respawnedGroup:getUnit(1) or nil
-
-    vehicle.unit = respawnedUnit
+    vehicle.unit = unloadedUnit
     vehicle:setState(CTLDVehicle.STATE.DELIVERED)
 
     -- Re-register reverse lookup
-    if respawnedUnit then
-        self._unitToVehicle[respawnedUnit:getName()] = vehicle.id
+    if unloadedUnit then
+        self._unitToVehicle[unloadedUnit:getName()] = vehicle.id
+    end
+
+    -- Resume JTAC lasing if this vehicle is a registered JTAC.
+    local groupName = sd and sd.groupName
+    if groupName then
+        CTLDJTACManager.get():resumeJTAC(groupName)
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
         vehicleId            = vehicle.id,
-        ctldVehicleObject    = vehicle,          -- CTLDVehicle Lua table
-        dcsUnitObject        = respawnedUnit,    -- newly spawned DCS unit (may be nil on failure)
+        ctldVehicleObject    = vehicle,
+        dcsUnitObject        = unloadedUnit,
         vehicleType          = vehicle.vehicleType,
-        transportUnitObject  = transport,        -- DCS Unit that was carrying the vehicle
+        transportUnitObject  = transport,
         player               = player,
         method               = method,
         spawnMethod          = "request_vehicle",
@@ -853,6 +938,12 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     local cId          = transport:getCountry()
     local tPos         = transport:getPoint()
     local packPos      = packableUnit:getPoint()   -- capture before destroy
+
+    -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
+    local packGroup = packableUnit:getGroup()
+    if packGroup then
+        CTLDJTACManager.get():deregisterJTAC(packGroup:getName())
+    end
 
     packableUnit:destroy()
     EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
