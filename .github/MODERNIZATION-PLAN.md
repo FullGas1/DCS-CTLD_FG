@@ -186,6 +186,21 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
         ⬜ F-114: DCS native bbox load/unload — différé (C-130J-30 ou CH-47Fbl1 requis)
 
+⬜  FG  JTAC menu toggles — Toggle Lasing + laseSpotCorrections
+        Deux items de menu non implémentés dans CTLDJTACManager:buildMenuSection :
+          1. "Toggle Lasing" (JTAC_allowStandbyMode) — CTLD_jtac.lua:1331
+             • Callback actuel = stub log("INFO", ...) uniquement
+             • À implémenter : CTLDJTACManager:toggleStandby(groupName, player)
+               → bascule jtac.standbyMode + outText état → rebuild menu JTAC
+             • Label à conformiser : `[activate]` si standbyMode=false / `[deactivate]` si true
+             • _rebuildJTACBranch(unitName) nécessaire (pattern identique RECON)
+          2. laseSpotCorrections (JTAC_laseSpotCorrections) — absent du menu F10
+             • Config existe, logique codée, mais jamais exposé côté pilote
+             • À ajouter : entrée par JTAC dans sous-menu groupName
+               → CTLDJTACManager:toggleSpotCorrections(groupName, player)
+             • Label dynamique : `[activate]` / `[deactivate]` selon jtac.laseSpotCorrections
+        Séquence : implémenter toggleStandby + toggleSpotCorrections → _rebuildJTACBranch → recette
+
 ⬜  FG  JTAC InTransit — recettes live manquantes + cas option A/B/C MM-placed vehicle
         À revenir quand modules C-130J-30 ou CH-47Fbl1 disponibles :
           • F-113 + F-114 (voir ci-dessus)
@@ -280,6 +295,31 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           - _doRefresh moved-target : alloue un nouveau markId après removeIcon (DCS invalide
             définitivement tout ID passé à removeMark — réutilisation = mark invisible)
         Recette F-115 : 11/11 PASS [2026-04-27]
+
+⬜  FG  Feature F — RECON layer FARP/FOB ennemis persistants
+        Objectif : détecter les FARP/FOB ennemis en LOS pendant un vol de reconnaissance et en garder
+        la trace sur la F10 map même après que le scout s'est éloigné.
+        Principes :
+          • Nouveau layer RECON "farp_fob" scanné via coalition.getStaticObjects(enemySide)
+          • Identification FARP/FOB par attributs DCS (à vérifier Hoggit : attributes.FARP, Helipad, etc.)
+          • LOS check identique aux layers existants (getUnitsLOS, altoffset=180)
+          • Persistance : les marques détectées sont stockées dans une table séparée de _activeScans
+            → elles ne sont PAS effacées par les refreshs normaux du layer
+          • Destruction : écoute S_EVENT_DEAD / S_EVENT_UNIT_LOST sur les statics → retire le mark
+          • Feasibility : ✅ faisable avec les APIs existantes (getStaticObjects, getUnitsLOS, S_EVENT_DEAD)
+        Spec + implémentation à planifier.
+
+⬜  FG  Feature G — Toggle "Share my RECON to coalition"
+        Objectif : permettre à un pilote de partager son scan RECON avec tous les joueurs BLUE.
+        Contrainte DCS API : lineToAll/circleToAll/rectToAll n'acceptent que coalition (-1/0/1/2),
+        pas de ciblage par joueur ou groupe. Impossible d'appliquer un filtre LOS par spectateur.
+        Version faisable (simplifiée) :
+          • Quand "Share RECON" activé : les icônes du joueur partageur sont dessinées avec
+            coalition=2 (BLUE seulement) au lieu de -1, et restent jusqu'au prochain refresh
+          • Les autres joueurs BLUE voient les icônes du partageur sans re-filtrage LOS
+          • Pas de merge multi-joueur côté rendu (limitation DCS irréconciliable)
+        À distinguer d'un éventuel "kneeboard" (infos coa friendly — scope différent, feature séparée).
+        Spec + implémentation à planifier.
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]
@@ -537,7 +577,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
-| Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
+| Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116 6/6 visual PASS [2026-04-28] + F-117/F-118/F-119 19/19 PASS [2026-04-29] — reconEnabled=false message, toggle-OFF immédiat, AA icon fill+apex, layers scenario, reconIconScale |
 | FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 + F-90/F-93 visual ✅ [2026-04-14] |
 | Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07] |
 | AA System (`CTLD_aasystem.lua`) | ✅ | ✅ | ✅ | 100% | 6/6 PASS [2026-04-07] |

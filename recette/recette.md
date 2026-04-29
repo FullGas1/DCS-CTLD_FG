@@ -37,6 +37,16 @@ La mission de test doit contenir :
 
 ---
 
+## Scénarios interactifs (recette/scenarios/)
+
+Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque scénario gère son propre état via une variable Lua globale persistante entre injections.
+
+| Script | Module(s) | Cas couverts | Statut | Mode |
+|--------|-----------|--------------|--------|------|
+| `scenarios/scenario_recon_layers.lua` | M3 — CTLDReconManager, CTLDReconRenderer | F-116 (6 layers × détection LOS), F-117 reconEnabled, F-118 toggle-OFF, F-119 AA icon | ✅ PASS [2026-04-29] | Interactif — 1 injection par layer + sandbox + reset |
+
+---
+
 ## Section U — Tests unitaires (U-01 à U-80)
 
 | N° | Nom | Module | Objectif | Statut | Temps estimé |
@@ -249,6 +259,10 @@ La mission de test doit contenir :
 | F-110 | JTAC InTransit — Request JTAC Vehicle config visibility | JTAC STEP3 | JTAC_unitTypeNames[1] RED + [2] BLUE définis, strings valides, Hummer+MQ-9/SKP-11+RQ-1A Predator présents | ✅ PASS 10/10 [2026-04-27] | UH-1H uniquement |
 | F-111 | JTAC InTransit — spawnJTACVehicleForTransport + registration | JTAC STEP3 | spawnJTACVehicleForTransport → CTLDVehicle retourné, gname set, deregisterJTAC→nil, registerJTACVehicle→_vehicles (startLase async → live F-109b visual ✅) | ✅ PASS 6/6 [2026-04-27] | UH-1H uniquement |
 | F-112 | JTAC InTransit — Repack → deregisterJTAC, no OnJTACDead | JTAC STEP3 | inject fake jtac → deregisterJTAC → jtacs nil, OnJTACDead NOT published, laser code freed, idempotent | ✅ PASS 7/7 [2026-04-27] | UH-1H uniquement |
+| F-116 | RECON scenario layers — détection par couche (6 layers) | CTLDReconManager | Infantry/Ground Vehicles/Air Defense/Aircraft/Helicopters/Ships : 1 scan par couche, LOS + markId + autoRefresh=true, menu RECON [Stop] après Start, icône couleur coalition (rouge=RED) | ✅ PASS 6/6 visual [2026-04-28] | scenario_recon_layers.lua interactif |
+| F-117 | RECON reconEnabled=false → message explicite (non silencieux) | CTLDReconManager | reconEnabled=false → outTextForGroup émis contenant "reconEnabled" ; reconEnabled=true → pas de message disabled | ✅ PASS 3/3 [2026-04-29] | — |
+| F-118 | RECON toggle-OFF → suppression immédiate des marks | CTLDReconManager | scan() avec prevScan injecté + toutes layers OFF → _activeScans[player]=nil immédiatement, mark circle DCS supprimé | ✅ PASS 5/5 [2026-04-29] | — |
+| F-119 | RECON icône AA — circleToAll rempli + 2 apex lineToAll | CTLDReconRenderer | drawAAIcon : 1 circleToAll(slot+1) fill alpha=0.3 + 2 lineToAll(slot+2,+3) ; radius=hs*0.9 scale=1.0→15.75 / scale=2.0→31.5 | ✅ PASS 11/11 [2026-04-29] | — |
 
 ---
 
@@ -297,7 +311,9 @@ La mission de test doit contenir :
 - **spawnableCrates refactor** : 1 fonctionnel = **1 cas** ✅ PASS visual (F-109 [2026-04-26]) — singleTypeSets auto-générés, mixedSets en fin, ordre garanti
 - **JTAC InTransit (UH-1H)** : 3 fonctionnels = **3 cas** ✅ PASS (F-110 10/10 + F-111 6/6 + F-112 7/7 [2026-04-27]) — Request JTAC Vehicle config + spawn + repack anti-false-KIA
 - **Mark IDs** : 1 fonctionnel = **1 cas** ✅ PASS (F-115 11/11 [2026-04-27]) — compteur global monotonique partagé Recon/Beacon/drawQuad, fix moved-target icon
-- **Total** : **200 cas** — 950/950 PASS ✅
+- **RECON layers scenario** : 1 scénario = **6 cas** ✅ PASS visual (F-116 6/6 [2026-04-28]) — détection par couche (Infantry/GV/AA/Aircraft/Helo/Ships), menu [Start]/[Stop], coalition color (rouge=RED), reconEnabled patch scenario
+- **RECON bugfixes** : 3 fonctionnels = **19 cas** ✅ PASS (F-117 3/3 + F-118 5/5 + F-119 11/11 [2026-04-29]) — reconEnabled=false message, toggle-OFF immédiat, AA icon circleToAll+apex
+- **Total** : **209 cas** — 975/975 PASS ✅
 
 ---
 

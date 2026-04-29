@@ -203,8 +203,11 @@ Late-activation JTAC groups are supported: CTLD registers them automatically whe
 | Parameter | Default | Description |
 |---|---|---|
 | `reconF10Menu` | `true` | Enable the RECON F10 menu |
-| `reconLosSearchRadius` | `2000` | RECON line-of-sight search radius (metres) |
-| `reconLosMarkRadius` | `100` | RECON mark radius on F10 map (metres) |
+| `reconEnabled` | `false` | Master switch — must be `true` for scan commands to work |
+| `reconSearchRadius` | `5000` | LOS scan radius (metres) |
+| `reconMinAltitude` | `50` | Minimum AGL altitude (m) required to perform a scan |
+| `reconRefreshInterval` | `10` | Auto-refresh interval (seconds) |
+| `reconIconScale` | `1.0` | Icon size multiplier (1.0 = default, 2.0 = double) |
 
 ### Customising spawnable crates
 
@@ -1436,38 +1439,51 @@ ctld.JTACAutoLaseStop("JTAC_BLUE_1")
 
 ### 15.1 Overview
 
-The recon system allows players to perform LOS-based **enemy** scanning from their aircraft. Detected enemy units are marked on the F10 map with icons. Players can enable auto-refresh to keep the picture current.
+The recon system allows players to perform LOS-based **enemy** scanning from their aircraft. Detected enemy units are marked on the F10 map with layer-specific icons. Players can enable auto-refresh to keep the picture current.
 
 > **Scope:** RECON is exclusively reserved for displaying information about **enemy units** detected via Line-of-Sight (LOS) from an allied unit. It must not be used to display friendly assets (FOBs, logistic zones, beacons, etc.) — those are managed by their respective submenus.
+> **Note:** RECON is disabled by default. Set `reconEnabled: true` in your mission config to activate it.
 
 ### 15.2 Actions
 
-#### Scan
-**Utility:** Performs an immediate LOS scan of the area around the player's aircraft and marks detected enemy units on the F10 map.
-**How it works:** CTLD runs `world.searchObjects` in a sphere of radius `reconLosSearchRadius`. Each detected enemy unit within LOS is marked with a small icon on the F10 map (visible to the player's coalition only).
-**Activation:** F10 → Recon → Scan Area
+#### RECON [Start]
+**Utility:** Performs an immediate LOS scan around the player's aircraft and marks detected enemy units on the F10 map. Enables auto-refresh at `reconRefreshInterval` seconds.
+**Requirements:** `reconEnabled=true`, player altitude ≥ `reconMinAltitude` AGL, at least one layer active.
+**Activation:** F10 → Recon → RECON [Start]
 
-#### Hide scan
-**Utility:** Removes all recon markers from the F10 map for this player.
-**Activation:** F10 → Recon → Hide Marks
-
-#### Enable / disable auto-refresh
-**Utility:** Automatically re-scans at a fixed interval and updates the F10 map without player input.
-**How it works:** A `timer.scheduleFunction` fires every `reconAutoRefreshInterval` seconds. Previous marks are removed and new ones placed.
-**Activation:** F10 → Recon → Enable Auto-Refresh / Disable Auto-Refresh
+#### RECON [Stop]
+**Utility:** Stops auto-refresh and removes all RECON marks from the F10 map for this player immediately.
+**Activation:** F10 → Recon → RECON [Stop]
 
 #### Toggle layer
-**Utility:** Show or hide a specific recon layer (e.g. vehicles only, troops only) on the F10 map.
-**Activation:** F10 → Recon → Toggle Layer → [layer name]
+**Utility:** Show or hide a specific detection category (infantry, ground vehicles, air defense, aircraft, helicopters, ships). Toggling a layer off while RECON is active immediately removes its marks from the map.
+**Activation:** F10 → Recon → [layer name] → [activate] / [deactivate]
 
-### 15.3 Key configuration parameters
+### 15.3 Layers and icons
+
+| Layer | Icon shape | Color (RED enemy) |
+|---|---|---|
+| Infantry | Circle with cross (⊕) | Red |
+| Ground Vehicles | Rectangle with diagonal | Red |
+| Air Defense | Filled circle + apex lines (△) | Red |
+| Aircraft | Perpendicular cross with center dot | Red |
+| Helicopters | Circle with H bars | Red |
+| Ships | Elongated rectangle with bow arrow | Red |
+
+Icon colors match the enemy coalition (RED = red, BLUE = blue). Size is controlled by `reconIconScale`.
+
+> **DCS limitation:** RECON icons are drawn in world-space (metres), so they scale with F10 map zoom. There is no screen-space alternative in the DCS API.
+
+### 15.4 Key configuration parameters
 
 | Parameter | Default | Description |
 |---|---|---|
-| `reconF10Menu` | `true` | Enable the recon F10 menu |
-| `reconLosSearchRadius` | `2000` | LOS scan radius (m) |
-| `reconLosMarkRadius` | `100` | Mark circle radius on F10 map (m) |
-| `reconAutoRefreshInterval` | `60` | Auto-refresh interval (s) |
+| `reconF10Menu` | `true` | Enable the RECON F10 menu |
+| `reconEnabled` | `false` | Master switch — must be `true` for scan commands to work |
+| `reconSearchRadius` | `5000` | LOS scan radius (m) |
+| `reconMinAltitude` | `50` | Minimum AGL altitude (m) to perform a scan |
+| `reconRefreshInterval` | `10` | Auto-refresh interval (s) |
+| `reconIconScale` | `1.0` | Icon size multiplier (1.0 = default, 2.0 = double) |
 
 ### 15.4 Events
 
