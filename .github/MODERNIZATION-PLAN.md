@@ -218,6 +218,8 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Refresh : OnVehicleLoaded / OnVehicleUnloaded + _refreshNearbyPackPlayers étendu
         i18n : 6 clés EN/FR/ES/KO ajoutées
         Recette : F-120 (9/9) + F-121 (6/6) + F-122 (6/6) = 21/21 PASS — UH-1H
+        Bugfix [2026-04-29] : UH-1H + Mi-8 ajoutés vehicleTransportEnabled ; _dispatchPostSpawn
+        enregistre les véhicules GROUND dans CTLDVehicleSpawner (F-123 2/2 PASS)
 
 ⬜  FG  GAP-2 — Auto-unpack post-parachute crates (subscriber manquant)
         Contexte : config autoUnpackRadiusParachute=1000m existe et OnCrateParachuteLanded est

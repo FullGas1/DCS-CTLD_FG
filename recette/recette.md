@@ -266,6 +266,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-120 | GAP-1 : findLoadableVehicles + loadVehicle menu_ctld | CTLDVehicleSpawner | WAITING vehicle dans rayon → listé ; hors rayon → exclu ; LOADED → exclu ; loadVehicle → state LOADED + destroy + loadMethod + loadTransportName | ✅ PASS 9/9 [2026-04-29] | UH-1H (vehicleTransportEnabled override) |
 | F-121 | GAP-1 : findLoadedVehicles + unloadVehicle menu_ctld | CTLDVehicleSpawner | LOADED vehicle sur ce transport → listé ; autre transport → exclu ; unloadVehicle → state DELIVERED + dynAdd ; après unload → liste vide | ✅ PASS 6/6 [2026-04-29] | UH-1H |
 | F-122 | GAP-1 : lifecycle JTAC sur load/unload menu_ctld | CTLDVehicleSpawner + CTLDJTACManager | loadVehicle → setJTACInTransit(groupName) ; unloadVehicle → resumeJTAC(groupName) ; états LOADED/DELIVERED corrects | ✅ PASS 6/6 [2026-04-29] | UH-1H |
+| F-123 | GAP-1 bugfix : _dispatchPostSpawn enregistre véhicule GROUND dans CTLDVehicleSpawner | CTLDCrateManager + CTLDVehicleSpawner | après _spawnUnpacked(desc non-JTAC GROUND) → count spawner +1 ; findLoadableVehicles retourne le véhicule | ✅ PASS 2/2 [2026-04-29] | UH-1H (vehicleTransportEnabled) |
 
 ---
 
@@ -317,7 +318,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **RECON layers scenario** : 1 scénario = **6 cas** ✅ PASS visual (F-116 6/6 [2026-04-28]) — détection par couche (Infantry/GV/AA/Aircraft/Helo/Ships), menu [Start]/[Stop], coalition color (rouge=RED), reconEnabled patch scenario
 - **RECON bugfixes** : 3 fonctionnels = **19 cas** ✅ PASS (F-117 3/3 + F-118 5/5 + F-119 11/11 [2026-04-29]) — reconEnabled=false message, toggle-OFF immédiat, AA icon circleToAll+apex
 - **GAP-1 Load/Unload vehicle menu** : 3 fonctionnels = **21 cas** ✅ PASS (F-120 9/9 + F-121 6/6 + F-122 6/6 [2026-04-29]) — findLoadableVehicles, findLoadedVehicles, loadVehicle/unloadVehicle menu_ctld, lifecycle JTAC
-- **Total** : **212 cas** — 996/996 PASS ✅
+- **GAP-1 bugfix — unpack register** : 1 fonctionnel = **2 cas** ✅ PASS (F-123 2/2 [2026-04-29]) — _dispatchPostSpawn enregistre véhicules GROUND dans CTLDVehicleSpawner + UH-1H dans vehicleTransportEnabled
+- **Total** : **213 cas** — 998/998 PASS ✅
 
 ---
 
