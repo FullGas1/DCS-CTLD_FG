@@ -406,7 +406,11 @@ end
 -- @param playerUnit DCS Unit
 -- @param player     string  playerName
 function CTLDReconManager:scan(playerUnit, player)
-    if not ctld.gs("reconEnabled") then return end
+    if not ctld.gs("reconEnabled") then
+        trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
+            ctld.tr("RECON is disabled (set reconEnabled=true in config)."), 10)
+        return
+    end
 
     -- Altitude check (AGL)
     local pos    = playerUnit:getPoint()
