@@ -1057,19 +1057,31 @@ end
 -- ============================================================
 
 --- Return loadable (WAITING) vehicles within maximumDistancePackableUnitsSearch of a transport.
+-- Performs a lazy unit-reference resolution for vehicles registered before their DCS group
+-- was fully available (coalition.addGroup has a 1-frame delay before Group.getByName works).
 -- @param transport DCS Unit
 -- @return table  array of CTLDVehicle
 function CTLDVehicleSpawner:findLoadableVehicles(transport)
     local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
     local tPos    = transport:getPoint()
     local result  = {}
-    for _, veh in pairs(self._vehicles) do
-        if veh:getState() == CTLDVehicle.STATE.WAITING
-            and veh.unit and veh.unit:isExist() then
-            local dist = ctld.utils.getDistance(
-                "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
-            if dist <= maxDist then
-                table.insert(result, veh)
+    for id, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.WAITING then
+            -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
+            if not veh.unit and veh.spawnData and veh.spawnData.groupName then
+                local g = Group.getByName(veh.spawnData.groupName)
+                local u = g and g:getUnit(1) or nil
+                if u and u:isExist() then
+                    veh.unit = u
+                    self._unitToVehicle[u:getName()] = id
+                end
+            end
+            if veh.unit and veh.unit:isExist() then
+                local dist = ctld.utils.getDistance(
+                    "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
+                if dist <= maxDist then
+                    table.insert(result, veh)
+                end
             end
         end
     end
