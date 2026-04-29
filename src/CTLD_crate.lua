@@ -1607,6 +1607,11 @@ end
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
         CTLDJTACManager.get():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
+        -- Register in CTLDVehicleSpawner so load/unload can suspend/resume JTAC lasing.
+        CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
+    elseif (desc.spawnAs == nil or desc.spawnAs == "GROUND") and desc.unit then
+        -- Register ground vehicles in CTLDVehicleSpawner so Load/Unload menu can track them.
+        CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
     end
 end
 
