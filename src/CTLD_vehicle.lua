@@ -738,10 +738,10 @@ function CTLDVehicleSpawner:scanMMVehicles()
 end
 
 --- S_EVENT_BIRTH handler: register late-activation MM ground vehicles.
--- Only acts on GROUND category units with a CTLD descriptor.
--- If the unit name matches an existing vehicle's spawnData.unitName, this is a
--- post-unload respawn (dynAdd 1-frame delay prevented _unitToVehicle update in
--- unloadVehicle) — update the existing vehicle ref instead of creating a new one.
+-- S_EVENT_BIRTH fires synchronously inside coalition.addGroup, before the calling
+-- CTLD spawn function (spawnVehicleForTransport, registerJTACVehicle, etc.) has had
+-- time to register the vehicle. Processing is therefore deferred by one frame via
+-- timer.scheduleFunction so that all CTLD registrations complete first.
 function CTLDVehicleSpawner:onBirth(event)
     if not event or not event.initiator then return end
     local ok, unit = pcall(function() return event.initiator end)
@@ -752,28 +752,38 @@ function CTLDVehicleSpawner:onBirth(event)
     if not okGrp or not grp then return end
     if grp:getCategory() ~= Group.Category.GROUND then return end
 
-    -- CTLD-spawned groups (prefix "CTLD_") are registered by their own spawn functions.
-    -- S_EVENT_BIRTH fires synchronously during coalition.addGroup, before the caller
-    -- can register the vehicle — skip here to avoid a duplicate entry.
-    local grpName = grp:getName() or ""
-    if grpName:sub(1, 5) == "CTLD_" then return end
+    -- Capture ref for the deferred callback (unit object stays valid across frames).
+    local capturedUnit = unit
+    timer.scheduleFunction(function()
+        local inst = CTLDVehicleSpawner._instance
+        if inst then inst:_onBirthDeferred(capturedUnit) end
+    end, nil, timer.getTime())
+end
 
+--- Deferred S_EVENT_BIRTH processing — runs one frame after the birth event.
+-- By this point every CTLD spawn function has registered its vehicle in _vehicles,
+-- so _unitToVehicle guards work correctly without any name-prefix assumptions.
+function CTLDVehicleSpawner:_onBirthDeferred(unit)
+    if not (unit and unit:isExist()) then return end
     local unitName = unit:getName()
 
-    -- For MM vehicles: check if this is a respawn of an already-tracked vehicle
-    -- (post-unload 1-frame delay may have left _unitToVehicle unset in unloadVehicle).
+    -- Already tracked by a CTLD spawn function — nothing to do.
+    if self._unitToVehicle[unitName] then return end
+
+    -- Post-unload MM vehicle respawn: _unitToVehicle was cleared on load but the
+    -- CTLDVehicle object is still in _vehicles (state LOADED → WAITING after unload).
     for _, veh in pairs(self._vehicles) do
         if veh.spawnData and veh.spawnData.unitName == unitName then
             veh.unit = unit
             self._unitToVehicle[unitName] = veh.id
             ctld.utils.log("INFO",
-                "CTLDVehicleSpawner:onBirth — updated unit ref for existing vehicle id=%s unit=%s",
+                "CTLDVehicleSpawner:_onBirthDeferred — updated ref for existing vehicle id=%s unit=%s",
                 veh.id, unitName)
             return
         end
     end
 
-    -- Unknown MM vehicle — attempt registration.
+    -- Unknown unit — register as a new MM vehicle if it has a CTLD descriptor.
     self:_registerMMVehicleUnit(unit)
 end
 
