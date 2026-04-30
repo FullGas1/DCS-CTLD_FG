@@ -752,9 +752,16 @@ function CTLDVehicleSpawner:onBirth(event)
     if not okGrp or not grp then return end
     if grp:getCategory() ~= Group.Category.GROUND then return end
 
+    -- CTLD-spawned groups (prefix "CTLD_") are registered by their own spawn functions.
+    -- S_EVENT_BIRTH fires synchronously during coalition.addGroup, before the caller
+    -- can register the vehicle — skip here to avoid a duplicate entry.
+    local grpName = grp:getName() or ""
+    if grpName:sub(1, 5) == "CTLD_" then return end
+
     local unitName = unit:getName()
 
-    -- Check if this is a respawn of an already-tracked vehicle (post-unload 1-frame delay fix).
+    -- For MM vehicles: check if this is a respawn of an already-tracked vehicle
+    -- (post-unload 1-frame delay may have left _unitToVehicle unset in unloadVehicle).
     for _, veh in pairs(self._vehicles) do
         if veh.spawnData and veh.spawnData.unitName == unitName then
             veh.unit = unit
@@ -766,7 +773,7 @@ function CTLDVehicleSpawner:onBirth(event)
         end
     end
 
-    -- Not a known vehicle — attempt MM registration.
+    -- Unknown MM vehicle — attempt registration.
     self:_registerMMVehicleUnit(unit)
 end
 
