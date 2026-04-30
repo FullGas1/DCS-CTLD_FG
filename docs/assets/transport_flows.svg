@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 860" font-family="monospace, Consolas, 'Courier New'" font-size="12">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 876" font-family="monospace, Consolas, 'Courier New'" font-size="12">
 
   <!-- ── Background ── -->
-  <rect width="1100" height="860" fill="#0d1117" rx="8"/>
+  <rect width="1100" height="876" fill="#0d1117" rx="8"/>
 
   <!-- ══════════════════════════════════════════════════════════
        TITLE
@@ -53,6 +53,7 @@
   <!-- Row 2 -->
   <text x="30"  y="172" fill="#e6edf3" font-size="11">Request JTAC Equipment</text>
   <text x="280" y="172" fill="#e6edf3" font-size="11">F10 → CTLD → JTAC → Request JTAC Equipment → type</text>
+  <text x="280" y="184" fill="#6e7681" font-size="9">Menu inactif hors LGZ ("No logistics in range") — refresh automatique à l'atterrissage</text>
   <rect x="557" y="161" width="14" height="14" fill="#2ea043" rx="2"/>
   <rect x="617" y="161" width="14" height="14" fill="#d29922" rx="2"/>
   <rect x="694" y="161" width="14" height="14" fill="#bc8cff" rx="2"/>
@@ -171,75 +172,76 @@
   <!-- ══════════════════════════════════════════════════════════
        FLOW 2 — WHOLE VEHICLE TRANSPORT
   ══════════════════════════════════════════════════════════ -->
-  <rect x="20" y="594" width="1060" height="232" fill="#161b22" rx="6" stroke="#30363d" stroke-width="1"/>
+  <rect x="20" y="594" width="1060" height="248" fill="#161b22" rx="6" stroke="#30363d" stroke-width="1"/>
   <text x="30" y="612" fill="#58a6ff" font-size="13" font-weight="bold">FLOW 2 — Whole Vehicle Transport</text>
   <text x="30" y="627" fill="#6e7681" font-size="10">Réservé aux appareils vehicleTransportEnabled. Pas de contrainte LGZ.</text>
+  <text x="30" y="641" fill="#f85149" font-size="10">⚠ Virtual slingload NON disponible pour véhicules entiers. Appareils hors vehicleTransportEnabled → crates obligatoires (Flow 1).</text>
 
   <!-- Sub-section: LOAD VEHICLE -->
-  <rect x="25" y="632" width="1050" height="80" fill="#1c2128" rx="4"/>
-  <text x="35" y="646" fill="#f0883e" font-size="11" font-weight="bold">2a-LOAD whole vehicle</text>
-  <text x="30"  y="660" fill="#6e7681" font-size="10">MÉTHODE</text>
-  <text x="280" y="660" fill="#6e7681" font-size="10">DÉCLENCHEUR</text>
-  <text x="560" y="660" fill="#6e7681" font-size="10">POSÉ</text>
-  <text x="620" y="660" fill="#6e7681" font-size="10">LGZ</text>
-  <text x="700" y="660" fill="#6e7681" font-size="10">JTAC</text>
-  <text x="800" y="660" fill="#6e7681" font-size="10">ÉTAT</text>
-  <line x1="25" y1="663" x2="1075" y2="663" stroke="#30363d" stroke-width="0.5"/>
+  <rect x="25" y="648" width="1050" height="80" fill="#1c2128" rx="4"/>
+  <text x="35" y="662" fill="#f0883e" font-size="11" font-weight="bold">2a-LOAD whole vehicle</text>
+  <text x="30"  y="676" fill="#6e7681" font-size="10">MÉTHODE</text>
+  <text x="280" y="676" fill="#6e7681" font-size="10">DÉCLENCHEUR</text>
+  <text x="560" y="676" fill="#6e7681" font-size="10">POSÉ</text>
+  <text x="620" y="676" fill="#6e7681" font-size="10">LGZ</text>
+  <text x="700" y="676" fill="#6e7681" font-size="10">JTAC</text>
+  <text x="800" y="676" fill="#6e7681" font-size="10">ÉTAT</text>
+  <line x1="25" y1="679" x2="1075" y2="679" stroke="#30363d" stroke-width="0.5"/>
 
-  <text x="35"  y="678" fill="#e6edf3" font-size="11">menu_ctld sol</text>
-  <text x="280" y="678" fill="#e6edf3" font-size="11">F10 → CTLD → Vehicles → Load / Extract Vehicles</text>
-  <rect x="557" y="667" width="14" height="14" fill="#2ea043" rx="2"/>
-  <rect x="617" y="667" width="14" height="14" fill="#484f58" rx="2"/>
-  <rect x="694" y="667" width="14" height="14" fill="#bc8cff" rx="2"/>
-  <text x="710" y="678" fill="#bc8cff" font-size="10">setJTACInTransit</text>
-  <text x="800" y="678" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
+  <text x="35"  y="694" fill="#e6edf3" font-size="11">menu_ctld sol</text>
+  <text x="280" y="694" fill="#e6edf3" font-size="11">F10 → CTLD → Vehicles → Load / Extract Vehicles</text>
+  <rect x="557" y="683" width="14" height="14" fill="#2ea043" rx="2"/>
+  <rect x="617" y="683" width="14" height="14" fill="#484f58" rx="2"/>
+  <rect x="694" y="683" width="14" height="14" fill="#bc8cff" rx="2"/>
+  <text x="710" y="694" fill="#bc8cff" font-size="10">setJTACInTransit</text>
+  <text x="800" y="694" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="698" fill="#e6edf3" font-size="11">DCS native bbox (C-130 / Il-76)</text>
-  <text x="280" y="698" fill="#e6edf3" font-size="11">Véhicule entre dans bbox cargo automatiquement</text>
-  <rect x="557" y="687" width="14" height="14" fill="#f85149" rx="2"/>
-  <rect x="617" y="687" width="14" height="14" fill="#484f58" rx="2"/>
-  <rect x="694" y="687" width="14" height="14" fill="#bc8cff" rx="2"/>
-  <text x="710" y="698" fill="#bc8cff" font-size="10">setJTACInTransit</text>
-  <text x="800" y="698" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
+  <text x="35"  y="714" fill="#e6edf3" font-size="11">DCS native bbox (C-130 / Il-76)</text>
+  <text x="280" y="714" fill="#e6edf3" font-size="11">Véhicule entre dans bbox cargo automatiquement</text>
+  <rect x="557" y="703" width="14" height="14" fill="#f85149" rx="2"/>
+  <rect x="617" y="703" width="14" height="14" fill="#484f58" rx="2"/>
+  <rect x="694" y="703" width="14" height="14" fill="#bc8cff" rx="2"/>
+  <text x="710" y="714" fill="#bc8cff" font-size="10">setJTACInTransit</text>
+  <text x="800" y="714" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
   <!-- Sub-section: UNLOAD VEHICLE -->
-  <rect x="25" y="716" width="1050" height="96" fill="#1c2128" rx="4"/>
-  <text x="35" y="730" fill="#f0883e" font-size="11" font-weight="bold">2b-UNLOAD whole vehicle</text>
-  <text x="30"  y="744" fill="#6e7681" font-size="10">MÉTHODE</text>
-  <text x="280" y="744" fill="#6e7681" font-size="10">DÉCLENCHEUR</text>
-  <text x="560" y="744" fill="#6e7681" font-size="10">POSÉ</text>
-  <text x="620" y="744" fill="#6e7681" font-size="10">LGZ</text>
-  <text x="700" y="744" fill="#6e7681" font-size="10">JTAC</text>
-  <text x="800" y="744" fill="#6e7681" font-size="10">ÉTAT</text>
-  <line x1="25" y1="747" x2="1075" y2="747" stroke="#30363d" stroke-width="0.5"/>
+  <rect x="25" y="732" width="1050" height="96" fill="#1c2128" rx="4"/>
+  <text x="35" y="746" fill="#f0883e" font-size="11" font-weight="bold">2b-UNLOAD whole vehicle</text>
+  <text x="30"  y="760" fill="#6e7681" font-size="10">MÉTHODE</text>
+  <text x="280" y="760" fill="#6e7681" font-size="10">DÉCLENCHEUR</text>
+  <text x="560" y="760" fill="#6e7681" font-size="10">POSÉ</text>
+  <text x="620" y="760" fill="#6e7681" font-size="10">LGZ</text>
+  <text x="700" y="760" fill="#6e7681" font-size="10">JTAC</text>
+  <text x="800" y="760" fill="#6e7681" font-size="10">ÉTAT</text>
+  <line x1="25" y1="763" x2="1075" y2="763" stroke="#30363d" stroke-width="0.5"/>
 
-  <text x="35"  y="762" fill="#e6edf3" font-size="11">menu_ctld sol</text>
-  <text x="280" y="762" fill="#e6edf3" font-size="11">F10 → CTLD → Vehicles → Unload Vehicles</text>
-  <rect x="557" y="751" width="14" height="14" fill="#2ea043" rx="2"/>
-  <rect x="617" y="751" width="14" height="14" fill="#484f58" rx="2"/>
-  <rect x="694" y="751" width="14" height="14" fill="#bc8cff" rx="2"/>
-  <text x="710" y="762" fill="#bc8cff" font-size="10">resumeJTAC</text>
-  <text x="800" y="762" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
+  <text x="35"  y="778" fill="#e6edf3" font-size="11">menu_ctld sol</text>
+  <text x="280" y="778" fill="#e6edf3" font-size="11">F10 → CTLD → Vehicles → Unload Vehicles</text>
+  <rect x="557" y="767" width="14" height="14" fill="#2ea043" rx="2"/>
+  <rect x="617" y="767" width="14" height="14" fill="#484f58" rx="2"/>
+  <rect x="694" y="767" width="14" height="14" fill="#bc8cff" rx="2"/>
+  <text x="710" y="778" fill="#bc8cff" font-size="10">resumeJTAC</text>
+  <text x="800" y="778" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="779" fill="#e6edf3" font-size="11">virtual parachute (Feature A)</text>
-  <text x="280" y="779" fill="#e6edf3" font-size="11">F10 → Parachute Vehicles   alt ≥ parachuteMinAltitudeVehicles</text>
-  <rect x="557" y="768" width="14" height="14" fill="#f85149" rx="2"/>
-  <rect x="617" y="768" width="14" height="14" fill="#484f58" rx="2"/>
-  <rect x="694" y="768" width="14" height="14" fill="#bc8cff" rx="2"/>
-  <text x="710" y="779" fill="#bc8cff" font-size="10">resumeJTAC + laser code</text>
-  <text x="800" y="779" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
+  <text x="35"  y="795" fill="#e6edf3" font-size="11">virtual parachute (Feature A)</text>
+  <text x="280" y="795" fill="#e6edf3" font-size="11">F10 → Parachute Vehicles   alt ≥ parachuteMinAltitudeVehicles</text>
+  <rect x="557" y="784" width="14" height="14" fill="#f85149" rx="2"/>
+  <rect x="617" y="784" width="14" height="14" fill="#484f58" rx="2"/>
+  <rect x="694" y="784" width="14" height="14" fill="#bc8cff" rx="2"/>
+  <text x="710" y="795" fill="#bc8cff" font-size="10">resumeJTAC + laser code</text>
+  <text x="800" y="795" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="796" fill="#e6edf3" font-size="11">DCS native (sol/air bbox exit)</text>
-  <text x="280" y="796" fill="#e6edf3" font-size="11">Sortie bbox cargo automatique (sol ou en vol)</text>
-  <rect x="557" y="785" width="14" height="14" fill="#f85149" rx="2"/>
-  <rect x="617" y="785" width="14" height="14" fill="#484f58" rx="2"/>
-  <rect x="694" y="785" width="14" height="14" fill="#bc8cff" rx="2"/>
-  <text x="710" y="796" fill="#bc8cff" font-size="10">resumeJTAC + laser code</text>
-  <text x="800" y="796" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
+  <text x="35"  y="812" fill="#e6edf3" font-size="11">DCS native (sol/air bbox exit)</text>
+  <text x="280" y="812" fill="#e6edf3" font-size="11">Sortie bbox cargo automatique (sol ou en vol)</text>
+  <rect x="557" y="801" width="14" height="14" fill="#f85149" rx="2"/>
+  <rect x="617" y="801" width="14" height="14" fill="#484f58" rx="2"/>
+  <rect x="694" y="801" width="14" height="14" fill="#bc8cff" rx="2"/>
+  <text x="710" y="812" fill="#bc8cff" font-size="10">resumeJTAC + laser code</text>
+  <text x="800" y="812" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
   <!-- ══════════════════════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════════════════════ -->
-  <text x="550" y="842" text-anchor="middle" fill="#484f58" font-size="10">DCS-CTLD_FG — feature_modularisation_and_Config — GAP-1 + GAP-2 implemented — 2026-04-29</text>
+  <text x="550" y="858" text-anchor="middle" fill="#484f58" font-size="10">DCS-CTLD_FG — feature_modularisation_and_Config — 2026-04-30</text>
 
 </svg>

@@ -1232,7 +1232,9 @@ CTLD supports two vehicle operations: **requesting** a vehicle at a logistics zo
 #### Load vehicle (dynamic cargo)
 **Utility:** Loads a nearby ground vehicle into a dynamic-cargo-capable transport (C-130, Il-76) using DCS native cargo loading.
 **How it works:** CTLD detects vehicles in `vehiclesForTransport` within the aircraft's cargo bay bounding box. The vehicle group is destroyed and held in memory. On unload, it is re-spawned.
-**Activation:** Automatic when vehicle enters aircraft cargo bay, or F10 → Vehicle Transport → Load Vehicle
+**Activation:** Automatic when vehicle enters aircraft cargo bay, or F10 → Vehicle Commands → Load / Extract Vehicles (requires landing).
+
+> **Virtual slingload not supported for whole vehicles.** Only aircraft listed in `vehicleTransportEnabled` can transport whole vehicles (via DCS native cargo bay or F10 menu). All other aircraft (e.g. UH-1H) must use crates: pack the vehicle into crates, transport by slingload or menu load, then unpack at destination (see §7 and Flow 1 in the transport diagram).
 
 #### Unload vehicle
 **Utility:** Re-spawns the carried vehicle at the current position.
@@ -1384,6 +1386,15 @@ CTLD auto-assigns frequencies from three pools defined in config:
 CTLD provides two JTAC modes: **crate-deployed JTACs** (spawned by players from the F10 menu) and **pre-placed JTACs** (groups placed in the Mission Editor and auto-detected at startup). All JTACs auto-lase the nearest enemy target within LOS.
 
 ### 14.2 Actions
+
+#### Request JTAC Equipment
+**Utility:** Spawns a JTAC vehicle or drone directly at the logistics zone, ready for the player to load.
+**How it works:** Player selects a JTAC type from the F10 menu while landed inside a logistics zone. CTLD spawns the unit near the zone; the player can then load and transport it. The JTAC starts auto-lasing once unloaded and deployed.
+**Activation:** F10 → JTAC → Request JTAC Equipment → [type]
+
+> **Menu constraint:** The "Request JTAC Equipment" submenu is **dynamic**. It shows available types only when the player is landed inside an active logistics zone. Outside a LGZ the submenu displays "No logistics in range" (no-op). The submenu refreshes automatically on landing, takeoff, and FOB deployment.
+>
+> **Visibility gate:** The submenu only appears if `JTAC_dropEnabled ≠ false`, the player's aircraft is a transport (`isTransport=true`), and `JTAC_unitTypeNames[coalition]` is non-empty.
 
 #### Spawn JTAC (from crate)
 **Utility:** Deploys a JTAC unit from a crate near the current position. The JTAC starts lasing immediately.
