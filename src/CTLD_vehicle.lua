@@ -1188,7 +1188,14 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
         timestamp    = timer.getAbsTime(),
     })
 
-    CTLDPlayerManager.getInstance():refreshForUnit(transportUnitName)
+    -- Defer menu rebuild by one frame: coalition.getGroups() has a 1-frame lag after
+    -- unit:destroy(), so a same-tick rebuild would still find the (now dead) unit and
+    -- re-add it to the Pack Vehicle menu, causing a "Vehicle no longer exists" error
+    -- when the player clicks it later.
+    local _tName = transportUnitName
+    timer.scheduleFunction(function()
+        CTLDPlayerManager.getInstance():refreshForUnit(_tName)
+    end, nil, timer.getTime())
 end
 
 --- Refresh the "Pack Vehicle" submenu for a single player by unit name.
