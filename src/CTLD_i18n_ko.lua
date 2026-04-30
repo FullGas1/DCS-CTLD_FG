@@ -218,6 +218,7 @@ ctld.i18n["ko"]["Vehicle no longer available."] = "차량을 더 이상 사용�
 ctld.i18n["ko"]["Land to unload vehicles"] = "차량을 하역하려면 착륙하세요"
 ctld.i18n["ko"]["No vehicle loaded."] = "탑재된 차량이 없습니다."
 ctld.i18n["ko"]["Vehicle no longer loaded."] = "차량이 더 이상 탑재되어 있지 않습니다."
+ctld.i18n["ko"]["Cannot load more vehicles (max: %d)."] = "차량을 더 이상 탑재할 수 없습니다 (최대: %d)."
 
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
