@@ -273,8 +273,7 @@ function CTLDConfig:load()
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-    self.settings["forceCrateToBeMoved"]                = true -- a crate must be picked up at least once and moved before it can be unpacked. Helps to reduce crate spam
-    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
+self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
 
     -- Simulated Sling load configuration (Feature B)
@@ -8970,7 +8969,6 @@ function CTLDCrate:init(data)
     self.loadTime     = nil
     self.dcsStatic    = data.dcsStatic or nil
     self.modelKey     = data.modelKey  or "load"
-    self.hasMoved     = false
     self.canBeUnpacked = true
     -- Feature A: virtual parachute
     self.isParachuting          = false
@@ -8987,7 +8985,6 @@ function CTLDCrate:load(transport)
     self.state    = CTLDCrate.STATE.LOADED
     self.loadedBy = transport
     self.loadTime = timer.getAbsTime()
-    self.hasMoved = true
 end
 
 --- Unload the crate to the ground (transport is landed).
@@ -9059,13 +9056,10 @@ function CTLDCrate:isLoaded()
 end
 
 --- Returns true if this crate can be unpacked.
--- A crate loaded at least once (hasMoved=true) satisfies forceCrateToBeMoved,
--- regardless of how far the transport has physically travelled.
--- @param forceCrateToBeMoved boolean  value from ctld.gs("forceCrateToBeMoved")
-function CTLDCrate:canUnpack(forceCrateToBeMoved)
+-- A complete crate set anywhere on the ground can be unpacked at any time.
+function CTLDCrate:canUnpack()
     if not self:isOnGround()  then return false end
     if not self.canBeUnpacked then return false end
-    if forceCrateToBeMoved and not self.hasMoved then return false end
     return true
 end
 
@@ -9357,8 +9351,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
     local FOB_SENTINELS = { ["FOB"] = true }
 
-    -- Group ground crates by descriptor.unit (hasMoved not checked here — checked at click time)
-    -- FOB sentinels are excluded from this table.
+    -- Group ground crates by descriptor.unit. FOB sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
     local fobCount  = 0
@@ -9400,7 +9393,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                     end
                     local mgr   = CTLDCrateManager.getInstance()
                     local nearC = mgr:getCratesInRange(t:getPoint(), 300)
-                    -- Collect crates: forceCrateToBeMoved does not apply to unpack
+                    -- Collect crates for unpack
                     local toUnpack = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
@@ -18562,9 +18555,6 @@ ctld.yamlConfigDatas = [[
 # Minimum time (s) a player must wait after spawning a crate before spawning another.
 # ctld.crateWaitTime: 40
 
-# Require a crate to be picked up and moved at least once before it can be unpacked.
-# Helps prevent crate spam directly at the logistic zone.
-# ctld.forceCrateToBeMoved: true
 
 
 # ============================================================

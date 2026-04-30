@@ -96,9 +96,6 @@ ctld.yamlConfigDatas = [[
 # Minimum time (s) a player must wait after spawning a crate before spawning another.
 # ctld.crateWaitTime: 40
 
-# Require a crate to be picked up and moved at least once before it can be unpacked.
-# Helps prevent crate spam directly at the logistic zone.
-# ctld.forceCrateToBeMoved: true
 
 
 # ============================================================

@@ -230,8 +230,7 @@ function CTLDConfig:load()
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-    self.settings["forceCrateToBeMoved"]                = true -- a crate must be picked up at least once and moved before it can be unpacked. Helps to reduce crate spam
-    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
+self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
 
     -- Simulated Sling load configuration (Feature B)
