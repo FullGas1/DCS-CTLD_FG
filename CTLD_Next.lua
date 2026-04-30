@@ -9040,8 +9040,17 @@ end
 
 --- Returns true if the crate is on the ground and interactable.
 function CTLDCrate:isOnGround()
-    return self.state == CTLDCrate.STATE.SPAWNED
-        or self.state == CTLDCrate.STATE.LANDED
+    if self.state ~= CTLDCrate.STATE.SPAWNED
+       and self.state ~= CTLDCrate.STATE.LANDED then
+        return false
+    end
+    -- Also verify the DCS static still physically exists (guards against crates
+    -- destroyed by combat before S_EVENT_DEAD could unregister them).
+    if self.dcsStatic then
+        return self.dcsStatic:isExist()
+    end
+    -- No DCS ref (parachuted crate landing pending): trust state only
+    return true
 end
 
 --- Returns true if the crate is currently in a transport.
