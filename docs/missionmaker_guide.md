@@ -85,7 +85,6 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `slingLoad` | `false` | Use DCS sling-load physics instead of hover simulation |
 | `enableHoverSlingload` | `true` | Allow crate loading by hovering above it (simulated slingload). If `false`, crates can only be loaded via F10 menu (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Allow crate loading via F10 menu |
-| `forceCrateToBeMoved` | `true` | Crate must be moved at least once before unpacking |
 | `disableAllSmoke` | `false` | Globally disable all smoke signals |
 
 #### Distances (metres)
@@ -1199,7 +1198,6 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 | `enableAllCrates` | `true` | Add "Get All Crates" shortcut entries |
 | `crateWaitTime` | `40` | Cooldown (s) between crate spawns per player |
 | `minimumDeployDistance` | `1000` | Min distance (m) from a friendly pickup zone to unpack |
-| `forceCrateToBeMoved` | `true` | Crate must be moved ≥ 1 m before unpack |
 | `maximumDistanceLogistic` | `200` | Max distance (m) from logistics unit to interact |
 
 ### 10.4 Events
