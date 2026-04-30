@@ -912,7 +912,7 @@ function CTLDVehicleSpawner:_checkVehicleHoverHint()
     local cooldown = 30
     local minH     = 3.0
     local maxH     = ctld.gs("maximumHoverHeight") or 12.0
-    local maxDist  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local maxDist  = 5.0  -- tight horizontal window for hover detection
     local players  = CTLDPlayerManager.getInstance()._players
 
     for unitName, playerObj in pairs(players) do
