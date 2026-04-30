@@ -611,6 +611,22 @@ function CTLDCrateManager:checkHoverStatus()
         CTLDCrateManager.getInstance():checkHoverStatus()
     end, {}, timer.getTime() + 1)
 
+    -- Scan for crates destroyed by combat (S_EVENT_DEAD not reliable for statics).
+    -- isOnGround() now checks dcsStatic:isExist(), so a stale SPAWNED crate whose
+    -- static was destroyed will return false — unregister it and refresh nearby menus.
+    for name, crate in pairs(self.crates) do
+        if (crate.state == CTLDCrate.STATE.SPAWNED or crate.state == CTLDCrate.STATE.LANDED)
+            and crate.dcsStatic
+            and not crate.dcsStatic:isExist()
+        then
+            local pos = crate.position
+            self:_unregister(name)
+            ctld.utils.log("INFO",
+                "CTLDCrateManager:checkHoverStatus — unregistered dead static crate: %s", name)
+            if pos then self:_refreshNearbyPlayers(pos) end
+        end
+    end
+
     -- DCS-native cargo detection (always, independent of slingload config)
     self:_checkNativeDCSCargo()
 
