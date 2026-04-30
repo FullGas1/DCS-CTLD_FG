@@ -16537,6 +16537,69 @@ end
 -- F10 Menu section
 -- ============================================================
 
+--- Rebuild the "Request JTAC Equipment" dynamic submenu for playerObj.
+-- Shows available types when landed in a logistics zone; placeholder otherwise.
+-- Called from buildMenuSection and on landing/takeoff/FOB events.
+-- @param playerObj CTLDPlayer
+function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
+    if ctld.gs("JTAC_dropEnabled") == false then return end
+    if not playerObj.isTransport then return end
+    local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
+    if #typeNames == 0 then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root   = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+    local reqSub  = ctld.tr("Request JTAC Equipment")
+    menu:clearBranch({ root, jtacSub, reqSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, jtacSub, reqSub },
+            ctld.tr("Land near logistics to request equipment"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local zm   = CTLDZoneManager.getInstance()
+    local zone = zm:getLogisticZoneAtPoint(transport:getPoint(), playerObj.coalition)
+    if not zone then
+        menu:addCommand({ root, jtacSub, reqSub },
+            ctld.tr("No logistics in range"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    for _, typeName in ipairs(typeNames) do
+        menu:addCommand({ root, jtacSub, reqSub }, typeName,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local z = CTLDZoneManager.getInstance()
+                    :getLogisticZoneAtPoint(t:getPoint(), arg.coalition)
+                if not z then
+                    trigger.action.outTextForGroup(arg.groupId,
+                        ctld.tr("You are not close enough to friendly logistics."), 10)
+                    return
+                end
+                local vehicle = CTLDVehicleSpawner.getInstance()
+                    :spawnJTACVehicleForTransport(arg.typeName, t, z)
+                if vehicle then
+                    trigger.action.outTextForGroup(arg.groupId,
+                        string.format(ctld.tr("%s is ready for pickup."), arg.typeName), 10)
+                end
+            end,
+            { unitName  = playerObj.unitName,
+              groupId   = playerObj.groupId,
+              coalition = playerObj.coalition,
+              typeName  = typeName })
+    end
+    menu:refresh()
+end
+
 --- Build the "JTAC" F10 submenu for a player.
 -- Requires JTAC_jtacStatusF10 = true (configKey gate).
 -- Adds "JTAC Status" command + per-active-JTAC submenus for player coalition.
@@ -16549,41 +16612,12 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     local jtacSub = ctld.tr("JTAC")
     menu:addSubMenu({ root }, jtacSub, { order = 90 })
 
-    -- Request JTAC Equipment: only when landed near logistics and JTAC_dropEnabled
+    -- Request JTAC Equipment: dynamic section rebuilt on landing/takeoff/FOB events
     if ctld.gs("JTAC_dropEnabled") ~= false and playerObj.isTransport then
         local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
         if #typeNames > 0 then
-            local reqSub = ctld.tr("Request JTAC Equipment")
-            menu:addSubMenu({ root, jtacSub }, reqSub)
-            for _, typeName in ipairs(typeNames) do
-                menu:addCommand({ root, jtacSub, reqSub }, typeName,
-                    function(arg)
-                        local transport = Unit.getByName(arg.unitName)
-                        if not (transport and transport:isExist()) then return end
-                        if ctld.utils.inAir(transport) then
-                            trigger.action.outTextForGroup(arg.groupId,
-                                ctld.tr("You must be landed to request JTAC equipment."), 10)
-                            return
-                        end
-                        local zm   = CTLDZoneManager.getInstance()
-                        local zone = zm:getLogisticZoneAtPoint(transport:getPoint(), arg.coalition)
-                        if not zone then
-                            trigger.action.outTextForGroup(arg.groupId,
-                                ctld.tr("You are not close enough to friendly logistics."), 10)
-                            return
-                        end
-                        local vehicle = CTLDVehicleSpawner.getInstance()
-                            :spawnJTACVehicleForTransport(arg.typeName, transport, zone)
-                        if vehicle then
-                            trigger.action.outTextForGroup(arg.groupId,
-                                string.format(ctld.tr("%s is ready for pickup."), arg.typeName), 10)
-                        end
-                    end,
-                    { unitName   = playerObj.unitName,
-                      groupId    = playerObj.groupId,
-                      coalition  = playerObj.coalition,
-                      typeName   = typeName })
-            end
+            menu:addSubMenu({ root, jtacSub }, ctld.tr("Request JTAC Equipment"))
+            self:refreshJtacEquipmentSection(playerObj)
         end
     end
 
@@ -16787,11 +16821,13 @@ function CTLDPlayerManager:init()
     -- When a FOB is deployed, refresh Request Equipment for all grounded players
     -- who may now be within the new FOB logistic zone.
     ed:subscribe("OnFOBDeployed", function(_p)
-        local mgr = CTLDCrateManager.getInstance()
+        local crateMgr = CTLDCrateManager.getInstance()
+        local jtacMgr  = CTLDJTACManager.get()
         for _, playerObj in pairs(self._players) do
             local unit = Unit.getByName(playerObj.unitName)
             if unit and unit:isExist() and not ctld.utils.inAir(unit) then
-                mgr:refreshRequestEquipmentSection(playerObj)
+                crateMgr:refreshRequestEquipmentSection(playerObj)
+                jtacMgr:refreshJtacEquipmentSection(playerObj)
             end
         end
     end)
@@ -16897,6 +16933,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
+        CTLDJTACManager.get():refreshJtacEquipmentSection(captured)
     end, nil, timer.getTime() + 1)
 end
 
@@ -16908,6 +16945,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDJTACManager.get():refreshJtacEquipmentSection(playerObj)
 end
 
 --- Register a menu section contributed by a manager.
