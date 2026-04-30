@@ -188,6 +188,11 @@ function CTLDCrateManager.getInstance()
         timer.scheduleFunction(function()
             CTLDCrateManager.getInstance():checkHoverStatus()
         end, {}, timer.getTime() + 1)
+        -- Detect crates destroyed by combat (S_EVENT_DEAD on the static object).
+        local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
+        if ok and bridge then
+            bridge:register(_cmInstance, world.event.S_EVENT_DEAD, "onCrateDead")
+        end
         -- Pre-process spawnableCrates config (two-pass: singleCrates + auto singleTypeSets + mixedSets validation)
         _cmInstance:_processSpawnableCrates()
     end
@@ -1006,6 +1011,25 @@ local _log = ctld.utils.log
 
 function CTLDCrateManager:_register(crate)
     self.crates[crate.crateName] = crate
+end
+
+--- S_EVENT_DEAD handler: remove a crate destroyed by combat from the registry.
+-- Without this, the crate remains in self.crates with state SPAWNED, causing
+-- getCratesInRange to count it and the Unpack menu to show wrong counts (e.g. 3/3
+-- when only 2 physical crates exist).
+function CTLDCrateManager:onCrateDead(event)
+    if not event or not event.initiator then return end
+    local ok, name = pcall(function() return event.initiator:getName() end)
+    if not ok or not name then return end
+    local crate = self.crates[name]
+    if not crate then return end
+    local pos = crate.dcsStatic and crate.dcsStatic:isExist()
+        and crate.dcsStatic:getPoint() or nil
+    self:_unregister(name)
+    ctld.utils.log("INFO", "CTLDCrateManager:onCrateDead — crate destroyed by combat: %s", name)
+    if pos then
+        self:_refreshNearbyPlayers(pos)
+    end
 end
 
 function CTLDCrateManager:_unregister(crateName)
