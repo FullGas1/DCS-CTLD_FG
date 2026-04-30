@@ -1,8 +1,7 @@
 ---@meta
 ---@diagnostic disable
 
--- ====================================================================================================
--- Start : lib/class.lua
+-- ===== Start: lib/class.lua =====
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -39,10 +38,9 @@ function class(base)
     end
     return cls
 end
+-- ===== End: lib/class.lua =====
 
--- End : lib/class.lua
--- ====================================================================================================
--- Start : CTLD_config.lua
+-- ===== Start: CTLD_config.lua =====
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -1186,10 +1184,9 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
+-- ===== End: CTLD_config.lua =====
 
--- End : CTLD_config.lua
--- ====================================================================================================
--- Start : CTLD_i18n.lua
+-- ===== Start: CTLD_i18n.lua =====
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1407,10 +1404,9 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
+-- ===== End: CTLD_i18n.lua =====
 
--- End : CTLD_i18n.lua
--- ====================================================================================================
--- Start : CTLD_i18n_en.lua
+-- ===== Start: CTLD_i18n_en.lua =====
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1816,10 +1812,9 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+-- ===== End: CTLD_i18n_en.lua =====
 
--- End : CTLD_i18n_en.lua
--- ====================================================================================================
--- Start : CTLD_i18n_fr.lua
+-- ===== Start: CTLD_i18n_fr.lua =====
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2221,10 +2216,9 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = "→ Page suivante"
+-- ===== End: CTLD_i18n_fr.lua =====
 
--- End : CTLD_i18n_fr.lua
--- ====================================================================================================
--- Start : CTLD_i18n_es.lua
+-- ===== Start: CTLD_i18n_es.lua =====
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2627,10 +2621,9 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = "→ Página siguiente"
+-- ===== End: CTLD_i18n_es.lua =====
 
--- End : CTLD_i18n_es.lua
--- ====================================================================================================
--- Start : CTLD_i18n_ko.lua
+-- ===== Start: CTLD_i18n_ko.lua =====
 --[[
     CTLD — Korean dictionary
     Translation version: 1.9
@@ -2880,10 +2873,9 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+-- ===== End: CTLD_i18n_ko.lua =====
 
--- End : CTLD_i18n_ko.lua
--- ====================================================================================================
--- Start : CTLD_utils.lua
+-- ===== Start: CTLD_utils.lua =====
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4902,10 +4894,9 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
+-- ===== End: CTLD_utils.lua =====
 
--- End : CTLD_utils.lua
--- ====================================================================================================
--- Start : CTLD_menu.lua
+-- ===== Start: CTLD_menu.lua =====
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5435,10 +5426,9 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
+-- ===== End: CTLD_menu.lua =====
 
--- End : CTLD_menu.lua
--- ====================================================================================================
--- Start : lib/CTLD_objectRegistry.lua
+-- ===== Start: lib/CTLD_objectRegistry.lua =====
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5860,10 +5850,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
+-- ===== End: lib/CTLD_objectRegistry.lua =====
 
--- End : lib/CTLD_objectRegistry.lua
--- ====================================================================================================
--- Start : lib/CTLDParachuteEffect.lua
+-- ===== Start: lib/CTLDParachuteEffect.lua =====
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5915,10 +5904,9 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
+-- ===== End: lib/CTLDParachuteEffect.lua =====
 
--- End : lib/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : CTLD_sceneManager.lua
+-- ===== Start: CTLD_sceneManager.lua =====
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6340,10 +6328,9 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
+-- ===== End: CTLD_sceneManager.lua =====
 
--- End : CTLD_sceneManager.lua
--- ====================================================================================================
--- Start : CTLD_zone.lua
+-- ===== Start: CTLD_zone.lua =====
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7393,10 +7380,9 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
+-- ===== End: CTLD_zone.lua =====
 
--- End : CTLD_zone.lua
--- ====================================================================================================
--- Start : CTLD_troop.lua
+-- ===== Start: CTLD_troop.lua =====
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -8907,10 +8893,9 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
+-- ===== End: CTLD_troop.lua =====
 
--- End : CTLD_troop.lua
--- ====================================================================================================
--- Start : CTLD_crate.lua
+-- ===== Start: CTLD_crate.lua =====
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -11075,10 +11060,9 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
+-- ===== End: CTLD_crate.lua =====
 
--- End : CTLD_crate.lua
--- ====================================================================================================
--- Start : CTLD_vehicle.lua
+-- ===== Start: CTLD_vehicle.lua =====
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -11222,6 +11206,14 @@ function CTLDVehicleSpawner:init()
         if inst then inst:_checkPackingLanding() end
         return t + 3
     end, nil, timer.getTime() + 3)
+
+    -- Hover hint: notify player to land when hovering in slingload window above a WAITING vehicle
+    self._hoverHintSent = {}  -- unitName → last hint time
+    timer.scheduleFunction(function(_, t)
+        local inst = CTLDVehicleSpawner._instance
+        if inst then inst:_checkVehicleHoverHint() end
+        return t + 5
+    end, nil, timer.getTime() + 5)
 
     -- Auto-refresh Pack Vehicle menu when ground units appear or disappear nearby
     local ed = EventDispatcher.getInstance()
@@ -11977,6 +11969,45 @@ function CTLDVehicleSpawner:_checkPackingLanding()
     end
 end
 
+--- Periodic hint: send "Land to load vehicles" when a canCarryVehicles player hovers
+-- in the slingload altitude window (minimumHoverHeight..maximumHoverHeight) above a WAITING vehicle.
+-- Called every 5 s; per-player cooldown of 30 s.
+function CTLDVehicleSpawner:_checkVehicleHoverHint()
+    local now      = timer.getTime()
+    local cooldown = 30
+    local minH     = ctld.gs("minimumHoverHeight") or 7.5
+    local maxH     = ctld.gs("maximumHoverHeight") or 12.0
+    local maxDist  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local players  = CTLDPlayerManager.getInstance()._players
+
+    for unitName, playerObj in pairs(players) do
+        if playerObj.canCarryVehicles then
+            local unit = Unit.getByName(unitName)
+            if unit and unit:isExist() and ctld.utils.inAir(unit) then
+                local lastHint = self._hoverHintSent[unitName] or 0
+                if (now - lastHint) >= cooldown then
+                    local tPos = unit:getPoint()
+                    for _, veh in pairs(self._vehicles) do
+                        if veh:getState() == CTLDVehicle.STATE.WAITING
+                            and veh.unit and veh.unit:isExist() then
+                            local vPos  = veh.unit:getPoint()
+                            local dist2d = ctld.utils.getDistance(
+                                "CTLDVehicleSpawner:_checkVehicleHoverHint", tPos, vPos)
+                            local altDiff = tPos.y - vPos.y
+                            if dist2d <= maxDist and altDiff >= minH and altDiff <= maxH then
+                                self._hoverHintSent[unitName] = now
+                                trigger.action.outTextForGroup(playerObj.groupId,
+                                    ctld.tr("Land to load vehicles"), 8)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 --- Return packable vehicles within maximumDistancePackableUnitsSearch of a transport.
 -- Searches ground units of the same coalition; matches DCS typeName against spawnableCrates[*].unit.
 -- @param transport DCS Unit
@@ -12341,10 +12372,9 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
+-- ===== End: CTLD_vehicle.lua =====
 
--- End : CTLD_vehicle.lua
--- ====================================================================================================
--- Start : CTLD_fob.lua
+-- ===== Start: CTLD_fob.lua =====
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -12844,10 +12874,9 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
+-- ===== End: CTLD_fob.lua =====
 
--- End : CTLD_fob.lua
--- ====================================================================================================
--- Start : CTLD_aasystem.lua
+-- ===== Start: CTLD_aasystem.lua =====
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13544,10 +13573,9 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
+-- ===== End: CTLD_aasystem.lua =====
 
--- End : CTLD_aasystem.lua
--- ====================================================================================================
--- Start : CTLD_beacon.lua
+-- ===== Start: CTLD_beacon.lua =====
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -14012,44 +14040,53 @@ end
 -- @param player    string playerName
 -- @param transport Unit
 function CTLDBeaconManager:toggleLayer(player, transport)
-        if not self:_checkBeaconLayerEnabled() then return end
+    if not ctld.gs("beaconLayerEnabled") then return end
 
-        local unitName = player:getPlayerName()
-        local state    = self._layerState[unitName]
-        local enabled  = state and state.enabled or false
+    local coalitionId = transport:getCoalition()
+    if not self._layerState[player] then
+        self._layerState[player] = { enabled = false, marks = {} }
+    end
 
-        -- toggle
-        enabled = not enabled
-        self:_setLayerState(unitName, enabled)
+    local state    = self._layerState[player]
+    local previous = state.enabled
+    state.enabled  = not state.enabled
 
-        -- refresh all beacons for this player
-        local beaconsDisplayed = self:_getBeaconsForPlayer(unitName)
-        for _, beacon in ipairs(beaconsDisplayed) do
-            if enabled then
-                beacon:showIcons(unitName)
-            else
-                beacon:hideIcons(unitName)
+    local beaconsDisplayed = {}
+    if state.enabled then
+        for _, beacon in pairs(self._beacons) do
+            if beacon.coalitionId == coalitionId then
+                local mid = self:_nextMark()
+                self:_drawBeaconIcon(beacon, mid)
+                state.marks[#state.marks + 1] = { beaconName = beacon.beaconName, markId = mid }
+                beaconsDisplayed[#beaconsDisplayed + 1] = {
+                    beaconName = beacon.beaconName, name = beacon.name,
+                    position   = beacon.position, mgrsCoords = beacon:mgrsCoords(),
+                    frequencies= { vhf=beacon.vhf, uhf=beacon.uhf, fm=beacon.fm },
+                    markId     = mid,
+                }
             end
         end
-
-        -- notify
-        local action = enabled and "activated" or "deactivated"
-        ctld.utils.log("INFO", "Beacon layer %s for %s", action, unitName)
-        outTextForGroup(unitName,
-            string.format("Beacon Layer %s (%d beacons displayed)",
-                action, #beaconsDisplayed),
-            10)
-
-        EventDispatcher.getInstance():publish("OnBeaconLayerToggled", {
-            unitName       = unitName,
-            enabled        = enabled,
-            totalBeacons   = #beaconsDisplayed,
-            totalBeaconsDisplayed = #beaconsDisplayed,
-            timestamp      = timer.getAbsTime(),
-        })
-
-        self:_rebuildBeaconBranch(unitName, transport)
+        trigger.action.outTextForGroup(transport:getGroup():getID(),
+            ctld.tr("Beacon layer enabled. %1 beacon(s).", #beaconsDisplayed), 10)
+    else
+        for _, mark in ipairs(state.marks) do self:_removeMarkId(mark.markId) end
+        state.marks = {}
+        trigger.action.outTextForGroup(transport:getGroup():getID(),
+            ctld.tr("Beacon layer disabled."), 10)
     end
+
+    EventDispatcher.getInstance():publish("OnBeaconLayerToggled", {
+        player            = player,
+        playerUnit        = transport,
+        coalition         = coalitionId,
+        previousState     = previous,
+        newState          = state.enabled,
+        action            = state.enabled and "enabled" or "disabled",
+        beaconsDisplayed  = beaconsDisplayed,
+        totalBeaconsDisplayed = #beaconsDisplayed,
+        timestamp         = timer.getAbsTime(),
+    })
+end
 
 -- ============================================================
 -- Refresh schedule
@@ -14246,66 +14283,6 @@ end
 -- F10 Menu section
 -- ============================================================
 
---- Internal: add all Beacon commands to an already-existing "Radio Beacons" submenu node.
--- Labels reflect current per-player state: [activate] when layer OFF, [deactivate] when ON.
--- @param menu     ctld.Menu
--- @param unitName string  player/unit key
-function CTLDBeaconManager:_addBeaconCommands(menu, unitName)
-    local root      = ctld.tr("CTLD")
-    local beaconSub = ctld.tr("Radio Beacons")
-
-    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
-        end,
-        { unitName = unitName })
-
-    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
-        end,
-        { unitName = unitName })
-
-    menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():listBeacons(transport) end
-        end,
-        { unitName = unitName })
-
-    -- Beacon layer toggle — label shows the action that will be taken on click.
-    if ctld.gs("beaconLayerEnabled") then
-        local state  = self._layerState[unitName]
-        local layOn  = state and state.enabled or false
-        local action = layOn and ctld.tr("deactivate") or ctld.tr("activate")
-        local label  = string.format("Beacon Layer [%s]", action)
-        menu:addCommand({ root, beaconSub }, label,
-            function(arg)
-                local transport = Unit.getByName(arg.unitName)
-                if transport then
-                    CTLDBeaconManager.getInstance():toggleLayer(arg.unitName, transport)
-                end
-            end,
-            { unitName = unitName })
-    end
-end
-
---- Internal: clear the Beacon branch commands and re-add them with current state labels.
--- Call after toggleLayer to update the layer toggle label.
--- @param unitName  string  player/unit key
--- @param transport DCS Unit object
-function CTLDBeaconManager:_rebuildBeaconBranch(unitName, transport)
-    local menu = ctld.MenuManager:getInstance():getMenuByUnitName(unitName)
-    if not menu then return end
-    local root      = ctld.tr("CTLD")
-    local beaconSub = ctld.tr("Radio Beacons")
-    menu:clearBranch({ root, beaconSub })
-    self:_addBeaconCommands(menu, unitName)
-    menu:refresh()
-end
-
 --- Build the "Radio Beacons" F10 submenu for a player.
 -- Requires enabledRadioBeaconDrop = true (configKey gate) AND isTransport.
 -- @param playerObj CTLDPlayer
@@ -14317,7 +14294,26 @@ function CTLDBeaconManager:buildMenuSection(playerObj, menu)
     local beaconSub = ctld.tr("Radio Beacons")
     menu:addSubMenu({ root }, beaconSub, { order = 60 })
 
-    self:_addBeaconCommands(menu, playerObj.unitName)
+    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
+        end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
+        end,
+        { unitName = playerObj.unitName })
+
+    menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
+        function(arg)
+            local transport = Unit.getByName(arg.unitName)
+            if transport then CTLDBeaconManager.getInstance():listBeacons(transport) end
+        end,
+        { unitName = playerObj.unitName })
 end
 
 -- ============================================================
@@ -14401,10 +14397,9 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
+-- ===== End: CTLD_beacon.lua =====
 
--- End : CTLD_beacon.lua
--- ====================================================================================================
--- Start : CTLD_recon.lua
+-- ===== Start: CTLD_recon.lua =====
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -15281,10 +15276,9 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root }, reconSub, { order = 70 })
     self:_addReconCommands(menu, playerObj.unitName)
 end
+-- ===== End: CTLD_recon.lua =====
 
--- End : CTLD_recon.lua
--- ====================================================================================================
--- Start : CTLD_jtac.lua
+-- ===== Start: CTLD_jtac.lua =====
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -16640,10 +16634,9 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
+-- ===== End: CTLD_jtac.lua =====
 
--- End : CTLD_jtac.lua
--- ====================================================================================================
--- Start : CTLD_player.lua
+-- ===== Start: CTLD_player.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -17100,10 +17093,9 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
+-- ===== End: CTLD_player.lua =====
 
--- End : CTLD_player.lua
--- ====================================================================================================
--- Start : CTLD_core.lua
+-- ===== Start: CTLD_core.lua =====
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -17510,10 +17502,9 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
+-- ===== End: CTLD_core.lua =====
 
--- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
+-- ===== Start: scenes/CTLD_farpScene.lua =====
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -17614,10 +17605,9 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+-- ===== End: scenes/CTLD_farpScene.lua =====
 
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
+-- ===== Start: scenes/CTLD_fobScene.lua =====
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -17717,10 +17707,9 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+-- ===== End: scenes/CTLD_fobScene.lua =====
 
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
+-- ===== Start: scenes/CTLD_mineFieldScene.lua =====
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -17985,10 +17974,9 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+-- ===== End: scenes/CTLD_mineFieldScene.lua =====
 
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : compat/legacy_api.lua
+-- ===== Start: compat/legacy_api.lua =====
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -18167,10 +18155,9 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
+-- ===== End: compat/legacy_api.lua =====
 
--- End : compat/legacy_api.lua
--- ====================================================================================================
--- Start : CTLD_userConfig.lua
+-- ===== Start: CTLD_userConfig.lua =====
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -19136,5 +19123,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
+-- ===== End: CTLD_userConfig.lua =====
 
--- End : CTLD_userConfig.lua

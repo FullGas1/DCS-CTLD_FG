@@ -142,6 +142,14 @@ function CTLDVehicleSpawner:init()
         return t + 3
     end, nil, timer.getTime() + 3)
 
+    -- Hover hint: notify player to land when hovering in slingload window above a WAITING vehicle
+    self._hoverHintSent = {}  -- unitName → last hint time
+    timer.scheduleFunction(function(_, t)
+        local inst = CTLDVehicleSpawner._instance
+        if inst then inst:_checkVehicleHoverHint() end
+        return t + 5
+    end, nil, timer.getTime() + 5)
+
     -- Auto-refresh Pack Vehicle menu when ground units appear or disappear nearby
     local ed = EventDispatcher.getInstance()
     ed:subscribe("OnGroundUnitSpawned", function(payload)
@@ -892,6 +900,45 @@ function CTLDVehicleSpawner:_checkPackingLanding()
             self._prevInAir[unitName] = inAirNow
         else
             self._prevInAir[unitName] = nil
+        end
+    end
+end
+
+--- Periodic hint: send "Land to load vehicles" when a canCarryVehicles player hovers
+-- in the slingload altitude window (minimumHoverHeight..maximumHoverHeight) above a WAITING vehicle.
+-- Called every 5 s; per-player cooldown of 30 s.
+function CTLDVehicleSpawner:_checkVehicleHoverHint()
+    local now      = timer.getTime()
+    local cooldown = 30
+    local minH     = ctld.gs("minimumHoverHeight") or 7.5
+    local maxH     = ctld.gs("maximumHoverHeight") or 12.0
+    local maxDist  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local players  = CTLDPlayerManager.getInstance()._players
+
+    for unitName, playerObj in pairs(players) do
+        if playerObj.canCarryVehicles then
+            local unit = Unit.getByName(unitName)
+            if unit and unit:isExist() and ctld.utils.inAir(unit) then
+                local lastHint = self._hoverHintSent[unitName] or 0
+                if (now - lastHint) >= cooldown then
+                    local tPos = unit:getPoint()
+                    for _, veh in pairs(self._vehicles) do
+                        if veh:getState() == CTLDVehicle.STATE.WAITING
+                            and veh.unit and veh.unit:isExist() then
+                            local vPos  = veh.unit:getPoint()
+                            local dist2d = ctld.utils.getDistance(
+                                "CTLDVehicleSpawner:_checkVehicleHoverHint", tPos, vPos)
+                            local altDiff = tPos.y - vPos.y
+                            if dist2d <= maxDist and altDiff >= minH and altDiff <= maxH then
+                                self._hoverHintSent[unitName] = now
+                                trigger.action.outTextForGroup(playerObj.groupId,
+                                    ctld.tr("Land to load vehicles"), 8)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end
