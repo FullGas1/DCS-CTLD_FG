@@ -404,6 +404,25 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
         return
     end
 
+    -- Guard: enforce per-type vehicle capacity limit (menu_ctld only;
+    -- dcs_native capacity is managed by DCS itself).
+    if method == "menu_ctld" then
+        local limits      = ctld.gs("internalCargoLimits") or {}
+        local maxVehicles = limits[transport:getTypeName()] or 1
+        local loaded      = self:findLoadedVehicles(transport)
+        if #loaded >= maxVehicles then
+            local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
+            if pObj then
+                trigger.action.outTextForGroup(pObj.groupId,
+                    string.format(ctld.tr("Cannot load more vehicles (max: %d)."), maxVehicles), 8)
+            end
+            ctld.utils.log("WARNING",
+                "CTLDVehicleSpawner:loadVehicle — transport %s at vehicle capacity (%d)",
+                transport:getName(), maxVehicles)
+            return
+        end
+    end
+
     local unitPos = vehicle.unit and vehicle.unit:getPoint() or transport:getPoint()
 
     -- Suspend JTAC lasing if this vehicle is a registered JTAC (any load method).
@@ -442,6 +461,11 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     vehicle.loadTransportName = transport:getName()
     vehicle.loadTime          = timer.getTime()
     vehicle:setState(CTLDVehicle.STATE.LOADED)
+
+    -- Update DCS internal cargo weight (menu_ctld only; dcs_native is physical).
+    if method == "menu_ctld" then
+        self:_updateVehicleCargo(transport:getName())
+    end
 
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
         vehicleId            = vehicle.id,
@@ -531,6 +555,11 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     -- Re-register reverse lookup
     if unloadedUnit then
         self._unitToVehicle[unloadedUnit:getName()] = vehicle.id
+    end
+
+    -- Update DCS internal cargo weight (dcs_native weight is managed by DCS itself).
+    if method ~= "dcs_native" then
+        self:_updateVehicleCargo(transport:getName())
     end
 
     -- Resume JTAC lasing if this vehicle is a registered JTAC.
@@ -1264,6 +1293,28 @@ function CTLDVehicleSpawner:findLoadedVehicles(transport)
         end
     end
     return result
+end
+
+--- Compute total weight of menu_ctld-loaded vehicles on a transport and
+--- apply it to the DCS internal cargo weight so the aircraft cannot take off
+--- when overloaded.  dcs_native vehicles are excluded: DCS already manages
+--- their physical weight internally.
+--- @param transportUnitName string
+function CTLDVehicleSpawner:_updateVehicleCargo(transportUnitName)
+    local weights = ctld.gs("vehiclesWeight") or {}
+    local total   = 0
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.LOADED
+            and veh.loadTransportName == transportUnitName
+            and veh.loadMethod == "menu_ctld" then
+            local w = weights[veh.vehicleType] or 2500
+            total   = total + w
+        end
+    end
+    trigger.action.setUnitInternalCargo(transportUnitName, total)
+    ctld.utils.log("INFO",
+        "CTLDVehicleSpawner: setUnitInternalCargo %s = %d kg (vehicles)",
+        transportUnitName, total)
 end
 
 --- Rebuild the "Load / Extract Vehicles" dynamic submenu for playerObj.

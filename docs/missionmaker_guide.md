@@ -1236,6 +1236,8 @@ CTLD supports two vehicle operations: **requesting** a vehicle at a logistics zo
 
 > **Virtual slingload not supported for whole vehicles.** Only aircraft listed in `vehicleTransportEnabled` can transport whole vehicles (via DCS native cargo bay or F10 menu). All other aircraft (e.g. UH-1H) must use crates: pack the vehicle into crates, transport by slingload or menu load, then unpack at destination (see §7 and Flow 1 in the transport diagram).
 
+> **Cargo capacity limits (menu load).** When loading via the F10 menu (`menu_ctld` method), CTLD enforces two limits. **Count:** the number of vehicles loaded simultaneously is capped by `internalCargoLimits[transportType]` (default: 1). If the limit is reached the player receives a message and the load is refused. **Weight:** after each load or unload, CTLD calls `trigger.action.setUnitInternalCargo` with the sum of `vehiclesWeight[vehicleType]` (default: 2500 kg per vehicle), preventing take-off when overloaded. These limits do **not** apply to DCS-native loading (C-130, Il-76 cargo bay): DCS manages weight and capacity natively in that case.
+
 #### Unload vehicle
 **Utility:** Re-spawns the carried vehicle at the current position.
 **How it works:** Vehicle group is spawned behind the transport (dynamic cargo aircraft) or at a fixed offset.
@@ -1260,6 +1262,8 @@ CTLDVehicleSpawner.getInstance():packVehicle(transportUnitName, vehicleUnitName,
 | `maximumDistancePackableUnitsSearch` | `200` | Max distance (m) from transport to search for packable vehicles |
 | `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports |
 | `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports |
+| `internalCargoLimits` | `{ ["Mi-8MT"]=2, ["CH-47Fbl1"]=8, ... }` | Max number of vehicles (menu load) per transport DCS type name. Default: 1 for unlisted types. Also caps slingload crates count. |
+| `vehiclesWeight` | `{ ["M1045 HMMWV TOW"]=3220, ... }` | Weight (kg) per vehicle type used for `setUnitInternalCargo` after menu load/unload. Default: 2500 kg for unlisted types. |
 
 ### 11.4 Events
 

@@ -361,6 +361,7 @@ ctld.i18n["fr"]["Vehicle no longer available."] = "Le véhicule n'est plus dispo
 ctld.i18n["fr"]["Land to unload vehicles"] = "Atterrissez pour décharger des véhicules"
 ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
 ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
+ctld.i18n["fr"]["Cannot load more vehicles (max: %d)."] = "Impossible de charger davantage de véhicules (max : %d)."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"

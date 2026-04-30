@@ -365,6 +365,7 @@ ctld.i18n["en"]["Vehicle no longer available."] = "Vehicle no longer available."
 ctld.i18n["en"]["Land to unload vehicles"] = "Land to unload vehicles"
 ctld.i18n["en"]["No vehicle loaded."] = "No vehicle loaded."
 ctld.i18n["en"]["Vehicle no longer loaded."] = "Vehicle no longer loaded."
+ctld.i18n["en"]["Cannot load more vehicles (max: %d)."] = "Cannot load more vehicles (max: %d)."
 
 --- List Nearby Crates
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
