@@ -11005,21 +11005,25 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
     local smokeSub = ctld.tr("Smoke")
     menu:addSubMenu({ root }, smokeSub, { order = 80 })
 
-    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Red Smoke"),
-        function(arg) ctld.utils.log("INFO", "Drop Red Smoke " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName, color = "red" })
+    local function doSmoke(arg)
+        local unit = Unit.getByName(arg.unitName)
+        if not (unit and unit:isExist()) then return end
+        local pt  = unit:getPoint()
+        local pos = { x = pt.x, y = land.getHeight({ x = pt.x, y = pt.z }), z = pt.z }
+        trigger.action.smoke(pos, arg.color)
+        trigger.action.outTextForCoalition(unit:getCoalition(),
+            string.format(ctld.tr("%1 dropped %2 smoke."), arg.unitName, arg.colorName), 10)
+        ctld.utils.log("INFO", "CTLDCrateManager:dropSmoke — %s %s", arg.unitName, arg.colorName)
+    end
 
-    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Blue Smoke"),
-        function(arg) ctld.utils.log("INFO", "Drop Blue Smoke " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName, color = "blue" })
-
-    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Orange Smoke"),
-        function(arg) ctld.utils.log("INFO", "Drop Orange Smoke " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName, color = "orange" })
-
-    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Green Smoke"),
-        function(arg) ctld.utils.log("INFO", "Drop Green Smoke " .. tostring(arg.unitName)) end,
-        { unitName = playerObj.unitName, color = "green" })
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Red Smoke"),    doSmoke,
+        { unitName = playerObj.unitName, color = trigger.smokeColor.Red,    colorName = "RED" })
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Blue Smoke"),   doSmoke,
+        { unitName = playerObj.unitName, color = trigger.smokeColor.Blue,   colorName = "BLUE" })
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Orange Smoke"), doSmoke,
+        { unitName = playerObj.unitName, color = trigger.smokeColor.Orange, colorName = "ORANGE" })
+    menu:addCommand({ root, smokeSub }, ctld.tr("Drop Green Smoke"),  doSmoke,
+        { unitName = playerObj.unitName, color = trigger.smokeColor.Green,  colorName = "GREEN" })
 end
 
 -- ============================================================
