@@ -12168,14 +12168,20 @@ function CTLDVehicleSpawner:findPackableVehicles(transport)
     local groups = coalition.getGroups(coa, Group.Category.GROUND) or {}
     for _, grp in ipairs(groups) do
         for _, unit in ipairs(grp:getUnits() or {}) do
-            if unit:isExist() then
+            -- Use Unit.getByName for a fresh registry lookup instead of unit:isExist()
+            -- on a stale group-iteration reference.  coalition.getGroups() may still
+            -- return groups containing units that were destroy()-ed in the same tick;
+            -- Unit.getByName returns nil for such units immediately after destroy().
+            local uName   = unit:getName()
+            local liveRef = Unit.getByName(uName)
+            if liveRef and liveRef:isExist() then
                 local dist = ctld.utils.getDistance(
-                    "CTLDVehicleSpawner:findPackableVehicles", tPos, unit:getPoint())
+                    "CTLDVehicleSpawner:findPackableVehicles", tPos, liveRef:getPoint())
                 if dist <= maxDist then
                     local descriptor = CTLDCrateManager.getInstance()
-                        :findDescriptorByUnitType(unit:getTypeName())
+                        :findDescriptorByUnitType(liveRef:getTypeName())
                     if descriptor then
-                        table.insert(result, { unitName = unit:getName(), descriptor = descriptor })
+                        table.insert(result, { unitName = uName, descriptor = descriptor })
                     end
                 end
             end
