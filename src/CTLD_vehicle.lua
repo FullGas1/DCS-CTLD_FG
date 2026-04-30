@@ -674,6 +674,84 @@ function CTLDVehicleSpawner:_checkNativeLoading()
 end
 
 -- ============================================================
+-- INIT-D — MM vehicle detection
+-- ============================================================
+
+--- Register a single live DCS Unit as a WAITING CTLDVehicle if its type
+-- has a spawnableCrates descriptor and is not already tracked.
+-- Called both at startup (scanMMVehicles) and on S_EVENT_BIRTH (late activation).
+-- @param unit  DCS Unit
+function CTLDVehicleSpawner:_registerMMVehicleUnit(unit)
+    if not (unit and unit:isExist()) then return end
+    local unitName = unit:getName()
+    if self._unitToVehicle[unitName] then return end  -- already tracked
+
+    local typeName   = unit:getTypeName()
+    local descriptor = CTLDCrateManager.getInstance():findDescriptorByUnitType(typeName)
+    if not descriptor then return end  -- not a CTLD-known vehicle type
+
+    self._vehicleCount = self._vehicleCount + 1
+    local id = string.format("veh_mm_%d", self._vehicleCount)
+
+    local grp = unit:getGroup()
+    local spawnData = {
+        groupName   = grp and grp:getName() or unitName,
+        unitName    = unitName,
+        vehicleType = typeName,
+        coalitionId = unit:getCoalition(),
+        countryId   = unit:getCountry(),
+    }
+
+    local vehicle = CTLDVehicle:new({
+        id          = id,
+        vehicleType = typeName,
+        unit        = unit,
+        spawnData   = spawnData,
+    })
+
+    self._vehicles[id]          = vehicle
+    self._unitToVehicle[unitName] = id
+
+    ctld.utils.log("INFO",
+        "CTLDVehicleSpawner: INIT-D registered MM vehicle id=%s type=%s unit=%s",
+        id, typeName, unitName)
+end
+
+--- INIT-D: scan all active ground groups for MM-placed vehicles with CTLD descriptors.
+-- Only registers units that are alive (isExist=true) — late-activation groups are skipped.
+function CTLDVehicleSpawner:scanMMVehicles()
+    local sides = { coalition.side.RED, coalition.side.BLUE }
+    local count = 0
+    for _, side in ipairs(sides) do
+        local groups = coalition.getGroups(side, Group.Category.GROUND) or {}
+        for _, grp in ipairs(groups) do
+            for _, unit in ipairs(grp:getUnits() or {}) do
+                if unit:isExist() then
+                    local before = self._vehicleCount
+                    self:_registerMMVehicleUnit(unit)
+                    if self._vehicleCount > before then count = count + 1 end
+                end
+            end
+        end
+    end
+    ctld.utils.log("INFO", "CTLDVehicleSpawner: INIT-D complete — %d MM vehicle(s) registered", count)
+end
+
+--- S_EVENT_BIRTH handler: register late-activation MM ground vehicles.
+-- Only acts on GROUND category units with a CTLD descriptor.
+function CTLDVehicleSpawner:onBirth(event)
+    if not event or not event.initiator then return end
+    local ok, unit = pcall(function() return event.initiator end)
+    if not ok or not unit then return end
+    local okCat, cat = pcall(function() return Object.getCategory(unit) end)
+    if not okCat or cat ~= Object.Category.UNIT then return end
+    local okGrp, grp = pcall(function() return unit:getGroup() end)
+    if not okGrp or not grp then return end
+    if grp:getCategory() ~= Group.Category.GROUND then return end
+    self:_registerMMVehicleUnit(unit)
+end
+
+-- ============================================================
 -- onDead  (S_EVENT_DEAD handler)
 -- ============================================================
 

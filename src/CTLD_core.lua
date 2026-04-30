@@ -301,8 +301,8 @@ end
 -- ============================================================
 -- CTLDCoreManager  (singleton — startup orchestrator)
 -- ============================================================
--- Runs INIT-B (MM crates) and INIT-C (MM JTACs) at startup.
--- Registers late-activation handlers for crates and JTACs in the bridge.
+-- Runs INIT-B (MM crates), INIT-C (MM JTACs) and INIT-D (MM vehicles) at startup.
+-- Registers late-activation handlers for crates, JTACs and vehicles in the bridge.
 --
 -- INIT-A (AI transports) is deferred to CTLDTransportManager (not yet implemented).
 
@@ -325,8 +325,9 @@ function CTLDCoreManager:init()
     local bridge = CTLDDCSEventBridge.getInstance()
 
     -- Register late-activation handlers
-    bridge:register(CTLDCrateManager.getInstance(), world.event.S_EVENT_BIRTH, "onBirth")
-    bridge:register(CTLDJTACManager.get(),          world.event.S_EVENT_BIRTH, "onBirth")
+    bridge:register(CTLDCrateManager.getInstance(),    world.event.S_EVENT_BIRTH, "onBirth")
+    bridge:register(CTLDJTACManager.get(),             world.event.S_EVENT_BIRTH, "onBirth")
+    bridge:register(CTLDVehicleSpawner.getInstance(),  world.event.S_EVENT_BIRTH, "onBirth")
 
     -- Register land/takeoff for dynamic troop menu rebuild
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
@@ -338,10 +339,13 @@ function CTLDCoreManager:init()
     -- INIT-C: detect JTAC groups pre-placed by the mission maker
     self:_initMMJTACs()
 
+    -- INIT-D: detect ground vehicles placed by the mission maker
+    CTLDVehicleSpawner.getInstance():scanMMVehicles()
+
     -- INIT-A: detect AI transport units (TODO — requires CTLDTransportManager)
     -- self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-B + INIT-C)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-B + INIT-C + INIT-D)")
 end
 
 -- INIT-B -----------------------------------------------------------
