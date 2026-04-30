@@ -11804,6 +11804,9 @@ end
 
 --- S_EVENT_BIRTH handler: register late-activation MM ground vehicles.
 -- Only acts on GROUND category units with a CTLD descriptor.
+-- If the unit name matches an existing vehicle's spawnData.unitName, this is a
+-- post-unload respawn (dynAdd 1-frame delay prevented _unitToVehicle update in
+-- unloadVehicle) — update the existing vehicle ref instead of creating a new one.
 function CTLDVehicleSpawner:onBirth(event)
     if not event or not event.initiator then return end
     local ok, unit = pcall(function() return event.initiator end)
@@ -11813,6 +11816,22 @@ function CTLDVehicleSpawner:onBirth(event)
     local okGrp, grp = pcall(function() return unit:getGroup() end)
     if not okGrp or not grp then return end
     if grp:getCategory() ~= Group.Category.GROUND then return end
+
+    local unitName = unit:getName()
+
+    -- Check if this is a respawn of an already-tracked vehicle (post-unload 1-frame delay fix).
+    for _, veh in pairs(self._vehicles) do
+        if veh.spawnData and veh.spawnData.unitName == unitName then
+            veh.unit = unit
+            self._unitToVehicle[unitName] = veh.id
+            ctld.utils.log("INFO",
+                "CTLDVehicleSpawner:onBirth — updated unit ref for existing vehicle id=%s unit=%s",
+                veh.id, unitName)
+            return
+        end
+    end
+
+    -- Not a known vehicle — attempt MM registration.
     self:_registerMMVehicleUnit(unit)
 end
 
