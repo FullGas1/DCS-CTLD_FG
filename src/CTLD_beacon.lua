@@ -325,9 +325,34 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
         return nil
     end
 
-    local point      = overridePosition or transport:getPoint()
     local coalitionId= transport:getCoalition()
     local countryId  = transport:getCountry()
+
+    -- When the transport is on the ground, offset the beacon behind the aircraft
+    -- to avoid spawning the ground unit inside the aircraft's collision box.
+    local point
+    if overridePosition then
+        point = overridePosition
+    else
+        local tPos = transport:getPoint()
+        if not ctld.utils.inAir(transport) then
+            -- Compute safe offset from bounding box (same method as crate spawn).
+            local okBox, box = pcall(function() return transport:getDesc().box end)
+            local offset = (okBox and box)
+                and (math.max(math.abs(box.max.x), math.abs(box.min.x)) + 5)
+                or 20
+            local hdg = ctld.utils.getHeadingInRadians(
+                "CTLDBeaconManager:dropBeacon", transport, true)
+            -- Place beacon directly behind the aircraft (heading + π).
+            local angle = hdg + math.pi
+            local px = tPos.x + math.cos(angle) * offset
+            local pz = tPos.z + math.sin(angle) * offset
+            local py = land.getHeight({ x = px, y = pz })
+            point = { x = px, y = py, z = pz }
+        else
+            point = tPos
+        end
+    end
 
     local freqs = self:_assignFrequencies()
 
