@@ -905,12 +905,12 @@ function CTLDVehicleSpawner:_checkPackingLanding()
 end
 
 --- Periodic hint: send "Land to load vehicles" when a canCarryVehicles player hovers
--- in the slingload altitude window (minimumHoverHeight..maximumHoverHeight) above a WAITING vehicle.
+-- between 3 m and maximumHoverHeight above a WAITING vehicle.
 -- Called every 5 s; per-player cooldown of 30 s.
 function CTLDVehicleSpawner:_checkVehicleHoverHint()
     local now      = timer.getTime()
     local cooldown = 30
-    local minH     = ctld.gs("minimumHoverHeight") or 7.5
+    local minH     = 3.0
     local maxH     = ctld.gs("maximumHoverHeight") or 12.0
     local maxDist  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
     local players  = CTLDPlayerManager.getInstance()._players
