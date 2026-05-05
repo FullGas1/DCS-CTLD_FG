@@ -273,6 +273,10 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-125 | Feature K Sprint 1 — Baseline JTAC vehicle load/setJTACInTransit | CTLDVehicleSpawner + CTLDJTACManager | Hummer spawné+registerJTACVehicle+autoLase → IDLE/LASING ; loadVehicle → state LOADED + JTAC IN_TRANSIT | ✅ PASS 10/10 [2026-05-06] | UH-1H |
 | F-126 | Feature K Sprint 1 — GAP-K1 : parachuteVehicle → WAITING + resumeJTAC | CTLDVehicleSpawner:parachuteVehicle | après parachute : vehicle state WAITING (pas DELIVERED), loadTransportName nil, JTAC intact (resumeJTAC timer) | ✅ PASS 4/4 [2026-05-06] | UH-1H |
 | F-127 | Feature K Sprint 1 — GAP-K2 : transport détruit → JTAC deregister + vehicle purge | CTLDVehicleSpawner:onDead | transport S_EVENT_DEAD avec vehicle LOADED → jtacs[groupName]=nil + _vehicles[id]=nil + unitToVehicle nil + OnVehicleDead publié | ✅ PASS 5/5 [2026-05-06] | UH-1H |
+| F-128 | Sprint 2a — DCS native LOAD : _nativeCrateLink mémorisé | CTLDCrateManager:_checkNativeDCSCargo | crate dans bbox → linkOffsetRef {lx,ly,lz} enregistré, state LOADED | ✅ PASS 5/5 [2026-05-06] | mock |
+| F-129 | Sprint 2a — DCS native UNLOAD au sol : drift > 1m → LANDED, fromParachute=false | CTLDCrateManager:_checkNativeDCSCargo | static déplacé 5m → drift calculé > 1m → state LANDED + fromParachute=false + _nativeCrateLink nil | ✅ PASS 5/5 [2026-05-06] | mock |
+| F-130 | Sprint 2a — DCS native UNLOAD en vol : fromParachute=true | CTLDCrateManager:_checkNativeDCSCargo | transport AGL=200m → inFlight=true → fromParachute=true après unload | ✅ PASS 5/5 [2026-05-06] | mock |
+| F-131 | Sprint 2a — autoUnpack crateSet complet après parachutage | CTLDCrateManager:_checkAutoUnpack | 3 crates LANDED+fromParachute=true+même descriptor → _spawnUnpacked au centroïde, toutes 3 dé-enregistrées | ✅ PASS 4/4 [2026-05-06] | mock |
 
 ---
 
@@ -330,7 +334,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **TroopsFullCycle v2 — lifecycle complet** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-05]) — lifecycle troops+JTAC transitions validé : embark(no lase)→deploy(2 lasing)→re-embark(idle+freed)→re-deploy(2 lasing)→1 JTAC dead(target freed)→timer destruction successive→reacquisition chain. Feature J déconfliction + claim/release lifecycle intégral + reacquisition après destroy confirmés.
 - **Feature H — Smoke auto-resume** : diag validés ✅ PASS live DCS [2026-05-05] — smoke bleue persistante en boucle (270s interval), toggle label bascule [activate]↔[deactivate], désactivation purge mémoire. CTLDSmokeManager singleton (diag_smoke_mgr.lua + diag_smoke_menu.lua).
 - **Feature K Sprint 1 — JTAC vehicle in-transit (GAP-K1+K2)** : 3 fonctionnels = **3 cas** ✅ PASS (F-125 10/10 + F-126 4/4 + F-127 5/5 [2026-05-06]) — parachuteVehicle setState WAITING + resumeJTAC ; transport destroy → deregisterJTAC + purge vehicle
-- **Total** : **225 cas** — 1027/1027 PASS ✅
+- **Sprint 2a — DCS native crate load/unload + autoUnpack parachute** : 4 fonctionnels = **19 cas** ✅ PASS (F-128 5/5 + F-129 5/5 + F-130 5/5 + F-131 4/4 [2026-05-06]) — nativeCrateLink linkOffsetRef 3D, drift>1m UNLOAD sol+vol, fromParachute, checkAutoUnpack centroïde
+- **Total** : **229 cas** — 1046/1046 PASS ✅
 
 ---
 
