@@ -73,6 +73,7 @@ function CTLDCrate:init(data)
     self.isParachuting          = false
     self.parachuteStartAltitude = nil
     self.estimatedLandingTime   = nil
+    self.fromParachute          = false   -- true → eligible for autoUnpack on landing
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
@@ -265,7 +266,7 @@ function CTLDCrateManager.getInstance()
         _cmInstance.crates            = {}   -- [crateName] = CTLDCrate
         _cmInstance._parachuteEffect  = CTLDNullParachuteEffect:new()
         _cmInstance._hoverStatus      = {}   -- [unitName] = secondsRemaining
-        _cmInstance._nativeLoadDist   = {}   -- [crateName] = dist at DCS-native load time
+        _cmInstance._nativeCrateLink  = {}   -- [crateName] = {lx,ly,lz} local-frame offset at DCS-native load time
         local pm = CTLDPlayerManager.getInstance()
         pm:registerMenuSection({ key = "crates", manager = _cmInstance, method = "buildMenuSection",  configKey = "enableCrates",    order = 40 })
         pm:registerMenuSection({ key = "smoke",  manager = _cmInstance, method = "buildSmokeSection", configKey = "enableSmokeDrop", order = 80 })
@@ -918,13 +919,16 @@ function CTLDCrateManager:_checkNativeDCSCargo()
             if crate:isOnGround() then
                 for _, entry in ipairs(transports) do
                     if _pointInBBox(entry.unitPos, entry.bbox, cratePos, 0.5) then
-                        local ap = entry.transport:getPoint()
-                        local dx = cratePos.x - ap.x
-                        local dy = cratePos.y - ap.y
-                        local dz = cratePos.z - ap.z
-                        -- Memorize attach distance for drift-based unload detection.
-                        self._nativeLoadDist[crate.crateName] =
-                            math.sqrt(dx*dx + dy*dy + dz*dz)
+                        -- Memorize local-frame offset for drift-based unload detection.
+                        local up = entry.unitPos
+                        local dx = cratePos.x - up.p.x
+                        local dy = cratePos.y - up.p.y
+                        local dz = cratePos.z - up.p.z
+                        self._nativeCrateLink[crate.crateName] = {
+                            lx = dx * up.x.x + dy * up.x.y + dz * up.x.z,
+                            ly = dx * up.y.x + dy * up.y.y + dz * up.y.z,
+                            lz = dx * up.z.x + dy * up.z.y + dz * up.z.z,
+                        }
                         crate:load(entry.transport)
                         self:_publish("OnCrateLoaded", {
                             crate           = crate,
@@ -937,10 +941,10 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                         })
                         pm:refreshForUnit(entry.unitName)
                         self:refreshUnpackSectionForUnit(entry.unitName)
+                        local ref = self._nativeCrateLink[crate.crateName]
                         ctld.utils.log("INFO",
-                            "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s dist=%.2f",
-                            crate.crateName, entry.unitName,
-                            self._nativeLoadDist[crate.crateName])
+                            "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s lx=%.2f ly=%.2f lz=%.2f",
+                            crate.crateName, entry.unitName, ref.lx, ref.ly, ref.lz)
                         break
                     end
                 end
@@ -948,54 +952,73 @@ function CTLDCrateManager:_checkNativeDCSCargo()
             -- ── UNLOAD detection ───────────────────────────────────────────
             -- Crate is LOADED and dcsStatic is still alive → DCS-native path.
             -- (CTLD-managed loads destroy the static → dcsStatic = nil, never reach here.)
-            -- Detect unload by distance drift: when dist > baseline + 3 m the crate
-            -- has been set down and the aircraft has moved away.
-            -- This avoids bbox margin false-negatives when aircraft hovers just above
-            -- the dropped crate (bbox overlap would prevent detection).
+            -- Detect unload by local-frame offset drift: recompute {lx,ly,lz} each tick
+            -- and compare to linkOffsetRef memorised at load time.
+            -- DCS places the released crate *behind* the aircraft (collision avoidance),
+            -- so the offset changes immediately on release — seuil 1 m is sufficient.
             elseif crate:isLoaded() then
                 local transport = crate.loadedBy
                 if not transport or not transport:isExist() then
                     -- Transport destroyed while crate was natively loaded: reset.
-                    self._nativeLoadDist[crate.crateName] = nil
-                    crate.position = cratePos
-                    crate.state    = CTLDCrate.STATE.LANDED
-                    crate.loadedBy = nil
-                    crate.loadTime = nil
+                    self._nativeCrateLink[crate.crateName] = nil
+                    crate.position     = cratePos
+                    crate.state        = CTLDCrate.STATE.LANDED
+                    crate.loadedBy     = nil
+                    crate.loadTime     = nil
+                    crate.fromParachute = false
                     ctld.utils.log("INFO",
                         "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
                         crate.crateName)
                 else
-                    local tp   = transport:getPoint()
-                    local dx   = cratePos.x - tp.x
-                    local dy   = cratePos.y - tp.y
-                    local dz   = cratePos.z - tp.z
-                    local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
-                    local baseline = self._nativeLoadDist[crate.crateName] or 0
-                    if dist > baseline + 3 then
-                        local carrierName = transport:getName()
-                        local playerObj   = pm:getPlayer(carrierName)
-                        self._nativeLoadDist[crate.crateName] = nil
-                        crate.position = cratePos
-                        crate.state    = CTLDCrate.STATE.LANDED
-                        crate.loadedBy = nil
-                        crate.loadTime = nil
-                        self:_publish("OnCrateUnloaded", {
-                            crate      = crate,
-                            crateName  = crate.crateName,
-                            coalition  = crate.coalition,
-                            descriptor = crate.descriptor,
-                            method     = "dcs_native",
-                            timestamp  = timer.getAbsTime(),
-                        })
-                        if playerObj then
-                            pm:refreshForUnit(carrierName)
-                            self:refreshUnpackSectionForUnit(carrierName)
-                            self:refreshLoadCrateSection(playerObj)
-                            self:refreshRequestEquipmentSection(playerObj)
+                    local ref = self._nativeCrateLink[crate.crateName]
+                    if ref then
+                        local up = transport:getPosition()
+                        local dx = cratePos.x - up.p.x
+                        local dy = cratePos.y - up.p.y
+                        local dz = cratePos.z - up.p.z
+                        local lx = dx * up.x.x + dy * up.x.y + dz * up.x.z
+                        local ly = dx * up.y.x + dy * up.y.y + dz * up.y.z
+                        local lz = dx * up.z.x + dy * up.z.y + dz * up.z.z
+                        local dlx = lx - ref.lx
+                        local dly = ly - ref.ly
+                        local dlz = lz - ref.lz
+                        local drift = math.sqrt(dlx*dlx + dly*dly + dlz*dlz)
+                        if drift > 1.0 then
+                            local carrierName = transport:getName()
+                            local playerObj   = pm:getPlayer(carrierName)
+                            -- Determine if transport is airborne at release time
+                            local tp        = transport:getPoint()
+                            local groundH   = land.getHeight({ x = tp.x, z = tp.z })
+                            local inFlight  = (tp.y - groundH) > 5
+                            self._nativeCrateLink[crate.crateName] = nil
+                            crate.position = cratePos
+                            crate.state    = CTLDCrate.STATE.LANDED
+                            crate.loadedBy = nil
+                            crate.loadTime = nil
+                            if inFlight then
+                                crate.fromParachute = true
+                            end
+                            self:_publish("OnCrateUnloaded", {
+                                crate      = crate,
+                                crateName  = crate.crateName,
+                                coalition  = crate.coalition,
+                                descriptor = crate.descriptor,
+                                method     = "dcs_native",
+                                timestamp  = timer.getAbsTime(),
+                            })
+                            if playerObj then
+                                pm:refreshForUnit(carrierName)
+                                self:refreshUnpackSectionForUnit(carrierName)
+                                self:refreshLoadCrateSection(playerObj)
+                                self:refreshRequestEquipmentSection(playerObj)
+                            end
+                            ctld.utils.log("INFO",
+                                "CTLDCrateManager: DCS native UNLOAD — crate=%s drift=%.2f inFlight=%s fromParachute=%s",
+                                crate.crateName, drift, tostring(inFlight), tostring(crate.fromParachute))
+                            if crate.fromParachute then
+                                self:_checkAutoUnpack(crate)
+                            end
                         end
-                        ctld.utils.log("INFO",
-                            "CTLDCrateManager: DCS native UNLOAD — crate=%s dist=%.2f baseline=%.2f",
-                            crate.crateName, dist, baseline)
                     end
                 end
             end
@@ -1841,6 +1864,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         local _landPos  = landPos
         local _dropData = dropData
         timer.scheduleFunction(function()
+            _crate.fromParachute = true
             _crate:land(_landPos)
             self._parachuteEffect:onLanded(_dropData)
             self:_publish("OnCrateParachuteLanded", {
@@ -1854,8 +1878,81 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
                 player          = playerObj.unitName,
                 timestamp       = timer.getAbsTime(),
             })
+            self:_checkAutoUnpack(_crate)
         end, {}, timer.getTime() + descentTime)
     end
+end
+
+--- Auto-unpack a set of parachuted crates when all required crates have landed.
+-- Called after each parachuted crate lands (CTLD virtual or DCS-native airborne release).
+-- Scans self.crates for LANDED + fromParachute=true crates of the same descriptor.unit
+-- within autoUnpackRadiusParachute. If count >= cratesRequired the vehicle is spawned at
+-- the centroid of the collected crates. No player is required.
+-- @param landedCrate CTLDCrate  the crate that just landed
+function CTLDCrateManager:_checkAutoUnpack(landedCrate)
+    local desc = landedCrate.descriptor
+    if not desc or not desc.unit then return end
+    local required = desc.cratesRequired or 1
+    local radius   = ctld.gs("autoUnpackRadiusParachute") or 1000
+    local refPos   = landedCrate.position
+    if not refPos then return end
+
+    -- Collect eligible crates: LANDED + fromParachute=true + same unit type + in radius
+    local candidates = {}
+    for _, crate in pairs(self.crates) do
+        if crate.fromParachute
+            and crate:isOnGround()
+            and crate.canBeUnpacked
+            and crate.descriptor
+            and crate.descriptor.unit == desc.unit
+        then
+            local cp = crate.position
+            if cp then
+                local dx = cp.x - refPos.x
+                local dz = cp.z - refPos.z
+                if math.sqrt(dx*dx + dz*dz) <= radius then
+                    table.insert(candidates, crate)
+                end
+            end
+        end
+    end
+
+    if #candidates < required then return end
+
+    -- Take the first N crates (required count)
+    local toUnpack = {}
+    for i = 1, required do
+        toUnpack[i] = candidates[i]
+    end
+
+    -- Compute centroid of selected crates
+    local sumX, sumY, sumZ = 0, 0, 0
+    for _, c in ipairs(toUnpack) do
+        sumX = sumX + c.position.x
+        sumY = sumY + c.position.y
+        sumZ = sumZ + c.position.z
+    end
+    local centroid = {
+        x = sumX / required,
+        y = sumY / required,
+        z = sumZ / required,
+    }
+
+    -- Determine country from coalition (mirrors standard unpack logic)
+    local coa = landedCrate.coalition
+    local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+
+    -- Unpack each crate (destroy static, publish OnCrateUnpacked + OnCrateCleared)
+    for _, c in ipairs(toUnpack) do
+        self:unpackCrate(c.crateName, nil)
+    end
+
+    -- Spawn vehicle at centroid (no player context)
+    self:_spawnUnpacked(desc, centroid, coa, cId, nil)
+
+    ctld.utils.log("INFO",
+        "CTLDCrateManager: auto-unpack (parachute) — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+        desc.unit, required, centroid.x, centroid.y, centroid.z)
 end
 
 --- Returns true if a crate descriptor entry has the JTAC role.
