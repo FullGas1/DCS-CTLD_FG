@@ -45,7 +45,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 |--------|-----------|--------------|--------|------|
 | `scenarios/scenario_recon_layers.lua` | M3 — CTLDReconManager, CTLDReconRenderer | F-116 (6 layers × détection LOS), F-117 reconEnabled, F-118 toggle-OFF, F-119 AA icon | ✅ PASS [2026-04-29] | Interactif — 1 injection par layer + sandbox + reset |
 
-| `scenarios/scenarioTroopsFullCycle_v2.lua` | R2+R3 — CTLDTroopManager, CTLDTroopGroup, CTLDJTACManager | F-T1→F-T7 (8 steps : template→TRZ_LOADED→deploy→_syncFromDCSGroup→S_EVENT_DEAD→embarkFromField→redeploy→returnToTRZ) | ✅ PASS 8/8 [2026-05-04] — re-validated startLaseTroopUnit [2026-05-04] | Witchcraft — 8 injections |
+| `scenarios/scenarioTroopsFullCycle_v2.lua` | R2+R3 — CTLDTroopManager, CTLDTroopGroup, CTLDJTACManager | F-T1→F-T8 (8 steps : spawn RED targets + template → embark no lase → deploy 2 JTACs lasing → re-embark idle+freed → re-deploy 2nd cycle → 1 JTAC dead target freed → timer destruction successive reacquisition → cleanup) | ✅ PASS 8/8 [2026-05-05] — lifecycle complet troops+JTAC transitions validé (Feature J déconfliction + claim/release lifecycle + reacquisition successive après destroy) | Witchcraft — 9 injections (step 7 phase A+B) |
 
 ---
 
@@ -324,7 +324,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **GAP-1 bugfix — unpack register** : 1 fonctionnel = **2 cas** ✅ PASS (F-123 2/2 [2026-04-29]) — _dispatchPostSpawn enregistre véhicules GROUND dans CTLDVehicleSpawner + UH-1H dans vehicleTransportEnabled
 - **GAP-1 fix — refresh Load+Pack menus après unpack** : 1 fonctionnel = **1 cas** ✅ PASS live (F-124 [2026-04-30]) — _spawnUnpacked refreshLoadSectionForUnit + refreshPackSectionForUnit → Hummer visible dans Load ET Pack sans re-entry menu
 - **GAP-1 scénario end-to-end** : 1 scénario = **4 étapes** ✅ PASS (scenario_vehicle_load_unload [2026-04-29]) — cleanup→crate→unpack→load→unload cycle complet UH-1H, lazy unit-ref resolve
-- **TroopsFullCycle v2** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-04]) — BUG-02/03/04/06/07/08 validés + startLaseTroopUnit unit-keyed re-validé + groupStopMoving scope fix + isActive pcall fix [2026-05-04]
+- **TroopsFullCycle v2 — lifecycle complet** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-05]) — lifecycle troops+JTAC transitions validé : embark(no lase)→deploy(2 lasing)→re-embark(idle+freed)→re-deploy(2 lasing)→1 JTAC dead(target freed)→timer destruction successive→reacquisition chain. Feature J déconfliction + claim/release lifecycle intégral + reacquisition après destroy confirmés.
 - **Total** : **222 cas** — 1008/1008 PASS ✅
 
 ---
