@@ -48,6 +48,9 @@ CTLDPlayerTracker        ← player connect/disconnect tracking (no MIST)
 Configuration is read-only via `ctld.gs("paramName")` — never call
 `config:getSetting()` directly.
 
+> **Troop + JTAC lifecycle state machine** — complete diagram with all states, transitions, and JTAC instance management:
+> [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
+
 ---
 
 ## 3. Adding a new module
@@ -382,3 +385,135 @@ ctld.i18n_overrides = {
 ```
 
 Overrides are applied once at startup by `CTLDi18n:_init()`.
+
+---
+
+## 9. Troop + JTAC lifecycle
+
+### 9.1 Troop group state machine
+
+A `CTLDTroopGroup` instance tracks troops from load to final disposal. It is not a DCS object — it lives entirely in Lua memory.
+
+```
+TRZ_LOADED ──embarkFromTroopZone()───────────────────────────────→ DEPLOYED
+    │                                                               │
+    │  (DCS group: never spawned)                                   │  (DCS group: spawned)
+    │  _aliveUnits + _jtacUnits memorised                           │  _aliveUnits = live DCS units
+    │                                                               │  _jtacUnits map populated on 1st disembark
+    │                                                               │
+    │                                                               ↓
+    │                                                  embarkFromField()
+    │                                                               │
+    │                                                               ↓
+    │  returnToTroopZone()                                          │ FIELD_LOADED
+    │      │                                                        │
+    │      ↓                                                        ↓
+    │  RETURNED_TO_TRZ                                       DEPLOYED
+    │  (instance discarded)                                  (respawn from _aliveUnits)
+    │  deregisterJTAC() × N
+    │
+    └──dispatchToEXZ()───────────────────────────────────────────→ DEPLOYED_EXZ
+        (DCS group: never spawned, flag counter only)                (silent, group discarded)
+```
+
+### 9.2 JTAC instance model
+
+**One `CTLDJTAC` instance per alive JTAC unit in the group** — not one per group. The `_jtacUnits` map holds the truth:
+
+```lua
+-- CTLDTroopGroup fields (new)
+self._aliveUnits = {}  -- [unitName] = dcsUnit (DCS Unit reference, not index)
+self._jtacUnits  = {}  -- [unitName] = true (subset of _aliveUnits flagged as JTAC)
+```
+
+JTAC soldiers within a composite troop group are **unit-keyed**: `CTLDJTACManager.jtacs[unitName]`
+with `CTLDJTAC.unitName` set. This distinguishes them from standalone JTAC groups (vehicle/drone),
+which are group-keyed (`jtacs[groupName]`, `unitName == nil`).
+
+Two separate entry points drive these two paths:
+
+| JTAC type | Entry point | Key in `jtacs` | `unitName` field |
+| --- | --- | --- | --- |
+| Drone / vehicle JTAC | `CTLDJTACManager:startLase(groupName)` | `groupName` | `nil` |
+| Infantry JTAC in troop group | `CTLDJTACManager:startLaseTroopUnit(unitName)` | `unitName` | set |
+
+The `_autoLaseLoop` resolves the DCS unit via `Unit.getByName(unitName)` (unit-keyed path) or
+`Group.getByName(groupName):getUnits()[1]` (group-keyed path). On unit death, unit-keyed JTACs
+are cleaned up by `S_EVENT_DEAD → onUnitDead → deregisterJTAC(unitName)` — they must NOT call
+`killJTAC` (which would destroy the composite group, killing surviving infantry).
+
+### 9.3 Transition rules per exit path
+
+| Exit path | JTAC action required |
+|---|---|
+| `embarkFromTroopZone()` → `TRZ_LOADED` | None — no JTAC instances yet |
+| `disembark()` (1st deploy) | `startLaseTroopUnit(unitName)` for every `unitName` in `_jtacUnits` |
+| `embarkFromField()` → `FIELD_LOADED` | **`deregisterJTAC(unitName)` for every key in `_jtacUnits` BEFORE `group:destroy()`** |
+| `disembark()` (after field) | `startLaseTroopUnit(unitName)` for every key in `_jtacUnits` |
+| `returnToTroopZone()` → `RETURNED_TO_TRZ` | `deregisterJTAC(unitName)` for every key in `_jtacUnits` |
+| `dispatchToEXZ()` → `DEPLOYED_EXZ` | None — group never spawned, no JTAC ever instantiated |
+| Transport destroyed (FIELD_LOADED) | All `_jtacUnits` orphans → `deregisterJTAC()` in `cleanupDeadTransports()` |
+
+### 9.4 S_EVENT_DEAD sync
+
+Every death of a unit in a deployed group triggers `CTLDTroopManager:onUnitDead(unitName)` which removes the dead unit from `_aliveUnits`. If it was a JTAC unit it also removes from `_jtacUnits` and calls `deregisterJTAC()`. The DCS group re-indexes surviving units automatically; using `unitName` keys (not indices) avoids any re-indexing bug.
+
+### 9.5 Legacy terminology (→ v2 rename)
+
+| Old method | New method |
+|---|---|
+| `loadFromZone()` | `embarkFromTroopZone()` |
+| `deploy()` / `unload()` | `disembark()` |
+| `extract()` | `embarkFromField()` |
+| `returnToBase()` | `returnToTroopZone()` |
+| `LOADED` state | `TRZ_LOADED` |
+| `EXTRACTED` state | `FIELD_LOADED` |
+| `hasJtac` (boolean) | `_jtacUnits` (map) |
+| Group index-based tracking | `unitName`-based map tracking |
+
+### 9.6 Transport kill with FIELD_LOADED troops
+
+When a transport carrying `FIELD_LOADED` troops is shot down:
+1. `CTLDPlayerManager:onPlayerLeaveUnit()` detects transport death
+2. `_inTransit[unitName]` is niled by `cleanupDeadTransports()`
+3. Any `_jtacUnits` still referenced in `CTLDJTACManager.jtacs` become **orphan zombies**
+4. Fix: `cleanupDeadTransports()` must iterate the group's `_jtacUnits` and call `deregisterJTAC()` before clearing `_inTransit`
+
+Full state machine diagram: [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
+
+### 9.7 Multi-JTAC target deconfliction
+
+When multiple JTACs are active simultaneously (infantry, vehicle, drone — any mix), `CTLDJTACManager` prevents them from lasing the same target via a shared claim table.
+
+```lua
+-- CTLDJTACManager field (singleton)
+self._claimedTargets = {}  -- { [enemyUnitName] = jtacKey }
+-- jtacKey = unitName (infantry/unit-keyed) or groupName (vehicle/drone/group-keyed)
+```
+
+**Claim lifecycle:**
+
+| Event | Action |
+| --- | --- |
+| JTAC locks a new target | `_claimTarget(jtacKey, enemyUnitName)` |
+| Lasing stops (any reason) | `_releaseTarget(enemyUnitName)` — called from `_stopLaseAndPublish` |
+| JTAC deregistered | `_releaseTarget` + `_releaseAllTargetsFor(jtacKey)` — belt-and-suspenders |
+| `cleanup()` | `_claimedTargets = {}` |
+
+**Target selection flow** (`_autoLaseLoop` search phase):
+
+1. `CTLDJTACDetector.findAllVisibleEnemies()` returns all LOS-visible enemy units sorted by priority then distance
+2. Iterate the list — skip any `candidate.unitName` already in `_claimedTargets`
+3. First unclaimed candidate → `_claimTarget` → create DCS spots → start lasing
+
+**Target renewal** (critical case — when target is destroyed or LOS is lost):
+
+- `_stopLaseAndPublish` releases the claim on the lost target
+- Execution falls through to the search phase in the same `_autoLaseLoop` tick
+- The JTAC immediately picks the next unclaimed candidate from a fresh `findAllVisibleEnemies` call
+
+This means several JTACs losing their target simultaneously (e.g. explosion) each acquire a different next target rather than all converging on the same one.
+
+**`CTLDJTACDetector.findAllVisibleEnemies` vs `findNearestVisibleEnemy`:**
+
+`findNearestVisibleEnemy` is now a thin wrapper returning `findAllVisibleEnemies()[1]`. It is kept for any callsite that only needs the single best candidate (no deconfliction needed).

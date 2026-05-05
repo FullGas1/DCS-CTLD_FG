@@ -1234,19 +1234,19 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
         return {
             name  = gname,
             task  = "Ground Nothing",
-            units = {{
+            units = { {
                 type    = desc.unit,
                 name    = gname,
                 x       = pos.x,
                 y       = pos.z,
                 heading = 0,
-            }},
+            } },
         }
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
-        local alt   = ctld.gs("JTAC_droneAltitude") or 4000
-        local speed = 54  -- m/s (~105 kts)
-        local uname = gname .. "_1"
+        local alt     = ctld.gs("JTAC_droneAltitude") or 4000
+        local speed   = 54 -- m/s (~105 kts)
+        local uname   = gname .. "_1"
         local unitDef = {
             ["name"]          = gname,
             ["groupId"]       = gid,
@@ -1258,7 +1258,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
             ["task"]          = "Ground Nothing",
             ["x"]             = pos.x,
             ["y"]             = pos.z,
-            ["units"] = {
+            ["units"]         = {
                 [1] = {
                     ["type"]     = desc.unit,
                     ["name"]     = uname,
@@ -1290,7 +1290,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
                         ["properties"]         = { ["addopt"] = {} },
                         ["x"]                  = pos.x,
                         ["y"]                  = pos.z,
-                        ["task"] = {
+                        ["task"]               = {
                             ["id"]     = "ComboTask",
                             ["params"] = {
                                 ["tasks"] = {
@@ -1794,7 +1794,7 @@ end
 -- Keep ctld.debug=false on standard sanitized DCS installations.
 -- ====================================================================================================
 
-local _logFile = nil  -- module-local file handle
+local _logFile = nil -- module-local file handle
 
 -- Opens CTLD.log for writing if ctld.debug==true. Safe on sanitized DCS.
 -- Always closes any existing handle before opening (allows test harness to reuse the file).
@@ -1802,7 +1802,9 @@ function ctld.utils.initLog()
     if ctld.gs("debug") ~= true then return end
     -- Close any previously open handle (prevents file lock accumulation across test reloads)
     if _logFile ~= nil then
-        pcall(function() _logFile:flush(); _logFile:close() end)
+        pcall(function()
+            _logFile:flush(); _logFile:close()
+        end)
         _logFile = nil
     end
     local path     = ctld.gs("ctldLogPath") or ""
@@ -1830,17 +1832,25 @@ function ctld.utils.log(level, fmt, ...)
     local ok, msg = pcall(string.format, "[CTLD][" .. level .. "] " .. fmt, ...)
     if not ok then msg = "[CTLD][" .. level .. "] (log format error)" end
     env.info(msg)
+    if not _logFile then
+        pcall(ctld.utils.reopenLogAppend)
+    end
     if _logFile then
         pcall(function()
             _logFile:write(msg .. "\n")
             _logFile:flush()
         end)
     end
+    if ctld.gs("debugScreenLog") == true then
+        local duration = ctld.gs("debugScreenLogDuration") or 10
+        trigger.action.outText(msg, duration)
+    end
 end
 
 -- Reopens CTLD.log in append mode (used after closeLog + read to resume logging).
+-- File is opened only when config debug=true (ctld.gs("debug")).
 function ctld.utils.reopenLogAppend()
-    if _logFile ~= nil then return end   -- already open
+    if _logFile ~= nil then return end -- already open
     if ctld.gs("debug") ~= true then return end
     local path     = ctld.gs("ctldLogPath") or ""
     local filePath = path .. "CTLD.log"
@@ -1881,8 +1891,8 @@ end
 -- ====================================================================================================
 
 function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axisOffsetDeg)
-    n        = n or 1
-    spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
+    n             = n or 1
+    spacing       = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
 
     local unitPos = unit:getPoint()
     local unitHdg = ctld.utils.getHeadingInRadians("getSpawnObjectPositions", unit, true)
@@ -1894,8 +1904,8 @@ function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axis
 
     local positions = {}
     for i = 1, n do
-        local dist = safeDistance + (i - 1) * spacing
-        local pt   = ctld.utils.GetRelativeVec2Coords(
+        local dist   = safeDistance + (i - 1) * spacing
+        local pt     = ctld.utils.GetRelativeVec2Coords(
             { x = unitPos.x, y = unitPos.z },
             unitHdg,
             dist,
@@ -1952,26 +1962,26 @@ end
 --   landPos.y is the MSL ground height at the computed XZ position.
 --   descentTime is in seconds.
 function ctld.utils.calcDropPosition(transport, descentRate)
-    local dropPos  = transport:getPoint()
-    local velocity = transport:getVelocity()
+    local dropPos     = transport:getPoint()
+    local velocity    = transport:getVelocity()
     local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
     local dropAltAGL  = dropPos.y - groundUnder
     if dropAltAGL < 0 then dropAltAGL = 0 end
-    local descentTime = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
+    local descentTime   = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
 
     local inertiaFactor = ctld.gs and ctld.gs("parachuteInertiaFactor") or 0.3
     local driftMin      = ctld.gs and ctld.gs("parachuteLateralDriftMin") or 10
     local driftMax      = ctld.gs and ctld.gs("parachuteLateralDriftMax") or 80
 
-    local inertiaX = (velocity.x or 0) * inertiaFactor * descentTime
-    local inertiaZ = (velocity.z or 0) * inertiaFactor * descentTime
+    local inertiaX      = (velocity.x or 0) * inertiaFactor * descentTime
+    local inertiaZ      = (velocity.z or 0) * inertiaFactor * descentTime
 
-    local angle     = math.random(0, 359) * math.pi / 180
-    local magnitude = driftMin + math.random() * (driftMax - driftMin)
+    local angle         = math.random(0, 359) * math.pi / 180
+    local magnitude     = driftMin + math.random() * (driftMax - driftMin)
 
-    local spawnX = dropPos.x + inertiaX + math.cos(angle) * magnitude
-    local spawnZ = dropPos.z + inertiaZ + math.sin(angle) * magnitude
-    local spawnY = land.getHeight({ x = spawnX, y = spawnZ })
+    local spawnX        = dropPos.x + inertiaX + math.cos(angle) * magnitude
+    local spawnZ        = dropPos.z + inertiaZ + math.sin(angle) * magnitude
+    local spawnY        = land.getHeight({ x = spawnX, y = spawnZ })
 
     return { x = spawnX, y = spawnY, z = spawnZ }, descentTime
 end

@@ -45,6 +45,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 |--------|-----------|--------------|--------|------|
 | `scenarios/scenario_recon_layers.lua` | M3 — CTLDReconManager, CTLDReconRenderer | F-116 (6 layers × détection LOS), F-117 reconEnabled, F-118 toggle-OFF, F-119 AA icon | ✅ PASS [2026-04-29] | Interactif — 1 injection par layer + sandbox + reset |
 
+| `scenarios/scenarioTroopsFullCycle_v2.lua` | R2+R3 — CTLDTroopManager, CTLDTroopGroup, CTLDJTACManager | F-T1→F-T7 (8 steps : template→TRZ_LOADED→deploy→_syncFromDCSGroup→S_EVENT_DEAD→embarkFromField→redeploy→returnToTRZ) | ✅ PASS 8/8 [2026-05-04] — re-validated startLaseTroopUnit [2026-05-04] | Witchcraft — 8 injections |
+
 ---
 
 ## Section U — Tests unitaires (U-01 à U-80)
@@ -322,7 +324,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **GAP-1 bugfix — unpack register** : 1 fonctionnel = **2 cas** ✅ PASS (F-123 2/2 [2026-04-29]) — _dispatchPostSpawn enregistre véhicules GROUND dans CTLDVehicleSpawner + UH-1H dans vehicleTransportEnabled
 - **GAP-1 fix — refresh Load+Pack menus après unpack** : 1 fonctionnel = **1 cas** ✅ PASS live (F-124 [2026-04-30]) — _spawnUnpacked refreshLoadSectionForUnit + refreshPackSectionForUnit → Hummer visible dans Load ET Pack sans re-entry menu
 - **GAP-1 scénario end-to-end** : 1 scénario = **4 étapes** ✅ PASS (scenario_vehicle_load_unload [2026-04-29]) — cleanup→crate→unpack→load→unload cycle complet UH-1H, lazy unit-ref resolve
-- **Total** : **214 cas** — 1000/1000 PASS ✅
+- **TroopsFullCycle v2** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-04]) — BUG-02/03/04/06/07/08 validés + startLaseTroopUnit unit-keyed re-validé + groupStopMoving scope fix + isActive pcall fix [2026-05-04]
+- **Total** : **222 cas** — 1008/1008 PASS ✅
 
 ---
 

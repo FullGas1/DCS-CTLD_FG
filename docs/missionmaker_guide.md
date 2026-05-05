@@ -676,18 +676,26 @@ CTLD writes all its log output to `<ctldLogPath>CTLD.log`. The DCS standard log 
 
 ### Overview
 
-CTLD transports infantry teams between pickup zones (TRZ) and combat areas. The full operational cycle is:
+CTLD transports infantry teams between TroopZones (TRZ_) and combat areas. The full operational cycle is:
 
 ```
-1. Load     — board troops from a TRZ pickup zone
-2. Deploy   — fast-rope or ground-drop at any location
-               └─ If inside a TRZ with a flag: objective scored (no DCS group spawned)
-3. Extract  — land near a dropped group and pick it up
-4. Re-deploy — drop the extracted group at a new location (repeatable)
-5. RTB      — unload inside a TRZ to return troops to the zone pool
+1. embarkFromTroopZone  — board troops from a TRZ pickup zone        → TRZ_LOADED
+2. disembark            — fast-rope or ground-drop at any location     → DEPLOYED
+                          (if inside EXZ_ zone: dispatchToEXZ → DEPLOYED_EXZ)
+3. embarkFromField      — land near a dropped group and pick it up    → FIELD_LOADED
+4. disembark            — drop the extracted group at a new location  → DEPLOYED
+                          (repeatable steps 3–4 as needed)
+5. returnToTroopZone    — unload inside a TRZ to return troops        → RETURNED_TO_TRZ
+                          (zone stock restored)
 ```
 
-Troops are **never** physically on board the aircraft as DCS units — they are held in memory until deployed.
+Troops are **never** physically on board the aircraft as DCS units — they are held in
+memory until deployed. JTAC soldiers are tracked individually: one `CTLDJTAC` instance
+per alive JTAC unit, managed through the `_jtacUnits` map in `CTLDTroopGroup`.
+
+> **Troop + JTAC lifecycle reference diagram** — complete state machine with all
+> transitions, per-unit JTAC tracking, and `_aliveUnits` / `_jtacUnits` details:
+> [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
 
 ---
 
@@ -712,15 +720,15 @@ CTLD
 
 **"Unload / Extract Troops" behaviour (priority order):**
 
-| Aircraft state | Action |
-|---|---|
-| In flight | Button not shown |
-| On ground + friendly dropped group ≤ `maxExtractDistance` m + no troops onboard | Extract group from combat |
-| Has troops onboard + inside a TRZ with `flag` (objective zone) | Deploy troops → flag incremented (no DCS group spawned if extract-only) |
-| Has troops onboard + inside a TRZ pickup-only (no flag) | Return troops to base (restores zone stock) |
-| Has troops onboard + not in any TRZ | Fast-rope (if conditions met) or ground drop into combat |
-| In air + no troops + dropped group nearby | Show "Land near troops to extract them (Xm away)" |
-| None of the above | "No troops onboard and no extractable troops nearby" |
+| Aircraft state | Action | New method name |
+|---|---|---|
+| In flight | Button not shown | — |
+| On ground + friendly dropped group ≤ `maxExtractDistance` m + no troops onboard | Extract group from combat → `FIELD_LOADED` | `embarkFromField()` |
+| Has troops onboard + inside a TRZ with `flag` (objective zone) | Silent drop → counter incremented, no DCS group spawned | `dispatchToEXZ()` → `DEPLOYED_EXZ` |
+| Has troops onboard + inside a TRZ pickup-only (no flag) | Return troops to TroopZone — zone stock restored | `returnToTroopZone()` |
+| Has troops onboard + not in any TRZ | Fast-rope (if conditions met) or ground drop into combat | `disembark()` → `DEPLOYED` |
+| In air + no troops + dropped group nearby | Show "Land near troops to extract them (Xm away)" | — |
+| None of the above | "No troops onboard and no extractable troops nearby" | — |
 
 ---
 
@@ -1424,6 +1432,21 @@ ctld.JTACStart("JTAC_BLUE_1", 1688, true)
 ctld.JTACAutoLaseStop("JTAC_BLUE_1")
 ```
 
+#### JTAC soldiers in troop templates
+
+When a troop template includes `jtac` slots (e.g. `composition = { inf = 4, jtac = 2 }`), the JTAC soldiers within the group are tracked and managed **at unit level**, not at group level.
+
+**Lifecycle:**
+
+- On `disembark()` (deploy): each JTAC unit is individually registered in `CTLDJTACManager` and starts auto-lasing via `startLaseTroopUnit(unitName)`. Lasing begins automatically — no additional script call needed.
+- On `embarkFromField()` (pick up from field): each JTAC unit is deregistered **before** the DCS group is destroyed, stopping the lasing loop cleanly.
+- On unit death (`S_EVENT_DEAD`): the dead JTAC unit is deregistered automatically; surviving JTAC units in the same group continue lasing unaffected.
+- On `returnToTroopZone()`: all remaining JTAC units are deregistered.
+
+**Important:** The `startLaseTroopUnit` / `deregisterJTAC` calls target individual DCS unit names (not the group name). This means a composite group (e.g. 4 infantry + 2 JTAC) can lose one JTAC soldier without affecting the other JTAC or the infantry.
+
+**Distinction from standalone JTACs:** Vehicle and drone JTACs spawned via crates or `Request JTAC Equipment` are group-keyed. Infantry JTACs in troop groups are unit-keyed. The two registries coexist in `CTLDJTACManager.jtacs`.
+
 #### Smoke target
 **Utility:** Marks the lased target with smoke for pilot identification.
 **Activation:** F10 → JTAC Commands → Smoke Target (appears when JTAC is active in range)
@@ -1439,6 +1462,7 @@ ctld.JTACAutoLaseStop("JTAC_BLUE_1")
 | `JTAC_lock` | `"all"` | Target filter: `"vehicle"`, `"troop"`, `"all"` |
 | `JTAC_allowStandbyMode` | `true` | Allow toggling laser on/off |
 | `JTAC_allow9Line` | `true` | Enable 9-line CAS request display |
+| `JTAC_targetDeconfliction` | `true` | Prevent multiple JTACs from lasing the same target simultaneously. When enabled, each JTAC picks the nearest available target not already being lased by another JTAC. Disable only for single-JTAC missions where the overhead is unwanted. |
 
 ### 14.4 Events
 

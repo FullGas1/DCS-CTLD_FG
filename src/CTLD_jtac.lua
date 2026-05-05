@@ -70,6 +70,9 @@ CTLDJTAC.LOCK_MODE = {
 --   lockMode     (string)   "all" | "vehicle" | "troop"
 function CTLDJTAC:init(data)
     self.groupName    = data.groupName
+    -- unitName: set for infantry JTACs within a composite troop group (unit-keyed registry).
+    -- nil for drone/vehicle JTACs (group-keyed registry). Drives Unit.getByName() path in _autoLaseLoop.
+    self.unitName     = data.unitName    or nil
     self.laserCode    = data.laserCode
     self.isFlying     = data.isFlying    or false
     self.isInfantry   = data.isInfantry  or false
@@ -201,24 +204,23 @@ function CTLDJTACDetector.calculateFMRadio(groupName, laserCode)
     return { name = groupName, freq = freq, mod = "fm" }
 end
 
---- Find the nearest visible enemy for a JTAC unit.
+--- Find all visible enemies for a JTAC unit, sorted by priority then distance.
 -- Uses world.searchObjects (sphere) + land.isVisible (LOS, +2m Y offset).
--- Prioritises: hpriority > priority > Air Defence > standard; ties broken by distance.
+-- Priority tiers: hpriority(1) > priority(2) > Air Defence(3) > standard(4).
+-- Returns a sorted list so callers can iterate for target deconfliction.
 -- API: world.searchObjects — verified Hoggit 2026-04-01
 -- API: land.isVisible      — verified CTLD_jtac.lua source
 -- @param jtacUnit    DCS Unit object
 -- @param lockMode    string  "all" | "vehicle" | "troop"
 -- @param maxDistance number  metres
--- @return table or nil  { dcsUnit, unitName, unitType, unitId, position, priority, distance }
-function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistance)
-    if not jtacUnit or not jtacUnit:isExist() then return nil end
+-- @return table  sorted array of { dcsUnit, unitName, unitType, unitId, position, priority, distance }
+function CTLDJTACDetector.findAllVisibleEnemies(jtacUnit, lockMode, maxDistance)
+    if not jtacUnit or not jtacUnit:isExist() then return {} end
 
     local jtacPos  = jtacUnit:getPoint()
     local jtacCoal = jtacUnit:getCoalition()
     local offsetA  = { x = jtacPos.x, y = jtacPos.y + 2, z = jtacPos.z }
-
-    -- Track best candidate inline (O(n)) — no sort needed, only one result is used.
-    local best = nil
+    local results  = {}
 
     world.searchObjects(
         Object.Category.UNIT,
@@ -238,9 +240,7 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
             local offsetB = { x = unitPos.x, y = unitPos.y + 2, z = unitPos.z }
             if not land.isVisible(offsetA, offsetB) then return true end
 
-            local dist = ctld.utils.getDistance("CTLDJTACDetector.findNearestVisibleEnemy", jtacPos, unitPos)
-
-            -- Priority: hpriority(1) > priority(2) > Air Defence(3) > standard(4)
+            local dist     = ctld.utils.getDistance("CTLDJTACDetector.findAllVisibleEnemies", jtacPos, unitPos)
             local name     = unit:getName()
             local typeName = unit:getTypeName()
             local priority
@@ -254,26 +254,36 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
                 priority = 4
             end
 
-            if not best
-                or priority < best.priority
-                or (priority == best.priority and dist < best.distance)
-            then
-                best = {
-                    dcsUnit  = unit,
-                    unitName = name,
-                    unitType = typeName,
-                    unitId   = unit:getID(),
-                    position = unitPos,
-                    priority = priority,
-                    distance = dist,
-                }
-            end
+            results[#results + 1] = {
+                dcsUnit  = unit,
+                unitName = name,
+                unitType = typeName,
+                unitId   = unit:getID(),
+                position = unitPos,
+                priority = priority,
+                distance = dist,
+            }
             return true
         end,
         nil
     )
 
-    return best
+    table.sort(results, function(a, b)
+        if a.priority ~= b.priority then return a.priority < b.priority end
+        return a.distance < b.distance
+    end)
+
+    return results
+end
+
+--- Find the nearest visible enemy for a JTAC unit.
+-- Thin wrapper around findAllVisibleEnemies — returns only the first (best) candidate.
+-- @param jtacUnit    DCS Unit object
+-- @param lockMode    string  "all" | "vehicle" | "troop"
+-- @param maxDistance number  metres
+-- @return table or nil  { dcsUnit, unitName, unitType, unitId, position, priority, distance }
+function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistance)
+    return CTLDJTACDetector.findAllVisibleEnemies(jtacUnit, lockMode, maxDistance)[1]
 end
 
 --- Line-of-sight check (convenience wrapper).
@@ -403,6 +413,9 @@ function CTLDJTACManager.get()
         o._laserPool     = {}
         o._pendingJTACs  = {}
         o._orbitScheduleId = nil
+        -- Target deconfliction: { [enemyUnitName] = jtacKey } — tracks targets currently being lased.
+        -- Prevents multiple concurrent JTACs from lasing the same target.
+        o._claimedTargets = {}
         o:_initLaserPool()
         CTLDJTACManager._instance = o
         CTLDPlayerManager.getInstance():registerMenuSection({
@@ -587,6 +600,12 @@ end
 function CTLDJTACManager:deregisterJTAC(groupName)
     local jtac = self.jtacs[groupName]
     if not jtac then return end
+    -- Release active target claim (stopLase below does not call _stopLaseAndPublish)
+    if jtac.currentTarget then
+        self:_releaseTarget(jtac.currentTarget.unitName)
+    end
+    local jtacKey = jtac.unitName or groupName
+    self:_releaseAllTargetsFor(jtacKey)  -- belt-and-suspenders: clear any stale claims
     jtac:stopLase(CTLDJTAC.STOP_REASON.IN_TRANSIT)
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
@@ -741,6 +760,93 @@ function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, ra
     )
 end
 
+--- Register and start auto-lase for a JTAC infantry unit within a composite troop group.
+-- Unlike spawnJTAC/startLase (which operate on single-unit DCS groups keyed by groupName),
+-- this function targets a specific DCS unit by unitName (part of a composite group).
+-- Registry key: unitName. Auto-lase loop uses Unit.getByName() instead of Group.getByName().
+-- Death detection: handled by S_EVENT_DEAD → onUnitDead → deregisterJTAC (no killJTAC).
+-- @param unitName  string   DCS unit name (JTAC-role infantry in a composite troop group)
+-- @param cfg       table    { laserCode, smokeEnabled, smokeColor, lockMode } (all optional)
+-- @return CTLDJTAC or nil
+function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
+    if self.jtacs[unitName] then
+        ctld.utils.log("WARN", "CTLDJTACManager:startLaseTroopUnit — already active: %s", unitName)
+        return self.jtacs[unitName]
+    end
+
+    local dcsUnit = Unit.getByName(unitName)
+    if not dcsUnit or not dcsUnit:isExist() then
+        ctld.utils.log("WARN", "CTLDJTACManager:startLaseTroopUnit — unit not found: %s", tostring(unitName))
+        return nil
+    end
+
+    local laserCode = (cfg and cfg.laserCode) or self:_assignLaserCode()
+    if not laserCode then
+        ctld.logError("CTLDJTACManager:startLaseTroopUnit — laser code pool exhausted")
+        return nil
+    end
+
+    local coalitionId = dcsUnit:getCoalition()
+    local attrs       = dcsUnit:getDesc().attributes or {}
+    local isInfantry  = attrs["Infantry"] == true
+
+    local smokeEnabled
+    if cfg and cfg.smokeEnabled ~= nil then
+        smokeEnabled = cfg.smokeEnabled
+    elseif coalitionId == coalition.side.RED then
+        smokeEnabled = ctld.gs("JTAC_smokeOn_RED") or false
+    else
+        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE") or false
+    end
+
+    local smokeColor
+    if cfg and cfg.smokeColor ~= nil then
+        smokeColor = cfg.smokeColor
+    elseif coalitionId == coalition.side.RED then
+        smokeColor = ctld.gs("JTAC_smokeColour_RED") or trigger.smokeColor.Red
+    else
+        smokeColor = ctld.gs("JTAC_smokeColour_BLUE") or trigger.smokeColor.Red
+    end
+
+    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock") or "all"
+
+    local jtac = CTLDJTAC:new({
+        groupName    = unitName,   -- registry key (= unitName for troop JTACs)
+        unitName     = unitName,   -- marks as unit-keyed; drives Unit.getByName() in _autoLaseLoop
+        laserCode    = laserCode,
+        isFlying     = false,
+        isInfantry   = isInfantry,
+        coalitionId  = coalitionId,
+        smokeEnabled = smokeEnabled,
+        smokeColor   = smokeColor,
+        lockMode     = lockMode,
+    })
+
+    self.jtacs[unitName] = jtac
+
+    timer.scheduleFunction(
+        function(un, t) return CTLDJTACManager.get():_autoLaseLoop(un, t) end,
+        unitName,
+        timer.getTime() + 1
+    )
+
+    self:_publishEvent("OnJTACSpawned", {
+        jtac = {
+            groupName  = unitName,
+            unitName   = unitName,
+            laserCode  = laserCode,
+            coalition  = coalitionId,
+            isFlying   = false,
+            isInfantry = isInfantry,
+        },
+        timestamp = timer.getAbsTime(),
+    })
+
+    ctld.utils.log("INFO",
+        "CTLDJTACManager:startLaseTroopUnit — '%s' registered (code=%d)", unitName, laserCode)
+    return jtac
+end
+
 --- Stop auto-lase for a JTAC group without firing the Dead event.
 -- Sets the JTAC to standby mode; the auto-lase loop will stop lasing and idle.
 -- @param groupName string
@@ -759,8 +865,9 @@ function CTLDJTACManager:cleanup()
     for _, jtac in pairs(self.jtacs) do
         jtac:destroy()
     end
-    self.jtacs      = {}
-    self._laserPool = {}
+    self.jtacs           = {}
+    self._claimedTargets = {}
+    self._laserPool      = {}
     self:_initLaserPool()
     self._orbitScheduleId = nil
 end
@@ -797,18 +904,29 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         return t + searchInterval
     end
 
-    -- Verify group still alive (only when NOT in transit)
-    local dcsGroup = Group.getByName(groupName)
-    if not dcsGroup or not dcsGroup:isExist() then
-        self:killJTAC(groupName, nil)
-        return nil
-    end
-
-    local jtacUnit = dcsGroup:getUnits()[1]
-    if not jtacUnit or not jtacUnit:isExist() then
-        -- Unit gone but group still reported alive — treat as dead
-        self:killJTAC(groupName, nil)
-        return nil
+    -- Resolve JTAC unit:
+    --   unit-keyed (infantry in composite troop group): Unit.getByName(jtac.unitName)
+    --   group-keyed (drone, vehicle — single-unit DCS group): Group.getByName():getUnits()[1]
+    local jtacUnit
+    if jtac.unitName then
+        jtacUnit = Unit.getByName(jtac.unitName)
+        if not jtacUnit or not jtacUnit:isExist() then
+            -- Unit dead — S_EVENT_DEAD → onUnitDead → deregisterJTAC already handles cleanup.
+            -- Just stop the loop; do NOT call killJTAC (would destroy the whole composite group).
+            return nil
+        end
+    else
+        local dcsGroup = Group.getByName(groupName)
+        if not dcsGroup or not dcsGroup:isExist() then
+            self:killJTAC(groupName, nil)
+            return nil
+        end
+        jtacUnit = dcsGroup:getUnits()[1]
+        if not jtacUnit or not jtacUnit:isExist() then
+            -- Unit gone but group still reported alive — treat as dead
+            self:killJTAC(groupName, nil)
+            return nil
+        end
     end
 
     -- ── Check existing target ──────────────────────────────────
@@ -850,21 +968,40 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         end
     end
 
-    -- ── Search for new target ──────────────────────────────────
-    local found = CTLDJTACDetector.findNearestVisibleEnemy(
-        jtacUnit,
-        jtac.lockMode,
-        ctld.gs("JTAC_maxDistance")
-    )
+    -- ── Search for new target (with deconfliction) ────────────
+    -- findAllVisibleEnemies returns candidates sorted by priority then distance.
+    -- With deconfliction enabled, iterate until a non-claimed target is found.
+    -- jtacKey identifies this JTAC's slot in _claimedTargets.
+    local jtacKey    = jtac.unitName or groupName
+    local candidates = CTLDJTACDetector.findAllVisibleEnemies(
+        jtacUnit, jtac.lockMode, ctld.gs("JTAC_maxDistance"))
+    local found = nil
+
+    if ctld.gs("JTAC_targetDeconfliction") ~= false then
+        for _, candidate in ipairs(candidates) do
+            if not self._claimedTargets[candidate.unitName] then
+                found = candidate
+                break
+            end
+        end
+    else
+        found = candidates[1]
+    end
 
     if not found then
         return t + searchInterval
     end
 
-    -- Stop ground unit movement while lasing
-    -- API: trigger.action.groupStopMoving — verified CTLD_jtac.lua source
+    -- Claim the target before creating DCS spots — prevents a concurrent JTAC loop
+    -- from selecting the same target in the same scheduler tick.
+    self:_claimTarget(jtacKey, found.unitName)
+
+    -- Stop ground unit movement while lasing.
+    -- Use jtacUnit:getGroup() — works for both unit-keyed (infantry) and group-keyed (vehicle/drone)
+    -- paths, because dcsGroup is scoped to the else-block above and not accessible here.
     if not jtac.isFlying then
-        trigger.action.groupStopMoving(dcsGroup)
+        local stopGroup = jtacUnit:getGroup()
+        if stopGroup then trigger.action.groupStopMoving(stopGroup) end
     end
 
     -- Compute lase position (with correction if enabled)
@@ -1149,11 +1286,52 @@ function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, 
     dcsGroup:getController():pushTask(orbit)
 end
 
+--- Record that jtacKey is actively lasing enemyUnitName.
+-- Prevents other JTACs from selecting the same target.
+-- @param jtacKey      string  unitName (infantry) or groupName (vehicle/drone)
+-- @param enemyUnitName string  DCS unit name of the lased target
+function CTLDJTACManager:_claimTarget(jtacKey, enemyUnitName)
+    self._claimedTargets[enemyUnitName] = jtacKey
+    ctld.utils.log("INFO", "[JTAC] claim: '%s' → '%s'", jtacKey, enemyUnitName)
+end
+
+--- Release the claim on a target (called when lasing stops for any reason).
+-- @param enemyUnitName string
+function CTLDJTACManager:_releaseTarget(enemyUnitName)
+    if self._claimedTargets[enemyUnitName] then
+        ctld.utils.log("INFO", "[JTAC] release claim on '%s' (was: '%s')",
+            enemyUnitName, tostring(self._claimedTargets[enemyUnitName]))
+        self._claimedTargets[enemyUnitName] = nil
+    end
+end
+
+--- Release all target claims owned by jtacKey (called on deregister/cleanup).
+-- Collects keys first to avoid mutating the table during iteration (Lua 5.1).
+-- @param jtacKey string
+function CTLDJTACManager:_releaseAllTargetsFor(jtacKey)
+    local toRemove = {}
+    for enemyUnitName, owner in pairs(self._claimedTargets) do
+        if owner == jtacKey then
+            toRemove[#toRemove + 1] = enemyUnitName
+        end
+    end
+    for _, enemyUnitName in ipairs(toRemove) do
+        self._claimedTargets[enemyUnitName] = nil
+    end
+    if #toRemove > 0 then
+        ctld.utils.log("INFO", "[JTAC] _releaseAllTargetsFor '%s': %d claim(s) released", jtacKey, #toRemove)
+    end
+end
+
 --- Stop lasing and publish OnJTACLaseStop event.
 -- @param jtac   CTLDJTAC
 -- @param reason string
 function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
     local prevTarget = jtac.currentTarget
+    -- Release target claim before stopLase() nils currentTarget
+    if prevTarget then
+        self:_releaseTarget(prevTarget.unitName)
+    end
     jtac:stopLase(reason)
 
     -- Notify player on target events (not on internal transitions like standby/transit)

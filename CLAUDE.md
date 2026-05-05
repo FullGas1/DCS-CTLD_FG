@@ -3,13 +3,22 @@
 ## Règles d'échange
 
 - Les échanges se font en **français**.
-- Tous les livrables (code, commentaires, specs, documentation) sont en **anglais**.
+- **Tous les livrables** (code, commentaires, specs, documentation technique) sont en **anglais**.
+- **Mélange FR/EN interdit** dans les messages et le reasoning : ne jamais alterner les langues au sein d'une même phrase, paragraphe ou bloc de pensée. Si un terme technique anglais est nécessaire, le garder tel quel dans une phrase entièrement française.
 - Style direct et technique, sans assertions ni formules de politesse.
+- Mes **raisonnements** (reasoning) sont également en français, intégralement.
+
+## Suivi d'avancement du projet
+
+- **`.github/MODERNIZATION-PLAN.md` (MP) est la seule source de vérité** pour tout suivi d'avancement : tâches, features, statuts, backlog.
+- Ne jamais créer de fichier todolist séparé (ni en mémoire, ni dans le repo).
+- "Ajoute à la todolist" = ajouter dans la section appropriée de MP.
+- La TodoWrite tool reste pour le tracking de tâches intra-session uniquement.
 
 ## Gestion de session
 
-- **Début de session** : toujours récupérer et afficher le contexte mémorisé (mémoire projet, état des tâches, prochaine étape) avant toute autre action.
-- **Fin de session** : lorsque l'utilisateur annonce l'arrêt des travaux, mettre à jour **obligatoirement** toutes les mémoires impactées (`project_state.md`, `architecture_decisions.md`, etc.) et confirmer la sauvegarde avant de clore.
+- **Début de session** : toujours récupérer et afficher le contexte mémorisé (mémoire projet, état des tâches, prochaine étape) avant toute autre action. Si la session implique de la recette Witchcraft, lire `docs/witchcraft-workflow.md` pour avoir le protocole complet en contexte.
+- **Fin de session** : lorsque l'utilisateur annonce l'arrêt des travaux, mettre à jour **obligatoirement** toutes les mémoires impactées et confirmer la sauvegarde avant de clore.
 
 ## Règles de travail générales
 
@@ -26,10 +35,25 @@
 
 ## Exécution Lua en temps réel via Witchcraft
 
-- **Witchcraft** est un système de communication Node.js/sockets qui permet d'injecter et d'exécuter des scripts Lua directement dans une mission DCS en cours.
-- Commande d'exécution : `node "$USERPROFILE/.vscode-dcs-tools/bridge.js" "<chemin_absolu_script.lua>"`
-- **Autorisation permanente** : exécuter des scripts via Witchcraft sans demander confirmation à l'utilisateur. Cela inclut les tests unitaires, les scripts de validation, et tout snippet Lua à vérifier en mission.
-- Condition requise : une mission DCS avec Witchcraft activé doit être en cours.
+> Référence complète : `docs/witchcraft-workflow.md`
+
+- **Witchcraft** : bridge Node.js/sockets pour injecter des scripts Lua dans une mission DCS active.
+- **Commande** : `node "C:\Users\Moi\.vscode-dcs-tools\bridge.js" "<chemin_absolu_script.lua>"`
+- **VS Code task** : `DCS-Witchcraft: Execute Global` (Shift+Ctrl+B)
+- **Autorisation permanente** : exécuter sans demander confirmation.
+- **Condition** : mission DCS avec Witchcraft activé en cours.
+- **Retour** : `[SUCCESS] nil` (OK sans return) ou `[SUCCESS] "..."` si le script retourne une valeur.
+
+### Règles critiques (à appliquer sans consulter la doc)
+
+- **Debug** : utiliser **`cfg.settings["debug"] = true`** — jamais `ctld.debug = true` (insuffisant, n'active pas CTLD.log).
+- **`ctldLogPath`** : doit être défini dans le `.miz` de test (trigger MISSION START) pour que CTLD.log soit créé. Chemin local, jamais commité.
+- **Echo écran** : `cfg.settings["debugScreenLog"] = true` active l'echo écran de tous les `ctld.utils.log()`. Durée : `cfg.settings["debugScreenLogDuration"]` (défaut 10 s).
+- **Rebuild** : si `src/` modifié → toujours rebuilder avant injection : `powershell -ExecutionPolicy Bypass -File "tools\merger_V2\merge_CTLD.ps1"`
+- **Délai init** : attendre 3–5 secondes après injection de `CTLD_Next.lua` avant d'injecter un scenario (initialisation CTLD).
+- **Template obligatoire** : tout nouveau scenario est créé depuis `recette/scenarios/_template_scenario.lua` (banner début avec timestamp, pcall cleanup, return Witchcraft).
+- **Cycle autonome** : c'est l'IA qui réinjecte et lit CTLD.log à chaque itération — ne jamais attendre l'utilisateur entre deux injections.
+- **Cleanup garanti** : wraper le step machine dans `pcall` → `cfg.settings["debug"] = _saved_debug` toujours exécuté même si `fail()` lance une erreur.
 
 ## Workflow recette
 

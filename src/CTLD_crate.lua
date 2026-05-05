@@ -1184,6 +1184,10 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         timestamp   = timer.getAbsTime(),
     })
 
+    timer.scheduleFunction(function()
+        self:_refreshNearbyPlayers(position)
+    end, {}, timer.getTime() + 0.001)
+
     return crate
 end
 

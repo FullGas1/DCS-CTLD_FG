@@ -1,7 +1,8 @@
 ---@meta
 ---@diagnostic disable
 
--- ===== Start: lib/class.lua =====
+-- ====================================================================================================
+-- Start : lib/class.lua
 ---@diagnostic disable
 -- class.lua
 -- Minimal OOP micro-framework for Lua 5.1 (DCS sandbox).
@@ -38,9 +39,10 @@ function class(base)
     end
     return cls
 end
--- ===== End: lib/class.lua =====
 
--- ===== Start: CTLD_config.lua =====
+-- End : lib/class.lua
+-- ====================================================================================================
+-- Start : CTLD_config.lua
 -- CTLDConfig Singleton Class
 -- src version — do not edit source/ original
 ctld = ctld or {}
@@ -74,6 +76,8 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     self.settings["debug"]                              = false -- if true, enables verbose logging to CTLD.log (requires non-sanitized DCS)
     self.settings["ctldLogPath"]                        = ""    -- override log file path (default: DCS Saved Games folder); empty = default
+    self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
+    self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
     self.settings["CTLD_ctldStatusF10"]                 = true  -- enables F10 CTLD Status menus
     self.settings["staticBugWorkaround"]                = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
@@ -273,7 +277,7 @@ function CTLDConfig:load()
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
+    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
 
     -- Simulated Sling load configuration (Feature B)
@@ -400,19 +404,20 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
     self.settings["JTAC_allow9Line"]                      = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
     self.settings["JTAC_laseIntervalSeconds"]             = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
     self.settings["JTAC_searchIntervalSeconds"]           = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
+    self.settings["JTAC_targetDeconfliction"]             = true  -- prevent multiple JTACs from lasing the same target simultaneously
     self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
 
     -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
-    self.settings["JTAC_droneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
-    self.settings["JTAC_droneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
+    self.settings["JTAC_droneRadius"]                     = 1000 -- fallback orbit radius (m) when crate specificParams absent
+    self.settings["JTAC_droneAltitude"]                   = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
     -- JTAC equipment requestable via F10 JTAC > Request JTAC Equipment, per coalition.
     -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
     -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
     -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.
-    self.settings["JTAC_unitTypeNames"] = {
-        [1] = { "SKP-11", "RQ-1A Predator" },  -- RED: JTAC vehicles available to RED coalition
-        [2] = { "Hummer", "MQ-9 Reaper" },     -- BLUE: JTAC vehicles available to BLUE coalition
+    self.settings["JTAC_unitTypeNames"]                   = {
+        [1] = { "SKP-11" }, -- RED: JTAC vehicles available to RED coalition
+        [2] = { "Hummer" }, -- BLUE: JTAC vehicles available to BLUE coalition
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -764,6 +769,7 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
         { name = ctld.tr("Anti Tank"),                        inf = 2,    at = 6 },
         { name = ctld.tr("Mortar Squad"),                     mortar = 6 },
         { name = ctld.tr("JTAC Group"),                       inf = 4,    jtac = 1 }, -- will make a loadable group with 4 infantry and a JTAC soldier for both coalitions
+        { name = ctld.tr("JTAC Group 2"),                     inf = 4,    jtac = 2 }, -- will make a loadable group with 4 infantry and a JTAC soldier for both coalitions
         { name = ctld.tr("Single JTAC"),                      jtac = 1 },             -- will make a loadable group witha single JTAC soldier for both coalitions
         { name = ctld.tr("2x - Standard Groups"),             inf = 12,   mg = 4,  at = 4 },
         { name = ctld.tr("2x - Anti Air"),                    inf = 4,    aa = 6 },
@@ -794,7 +800,7 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
             -- Some descriptions are filtered to determine if JTAC or not!
 
             --- BLUE
-            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 },                                               --careful with the names as the script matches the desc to JTAC types
+            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
             { weight = 1000.02, desc = ctld.tr("Humvee - TOW"),        unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
             { weight = 1000.03, desc = ctld.tr("Light Tank - MRAP"),   unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
             { weight = 1000.04, desc = ctld.tr("Med Tank - LAV-25"),   unit = "LAV-25",               side = 2, cratesRequired = 3 },
@@ -1041,6 +1047,12 @@ function CTLDConfig.getAllSettings()
     return CTLDConfig._instance.settings
 end
 
+-- Retrieve a specific setting
+function CTLDConfig:setSetting(key, value)
+    self.settings[key] = value
+    return self.settings[key]
+end
+
 ------------------------------------------------------------------
 -- yaml parsing utilities
 ------------------------------------------------------------------
@@ -1183,9 +1195,10 @@ config:setSetting("maximumDistanceLogistic", 250)
 -- To completely reset the singleton (useful for testing):
 CTLDConfig.reset()  -- class method (dot notation)
 ]] --
--- ===== End: CTLD_config.lua =====
 
--- ===== Start: CTLD_i18n.lua =====
+-- End : CTLD_config.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n.lua
 --[[
     CTLD — Internationalization class (CTLDi18n)
     src version — logic only, no dictionary data.
@@ -1403,9 +1416,10 @@ end
 --       env.info(table.concat(lines, "\n"))
 --   end
 --]]
--- ===== End: CTLD_i18n.lua =====
 
--- ===== Start: CTLD_i18n_en.lua =====
+-- End : CTLD_i18n.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
     Translation version: 1.7
@@ -1812,9 +1826,10 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
--- ===== End: CTLD_i18n_en.lua =====
 
--- ===== Start: CTLD_i18n_fr.lua =====
+-- End : CTLD_i18n_en.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
     Translation version: 1.7
@@ -2217,9 +2232,10 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = "→ Page suivante"
--- ===== End: CTLD_i18n_fr.lua =====
 
--- ===== Start: CTLD_i18n_es.lua =====
+-- End : CTLD_i18n_fr.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
     Translation version: 1.7
@@ -2623,9 +2639,10 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = "→ Página siguiente"
--- ===== End: CTLD_i18n_es.lua =====
 
--- ===== Start: CTLD_i18n_ko.lua =====
+-- End : CTLD_i18n_es.lua
+-- ====================================================================================================
+-- Start : CTLD_i18n_ko.lua
 --[[
     CTLD — Korean dictionary
     Translation version: 1.9
@@ -2876,9 +2893,10 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
--- ===== End: CTLD_i18n_ko.lua =====
 
--- ===== Start: CTLD_utils.lua =====
+-- End : CTLD_i18n_ko.lua
+-- ====================================================================================================
+-- Start : CTLD_utils.lua
 ---@diagnostic disable
 -- CTLD_utils.lua
 -- Static utility module: geometry, vectors, DCS spawn helpers, table utilities.
@@ -4115,19 +4133,19 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
         return {
             name  = gname,
             task  = "Ground Nothing",
-            units = {{
+            units = { {
                 type    = desc.unit,
                 name    = gname,
                 x       = pos.x,
                 y       = pos.z,
                 heading = 0,
-            }},
+            } },
         }
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
-        local alt   = ctld.gs("JTAC_droneAltitude") or 4000
-        local speed = 54  -- m/s (~105 kts)
-        local uname = gname .. "_1"
+        local alt     = ctld.gs("JTAC_droneAltitude") or 4000
+        local speed   = 54 -- m/s (~105 kts)
+        local uname   = gname .. "_1"
         local unitDef = {
             ["name"]          = gname,
             ["groupId"]       = gid,
@@ -4139,7 +4157,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
             ["task"]          = "Ground Nothing",
             ["x"]             = pos.x,
             ["y"]             = pos.z,
-            ["units"] = {
+            ["units"]         = {
                 [1] = {
                     ["type"]     = desc.unit,
                     ["name"]     = uname,
@@ -4171,7 +4189,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
                         ["properties"]         = { ["addopt"] = {} },
                         ["x"]                  = pos.x,
                         ["y"]                  = pos.z,
-                        ["task"] = {
+                        ["task"]               = {
                             ["id"]     = "ComboTask",
                             ["params"] = {
                                 ["tasks"] = {
@@ -4675,7 +4693,7 @@ end
 -- Keep ctld.debug=false on standard sanitized DCS installations.
 -- ====================================================================================================
 
-local _logFile = nil  -- module-local file handle
+local _logFile = nil -- module-local file handle
 
 -- Opens CTLD.log for writing if ctld.debug==true. Safe on sanitized DCS.
 -- Always closes any existing handle before opening (allows test harness to reuse the file).
@@ -4683,7 +4701,9 @@ function ctld.utils.initLog()
     if ctld.gs("debug") ~= true then return end
     -- Close any previously open handle (prevents file lock accumulation across test reloads)
     if _logFile ~= nil then
-        pcall(function() _logFile:flush(); _logFile:close() end)
+        pcall(function()
+            _logFile:flush(); _logFile:close()
+        end)
         _logFile = nil
     end
     local path     = ctld.gs("ctldLogPath") or ""
@@ -4711,17 +4731,25 @@ function ctld.utils.log(level, fmt, ...)
     local ok, msg = pcall(string.format, "[CTLD][" .. level .. "] " .. fmt, ...)
     if not ok then msg = "[CTLD][" .. level .. "] (log format error)" end
     env.info(msg)
+    if not _logFile then
+        pcall(ctld.utils.reopenLogAppend)
+    end
     if _logFile then
         pcall(function()
             _logFile:write(msg .. "\n")
             _logFile:flush()
         end)
     end
+    if ctld.gs("debugScreenLog") == true then
+        local duration = ctld.gs("debugScreenLogDuration") or 10
+        trigger.action.outText(msg, duration)
+    end
 end
 
 -- Reopens CTLD.log in append mode (used after closeLog + read to resume logging).
+-- File is opened only when config debug=true (ctld.gs("debug")).
 function ctld.utils.reopenLogAppend()
-    if _logFile ~= nil then return end   -- already open
+    if _logFile ~= nil then return end -- already open
     if ctld.gs("debug") ~= true then return end
     local path     = ctld.gs("ctldLogPath") or ""
     local filePath = path .. "CTLD.log"
@@ -4762,8 +4790,8 @@ end
 -- ====================================================================================================
 
 function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axisOffsetDeg)
-    n        = n or 1
-    spacing  = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
+    n             = n or 1
+    spacing       = spacing or (ctld.gs and ctld.gs("crateSpacing")) or 5
 
     local unitPos = unit:getPoint()
     local unitHdg = ctld.utils.getHeadingInRadians("getSpawnObjectPositions", unit, true)
@@ -4775,8 +4803,8 @@ function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axis
 
     local positions = {}
     for i = 1, n do
-        local dist = safeDistance + (i - 1) * spacing
-        local pt   = ctld.utils.GetRelativeVec2Coords(
+        local dist   = safeDistance + (i - 1) * spacing
+        local pt     = ctld.utils.GetRelativeVec2Coords(
             { x = unitPos.x, y = unitPos.z },
             unitHdg,
             dist,
@@ -4833,26 +4861,26 @@ end
 --   landPos.y is the MSL ground height at the computed XZ position.
 --   descentTime is in seconds.
 function ctld.utils.calcDropPosition(transport, descentRate)
-    local dropPos  = transport:getPoint()
-    local velocity = transport:getVelocity()
+    local dropPos     = transport:getPoint()
+    local velocity    = transport:getVelocity()
     local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
     local dropAltAGL  = dropPos.y - groundUnder
     if dropAltAGL < 0 then dropAltAGL = 0 end
-    local descentTime = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
+    local descentTime   = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
 
     local inertiaFactor = ctld.gs and ctld.gs("parachuteInertiaFactor") or 0.3
     local driftMin      = ctld.gs and ctld.gs("parachuteLateralDriftMin") or 10
     local driftMax      = ctld.gs and ctld.gs("parachuteLateralDriftMax") or 80
 
-    local inertiaX = (velocity.x or 0) * inertiaFactor * descentTime
-    local inertiaZ = (velocity.z or 0) * inertiaFactor * descentTime
+    local inertiaX      = (velocity.x or 0) * inertiaFactor * descentTime
+    local inertiaZ      = (velocity.z or 0) * inertiaFactor * descentTime
 
-    local angle     = math.random(0, 359) * math.pi / 180
-    local magnitude = driftMin + math.random() * (driftMax - driftMin)
+    local angle         = math.random(0, 359) * math.pi / 180
+    local magnitude     = driftMin + math.random() * (driftMax - driftMin)
 
-    local spawnX = dropPos.x + inertiaX + math.cos(angle) * magnitude
-    local spawnZ = dropPos.z + inertiaZ + math.sin(angle) * magnitude
-    local spawnY = land.getHeight({ x = spawnX, y = spawnZ })
+    local spawnX        = dropPos.x + inertiaX + math.cos(angle) * magnitude
+    local spawnZ        = dropPos.z + inertiaZ + math.sin(angle) * magnitude
+    local spawnY        = land.getHeight({ x = spawnX, y = spawnZ })
 
     return { x = spawnX, y = spawnY, z = spawnZ }, descentTime
 end
@@ -4897,9 +4925,10 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
--- ===== End: CTLD_utils.lua =====
 
--- ===== Start: CTLD_menu.lua =====
+-- End : CTLD_utils.lua
+-- ====================================================================================================
+-- Start : CTLD_menu.lua
 ---@diagnostic disable
 -- CTLD_menu.lua
 -- Menu model and DCS F10 menu manager.
@@ -5429,9 +5458,10 @@ function ctld.Menu:_cleanupLookup(pathPrefix)
         if key:find(pathPrefix, 1, true) == 1 then self._lookup[key] = nil end
     end
 end
--- ===== End: CTLD_menu.lua =====
 
--- ===== Start: lib/CTLD_objectRegistry.lua =====
+-- End : CTLD_menu.lua
+-- ====================================================================================================
+-- Start : lib/CTLD_objectRegistry.lua
 ---@diagnostic disable
 -- CTLD_objectRegistry.lua
 -- CTLDObjectRegistry — catalog of enriched DCS object descriptors + spawnObject() factory.
@@ -5853,9 +5883,10 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         return nil
     end
 end
--- ===== End: lib/CTLD_objectRegistry.lua =====
 
--- ===== Start: lib/CTLDParachuteEffect.lua =====
+-- End : lib/CTLD_objectRegistry.lua
+-- ====================================================================================================
+-- Start : lib/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
 -- Abstract interface + null implementation for virtual parachute side effects.
@@ -5907,9 +5938,10 @@ function CTLDParachuteEffect:onLanded(dropData) end  -- luacheck: ignore
 
 CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
--- ===== End: lib/CTLDParachuteEffect.lua =====
 
--- ===== Start: CTLD_sceneManager.lua =====
+-- End : lib/CTLDParachuteEffect.lua
+-- ====================================================================================================
+-- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
 -- CTLDSceneManager singleton — scene model registry + sequential execution engine.
@@ -6331,9 +6363,10 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ===== End: CTLD_sceneManager.lua =====
 
--- ===== Start: CTLD_zone.lua =====
+-- End : CTLD_sceneManager.lua
+-- ====================================================================================================
+-- Start : CTLD_zone.lua
 -- ============================================================
 -- CTLD_zone.lua
 -- CTLDTroopZone + CTLDLogisticZone entities + CTLDZoneManager singleton
@@ -7383,9 +7416,10 @@ function CTLDZoneManager:_validateZoneNames()
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
 end
--- ===== End: CTLD_zone.lua =====
 
--- ===== Start: CTLD_troop.lua =====
+-- End : CTLD_zone.lua
+-- ====================================================================================================
+-- Start : CTLD_troop.lua
 -- ============================================================
 -- CTLD_troop.lua
 -- CTLDTroopGroup entity + CTLDTroopManager singleton
@@ -7394,9 +7428,11 @@ end
 -- DCS API: coalition.addGroup, Group, Unit, land, trigger.action, missionCommands
 --
 -- TroopGroup lifecycle states:
---   loaded    : troops onboard a transport (loaded from a pickup zone)
---   deployed  : troops on the ground as a live DCS group
---   extracted : troops onboard a transport (picked up from field)
+--   TRZ_LOADED     : troops onboard a transport (loaded from a TroopZone)
+--   DEPLOYED       : troops on the ground as a live DCS group
+--   FIELD_LOADED   : troops onboard a transport (recovered from field)
+--   DEPLOYED_EXZ   : silent drop into EXZ_ — DCS group never spawned, flag counter only
+--   RETURNED_TO_TRZ: troops returned to TroopZone — instance discarded
 -- ============================================================
 
 ---@diagnostic disable
@@ -7409,32 +7445,36 @@ ctld = ctld or {}
 CTLDTroopGroup = class()
 
 CTLDTroopGroup.STATE = {
-    LOADED    = "loaded",
-    DEPLOYED  = "deployed",
-    EXTRACTED = "extracted",
+    TRZ_LOADED     = "TRZ_LOADED",
+    DEPLOYED       = "deployed",
+    FIELD_LOADED   = "FIELD_LOADED",
+    DEPLOYED_EXZ   = "DEPLOYED_EXZ",
+    RETURNED_TO_TRZ = "RETURNED_TO_TRZ",
 }
 
 --- Constructor.
 -- @param data table:
---   templateKey  (string|nil)  CTLDObjectRegistry key (nil for extracted groups without template)
---   templateName (string)      display name
---   unitTotal    (number)      total unit count
---   weight       (number)      total cargo weight (kg)
---   hasJtac      (boolean)
---   coalitionId  (number)      coalition.side.*
---   countryId    (number)      DCS country id
---   state        (string|nil)  CTLDTroopGroup.STATE.* — defaults to LOADED
+--   templateKey   (string|nil)  CTLDObjectRegistry key (nil for recovered groups)
+--   templateName   (string)      display name
+--   unitTotal      (number)      total unit count (alive at construction time)
+--   weight         (number)      total cargo weight (kg)
+--   coalitionId    (number)      coalition.side.*
+--   countryId      (number)      DCS country id
+--   state          (string|nil)  CTLDTroopGroup.STATE.* — defaults to TRZ_LOADED
+--   _aliveUnits    (table|nil)   map[unitName] = dcsUnit (references, not indices)
+--   _jtacUnits     (table|nil)   map[unitName] = true (subset of _aliveUnits flagged JTAC)
 function CTLDTroopGroup:init(data)
     self.templateKey  = data.templateKey
     self.templateName = data.templateName
     self.unitTotal    = data.unitTotal
     self.weight       = data.weight
-    self.hasJtac      = data.hasJtac or false
     self.coalitionId  = data.coalitionId
     self.countryId    = data.countryId
-    self.state        = data.state or CTLDTroopGroup.STATE.LOADED
-    self.dcsGroup     = nil
-    self.loadTime     = timer.getAbsTime()
+    self.state       = data.state or CTLDTroopGroup.STATE.TRZ_LOADED
+    self.dcsGroup    = nil
+    self.loadTime    = timer.getAbsTime()
+    self._aliveUnits = data._aliveUnits or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
+    self._jtacUnits  = data._jtacUnits  or {}  -- map[unitName] = true
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -7444,16 +7484,98 @@ function CTLDTroopGroup:deploy(dcsGroup)
     self.dcsGroup = dcsGroup
 end
 
---- Transition to EXTRACTED: troops boarded back from field into transport.
-function CTLDTroopGroup:extract()
-    self.state    = CTLDTroopGroup.STATE.EXTRACTED
-    self.dcsGroup = nil
+--- Returns true if troops are onboard the transport (TRZ_LOADED or FIELD_LOADED).
+function CTLDTroopGroup:isInTransit()
+    return self.state == CTLDTroopGroup.STATE.TRZ_LOADED
+        or self.state == CTLDTroopGroup.STATE.FIELD_LOADED
 end
 
---- Returns true if troops are onboard the transport (LOADED or EXTRACTED).
-function CTLDTroopGroup:isInTransit()
-    return self.state == CTLDTroopGroup.STATE.LOADED
-        or self.state == CTLDTroopGroup.STATE.EXTRACTED
+--- Returns the count of alive JTAC units in this group.
+function CTLDTroopGroup:getJtacCount()
+    local n = 0
+    for _ in pairs(self._jtacUnits) do n = n + 1 end
+    return n
+end
+
+--- Returns true if this group has at least one alive JTAC unit.
+function CTLDTroopGroup:hasAliveJtac()
+    return self:getJtacCount() > 0
+end
+
+--- Syncs _aliveUnits / _jtacUnits from the current DCS group.
+-- Fully rebuilds both maps from actual DCS unit names.
+-- JTAC units are identified by the "JTAC" name prefix (set by _registerOneTemplate).
+-- This prefix is exclusive to jtac-role units — all other roles use INF/MG/AT/AA/MORTAR.
+-- @param dcsGroup Group|nil  the DCS group (nil to clear refs)
+function CTLDTroopGroup:_syncFromDCSGroup(dcsGroup)
+    self._aliveUnits = {}
+    self._jtacUnits  = {}  -- full reset: rebuild from real DCS unit names
+    if not dcsGroup or not dcsGroup:isExist() then
+        self.unitTotal = 0
+        return
+    end
+    local units = dcsGroup:getUnits()
+    for _, unit in ipairs(units) do
+        if unit:isExist() then
+            local name = unit:getName()
+            self._aliveUnits[name] = unit
+            if name:match("^JTAC") then
+                self._jtacUnits[name] = true
+            end
+        end
+    end
+    self.unitTotal = 0
+    for _ in pairs(self._aliveUnits) do self.unitTotal = self.unitTotal + 1 end
+end
+
+--- Removes a dead unit from _aliveUnits and _jtacUnits.
+-- Called by CTLDTroopManager:onUnitDead() on S_EVENT_DEAD.
+-- @param unitName string
+function CTLDTroopGroup:_removeDeadUnit(unitName)
+    self._aliveUnits[unitName] = nil
+    self._jtacUnits[unitName]  = nil
+    self.unitTotal = 0
+    for _ in pairs(self._aliveUnits) do self.unitTotal = self.unitTotal + 1 end
+end
+
+--- Transition to DEPLOYED: record the spawned DCS group and sync unit refs.
+-- @param dcsGroup Group|nil  spawned DCS group (nil for DEPLOYED_EXZ silent drops)
+function CTLDTroopGroup:disembark(dcsGroup)
+    self.state    = CTLDTroopGroup.STATE.DEPLOYED
+    self.dcsGroup = dcsGroup
+    if dcsGroup then
+        self:_syncFromDCSGroup(dcsGroup)
+    end
+end
+
+--- Alias for backward compatibility during transition.
+CTLDTroopGroup.deploy = CTLDTroopGroup.disembark
+
+--- Transition to TRZ_LOADED: troops loaded from TroopZone (new load).
+-- @param template table  loadableGroup template (used to init _aliveUnits from composition)
+function CTLDTroopGroup:setTRZLoaded(template)
+    self.state    = CTLDTroopGroup.STATE.TRZ_LOADED
+    self.dcsGroup = nil
+    self:_initFromTemplate(template)
+end
+
+--- Build _aliveUnits / _jtacUnits from a template at load time (before DCS group exists).
+-- @param template table  loadableGroup template
+function CTLDTroopGroup:_initFromTemplate(template)
+    self._aliveUnits = {}
+    self._jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = template[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local unitName = string.format("%s_u%d", template.name or "Troop", idx)
+            self._aliveUnits[unitName] = idx  -- placeholder: slot number, not a DCS Unit ref yet
+            if role == "jtac" then
+                self._jtacUnits[unitName] = true
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -7800,7 +7922,7 @@ end
 -- @param zone      CtldZone (zoneType == "pickup")
 -- @param template  entry from ctld.gs("loadableGroups") (must have _dbKey, total, hasJtac set)
 -- @return bool
-function CTLDTroopManager:loadFromZone(unit, zone, template)
+function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local typeName  = unit:getTypeName()
@@ -7866,16 +7988,36 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         weight  = weight + n * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
     end
 
+    -- Build _aliveUnits / _jtacUnits from template role composition
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = template[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local slotName = string.format("%s_u%d", template.name, idx)
+            _aliveUnits[slotName] = idx  -- placeholder: slot ref until DCS spawn
+            if role == "jtac" then
+                _jtacUnits[slotName] = true
+            end
+        end
+    end
+
     -- Store transit group entity
-    self._inTransit[unitName] = CTLDTroopGroup:new({
+    local troopGroup = CTLDTroopGroup:new({
         templateKey  = template._dbKey,
         templateName = template.name,
         unitTotal    = template.total,
         weight       = weight,
-        hasJtac      = template.hasJtac or false,
         coalitionId  = coalition,
         countryId    = unit:getCountry(),
+        state        = CTLDTroopGroup.STATE.TRZ_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
+    troopGroup.dcsGroup = nil
+    self._inTransit[unitName] = troopGroup
 
     -- Consume pickup stock (TRZ native API; no-op for unlimited zones)
     zone:consumeStock(template.total)
@@ -7883,7 +8025,7 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("Loaded: %1 (%2 troops).", template.name, template.total), 10)
 
-    ctld.utils.log("INFO", "loadFromZone: '%s' loaded '%s' (%d units, %.0f kg)",
+    ctld.utils.log("INFO", "embarkFromTroopZone: '%s' loaded '%s' (%d units, %.0f kg)",
         unitName, template.name, template.total, weight)
 
     pcall(self._updateWeight, self, unitName)
@@ -7891,14 +8033,14 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
 end
 
 -- ============================================================
--- deploy (fast-rope or combat drop)
+-- disembark (fast-rope or combat drop)
 -- ============================================================
 
 -- Deploys troops from unit into combat (fast-rope if conditions met, else ground drop).
 -- If inside a TRZ with objectiveFlag: troops are counted only (flag increment), no DCS group spawned.
 -- @param unit  DCS Unit object
 -- @return bool
-function CTLDTroopManager:deploy(unit)
+function CTLDTroopManager:disembark(unit)
     local unitName = unit:getName()
     local group    = self._inTransit[unitName]
 
@@ -7949,11 +8091,23 @@ function CTLDTroopManager:deploy(unit)
 
         group:deploy(dcsGroup)
         table.insert(self._droppedGroups[group.coalitionId], dcsGroup:getName())
-        self._droppedTemplates[dcsGroup:getName()] = group.templateKey
+        -- Store both key and display name to restore templateName correctly after field pickup (BUG-06)
+        -- Store original weight and total for accurate weight estimation after unit losses (BUG-07)
+        self._droppedTemplates[dcsGroup:getName()] = {
+            key    = group.templateKey,
+            name   = group.templateName,
+            weight = group.weight,
+            total  = group.unitTotal,
+        }
 
-        if group.hasJtac then
-            ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s', starting autoLase", dcsGroup:getName())
-            CTLDJTACManager.getInstance():startLase(dcsGroup:getName())
+        if group:hasAliveJtac() then
+            local jm = CTLDJTACManager.getInstance()
+            for jtacName, _ in pairs(group._jtacUnits) do
+                -- JTACs are tracked at unit level (unitName) within a composite group.
+                -- Use startLaseTroopUnit (Unit.getByName) — not startLase (Group.getByName).
+                jm:startLaseTroopUnit(jtacName)
+                ctld.utils.log("INFO", "deploy: startLaseTroopUnit('%s') for JTAC unit", jtacName)
+            end
         end
 
         -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
@@ -8007,7 +8161,7 @@ end
 -- @param unit  DCS Unit object
 -- @param zone  CtldZone (zoneType == "pickup")
 -- @return bool
-function CTLDTroopManager:returnToBase(unit, zone)
+function CTLDTroopManager:returnToTroopZone(unit, zone)
     local unitName  = unit:getName()
     local group     = self._inTransit[unitName]
     local coalition = unit:getCoalition()
@@ -8024,6 +8178,12 @@ function CTLDTroopManager:returnToBase(unit, zone)
     ctld.utils.log("INFO", "returnToBase: '%s' returned [%s] to TRZ '%s'",
         unitName, group.templateName, zone.zoneName)
 
+    local jm = CTLDJTACManager.getInstance()
+    for jtacName, _ in pairs(group._jtacUnits or {}) do
+        jm:deregisterJTAC(jtacName)
+        ctld.utils.log("INFO", "returnToTroopZone: deregisterJTAC('%s')", jtacName)
+    end
+
     self._inTransit[unitName] = nil
     pcall(self._updateWeight, self, unitName)
 
@@ -8033,13 +8193,15 @@ function CTLDTroopManager:returnToBase(unit, zone)
 end
 
 -- ============================================================
--- extract
+-- embarkFromField
 -- ============================================================
 
 -- Extracts the nearest friendly dropped troop group (unit must be on the ground).
+-- JTAC units are deregistered BEFORE group destruction to avoid spurious killJTAC
+-- from the S_EVENT_DEAD that DCS fires on group:destroy().
 -- @param unit  DCS Unit object
 -- @return bool
-function CTLDTroopManager:extract(unit)
+function CTLDTroopManager:embarkFromField(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local typeName  = unit:getTypeName()
@@ -8072,19 +8234,47 @@ function CTLDTroopManager:extract(unit)
         return false
     end
 
-    local country = nearest.group:getUnit(1):getCountry()
-    local weight  = groupSize * 130  -- 130 kg/soldier extraction estimate
-    local hasJtac = nearest.groupName:lower():find("jtac") ~= nil
+    local country  = nearest.group:getUnit(1):getCountry()
+    local stored   = self._droppedTemplates[nearest.groupName] or {}
+
+    -- Weight: proportional to surviving units using original avg weight (BUG-07)
+    local avgWeight = (stored.weight and stored.total and stored.total > 0)
+                      and (stored.weight / stored.total) or 130
+    local weight    = math.floor(avgWeight * groupSize)
+
+    -- Sync _aliveUnits / _jtacUnits from current DCS group before destroy.
+    -- JTAC units identified by "JTAC" prefix — exclusive to jtac-role units (BUG-03 / BUG-05).
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local dcsUnits = nearest.group:getUnits()
+    for i = 1, #dcsUnits do
+        local dcsUnit = dcsUnits[i]
+        if dcsUnit and dcsUnit:isExist() then
+            local name = dcsUnit:getName()
+            _aliveUnits[name] = dcsUnit
+            if name:match("^JTAC") then
+                _jtacUnits[name] = true
+            end
+        end
+    end
+
+    -- Deregister JTACs BEFORE group:destroy() to avoid spurious killJTAC from S_EVENT_DEAD
+    local jm = CTLDJTACManager.getInstance()
+    for jtacName, _ in pairs(_jtacUnits) do
+        jm:deregisterJTAC(jtacName)
+        ctld.utils.log("INFO", "embarkFromField: deregisterJTAC('%s') called before group destroy", jtacName)
+    end
 
     self._inTransit[unitName] = CTLDTroopGroup:new({
-        templateKey  = self._droppedTemplates[nearest.groupName],
-        templateName = nearest.groupName,
+        templateKey  = stored.key,
+        templateName = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
         unitTotal    = groupSize,
         weight       = weight,
-        hasJtac      = hasJtac,
         coalitionId  = coalition,
         countryId    = country,
-        state        = CTLDTroopGroup.STATE.EXTRACTED,
+        state        = CTLDTroopGroup.STATE.FIELD_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
 
     self:_removeFromDropped(coalition, nearest.groupName)
@@ -8161,7 +8351,7 @@ function CTLDTroopManager:buildMenu(unit, groupId, parentPath)
                         ctld.tr("You must be in a pickup zone to load troops."), 10)
                     return
                 end
-                CTLDTroopManager.getInstance():loadFromZone(u, zone, capturedTmpl)
+                CTLDTroopManager.getInstance():embarkFromTroopZone(u, zone, capturedTmpl)
             end)
         itemNb = itemNb + 1
     end
@@ -8187,6 +8377,9 @@ function CTLDTroopManager:cleanupDeadGroups()
             local g = Group.getByName(name)
             if g and g:isExist() and #g:getUnits() > 0 then
                 table.insert(alive, name)
+            else
+                -- Also purge from _droppedTemplates to avoid stale entries (BUG-08)
+                self._droppedTemplates[name] = nil
             end
         end
         self._droppedGroups[coa] = alive
@@ -8194,10 +8387,100 @@ function CTLDTroopManager:cleanupDeadGroups()
 end
 
 -- Removes entries for destroyed transports from _inTransit.
+-- JTAC lifecycle: multi-JTAC per group (JTAC units identified by name prefix "JTAC")
+-- JTAC managers keep one entry per JTAC unit, not per group.
+-- When the last JTAC of a group dies, the whole group is considered "non-JTAC".
+
+--- Finds a CTLDTroopGroup that has a live unit matching `unitName`.
+-- Used by `onUnitDead` to locate the owning group after a unit is destroyed.
+-- @param unitName string  DCS unit name
+-- @return CTLDTroopGroup|nil
+function CTLDTroopManager:_findGroupByAliveUnit(unitName)
+    for unitNameKey, grp in pairs(self._inTransit) do
+        if grp._aliveUnits and grp._aliveUnits[unitName] then
+            return grp
+        end
+    end
+    for coa = 1, 2 do
+        for _, gname in ipairs(self._droppedGroups[coa]) do
+            local g = Group.getByName(gname)
+            if g and g:isExist() then
+                local units = g:getUnits()
+                for i = 1, #units do
+                    if units[i]:isExist() and units[i]:getName() == unitName then
+                        local stored  = self._droppedTemplates[gname] or {}
+                        local aliveUnits = {}
+                        local jtacUnits = {}
+                        for j = 1, #units do
+                            local u = units[j]
+                            if u:isExist() then
+                                local uname = u:getName()
+                                aliveUnits[uname] = u
+                                if uname:match("^JTAC") then
+                                    jtacUnits[uname] = true
+                                end
+                            end
+                        end
+                        local grp = CTLDTroopGroup:new({
+                            templateKey  = stored.key,
+                            templateName = stored.name or gname,
+                            unitTotal = 0,
+                            weight = 0,
+                            coalitionId = coa,
+                            countryId = g:getUnit(1):getCountry(),
+                            state = CTLDTroopGroup.STATE.DEPLOYED,
+                            _aliveUnits = aliveUnits,
+                            _jtacUnits = jtacUnits,
+                        })
+                        grp.dcsGroup = g
+                        return grp
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+--- Called from CTLDDCSEventBridge on S_EVENT_DEAD.
+-- Removes the dead unit from _aliveUnits and _jtacUnits of the owning group.
+-- Deregisters the JTAC from CTLDJTACManager if the dead unit was a JTAC.
+-- NOTE: wasJtac is captured BEFORE _removeDeadUnit clears _jtacUnits[unitName].
+-- @param unitName string  DCS unit name
+function CTLDTroopManager:onUnitDead(unitName)
+    local grp = self:_findGroupByAliveUnit(unitName)
+    if not grp then
+        ctld.utils.log("INFO", "onUnitDead: no group found for unit '%s' — skipping", unitName)
+        return
+    end
+    -- Capture JTAC status before _removeDeadUnit erases the entry
+    local wasJtac = grp._jtacUnits ~= nil and grp._jtacUnits[unitName] ~= nil
+    grp:_removeDeadUnit(unitName)
+    ctld.utils.log("INFO", "onUnitDead: '%s' removed from group (aliveUnits=%d, jtacUnits=%d)",
+        unitName, grp:getAliveCount(), grp:getJtacCount())
+    if wasJtac then
+        CTLDJTACManager.get():deregisterJTAC(unitName)
+        ctld.utils.log("INFO", "onUnitDead: JTAC unit '%s' deregistered", unitName)
+    end
+end
+
+--- Returns the count of alive units (helper for onUnitDead logging).
+-- @return number
+function CTLDTroopGroup:getAliveCount()
+    local n = 0
+    for _ in pairs(self._aliveUnits) do n = n + 1 end
+    return n
+end
+
 function CTLDTroopManager:cleanupDeadTransports()
-    for unitName, _ in pairs(self._inTransit) do
+    local jm = CTLDJTACManager.getInstance()
+    for unitName, grp in pairs(self._inTransit) do
         local u = Unit.getByName(unitName)
         if not u or not u:isExist() then
+            for jtacName, _ in pairs(grp._jtacUnits or {}) do
+                jm:deregisterJTAC(jtacName)
+                ctld.utils.log("INFO", "cleanupDeadTransports: JTAC '%s' deregistered (orphan)", jtacName)
+            end
             self._inTransit[unitName] = nil
             ctld.utils.log("INFO", "cleanupDeadTransports: removed stale entry for '%s'", unitName)
         end
@@ -8292,38 +8575,38 @@ end
 -- ============================================================
 
 -- "Unload / Extract Troops" button:
---   On ground + nearest dropped group + no troops → extract
---   Has troops + in TRZ pickup-only               → returnToBase
---   Has troops + in TRZ with objectiveFlag        → deploy (flag incremented)
---   Has troops + not in any TRZ                   → deploy to combat
+--   On ground + nearest dropped group + no troops → embarkFromField
+--   Has troops + in TRZ pickup-only               → returnToTroopZone
+--   Has troops + in TRZ with objectiveFlag        → disembark (flag incremented)
+--   Has troops + not in any TRZ                   → disembark to combat
 function CTLDTroopManager:_menuUnloadOrExtract(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local zm        = CTLDZoneManager.getInstance()
     local inAir     = self:_isInAir(unit)
 
-    -- Ground + extractable group nearby + no troops onboard → extract
+    -- Ground + extractable group nearby + no troops onboard → embarkFromField
     if not inAir and not self:hasTroops(unitName) then
         local nearest = self:_findNearestDropped(unit, coalition)
         if nearest then
-            self:extract(unit)
+            self:embarkFromField(unit)
             return
         end
     end
 
     -- Has troops: TRZ with objectiveFlag takes priority over pickup-only TRZ.
-    -- Mixed TRZ (hasPickup + hasExtract) → deploy to increment objective flag.
-    -- Pickup-only TRZ → returnToBase to restore pickup stock.
+    -- Mixed TRZ (hasPickup + hasExtract) → disembark to increment objective flag.
+    -- Pickup-only TRZ → returnToTroopZone to restore pickup stock.
     if self:hasTroops(unitName) then
         local exzZone = zm:isUnitInZone(unitName, "extract")
         if exzZone then
-            self:deploy(unit)
+            self:disembark(unit)
         else
             local pkzZone = zm:isUnitInZone(unitName, "pickup")
             if pkzZone then
-                self:returnToBase(unit, pkzZone)
+                self:returnToTroopZone(unit, pkzZone)
             else
-                self:deploy(unit)
+                self:disembark(unit)
             end
         end
         return
@@ -8538,8 +8821,8 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
 
         for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
             if zone:hasPickup() and zone:isInZone(pt) then
-                local zName   = zone.zoneName
-                local zoneSub = string.format(ctld.tr("Load from %s"), zName)
+                local zName   = zone.zoneName   -- short name used for getTroopZone() lookup in callback
+                local zoneSub = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
                 -- Stock available in this zone (unlimited if pickMaxStock==0)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub }, zoneSub)
@@ -8561,7 +8844,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                                         ctld.tr("Zone not found."), 10)
                                     return
                                 end
-                                CTLDTroopManager.getInstance():loadFromZone(u, z, arg.tmpl)
+                                CTLDTroopManager.getInstance():embarkFromTroopZone(u, z, arg.tmpl)
                             end,
                             { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
                     end
@@ -8747,14 +9030,32 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
     for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
         weight = weight + (tmpl[role] or 0) * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
     end
+
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = tmpl[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local slotName = string.format("%s_u%d", tmpl.name, idx)
+            _aliveUnits[slotName] = idx
+            if role == "jtac" then
+                _jtacUnits[slotName] = true
+            end
+        end
+    end
+
     self._inTransit[unitName] = CTLDTroopGroup:new({
         templateKey  = tmpl._dbKey,
         templateName = tmpl.name,
         unitTotal    = tmpl.total,
         weight       = weight,
-        hasJtac      = tmpl.hasJtac or false,
         coalitionId  = coalitionId,
         countryId    = unit:getCountry(),
+        state        = CTLDTroopGroup.STATE.TRZ_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
     self:_updateWeight(unitName)
     ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport — '%s' loaded [%s]", unitName, tmpl.name)
@@ -8791,7 +9092,7 @@ function CTLDTroopManager:loadTransport(unitName)
     end
     local tmpl = self._templates[1]
     if not tmpl then return false end
-    return self:loadFromZone(unit, zone, tmpl)
+    return self:embarkFromTroopZone(unit, zone, tmpl)
 end
 
 --- Unload troops from a named AI transport when an enemy is detected within distance.
@@ -8896,9 +9197,10 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
     end
     _tick()
 end
--- ===== End: CTLD_troop.lua =====
 
--- ===== Start: CTLD_crate.lua =====
+-- End : CTLD_troop.lua
+-- ====================================================================================================
+-- Start : CTLD_crate.lua
 -- ============================================================
 -- CTLD_crate.lua
 -- CTLDCrate entity + CTLDCrateManager singleton
@@ -10085,6 +10387,10 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         timestamp   = timer.getAbsTime(),
     })
 
+    timer.scheduleFunction(function()
+        self:_refreshNearbyPlayers(position)
+    end, {}, timer.getTime() + 0.001)
+
     return crate
 end
 
@@ -11110,9 +11416,10 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
     end
     _tick()
 end
--- ===== End: CTLD_crate.lua =====
 
--- ===== Start: CTLD_vehicle.lua =====
+-- End : CTLD_crate.lua
+-- ====================================================================================================
+-- Start : CTLD_vehicle.lua
 -- ============================================================
 -- CTLD_vehicle.lua
 -- CTLDVehicle entity + CTLDVehicleSpawner singleton
@@ -12600,9 +12907,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
               coalition = playerObj.coalition })
     end
 end
--- ===== End: CTLD_vehicle.lua =====
 
--- ===== Start: CTLD_fob.lua =====
+-- End : CTLD_vehicle.lua
+-- ====================================================================================================
+-- Start : CTLD_fob.lua
 -- ============================================================
 -- CTLD_fob.lua
 -- CTLDFOB entity + CTLDFOBManager singleton
@@ -13102,9 +13410,10 @@ function CTLDFOBManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 end
--- ===== End: CTLD_fob.lua =====
 
--- ===== Start: CTLD_aasystem.lua =====
+-- End : CTLD_fob.lua
+-- ====================================================================================================
+-- Start : CTLD_aasystem.lua
 -- ============================================================
 -- CTLD_aasystem.lua
 -- CTLDCrateAssemblyManager singleton
@@ -13801,9 +14110,10 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
     if not result then return nil end
     return Group.getByName(result.name)
 end
--- ===== End: CTLD_aasystem.lua =====
 
--- ===== Start: CTLD_beacon.lua =====
+-- End : CTLD_aasystem.lua
+-- ====================================================================================================
+-- Start : CTLD_beacon.lua
 -- ============================================================
 -- CTLD_beacon.lua
 -- CTLDBeacon entity + CTLDBeaconManager singleton
@@ -14650,9 +14960,10 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     ctld.utils.log("INFO", "CTLDBeaconManager:createAtZone — '%s' at zone '%s'", name, zoneName)
     return beacon
 end
--- ===== End: CTLD_beacon.lua =====
 
--- ===== Start: CTLD_recon.lua =====
+-- End : CTLD_beacon.lua
+-- ====================================================================================================
+-- Start : CTLD_recon.lua
 -- ============================================================
 -- CTLD_recon.lua
 -- CTLDReconRenderer (static) + CTLDReconManager (singleton)
@@ -15529,9 +15840,10 @@ function CTLDReconManager:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root }, reconSub, { order = 70 })
     self:_addReconCommands(menu, playerObj.unitName)
 end
--- ===== End: CTLD_recon.lua =====
 
--- ===== Start: CTLD_jtac.lua =====
+-- End : CTLD_recon.lua
+-- ====================================================================================================
+-- Start : CTLD_jtac.lua
 -- ============================================================
 -- CTLD_jtac.lua
 -- CTLDJTAC entity + CTLDJTACDetector helpers + CTLDJTACManager singleton
@@ -15604,6 +15916,9 @@ CTLDJTAC.LOCK_MODE = {
 --   lockMode     (string)   "all" | "vehicle" | "troop"
 function CTLDJTAC:init(data)
     self.groupName    = data.groupName
+    -- unitName: set for infantry JTACs within a composite troop group (unit-keyed registry).
+    -- nil for drone/vehicle JTACs (group-keyed registry). Drives Unit.getByName() path in _autoLaseLoop.
+    self.unitName     = data.unitName    or nil
     self.laserCode    = data.laserCode
     self.isFlying     = data.isFlying    or false
     self.isInfantry   = data.isInfantry  or false
@@ -15735,24 +16050,23 @@ function CTLDJTACDetector.calculateFMRadio(groupName, laserCode)
     return { name = groupName, freq = freq, mod = "fm" }
 end
 
---- Find the nearest visible enemy for a JTAC unit.
+--- Find all visible enemies for a JTAC unit, sorted by priority then distance.
 -- Uses world.searchObjects (sphere) + land.isVisible (LOS, +2m Y offset).
--- Prioritises: hpriority > priority > Air Defence > standard; ties broken by distance.
+-- Priority tiers: hpriority(1) > priority(2) > Air Defence(3) > standard(4).
+-- Returns a sorted list so callers can iterate for target deconfliction.
 -- API: world.searchObjects — verified Hoggit 2026-04-01
 -- API: land.isVisible      — verified CTLD_jtac.lua source
 -- @param jtacUnit    DCS Unit object
 -- @param lockMode    string  "all" | "vehicle" | "troop"
 -- @param maxDistance number  metres
--- @return table or nil  { dcsUnit, unitName, unitType, unitId, position, priority, distance }
-function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistance)
-    if not jtacUnit or not jtacUnit:isExist() then return nil end
+-- @return table  sorted array of { dcsUnit, unitName, unitType, unitId, position, priority, distance }
+function CTLDJTACDetector.findAllVisibleEnemies(jtacUnit, lockMode, maxDistance)
+    if not jtacUnit or not jtacUnit:isExist() then return {} end
 
     local jtacPos  = jtacUnit:getPoint()
     local jtacCoal = jtacUnit:getCoalition()
     local offsetA  = { x = jtacPos.x, y = jtacPos.y + 2, z = jtacPos.z }
-
-    -- Track best candidate inline (O(n)) — no sort needed, only one result is used.
-    local best = nil
+    local results  = {}
 
     world.searchObjects(
         Object.Category.UNIT,
@@ -15772,9 +16086,7 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
             local offsetB = { x = unitPos.x, y = unitPos.y + 2, z = unitPos.z }
             if not land.isVisible(offsetA, offsetB) then return true end
 
-            local dist = ctld.utils.getDistance("CTLDJTACDetector.findNearestVisibleEnemy", jtacPos, unitPos)
-
-            -- Priority: hpriority(1) > priority(2) > Air Defence(3) > standard(4)
+            local dist     = ctld.utils.getDistance("CTLDJTACDetector.findAllVisibleEnemies", jtacPos, unitPos)
             local name     = unit:getName()
             local typeName = unit:getTypeName()
             local priority
@@ -15788,26 +16100,36 @@ function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistanc
                 priority = 4
             end
 
-            if not best
-                or priority < best.priority
-                or (priority == best.priority and dist < best.distance)
-            then
-                best = {
-                    dcsUnit  = unit,
-                    unitName = name,
-                    unitType = typeName,
-                    unitId   = unit:getID(),
-                    position = unitPos,
-                    priority = priority,
-                    distance = dist,
-                }
-            end
+            results[#results + 1] = {
+                dcsUnit  = unit,
+                unitName = name,
+                unitType = typeName,
+                unitId   = unit:getID(),
+                position = unitPos,
+                priority = priority,
+                distance = dist,
+            }
             return true
         end,
         nil
     )
 
-    return best
+    table.sort(results, function(a, b)
+        if a.priority ~= b.priority then return a.priority < b.priority end
+        return a.distance < b.distance
+    end)
+
+    return results
+end
+
+--- Find the nearest visible enemy for a JTAC unit.
+-- Thin wrapper around findAllVisibleEnemies — returns only the first (best) candidate.
+-- @param jtacUnit    DCS Unit object
+-- @param lockMode    string  "all" | "vehicle" | "troop"
+-- @param maxDistance number  metres
+-- @return table or nil  { dcsUnit, unitName, unitType, unitId, position, priority, distance }
+function CTLDJTACDetector.findNearestVisibleEnemy(jtacUnit, lockMode, maxDistance)
+    return CTLDJTACDetector.findAllVisibleEnemies(jtacUnit, lockMode, maxDistance)[1]
 end
 
 --- Line-of-sight check (convenience wrapper).
@@ -15937,6 +16259,9 @@ function CTLDJTACManager.get()
         o._laserPool     = {}
         o._pendingJTACs  = {}
         o._orbitScheduleId = nil
+        -- Target deconfliction: { [enemyUnitName] = jtacKey } — tracks targets currently being lased.
+        -- Prevents multiple concurrent JTACs from lasing the same target.
+        o._claimedTargets = {}
         o:_initLaserPool()
         CTLDJTACManager._instance = o
         CTLDPlayerManager.getInstance():registerMenuSection({
@@ -16121,6 +16446,12 @@ end
 function CTLDJTACManager:deregisterJTAC(groupName)
     local jtac = self.jtacs[groupName]
     if not jtac then return end
+    -- Release active target claim (stopLase below does not call _stopLaseAndPublish)
+    if jtac.currentTarget then
+        self:_releaseTarget(jtac.currentTarget.unitName)
+    end
+    local jtacKey = jtac.unitName or groupName
+    self:_releaseAllTargetsFor(jtacKey)  -- belt-and-suspenders: clear any stale claims
     jtac:stopLase(CTLDJTAC.STOP_REASON.IN_TRANSIT)
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
@@ -16275,6 +16606,93 @@ function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, ra
     )
 end
 
+--- Register and start auto-lase for a JTAC infantry unit within a composite troop group.
+-- Unlike spawnJTAC/startLase (which operate on single-unit DCS groups keyed by groupName),
+-- this function targets a specific DCS unit by unitName (part of a composite group).
+-- Registry key: unitName. Auto-lase loop uses Unit.getByName() instead of Group.getByName().
+-- Death detection: handled by S_EVENT_DEAD → onUnitDead → deregisterJTAC (no killJTAC).
+-- @param unitName  string   DCS unit name (JTAC-role infantry in a composite troop group)
+-- @param cfg       table    { laserCode, smokeEnabled, smokeColor, lockMode } (all optional)
+-- @return CTLDJTAC or nil
+function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
+    if self.jtacs[unitName] then
+        ctld.utils.log("WARN", "CTLDJTACManager:startLaseTroopUnit — already active: %s", unitName)
+        return self.jtacs[unitName]
+    end
+
+    local dcsUnit = Unit.getByName(unitName)
+    if not dcsUnit or not dcsUnit:isExist() then
+        ctld.utils.log("WARN", "CTLDJTACManager:startLaseTroopUnit — unit not found: %s", tostring(unitName))
+        return nil
+    end
+
+    local laserCode = (cfg and cfg.laserCode) or self:_assignLaserCode()
+    if not laserCode then
+        ctld.logError("CTLDJTACManager:startLaseTroopUnit — laser code pool exhausted")
+        return nil
+    end
+
+    local coalitionId = dcsUnit:getCoalition()
+    local attrs       = dcsUnit:getDesc().attributes or {}
+    local isInfantry  = attrs["Infantry"] == true
+
+    local smokeEnabled
+    if cfg and cfg.smokeEnabled ~= nil then
+        smokeEnabled = cfg.smokeEnabled
+    elseif coalitionId == coalition.side.RED then
+        smokeEnabled = ctld.gs("JTAC_smokeOn_RED") or false
+    else
+        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE") or false
+    end
+
+    local smokeColor
+    if cfg and cfg.smokeColor ~= nil then
+        smokeColor = cfg.smokeColor
+    elseif coalitionId == coalition.side.RED then
+        smokeColor = ctld.gs("JTAC_smokeColour_RED") or trigger.smokeColor.Red
+    else
+        smokeColor = ctld.gs("JTAC_smokeColour_BLUE") or trigger.smokeColor.Red
+    end
+
+    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock") or "all"
+
+    local jtac = CTLDJTAC:new({
+        groupName    = unitName,   -- registry key (= unitName for troop JTACs)
+        unitName     = unitName,   -- marks as unit-keyed; drives Unit.getByName() in _autoLaseLoop
+        laserCode    = laserCode,
+        isFlying     = false,
+        isInfantry   = isInfantry,
+        coalitionId  = coalitionId,
+        smokeEnabled = smokeEnabled,
+        smokeColor   = smokeColor,
+        lockMode     = lockMode,
+    })
+
+    self.jtacs[unitName] = jtac
+
+    timer.scheduleFunction(
+        function(un, t) return CTLDJTACManager.get():_autoLaseLoop(un, t) end,
+        unitName,
+        timer.getTime() + 1
+    )
+
+    self:_publishEvent("OnJTACSpawned", {
+        jtac = {
+            groupName  = unitName,
+            unitName   = unitName,
+            laserCode  = laserCode,
+            coalition  = coalitionId,
+            isFlying   = false,
+            isInfantry = isInfantry,
+        },
+        timestamp = timer.getAbsTime(),
+    })
+
+    ctld.utils.log("INFO",
+        "CTLDJTACManager:startLaseTroopUnit — '%s' registered (code=%d)", unitName, laserCode)
+    return jtac
+end
+
 --- Stop auto-lase for a JTAC group without firing the Dead event.
 -- Sets the JTAC to standby mode; the auto-lase loop will stop lasing and idle.
 -- @param groupName string
@@ -16293,8 +16711,9 @@ function CTLDJTACManager:cleanup()
     for _, jtac in pairs(self.jtacs) do
         jtac:destroy()
     end
-    self.jtacs      = {}
-    self._laserPool = {}
+    self.jtacs           = {}
+    self._claimedTargets = {}
+    self._laserPool      = {}
     self:_initLaserPool()
     self._orbitScheduleId = nil
 end
@@ -16331,18 +16750,29 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         return t + searchInterval
     end
 
-    -- Verify group still alive (only when NOT in transit)
-    local dcsGroup = Group.getByName(groupName)
-    if not dcsGroup or not dcsGroup:isExist() then
-        self:killJTAC(groupName, nil)
-        return nil
-    end
-
-    local jtacUnit = dcsGroup:getUnits()[1]
-    if not jtacUnit or not jtacUnit:isExist() then
-        -- Unit gone but group still reported alive — treat as dead
-        self:killJTAC(groupName, nil)
-        return nil
+    -- Resolve JTAC unit:
+    --   unit-keyed (infantry in composite troop group): Unit.getByName(jtac.unitName)
+    --   group-keyed (drone, vehicle — single-unit DCS group): Group.getByName():getUnits()[1]
+    local jtacUnit
+    if jtac.unitName then
+        jtacUnit = Unit.getByName(jtac.unitName)
+        if not jtacUnit or not jtacUnit:isExist() then
+            -- Unit dead — S_EVENT_DEAD → onUnitDead → deregisterJTAC already handles cleanup.
+            -- Just stop the loop; do NOT call killJTAC (would destroy the whole composite group).
+            return nil
+        end
+    else
+        local dcsGroup = Group.getByName(groupName)
+        if not dcsGroup or not dcsGroup:isExist() then
+            self:killJTAC(groupName, nil)
+            return nil
+        end
+        jtacUnit = dcsGroup:getUnits()[1]
+        if not jtacUnit or not jtacUnit:isExist() then
+            -- Unit gone but group still reported alive — treat as dead
+            self:killJTAC(groupName, nil)
+            return nil
+        end
     end
 
     -- ── Check existing target ──────────────────────────────────
@@ -16384,21 +16814,40 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
         end
     end
 
-    -- ── Search for new target ──────────────────────────────────
-    local found = CTLDJTACDetector.findNearestVisibleEnemy(
-        jtacUnit,
-        jtac.lockMode,
-        ctld.gs("JTAC_maxDistance")
-    )
+    -- ── Search for new target (with deconfliction) ────────────
+    -- findAllVisibleEnemies returns candidates sorted by priority then distance.
+    -- With deconfliction enabled, iterate until a non-claimed target is found.
+    -- jtacKey identifies this JTAC's slot in _claimedTargets.
+    local jtacKey    = jtac.unitName or groupName
+    local candidates = CTLDJTACDetector.findAllVisibleEnemies(
+        jtacUnit, jtac.lockMode, ctld.gs("JTAC_maxDistance"))
+    local found = nil
+
+    if ctld.gs("JTAC_targetDeconfliction") ~= false then
+        for _, candidate in ipairs(candidates) do
+            if not self._claimedTargets[candidate.unitName] then
+                found = candidate
+                break
+            end
+        end
+    else
+        found = candidates[1]
+    end
 
     if not found then
         return t + searchInterval
     end
 
-    -- Stop ground unit movement while lasing
-    -- API: trigger.action.groupStopMoving — verified CTLD_jtac.lua source
+    -- Claim the target before creating DCS spots — prevents a concurrent JTAC loop
+    -- from selecting the same target in the same scheduler tick.
+    self:_claimTarget(jtacKey, found.unitName)
+
+    -- Stop ground unit movement while lasing.
+    -- Use jtacUnit:getGroup() — works for both unit-keyed (infantry) and group-keyed (vehicle/drone)
+    -- paths, because dcsGroup is scoped to the else-block above and not accessible here.
     if not jtac.isFlying then
-        trigger.action.groupStopMoving(dcsGroup)
+        local stopGroup = jtacUnit:getGroup()
+        if stopGroup then trigger.action.groupStopMoving(stopGroup) end
     end
 
     -- Compute lase position (with correction if enabled)
@@ -16683,11 +17132,52 @@ function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, 
     dcsGroup:getController():pushTask(orbit)
 end
 
+--- Record that jtacKey is actively lasing enemyUnitName.
+-- Prevents other JTACs from selecting the same target.
+-- @param jtacKey      string  unitName (infantry) or groupName (vehicle/drone)
+-- @param enemyUnitName string  DCS unit name of the lased target
+function CTLDJTACManager:_claimTarget(jtacKey, enemyUnitName)
+    self._claimedTargets[enemyUnitName] = jtacKey
+    ctld.utils.log("INFO", "[JTAC] claim: '%s' → '%s'", jtacKey, enemyUnitName)
+end
+
+--- Release the claim on a target (called when lasing stops for any reason).
+-- @param enemyUnitName string
+function CTLDJTACManager:_releaseTarget(enemyUnitName)
+    if self._claimedTargets[enemyUnitName] then
+        ctld.utils.log("INFO", "[JTAC] release claim on '%s' (was: '%s')",
+            enemyUnitName, tostring(self._claimedTargets[enemyUnitName]))
+        self._claimedTargets[enemyUnitName] = nil
+    end
+end
+
+--- Release all target claims owned by jtacKey (called on deregister/cleanup).
+-- Collects keys first to avoid mutating the table during iteration (Lua 5.1).
+-- @param jtacKey string
+function CTLDJTACManager:_releaseAllTargetsFor(jtacKey)
+    local toRemove = {}
+    for enemyUnitName, owner in pairs(self._claimedTargets) do
+        if owner == jtacKey then
+            toRemove[#toRemove + 1] = enemyUnitName
+        end
+    end
+    for _, enemyUnitName in ipairs(toRemove) do
+        self._claimedTargets[enemyUnitName] = nil
+    end
+    if #toRemove > 0 then
+        ctld.utils.log("INFO", "[JTAC] _releaseAllTargetsFor '%s': %d claim(s) released", jtacKey, #toRemove)
+    end
+end
+
 --- Stop lasing and publish OnJTACLaseStop event.
 -- @param jtac   CTLDJTAC
 -- @param reason string
 function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
     local prevTarget = jtac.currentTarget
+    -- Release target claim before stopLase() nils currentTarget
+    if prevTarget then
+        self:_releaseTarget(prevTarget.unitName)
+    end
     jtac:stopLase(reason)
 
     -- Notify player on target events (not on internal transitions like standby/transit)
@@ -16921,9 +17411,10 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
         end
     end
 end
--- ===== End: CTLD_jtac.lua =====
 
--- ===== Start: CTLD_player.lua =====
+-- End : CTLD_jtac.lua
+-- ====================================================================================================
+-- Start : CTLD_player.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_player.lua
@@ -17388,9 +17879,10 @@ function CTLDPlayerManager:_detectCapabilities(unit)
 
     return isTransport, canCarryVehicles
 end
--- ===== End: CTLD_player.lua =====
 
--- ===== Start: CTLD_core.lua =====
+-- End : CTLD_player.lua
+-- ====================================================================================================
+-- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
 -- Core infrastructure: EventDispatcher, CTLDDCSEventBridge,
@@ -17726,6 +18218,13 @@ function CTLDCoreManager:init()
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
 
+    -- Troop unit death: keep _aliveUnits / _jtacUnits in sync with DCS reality
+    local okTM, tm = pcall(CTLDTroopManager.getInstance)
+    if okTM then
+        bridge:register(tm, world.event.S_EVENT_DEAD, "onUnitDead")
+        ctld.utils.log("INFO", "CTLDCoreManager: CTLDTroopManager S_EVENT_DEAD bridge registered")
+    end
+
     -- INIT-B: detect cargo statics placed by the mission maker
     self:_initMMCrates()
 
@@ -17778,7 +18277,11 @@ function CTLDCoreManager:_initMMJTACs()
         local groups = coalition.getGroups(side) or {}
         for _, group in ipairs(groups) do
             if group:isExist() and self:_isJTACGroup(group) then
-                if group:isActive() then
+                -- isActive() only exists on ME-placed groups; dynamically spawned groups (coalition.addGroup)
+                -- do not have this method → guard with pcall, default to true (already active).
+                local ok, isAct = pcall(function() return group:isActive() end)
+                if not ok then isAct = true end
+                if isAct then
                     CTLDJTACManager.get():registerMMJTAC(group)
                 else
                     -- Late activation: will be picked up by onBirth handler
@@ -17801,9 +18304,10 @@ end
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
 end
--- ===== End: CTLD_core.lua =====
 
--- ===== Start: scenes/CTLD_farpScene.lua =====
+-- End : CTLD_core.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_farpScene.lua
 ---@diagnostic disable
 -- CTLD_farpScene.lua
 -- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
@@ -17904,9 +18408,10 @@ farpScene.steps = {
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(farpScene)
--- ===== End: scenes/CTLD_farpScene.lua =====
 
--- ===== Start: scenes/CTLD_fobScene.lua =====
+-- End : scenes/CTLD_farpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_fobScene.lua
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
@@ -18006,9 +18511,10 @@ fobScene.steps = {
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)
--- ===== End: scenes/CTLD_fobScene.lua =====
 
--- ===== Start: scenes/CTLD_mineFieldScene.lua =====
+-- End : scenes/CTLD_fobScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_mineFieldScene.lua
 ---@diagnostic disable
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
@@ -18273,9 +18779,10 @@ end
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
--- ===== End: scenes/CTLD_mineFieldScene.lua =====
 
--- ===== Start: compat/legacy_api.lua =====
+-- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : compat/legacy_api.lua
 -- ============================================================
 -- src/compat/legacy_api.lua
 -- Legacy API compatibility wrappers — CTLD v1 → v2
@@ -18454,9 +18961,10 @@ function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
     CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
 end
--- ===== End: compat/legacy_api.lua =====
 
--- ===== Start: CTLD_userConfig.lua =====
+-- End : compat/legacy_api.lua
+-- ====================================================================================================
+-- Start : CTLD_userConfig.lua
 -- ============================================================
 -- CTLD_userConfig.lua
 -- User configuration — load AFTER CTLD_Next.lua in the mission.
@@ -19419,5 +19927,5 @@ if ctld.dontInitialize then
 else
     ctld.initialize()
 end
--- ===== End: CTLD_userConfig.lua =====
 
+-- End : CTLD_userConfig.lua

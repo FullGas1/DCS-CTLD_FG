@@ -1,0 +1,1 @@
+trigger.action.outText("WITCHCRAFT OK", 30)

@@ -6,9 +6,11 @@
 -- DCS API: coalition.addGroup, Group, Unit, land, trigger.action, missionCommands
 --
 -- TroopGroup lifecycle states:
---   loaded    : troops onboard a transport (loaded from a pickup zone)
---   deployed  : troops on the ground as a live DCS group
---   extracted : troops onboard a transport (picked up from field)
+--   TRZ_LOADED     : troops onboard a transport (loaded from a TroopZone)
+--   DEPLOYED       : troops on the ground as a live DCS group
+--   FIELD_LOADED   : troops onboard a transport (recovered from field)
+--   DEPLOYED_EXZ   : silent drop into EXZ_ — DCS group never spawned, flag counter only
+--   RETURNED_TO_TRZ: troops returned to TroopZone — instance discarded
 -- ============================================================
 
 ---@diagnostic disable
@@ -21,32 +23,36 @@ ctld = ctld or {}
 CTLDTroopGroup = class()
 
 CTLDTroopGroup.STATE = {
-    LOADED    = "loaded",
-    DEPLOYED  = "deployed",
-    EXTRACTED = "extracted",
+    TRZ_LOADED     = "TRZ_LOADED",
+    DEPLOYED       = "deployed",
+    FIELD_LOADED   = "FIELD_LOADED",
+    DEPLOYED_EXZ   = "DEPLOYED_EXZ",
+    RETURNED_TO_TRZ = "RETURNED_TO_TRZ",
 }
 
 --- Constructor.
 -- @param data table:
---   templateKey  (string|nil)  CTLDObjectRegistry key (nil for extracted groups without template)
---   templateName (string)      display name
---   unitTotal    (number)      total unit count
---   weight       (number)      total cargo weight (kg)
---   hasJtac      (boolean)
---   coalitionId  (number)      coalition.side.*
---   countryId    (number)      DCS country id
---   state        (string|nil)  CTLDTroopGroup.STATE.* — defaults to LOADED
+--   templateKey   (string|nil)  CTLDObjectRegistry key (nil for recovered groups)
+--   templateName   (string)      display name
+--   unitTotal      (number)      total unit count (alive at construction time)
+--   weight         (number)      total cargo weight (kg)
+--   coalitionId    (number)      coalition.side.*
+--   countryId      (number)      DCS country id
+--   state          (string|nil)  CTLDTroopGroup.STATE.* — defaults to TRZ_LOADED
+--   _aliveUnits    (table|nil)   map[unitName] = dcsUnit (references, not indices)
+--   _jtacUnits     (table|nil)   map[unitName] = true (subset of _aliveUnits flagged JTAC)
 function CTLDTroopGroup:init(data)
     self.templateKey  = data.templateKey
     self.templateName = data.templateName
     self.unitTotal    = data.unitTotal
     self.weight       = data.weight
-    self.hasJtac      = data.hasJtac or false
     self.coalitionId  = data.coalitionId
     self.countryId    = data.countryId
-    self.state        = data.state or CTLDTroopGroup.STATE.LOADED
-    self.dcsGroup     = nil
-    self.loadTime     = timer.getAbsTime()
+    self.state       = data.state or CTLDTroopGroup.STATE.TRZ_LOADED
+    self.dcsGroup    = nil
+    self.loadTime    = timer.getAbsTime()
+    self._aliveUnits = data._aliveUnits or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
+    self._jtacUnits  = data._jtacUnits  or {}  -- map[unitName] = true
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -56,16 +62,98 @@ function CTLDTroopGroup:deploy(dcsGroup)
     self.dcsGroup = dcsGroup
 end
 
---- Transition to EXTRACTED: troops boarded back from field into transport.
-function CTLDTroopGroup:extract()
-    self.state    = CTLDTroopGroup.STATE.EXTRACTED
-    self.dcsGroup = nil
+--- Returns true if troops are onboard the transport (TRZ_LOADED or FIELD_LOADED).
+function CTLDTroopGroup:isInTransit()
+    return self.state == CTLDTroopGroup.STATE.TRZ_LOADED
+        or self.state == CTLDTroopGroup.STATE.FIELD_LOADED
 end
 
---- Returns true if troops are onboard the transport (LOADED or EXTRACTED).
-function CTLDTroopGroup:isInTransit()
-    return self.state == CTLDTroopGroup.STATE.LOADED
-        or self.state == CTLDTroopGroup.STATE.EXTRACTED
+--- Returns the count of alive JTAC units in this group.
+function CTLDTroopGroup:getJtacCount()
+    local n = 0
+    for _ in pairs(self._jtacUnits) do n = n + 1 end
+    return n
+end
+
+--- Returns true if this group has at least one alive JTAC unit.
+function CTLDTroopGroup:hasAliveJtac()
+    return self:getJtacCount() > 0
+end
+
+--- Syncs _aliveUnits / _jtacUnits from the current DCS group.
+-- Fully rebuilds both maps from actual DCS unit names.
+-- JTAC units are identified by the "JTAC" name prefix (set by _registerOneTemplate).
+-- This prefix is exclusive to jtac-role units — all other roles use INF/MG/AT/AA/MORTAR.
+-- @param dcsGroup Group|nil  the DCS group (nil to clear refs)
+function CTLDTroopGroup:_syncFromDCSGroup(dcsGroup)
+    self._aliveUnits = {}
+    self._jtacUnits  = {}  -- full reset: rebuild from real DCS unit names
+    if not dcsGroup or not dcsGroup:isExist() then
+        self.unitTotal = 0
+        return
+    end
+    local units = dcsGroup:getUnits()
+    for _, unit in ipairs(units) do
+        if unit:isExist() then
+            local name = unit:getName()
+            self._aliveUnits[name] = unit
+            if name:match("^JTAC") then
+                self._jtacUnits[name] = true
+            end
+        end
+    end
+    self.unitTotal = 0
+    for _ in pairs(self._aliveUnits) do self.unitTotal = self.unitTotal + 1 end
+end
+
+--- Removes a dead unit from _aliveUnits and _jtacUnits.
+-- Called by CTLDTroopManager:onUnitDead() on S_EVENT_DEAD.
+-- @param unitName string
+function CTLDTroopGroup:_removeDeadUnit(unitName)
+    self._aliveUnits[unitName] = nil
+    self._jtacUnits[unitName]  = nil
+    self.unitTotal = 0
+    for _ in pairs(self._aliveUnits) do self.unitTotal = self.unitTotal + 1 end
+end
+
+--- Transition to DEPLOYED: record the spawned DCS group and sync unit refs.
+-- @param dcsGroup Group|nil  spawned DCS group (nil for DEPLOYED_EXZ silent drops)
+function CTLDTroopGroup:disembark(dcsGroup)
+    self.state    = CTLDTroopGroup.STATE.DEPLOYED
+    self.dcsGroup = dcsGroup
+    if dcsGroup then
+        self:_syncFromDCSGroup(dcsGroup)
+    end
+end
+
+--- Alias for backward compatibility during transition.
+CTLDTroopGroup.deploy = CTLDTroopGroup.disembark
+
+--- Transition to TRZ_LOADED: troops loaded from TroopZone (new load).
+-- @param template table  loadableGroup template (used to init _aliveUnits from composition)
+function CTLDTroopGroup:setTRZLoaded(template)
+    self.state    = CTLDTroopGroup.STATE.TRZ_LOADED
+    self.dcsGroup = nil
+    self:_initFromTemplate(template)
+end
+
+--- Build _aliveUnits / _jtacUnits from a template at load time (before DCS group exists).
+-- @param template table  loadableGroup template
+function CTLDTroopGroup:_initFromTemplate(template)
+    self._aliveUnits = {}
+    self._jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = template[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local unitName = string.format("%s_u%d", template.name or "Troop", idx)
+            self._aliveUnits[unitName] = idx  -- placeholder: slot number, not a DCS Unit ref yet
+            if role == "jtac" then
+                self._jtacUnits[unitName] = true
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -412,7 +500,7 @@ end
 -- @param zone      CtldZone (zoneType == "pickup")
 -- @param template  entry from ctld.gs("loadableGroups") (must have _dbKey, total, hasJtac set)
 -- @return bool
-function CTLDTroopManager:loadFromZone(unit, zone, template)
+function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local typeName  = unit:getTypeName()
@@ -478,16 +566,36 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
         weight  = weight + n * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
     end
 
+    -- Build _aliveUnits / _jtacUnits from template role composition
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = template[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local slotName = string.format("%s_u%d", template.name, idx)
+            _aliveUnits[slotName] = idx  -- placeholder: slot ref until DCS spawn
+            if role == "jtac" then
+                _jtacUnits[slotName] = true
+            end
+        end
+    end
+
     -- Store transit group entity
-    self._inTransit[unitName] = CTLDTroopGroup:new({
+    local troopGroup = CTLDTroopGroup:new({
         templateKey  = template._dbKey,
         templateName = template.name,
         unitTotal    = template.total,
         weight       = weight,
-        hasJtac      = template.hasJtac or false,
         coalitionId  = coalition,
         countryId    = unit:getCountry(),
+        state        = CTLDTroopGroup.STATE.TRZ_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
+    troopGroup.dcsGroup = nil
+    self._inTransit[unitName] = troopGroup
 
     -- Consume pickup stock (TRZ native API; no-op for unlimited zones)
     zone:consumeStock(template.total)
@@ -495,7 +603,7 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("Loaded: %1 (%2 troops).", template.name, template.total), 10)
 
-    ctld.utils.log("INFO", "loadFromZone: '%s' loaded '%s' (%d units, %.0f kg)",
+    ctld.utils.log("INFO", "embarkFromTroopZone: '%s' loaded '%s' (%d units, %.0f kg)",
         unitName, template.name, template.total, weight)
 
     pcall(self._updateWeight, self, unitName)
@@ -503,14 +611,14 @@ function CTLDTroopManager:loadFromZone(unit, zone, template)
 end
 
 -- ============================================================
--- deploy (fast-rope or combat drop)
+-- disembark (fast-rope or combat drop)
 -- ============================================================
 
 -- Deploys troops from unit into combat (fast-rope if conditions met, else ground drop).
 -- If inside a TRZ with objectiveFlag: troops are counted only (flag increment), no DCS group spawned.
 -- @param unit  DCS Unit object
 -- @return bool
-function CTLDTroopManager:deploy(unit)
+function CTLDTroopManager:disembark(unit)
     local unitName = unit:getName()
     local group    = self._inTransit[unitName]
 
@@ -561,11 +669,23 @@ function CTLDTroopManager:deploy(unit)
 
         group:deploy(dcsGroup)
         table.insert(self._droppedGroups[group.coalitionId], dcsGroup:getName())
-        self._droppedTemplates[dcsGroup:getName()] = group.templateKey
+        -- Store both key and display name to restore templateName correctly after field pickup (BUG-06)
+        -- Store original weight and total for accurate weight estimation after unit losses (BUG-07)
+        self._droppedTemplates[dcsGroup:getName()] = {
+            key    = group.templateKey,
+            name   = group.templateName,
+            weight = group.weight,
+            total  = group.unitTotal,
+        }
 
-        if group.hasJtac then
-            ctld.utils.log("INFO", "deploy: JTAC group dropped — '%s', starting autoLase", dcsGroup:getName())
-            CTLDJTACManager.getInstance():startLase(dcsGroup:getName())
+        if group:hasAliveJtac() then
+            local jm = CTLDJTACManager.getInstance()
+            for jtacName, _ in pairs(group._jtacUnits) do
+                -- JTACs are tracked at unit level (unitName) within a composite group.
+                -- Use startLaseTroopUnit (Unit.getByName) — not startLase (Group.getByName).
+                jm:startLaseTroopUnit(jtacName)
+                ctld.utils.log("INFO", "deploy: startLaseTroopUnit('%s') for JTAC unit", jtacName)
+            end
         end
 
         -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
@@ -619,7 +739,7 @@ end
 -- @param unit  DCS Unit object
 -- @param zone  CtldZone (zoneType == "pickup")
 -- @return bool
-function CTLDTroopManager:returnToBase(unit, zone)
+function CTLDTroopManager:returnToTroopZone(unit, zone)
     local unitName  = unit:getName()
     local group     = self._inTransit[unitName]
     local coalition = unit:getCoalition()
@@ -636,6 +756,12 @@ function CTLDTroopManager:returnToBase(unit, zone)
     ctld.utils.log("INFO", "returnToBase: '%s' returned [%s] to TRZ '%s'",
         unitName, group.templateName, zone.zoneName)
 
+    local jm = CTLDJTACManager.getInstance()
+    for jtacName, _ in pairs(group._jtacUnits or {}) do
+        jm:deregisterJTAC(jtacName)
+        ctld.utils.log("INFO", "returnToTroopZone: deregisterJTAC('%s')", jtacName)
+    end
+
     self._inTransit[unitName] = nil
     pcall(self._updateWeight, self, unitName)
 
@@ -645,13 +771,15 @@ function CTLDTroopManager:returnToBase(unit, zone)
 end
 
 -- ============================================================
--- extract
+-- embarkFromField
 -- ============================================================
 
 -- Extracts the nearest friendly dropped troop group (unit must be on the ground).
+-- JTAC units are deregistered BEFORE group destruction to avoid spurious killJTAC
+-- from the S_EVENT_DEAD that DCS fires on group:destroy().
 -- @param unit  DCS Unit object
 -- @return bool
-function CTLDTroopManager:extract(unit)
+function CTLDTroopManager:embarkFromField(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local typeName  = unit:getTypeName()
@@ -684,19 +812,47 @@ function CTLDTroopManager:extract(unit)
         return false
     end
 
-    local country = nearest.group:getUnit(1):getCountry()
-    local weight  = groupSize * 130  -- 130 kg/soldier extraction estimate
-    local hasJtac = nearest.groupName:lower():find("jtac") ~= nil
+    local country  = nearest.group:getUnit(1):getCountry()
+    local stored   = self._droppedTemplates[nearest.groupName] or {}
+
+    -- Weight: proportional to surviving units using original avg weight (BUG-07)
+    local avgWeight = (stored.weight and stored.total and stored.total > 0)
+                      and (stored.weight / stored.total) or 130
+    local weight    = math.floor(avgWeight * groupSize)
+
+    -- Sync _aliveUnits / _jtacUnits from current DCS group before destroy.
+    -- JTAC units identified by "JTAC" prefix — exclusive to jtac-role units (BUG-03 / BUG-05).
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local dcsUnits = nearest.group:getUnits()
+    for i = 1, #dcsUnits do
+        local dcsUnit = dcsUnits[i]
+        if dcsUnit and dcsUnit:isExist() then
+            local name = dcsUnit:getName()
+            _aliveUnits[name] = dcsUnit
+            if name:match("^JTAC") then
+                _jtacUnits[name] = true
+            end
+        end
+    end
+
+    -- Deregister JTACs BEFORE group:destroy() to avoid spurious killJTAC from S_EVENT_DEAD
+    local jm = CTLDJTACManager.getInstance()
+    for jtacName, _ in pairs(_jtacUnits) do
+        jm:deregisterJTAC(jtacName)
+        ctld.utils.log("INFO", "embarkFromField: deregisterJTAC('%s') called before group destroy", jtacName)
+    end
 
     self._inTransit[unitName] = CTLDTroopGroup:new({
-        templateKey  = self._droppedTemplates[nearest.groupName],
-        templateName = nearest.groupName,
+        templateKey  = stored.key,
+        templateName = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
         unitTotal    = groupSize,
         weight       = weight,
-        hasJtac      = hasJtac,
         coalitionId  = coalition,
         countryId    = country,
-        state        = CTLDTroopGroup.STATE.EXTRACTED,
+        state        = CTLDTroopGroup.STATE.FIELD_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
 
     self:_removeFromDropped(coalition, nearest.groupName)
@@ -773,7 +929,7 @@ function CTLDTroopManager:buildMenu(unit, groupId, parentPath)
                         ctld.tr("You must be in a pickup zone to load troops."), 10)
                     return
                 end
-                CTLDTroopManager.getInstance():loadFromZone(u, zone, capturedTmpl)
+                CTLDTroopManager.getInstance():embarkFromTroopZone(u, zone, capturedTmpl)
             end)
         itemNb = itemNb + 1
     end
@@ -799,6 +955,9 @@ function CTLDTroopManager:cleanupDeadGroups()
             local g = Group.getByName(name)
             if g and g:isExist() and #g:getUnits() > 0 then
                 table.insert(alive, name)
+            else
+                -- Also purge from _droppedTemplates to avoid stale entries (BUG-08)
+                self._droppedTemplates[name] = nil
             end
         end
         self._droppedGroups[coa] = alive
@@ -806,10 +965,100 @@ function CTLDTroopManager:cleanupDeadGroups()
 end
 
 -- Removes entries for destroyed transports from _inTransit.
+-- JTAC lifecycle: multi-JTAC per group (JTAC units identified by name prefix "JTAC")
+-- JTAC managers keep one entry per JTAC unit, not per group.
+-- When the last JTAC of a group dies, the whole group is considered "non-JTAC".
+
+--- Finds a CTLDTroopGroup that has a live unit matching `unitName`.
+-- Used by `onUnitDead` to locate the owning group after a unit is destroyed.
+-- @param unitName string  DCS unit name
+-- @return CTLDTroopGroup|nil
+function CTLDTroopManager:_findGroupByAliveUnit(unitName)
+    for unitNameKey, grp in pairs(self._inTransit) do
+        if grp._aliveUnits and grp._aliveUnits[unitName] then
+            return grp
+        end
+    end
+    for coa = 1, 2 do
+        for _, gname in ipairs(self._droppedGroups[coa]) do
+            local g = Group.getByName(gname)
+            if g and g:isExist() then
+                local units = g:getUnits()
+                for i = 1, #units do
+                    if units[i]:isExist() and units[i]:getName() == unitName then
+                        local stored  = self._droppedTemplates[gname] or {}
+                        local aliveUnits = {}
+                        local jtacUnits = {}
+                        for j = 1, #units do
+                            local u = units[j]
+                            if u:isExist() then
+                                local uname = u:getName()
+                                aliveUnits[uname] = u
+                                if uname:match("^JTAC") then
+                                    jtacUnits[uname] = true
+                                end
+                            end
+                        end
+                        local grp = CTLDTroopGroup:new({
+                            templateKey  = stored.key,
+                            templateName = stored.name or gname,
+                            unitTotal = 0,
+                            weight = 0,
+                            coalitionId = coa,
+                            countryId = g:getUnit(1):getCountry(),
+                            state = CTLDTroopGroup.STATE.DEPLOYED,
+                            _aliveUnits = aliveUnits,
+                            _jtacUnits = jtacUnits,
+                        })
+                        grp.dcsGroup = g
+                        return grp
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+--- Called from CTLDDCSEventBridge on S_EVENT_DEAD.
+-- Removes the dead unit from _aliveUnits and _jtacUnits of the owning group.
+-- Deregisters the JTAC from CTLDJTACManager if the dead unit was a JTAC.
+-- NOTE: wasJtac is captured BEFORE _removeDeadUnit clears _jtacUnits[unitName].
+-- @param unitName string  DCS unit name
+function CTLDTroopManager:onUnitDead(unitName)
+    local grp = self:_findGroupByAliveUnit(unitName)
+    if not grp then
+        ctld.utils.log("INFO", "onUnitDead: no group found for unit '%s' — skipping", unitName)
+        return
+    end
+    -- Capture JTAC status before _removeDeadUnit erases the entry
+    local wasJtac = grp._jtacUnits ~= nil and grp._jtacUnits[unitName] ~= nil
+    grp:_removeDeadUnit(unitName)
+    ctld.utils.log("INFO", "onUnitDead: '%s' removed from group (aliveUnits=%d, jtacUnits=%d)",
+        unitName, grp:getAliveCount(), grp:getJtacCount())
+    if wasJtac then
+        CTLDJTACManager.get():deregisterJTAC(unitName)
+        ctld.utils.log("INFO", "onUnitDead: JTAC unit '%s' deregistered", unitName)
+    end
+end
+
+--- Returns the count of alive units (helper for onUnitDead logging).
+-- @return number
+function CTLDTroopGroup:getAliveCount()
+    local n = 0
+    for _ in pairs(self._aliveUnits) do n = n + 1 end
+    return n
+end
+
 function CTLDTroopManager:cleanupDeadTransports()
-    for unitName, _ in pairs(self._inTransit) do
+    local jm = CTLDJTACManager.getInstance()
+    for unitName, grp in pairs(self._inTransit) do
         local u = Unit.getByName(unitName)
         if not u or not u:isExist() then
+            for jtacName, _ in pairs(grp._jtacUnits or {}) do
+                jm:deregisterJTAC(jtacName)
+                ctld.utils.log("INFO", "cleanupDeadTransports: JTAC '%s' deregistered (orphan)", jtacName)
+            end
             self._inTransit[unitName] = nil
             ctld.utils.log("INFO", "cleanupDeadTransports: removed stale entry for '%s'", unitName)
         end
@@ -904,38 +1153,38 @@ end
 -- ============================================================
 
 -- "Unload / Extract Troops" button:
---   On ground + nearest dropped group + no troops → extract
---   Has troops + in TRZ pickup-only               → returnToBase
---   Has troops + in TRZ with objectiveFlag        → deploy (flag incremented)
---   Has troops + not in any TRZ                   → deploy to combat
+--   On ground + nearest dropped group + no troops → embarkFromField
+--   Has troops + in TRZ pickup-only               → returnToTroopZone
+--   Has troops + in TRZ with objectiveFlag        → disembark (flag incremented)
+--   Has troops + not in any TRZ                   → disembark to combat
 function CTLDTroopManager:_menuUnloadOrExtract(unit)
     local unitName  = unit:getName()
     local coalition = unit:getCoalition()
     local zm        = CTLDZoneManager.getInstance()
     local inAir     = self:_isInAir(unit)
 
-    -- Ground + extractable group nearby + no troops onboard → extract
+    -- Ground + extractable group nearby + no troops onboard → embarkFromField
     if not inAir and not self:hasTroops(unitName) then
         local nearest = self:_findNearestDropped(unit, coalition)
         if nearest then
-            self:extract(unit)
+            self:embarkFromField(unit)
             return
         end
     end
 
     -- Has troops: TRZ with objectiveFlag takes priority over pickup-only TRZ.
-    -- Mixed TRZ (hasPickup + hasExtract) → deploy to increment objective flag.
-    -- Pickup-only TRZ → returnToBase to restore pickup stock.
+    -- Mixed TRZ (hasPickup + hasExtract) → disembark to increment objective flag.
+    -- Pickup-only TRZ → returnToTroopZone to restore pickup stock.
     if self:hasTroops(unitName) then
         local exzZone = zm:isUnitInZone(unitName, "extract")
         if exzZone then
-            self:deploy(unit)
+            self:disembark(unit)
         else
             local pkzZone = zm:isUnitInZone(unitName, "pickup")
             if pkzZone then
-                self:returnToBase(unit, pkzZone)
+                self:returnToTroopZone(unit, pkzZone)
             else
-                self:deploy(unit)
+                self:disembark(unit)
             end
         end
         return
@@ -1150,8 +1399,8 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
 
         for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
             if zone:hasPickup() and zone:isInZone(pt) then
-                local zName   = zone.zoneName
-                local zoneSub = string.format(ctld.tr("Load from %s"), zName)
+                local zName   = zone.zoneName   -- short name used for getTroopZone() lookup in callback
+                local zoneSub = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
                 -- Stock available in this zone (unlimited if pickMaxStock==0)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub }, zoneSub)
@@ -1173,7 +1422,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                                         ctld.tr("Zone not found."), 10)
                                     return
                                 end
-                                CTLDTroopManager.getInstance():loadFromZone(u, z, arg.tmpl)
+                                CTLDTroopManager.getInstance():embarkFromTroopZone(u, z, arg.tmpl)
                             end,
                             { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
                     end
@@ -1359,14 +1608,32 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
     for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
         weight = weight + (tmpl[role] or 0) * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
     end
+
+    local _aliveUnits = {}
+    local _jtacUnits  = {}
+    local idx = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = tmpl[role] or 0
+        for i = 1, n do
+            idx = idx + 1
+            local slotName = string.format("%s_u%d", tmpl.name, idx)
+            _aliveUnits[slotName] = idx
+            if role == "jtac" then
+                _jtacUnits[slotName] = true
+            end
+        end
+    end
+
     self._inTransit[unitName] = CTLDTroopGroup:new({
         templateKey  = tmpl._dbKey,
         templateName = tmpl.name,
         unitTotal    = tmpl.total,
         weight       = weight,
-        hasJtac      = tmpl.hasJtac or false,
         coalitionId  = coalitionId,
         countryId    = unit:getCountry(),
+        state        = CTLDTroopGroup.STATE.TRZ_LOADED,
+        _aliveUnits  = _aliveUnits,
+        _jtacUnits   = _jtacUnits,
     })
     self:_updateWeight(unitName)
     ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport — '%s' loaded [%s]", unitName, tmpl.name)
@@ -1403,7 +1670,7 @@ function CTLDTroopManager:loadTransport(unitName)
     end
     local tmpl = self._templates[1]
     if not tmpl then return false end
-    return self:loadFromZone(unit, zone, tmpl)
+    return self:embarkFromTroopZone(unit, zone, tmpl)
 end
 
 --- Unload troops from a named AI transport when an enemy is detected within distance.

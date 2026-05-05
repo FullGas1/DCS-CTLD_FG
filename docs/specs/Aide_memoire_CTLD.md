@@ -1,6 +1,13 @@
 -- Aide mémoire Evolution CTLD
 
 
+-------------- Sessions --------------
+. [2026-04-30] GAP-1 fix COMPLET — refresh Load+Pack menus après unpack sans re-entry F10
+   Fait : _spawnUnpacked → refreshLoadSectionForUnit + refreshPackSectionForUnit(playerName)
+   Commit : 63febd8 fix(menu): refresh Load+Pack menus after unpack (GAP-1 complete)
+   Validé : F-124 1/1 PASS live (UH-1H)
+   Prochaine session : vérifier si docs/missionmaker_guide.md besoin mise à jour (non fait)
+
 -------------- Crates --------------
 . Association d'une scene à une crate
 . Ajout methode autoUnpack (gérer spawn auto de group à partir d'1 ou plusieurs crates, (ex: arrivée au sol de crate parachutées))

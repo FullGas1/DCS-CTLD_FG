@@ -1,0 +1,23 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "permission": {
+    "read": {
+      "**/*": "allow"
+    },
+    "edit": {
+      "**/*": "allow"
+    },
+    "glob": {
+      "**/*": "allow"
+    },
+    "list": {
+      "**/*": "allow"
+    },
+    "bash": {
+      "*": "allow"
+    },
+    "external_directory": {
+      "C:\\tmp\\*": "allow"
+    }
+  }
+}

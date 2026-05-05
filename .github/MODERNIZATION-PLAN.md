@@ -70,10 +70,43 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
        bugfixes: getDistance caller manquant dans getCratesInRange + checkAssemblyReady
 
 ✅ R2  src/CTLD_troop.lua  (CTLDTroopGroup + CTLDTroopManager)
-       recette: 8/8  100% [2026-04-07]
+         Old recette: 8/8  100% [2026-04-07] (basic lifecycle — PRE-refactor)
+         Refactor done [2026-05-02]: terminologie + états rename + _aliveUnits/_jtacUnits +
+         S_EVENT_DEAD sync + deregisterJTAC × N + multi-JTAC + orphan cleanup
+         New recette: `recette/scenarios/scenarioTroopsFullCycle_v2.lua` (8 steps) — ✅ 8/8 PASS [2026-05-04]
+         Re-validated: startLaseTroopUnit unit-keyed path — ✅ 8/8 PASS [2026-05-04]
+         Validated: BUG-02 (wasJtac before _removeDeadUnit), BUG-03 (_syncFromDCSGroup real DCS names), BUG-04/06/07/08
+         ✅ BUGFIX: menu "Load from X" — (A) libellé [2026-05-04]
+               Affiche désormais "TRZ_" .. zoneName (ex. "TRZ_pz1") : court et sans ambiguïté avec une LGZ.
+               Le callback conserve `zoneName` (nom court) pour getTroopZone().
+         🔧 BUGFIX PENDING: menu "Load from X" — (B) filtre LGZ_ absent
+               Le menu peut afficher des zones LGZ_ superposées à une TRZ_ (pas des pickup troops).
+               Filtrer sur `zone:hasPickup() == true` déjà en place (ligne 1399) — à confirmer en test
+               avec mission ayant une LGZ_ superposée à une TRZ_.
 
 ✅ R3  src/CTLD_jtac.lua  (CTLDJTAC + CTLDJTACManager)
        recette: 8/8  100% [2026-04-07]
+       ✅ BUGFIX: JTAC troop unit-level lasing [2026-05-05]
+         Les JTACs des groupes de troupes sont suivis et gérés AU NIVEAU UNITÉ (unitName),
+         et non au niveau groupe DCS (groupName), car ils font partie d'un groupe composite
+         multi-unités (inf + jtac ensemble). Conséquence :
+           • `startLase(groupName)` → `spawnJTAC` → `Group.getByName(groupName)` → nil (unitName ≠ groupName)
+             Le lasing ne démarrait jamais sur un disembark de troupes.
+           • `_autoLaseLoop` : `dcsGroup:getUnits()[1]` cible la mauvaise unité.
+           • `deregisterJTAC(jtacName)` dans embarkFromField/returnToTroopZone : sans effet
+             car jtacs[unitName] n'existait jamais.
+         Corrections :
+           • `CTLDJTAC:init()` : nouveau champ `unitName` (nil = group-keyed, set = unit-keyed)
+           • `CTLDJTACManager:startLaseTroopUnit(unitName)` : nouvelle méthode unit-keyed
+             (Unit.getByName, jtacs[unitName], loop via _autoLaseLoop)
+           • `_autoLaseLoop` : branche unitName → Unit.getByName() ; mort = return nil sans killJTAC
+             (S_EVENT_DEAD → onUnitDead → deregisterJTAC gère déjà la mort)
+           • `disembark()` : startLase(jtacName) → startLaseTroopUnit(jtacName)
+           • `_autoLaseLoop` (groupStopMoving) : `dcsGroup` portée locale au bloc else — hors portée
+             à la ligne groupStopMoving → nil crash. Fix : `jtacUnit:getGroup()` (fonctionne pour les
+             deux chemins, unit-keyed et group-keyed).
+           • `CTLDCoreManager:_initMMJTACs()` : `group:isActive()` non défini sur les groupes créés
+             dynamiquement (coalition.addGroup). Fix : pcall avec fallback `true`.
 
 ✅ R4  src/CTLD_sceneManager.lua  (CTLDSceneManager)
        recette: 7/7  100% [2026-04-14]
@@ -186,6 +219,97 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
         ⬜ F-114: DCS native bbox load/unload — différé (C-130J-30 ou CH-47Fbl1 requis)
 
+✅  FG  Troop lifecycle rewrite — terminologie, états, transitions [2026-05-02]
+         Schema: `docs/assets/troops_jtac_lifecycle.svg`
+         Terminologierename :
+           • loadFromZone() / load()         → embarkFromTroopZone()
+           • deploy() / unload()             → disembark()  (alias `deploy = disembark` pendant transition)
+           • extract()                       → embarkFromField()
+           • returnToBase()                 → returnToTroopZone()
+           • dispatchToEXZ() (cas spécial)  → dispatchToEXZ() (inchangé)
+         États rename :
+           • LOADED      → TRZ_LOADED  (virtual, pas de DCS group)
+           • EXTRACTED   → FIELD_LOADED (DCS group destroy, mémoire préservée)
+           • RETURNED_TO_PICKUP → RETURNED_TO_TRZ
+           • DEPLOYED (silent) → DEPLOYED_EXZ (comptage flag, pas de spawn)
+         CTLDTroopGroup:_aliveUnits map[unitName] = dcsUnit (référence DCS, pas index)
+         CTLDTroopGroup:_jtacUnits map[unitName] = true (JTAC units only)
+         S_EVENT_DEAD sync : CTLDTroopManager:onUnitDead() + _findGroupByAliveUnit()
+           met à jour _aliveUnits / _jtacUnits à chaque mort d'unité dans un deployed group
+           + deregisterJTAC() si l'unité était un JTAC.
+         Bridge: CTLDDCSEventBridge → CTLDTroopManager:onUnitDead() (world.event.S_EVENT_DEAD)
+         [2026-05-02]
+
+✅  FG  Multi-JTAC per troop group — N instances instead of boolean [2026-05-02]
+         template jtac=N → N JTAC instances on disembark()
+         CTLDTroopGroup._jtacUnits = { [unitName] = true } — populated on disembark()
+         CTLDTroopManager:disembark() :
+           1. group:hasAliveJtac() (ex-boolean hasJtac)
+           2. loop sur _jtacUnits → startLase() × N par unité JTAC
+         preLoadTransport : _aliveUnits / _jtacUnits construits depuis template (suppression hasJtac)
+         [2026-05-02]
+
+✅  FG  JTAC lifecycle in troop transitions — deregisterJTAC on all exit paths [2026-05-02]
+         embarkFromField() (FIELD_LOADED) :
+           → loop sur _jtacUnits → deregisterJTAC() × N AVANT group:destroy()
+           → sinon S_EVENT_DEAD trigger killJTAC() (fausse mort combat)
+         returnToTroopZone() :
+           → loop sur _jtacUnits → deregisterJTAC() × N AVANT de niler _inTransit[unitName]
+           → sinon JTAC zombies dans CTLDJTACManager.jtacs
+         disembark() after FIELD_LOADED :
+           → startLase() × N pour chaque JTAC alive dans _jtacUnits (1ère fois)
+         [2026-05-02]
+
+✅  FG  Transport destroyed with FIELD_LOADED troops — orphan JTAC cleanup [2026-05-02]
+         Contexte : transport détruit en vol → cleanupDeadTransports() nil _inTransit[unitName]
+         Solution : cleanupDeadTransports() boucle sur _inTransit[deadUnit]._jtacUnits
+           → deregisterJTAC() pour chaque JTAC avant de niler _inTransit[unitName]
+         [2026-05-02]
+
+⬜  FG  TROOPS — Refonte complète CTLDTroopGroup/CTLDTroopManager [2026-05-04]
+        Regroupe 4 évolutions identifiées + 4 bugs critiques découverts en révision de code.
+
+        A. Terminologie actions / états — clarification
+           Actions (transitions) :
+             embarkFromTroopZone()   = charger depuis une TRZ (au sol dans zone)
+             disembark()             = déposer sur le terrain (fast-rope / ground drop)
+             embarkFromField()       = récupérer depuis le terrain (group DCS existant)
+             returnToTroopZone()     = ramener à la TRZ (restaure le stock)
+             dispatchToEXZ()         = dépôt silencieux dans une EXZ_ (flag++)
+           États CTLDTroopGroup.STATE :
+             TRZ_LOADED    = à bord, chargé depuis TRZ (aucun DCS group)
+             DEPLOYED      = au sol en tant que DCS group actif
+             FIELD_LOADED  = à bord, récupéré depuis le terrain (DCS group détruit, mémoire préservée)
+             DEPLOYED_EXZ  = dépôt silencieux EXZ_ (aucun DCS group, flag incrémenté)
+             RETURNED_TO_TRZ = retourné à la TRZ, instance à discarder
+           Note: supprimer STATE.EXTRACTED (n'existe pas dans l'enum, cf. BUG-01 ci-dessous).
+
+        B. Multi-JTAC : identification fiable post-spawn
+           Problème : _jtacUnits utilise des noms de slot template ("JTAC Group 2_u5") qui
+           ne correspondent pas aux noms DCS réels après coalition.addGroup → startLase() échoue.
+           Solution : après disembark() + _syncFromDCSGroup(), identifier les JTACs par le
+           namePrefix "JTAC" des unités DCS (convention définie dans _registerOneTemplate) et
+           reconstruire _jtacUnits avec les vrais noms DCS. Supprimer le mécanisme true→gname
+           dans _syncFromDCSGroup (source d'incohérence de valeur dans la map).
+
+        C. Mémoire de groupe après embarkFromField (field pickup préserve l'état)
+           embarkFromField() doit reconstruire _aliveUnits/_jtacUnits depuis les unités DCS
+           vivantes au moment du pickup, PAS depuis le template d'origine.
+           → Group avec 2 JTAC dont 1 mort → field pickup → CTLDTroopGroup avec 1 seul JTAC.
+           → Disembark suivant : respawn uniquement les unités encore vivantes.
+           Actuellement : templateName est mis à gname (nom DCS), pas au nom template d'origine.
+           Fix : préserver templateName = _droppedTemplates[nearest.groupName] → nom template.
+           Fix : poids = somme des vrais poids rôles des unités restantes (pas 130 kg flat).
+
+        D. Multi-JTAC : aucun lasing de la même cible par deux JTACs simultanés (option)
+           Config : JTAC_noSameTargetLasing (bool, défaut false).
+           Si true : avant startLase(), CTLDJTACManager vérifie si la target potentielle
+           est déjà lasée par un autre JTAC du même groupe (ou de tout groupe).
+           Chaque JTAC cherche alors une target non encore lasée à portée.
+           Faisabilité DCS : vérifier si plusieurs Spot sur la même Unit sont possibles
+           → si oui, le flag est utile ; si DCS rejette silencieusement le 2e Spot, c'est un
+           bug natif hors périmètre. À vérifier sur Hoggit avant implémentation.
+
 ⬜  FG  JTAC menu toggles — Toggle Lasing + laseSpotCorrections
         Deux items de menu non implémentés dans CTLDJTACManager:buildMenuSection :
           1. "Toggle Lasing" (JTAC_allowStandbyMode) — CTLD_jtac.lua:1331
@@ -267,6 +391,21 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             → autoOrbit sur cible → cible mobile suivie → cible hors LOS → retour route initiale
           • Troupes JTAC : charger "JTAC Group" → déposer → lasing actif → menu JTAC F10
           • IN_TRANSIT : embarquer JTAC sol → log IN_TRANSIT → débarquer → lasing reprend
+• Troops full cycle (2 JTAC) — `recette/scenarios/scenarioTroopsFullCycle.lua` (created ⬜ pending exec) :
+               - Créer template de test `jtac = 2` (2 JTAC soldiers dans le group)
+               - embarkFromTroopZone() → TRZ_LOADED (log state)
+               - disembark() 1er déploiement → DCS group spawn, 2 JTAC instances créées
+                 → vérifier _jtacUnits map contient 2 entries, startLase() ×2 appelé
+               - Simuler destruction de l'unité JTAC N°2 (S_EVENT_DEAD injecté)
+                 → _jtacUnits mis à jour (1 entry restante), _aliveUnits mis à jour
+                 → deregisterJTAC() appelé pour l'unité détruite, laser pool -1
+               - embarkFromField() → FIELD_LOADED
+                 → deregisterJTAC() appelé pour le JTAC restant (alive) AVANT group:destroy()
+                 → group:destroy() ne déclenche PAS killJTAC (JTAC déjà deregistré)
+               - disembark() après field → DCS group respawn avec 1 seul JTAC alive
+                 → resumeJTAC() appelé pour le JTAC vivant
+               - returnToTroopZone() → RETURNED_TO_TRZ
+                 → deregisterJTAC() appelé pour le JTAC restant, stock TRZ restauré
           • Beacon radio — vérification des 3 émetteurs :
               - VHF (200–1250 kHz AM) : entendu sur ADF + aiguille ADF pointe vers balise
               - UHF (220–399 MHz AM) : entendu par modules FC3 (son beaconsilent.ogg)
@@ -319,6 +458,30 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             définitivement tout ID passé à removeMark — réutilisation = mark invisible)
         Recette F-115 : 11/11 PASS [2026-04-27]
 
+⬜  FG  Shutdown propre des boucles timer.scheduleFunction à la réinjection CTLD_Next
+        Contexte : réinjection Witchcraft d'un CTLD_Next.lua dans une mission qui tourne déjà
+        redéclare les singletons mais NE peut PAS annuler les boucles schedulées de l'ancienne instance.
+        Risques identifiés :
+          - Boucles zombies avec référence à l'ancienne instance (closures self capturé)
+          - Double rebuild de menu F10 en parallèle → arborescence corrompue (observé [2026-05-04])
+          - Beacon refresh loop : boucle infinie SANS guard return nil, functionId NON stocké
+            → aucune possibilité d'annulation → risque accumulatif à chaque réinjection
+        Audit des boucles actuelles :
+          - _orbitLoop (CTLD_jtac) : ✅ functionId stocké dans _orbitScheduleId → removeFunction possible
+          - _autoLaseLoop (CTLD_jtac) : ✅ guard return nil si JTAC absent du manager → auto-stop
+          - beacon refresh (CTLD_beacon) : ❌ functionId non stocké + pas de guard → BUGFIX REQUIS
+          - _tryInitFlying (CTLD_jtac) : ✅ one-shot
+          - menu refresh (CTLD_player) : ✅ one-shot
+        API à utiliser : timer.removeFunction(functionId) — annule une fonction schedulée via son ID
+          https://wiki.hoggitworld.com/view/DCS_func_removeFunction
+        Travaux à faire :
+          (A) Stocker le functionId de la boucle beacon refresh → permettre son annulation
+          (B) Ajouter guard return nil dans la beacon refresh loop (défense en profondeur)
+          (C) Évaluer CTLDCoreManager:shutdown() pour arrêt propre de toutes les boucles
+              avant réinjection (appel depuis un script Witchcraft dédié)
+          (D) Bonne pratique recette : ne pas détruire de vrais groupes DCS dans les scénarios
+              Witchcraft (déclenche S_EVENT_DEAD → rebuild menu concurrent)
+
 ⬜  FG  Feature F — RECON layer FARP/FOB ennemis persistants
         Objectif : détecter les FARP/FOB ennemis en LOS pendant un vol de reconnaissance et en garder
         la trace sur la F10 map même après que le scout s'est éloigné.
@@ -342,6 +505,91 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • Les autres joueurs BLUE voient les icônes du partageur sans re-filtrage LOS
           • Pas de merge multi-joueur côté rendu (limitation DCS irréconciliable)
         À distinguer d'un éventuel "kneeboard" (infos coa friendly — scope différent, feature séparée).
+        Spec + implémentation à planifier.
+
+⬜  FG  Feature H — Smoke auto-resume (toggle [activate]/[deactivate])
+        Objectif : simuler une durée de fumée perpétuelle en relançant automatiquement
+        toutes les fumées actives avant leur expiration (~5 min DCS fixe).
+        Comportement attendu :
+          • Toggle F10 "Smoke Auto-Resume [activate]" / "[deactivate]" par joueur
+          • Quand activé : toutes les fumées lancées par ce joueur (position + couleur mémorisées)
+            sont relancées automatiquement via trigger.action.smoke() juste avant l'expiration
+          • Quand désactivé : les fumées en cours expirent naturellement, aucune nouvelle relance
+          • Stockage : { pos, color, launchTime } par smoke active ; timer périodique vérifie
+            si launchTime + 4min30 atteint → relance
+        Config : smokeAutoResumeInterval (défaut 270 s = 4min30) pour contrôler le délai de relance
+        Spec + implémentation à planifier.
+
+⬜  FG  Feature I — Route/behaviour assignment post-deploy (étude de faisabilité)
+        Objectif : permettre d'assigner automatiquement une route ou un comportement prédéfini
+        à un équipement ou des troupes au moment de leur dépose/unpack.
+        Questions à étudier avant spec :
+          • Faisabilité DCS API : Group.setTask / GroupAI / group:getController():setTask()
+            pour les groupes spawnés via dynAdd/coalition.addGroup — vérifier Hoggit
+          • Définition des pseudoRoutes : ex. "goToNearestEnemy", "goToNearestWPZ",
+            "holdPosition", waypoints explicites {x,z}
+          • Point d'injection pour crates : via crateSettings.specificParams dans spawnableCrates
+            ex. spawnableCrates = { { ... , specificParams = { route = "goToNearestEnemy" } } }
+          • Point d'injection pour troops : via le template loadableGroups, champ specificParams
+            analogue — vérifier cohérence avec architecture CTLDTroopManager:deploy()
+          • Timing : setTask doit être appelé au moins 1 frame après coalition.addGroup
+            (même contrainte que _onBirthDeferred)
+          • Scope : uniquement pour les unités spawnées par CTLD (unpack crate, deploy troops,
+            unload vehicle) — pas pour les unités MM existantes
+        Livrable attendu : note de faisabilité + spec si réalisable
+        Spec + implémentation à planifier.
+
+✅  FG  Feature J — JTAC target deconfliction (multi-JTAC, anti-doublon) [2026-05-04]
+        Objectif : lorsque plusieurs JTACs actifs (infantry slot, vehicle, drone) sont concurrents
+        et dans la portée d'une même cible ennemie, empêcher qu'ils lasent tous la même cible.
+        La déconfliction doit rester compatible avec le renouvellement de cible après destruction :
+        quand une cible est détruite, chaque JTAC doit automatiquement se repositionner sur une
+        autre cible disponible (vivante, dans portée LOS, non claimée).
+
+        Structure de données (minimaliste) :
+          • Une seule table partagée dans CTLDJTACManager :
+              `_claimedTargets` = { [unitName_cible] = jtacKey }
+                → jtacKey = unitName (unit-keyed) ou groupName (group-keyed)
+            Cette table est la liste des targets **en cours de lasing actif**.
+            Aucune structure supplémentaire par JTAC n'est nécessaire.
+
+        Comportement dans `_autoLaseLoop` :
+          Phase RECHERCHE (pas de target courante) :
+            1. Appeler `findAllVisibleEnemies()` → liste de candidats triée par distance
+               (vivants + LOS + dans portée)
+            2. Filtrer la liste : exclure les unitNames déjà présents dans `_claimedTargets`
+            3. Prendre le premier candidat restant → claim + lase
+               Si liste vide après filtre → return t + searchInterval
+          Phase LASE (target courante valide) :
+            4. Vérification cible existante inchangée (isExist, LOS) — comportement actuel conservé
+            5. Si cible perdue (détruite OU hors LOS) — CAS CRITIQUE :
+               → `_stopLaseAndPublish` → retire `_claimedTargets[cible]`
+               → repasser immédiatement en Phase RECHERCHE (steps 1-3) dans le même cycle
+          Note : c'est lors du step 5 (renouvellement de cible) que la déconfliction est
+          la plus critique. Plusieurs JTACs perdant simultanément leur cible (ex. explosion)
+          itèrent chacun la liste filtrée → chacun prend un candidat différent.
+
+        Gestion du claim :
+          • Claim posé : à l'instant où le JTAC démarre le lase sur une nouvelle cible
+          • Claim levé : dans `_stopLaseAndPublish`, quelle que soit la raison
+            (TARGET_DESTROYED, TARGET_LOST, STANDBY_MODE, UNIT_DEAD, etc.)
+          • Claim levé aussi dans `deregisterJTAC` (pour toutes les entrées pointant ce JTAC)
+          • Pas de TTL / expiry : le claim vit aussi longtemps que le lase est actif
+
+        Refactoring requis :
+          • `CTLDJTACDetector.findNearestVisibleEnemy()` → `findAllVisibleEnemies()`
+            Retourne une table `{ {unitName, dcsUnit, position, distance}, ... }` triée par distance.
+            Le caller (autoLaseLoop) fait l'itération et la sélection deconflictée.
+          • Rétrocompatibilité : l'ancien `findNearestVisibleEnemy` peut devenir un thin wrapper
+            appelant `findAllVisibleEnemies()[1]` pour les callsites existants non JTAC.
+
+        Config :
+          • `JTAC_targetDeconfliction` (bool, défaut true) — désactivable si mission = JTAC solo
+          • `JTAC_deconflictPriority` = "distance" | "laserCode" (défaut "distance")
+            → "distance" : le JTAC le plus proche de la cible gagne le claim en cas de race
+            → "laserCode" : le code laser le plus bas gagne (ordre de spawn/inscription)
+            Note : la race est peu probable en pratique (loops décalées), mais doit être gérée.
+
         Spec + implémentation à planifier.
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
@@ -625,6 +873,8 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Feature C (MM crate) | ✅ | ✅ | ✅ | 100% | registerMMCrate + OnMMCrateDetected, F-41 PASS [2026-04-07] |
 | Feature D (LoadableGroups) | ✅ | ✅ | ✅ | 100% | U-76→U-80 + F-88→F-89, 102/102 PASS [2026-04-14] |
 | Feature E (CTLD log) | ✅ | ✅ | ✅ | 100% | initLog/log/closeLog dans CTLD_utils.lua — validé via utils recette M9 [2026-04-09] |
+| **Troop + JTAC Lifecycle** (`src/CTLD_troop.lua`) | ✅ impl | ✅ spec | ✅ 8/8 | 100% | ✅ Terminologie rename + États rename + _aliveUnits/_jtacUnits + S_EVENT_DEAD sync + deregisterJTAC × N + multi-JTAC N× + orphan cleanup [2026-05-02]. Recette: `recette/scenarios/scenarioTroopsFullCycle_v2.lua` 8/8 PASS [2026-05-04] |
+| **Mise en conformité scénarios recette** | ✅ template | — | ⬜ 0% | — | Reformater tous les scénarios existants (`scenario_*.lua`, `scenarioTroopsFullCycle_A.lua`, etc.) pour conformité au nouveau template (pcall, check/assert, fail+traceback, log reset step 1, timer, return TAG+step+SUCCESS) — ⬜ pending [2026-05-04] |
 
 ---
 

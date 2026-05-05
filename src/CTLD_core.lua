@@ -333,6 +333,13 @@ function CTLDCoreManager:init()
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
 
+    -- Troop unit death: keep _aliveUnits / _jtacUnits in sync with DCS reality
+    local okTM, tm = pcall(CTLDTroopManager.getInstance)
+    if okTM then
+        bridge:register(tm, world.event.S_EVENT_DEAD, "onUnitDead")
+        ctld.utils.log("INFO", "CTLDCoreManager: CTLDTroopManager S_EVENT_DEAD bridge registered")
+    end
+
     -- INIT-B: detect cargo statics placed by the mission maker
     self:_initMMCrates()
 
@@ -385,7 +392,11 @@ function CTLDCoreManager:_initMMJTACs()
         local groups = coalition.getGroups(side) or {}
         for _, group in ipairs(groups) do
             if group:isExist() and self:_isJTACGroup(group) then
-                if group:isActive() then
+                -- isActive() only exists on ME-placed groups; dynamically spawned groups (coalition.addGroup)
+                -- do not have this method → guard with pcall, default to true (already active).
+                local ok, isAct = pcall(function() return group:isActive() end)
+                if not ok then isAct = true end
+                if isAct then
                     CTLDJTACManager.get():registerMMJTAC(group)
                 else
                     -- Late activation: will be picked up by onBirth handler

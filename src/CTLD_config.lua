@@ -31,6 +31,8 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     self.settings["debug"]                              = false -- if true, enables verbose logging to CTLD.log (requires non-sanitized DCS)
     self.settings["ctldLogPath"]                        = ""    -- override log file path (default: DCS Saved Games folder); empty = default
+    self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
+    self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
     self.settings["CTLD_ctldStatusF10"]                 = true  -- enables F10 CTLD Status menus
     self.settings["staticBugWorkaround"]                = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
@@ -230,7 +232,7 @@ function CTLDConfig:load()
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
+    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
 
     -- Simulated Sling load configuration (Feature B)
@@ -357,19 +359,20 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
     self.settings["JTAC_allow9Line"]                      = true  -- if true, allow players to ask for a 9Line (individual) for a specific JTAC's target
     self.settings["JTAC_laseIntervalSeconds"]             = 15    -- auto-lase loop reschedule delay (s) when actively lasing a target
     self.settings["JTAC_searchIntervalSeconds"]           = 10    -- auto-lase loop reschedule delay (s) when searching for a target (no target acquired)
+    self.settings["JTAC_targetDeconfliction"]             = true  -- prevent multiple JTACs from lasing the same target simultaneously
     self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
 
     -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
-    self.settings["JTAC_droneRadius"]   = 1000 -- fallback orbit radius (m) when crate specificParams absent
-    self.settings["JTAC_droneAltitude"] = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
+    self.settings["JTAC_droneRadius"]                     = 1000 -- fallback orbit radius (m) when crate specificParams absent
+    self.settings["JTAC_droneAltitude"]                   = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
 
     -- JTAC equipment requestable via F10 JTAC > Request JTAC Equipment, per coalition.
     -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
     -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
     -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.
-    self.settings["JTAC_unitTypeNames"] = {
-        [1] = { "SKP-11", "RQ-1A Predator" },  -- RED: JTAC vehicles available to RED coalition
-        [2] = { "Hummer", "MQ-9 Reaper" },     -- BLUE: JTAC vehicles available to BLUE coalition
+    self.settings["JTAC_unitTypeNames"]                   = {
+        [1] = { "SKP-11" }, -- RED: JTAC vehicles available to RED coalition
+        [2] = { "Hummer" }, -- BLUE: JTAC vehicles available to BLUE coalition
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -721,6 +724,7 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
         { name = ctld.tr("Anti Tank"),                        inf = 2,    at = 6 },
         { name = ctld.tr("Mortar Squad"),                     mortar = 6 },
         { name = ctld.tr("JTAC Group"),                       inf = 4,    jtac = 1 }, -- will make a loadable group with 4 infantry and a JTAC soldier for both coalitions
+        { name = ctld.tr("JTAC Group 2"),                     inf = 4,    jtac = 2 }, -- will make a loadable group with 4 infantry and a JTAC soldier for both coalitions
         { name = ctld.tr("Single JTAC"),                      jtac = 1 },             -- will make a loadable group witha single JTAC soldier for both coalitions
         { name = ctld.tr("2x - Standard Groups"),             inf = 12,   mg = 4,  at = 4 },
         { name = ctld.tr("2x - Anti Air"),                    inf = 4,    aa = 6 },
@@ -751,7 +755,7 @@ self.settings["minimumDeployDistance"]              = 1000 -- minimum distance f
             -- Some descriptions are filtered to determine if JTAC or not!
 
             --- BLUE
-            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 },                                               --careful with the names as the script matches the desc to JTAC types
+            { weight = 1000.01, desc = ctld.tr("Humvee - MG"),         unit = "M1043 HMMWV Armament", side = 2 }, --careful with the names as the script matches the desc to JTAC types
             { weight = 1000.02, desc = ctld.tr("Humvee - TOW"),        unit = "M1045 HMMWV TOW",      side = 2, cratesRequired = 2 },
             { weight = 1000.03, desc = ctld.tr("Light Tank - MRAP"),   unit = "MaxxPro_MRAP",         side = 2, cratesRequired = 2 },
             { weight = 1000.04, desc = ctld.tr("Med Tank - LAV-25"),   unit = "LAV-25",               side = 2, cratesRequired = 3 },
@@ -996,6 +1000,12 @@ end
 -- Retrieve a specific setting
 function CTLDConfig.getAllSettings()
     return CTLDConfig._instance.settings
+end
+
+-- Retrieve a specific setting
+function CTLDConfig:setSetting(key, value)
+    self.settings[key] = value
+    return self.settings[key]
 end
 
 ------------------------------------------------------------------
