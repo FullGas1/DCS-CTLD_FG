@@ -270,6 +270,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-122 | GAP-1 : lifecycle JTAC sur load/unload menu_ctld | CTLDVehicleSpawner + CTLDJTACManager | loadVehicle → setJTACInTransit(groupName) ; unloadVehicle → resumeJTAC(groupName) ; états LOADED/DELIVERED corrects | ✅ PASS 6/6 [2026-04-29] | UH-1H |
 | F-123 | GAP-1 bugfix : _dispatchPostSpawn enregistre véhicule GROUND dans CTLDVehicleSpawner | CTLDCrateManager + CTLDVehicleSpawner | après _spawnUnpacked(desc non-JTAC GROUND) → count spawner +1 ; findLoadableVehicles retourne le véhicule | ✅ PASS 2/2 [2026-04-29] | UH-1H (vehicleTransportEnabled) |
 | F-124 | GAP-1 fix : refresh menu Load + Pack après unpack | CTLDCrateManager:_spawnUnpacked + CTLDVehicleSpawner | après unpack, refreshLoadSectionForUnit(playerName) + refreshPackSectionForUnit(playerName) appelés → Hummer visible dans Load ET Pack sans re-entry menu | ✅ PASS live [2026-04-30] | UH-1H |
+| F-125 | Feature K Sprint 1 — Baseline JTAC vehicle load/setJTACInTransit | CTLDVehicleSpawner + CTLDJTACManager | Hummer spawné+registerJTACVehicle+autoLase → IDLE/LASING ; loadVehicle → state LOADED + JTAC IN_TRANSIT | ✅ PASS 10/10 [2026-05-06] | UH-1H |
+| F-126 | Feature K Sprint 1 — GAP-K1 : parachuteVehicle → WAITING + resumeJTAC | CTLDVehicleSpawner:parachuteVehicle | après parachute : vehicle state WAITING (pas DELIVERED), loadTransportName nil, JTAC intact (resumeJTAC timer) | ✅ PASS 4/4 [2026-05-06] | UH-1H |
+| F-127 | Feature K Sprint 1 — GAP-K2 : transport détruit → JTAC deregister + vehicle purge | CTLDVehicleSpawner:onDead | transport S_EVENT_DEAD avec vehicle LOADED → jtacs[groupName]=nil + _vehicles[id]=nil + unitToVehicle nil + OnVehicleDead publié | ✅ PASS 5/5 [2026-05-06] | UH-1H |
 
 ---
 
@@ -326,7 +329,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **GAP-1 scénario end-to-end** : 1 scénario = **4 étapes** ✅ PASS (scenario_vehicle_load_unload [2026-04-29]) — cleanup→crate→unpack→load→unload cycle complet UH-1H, lazy unit-ref resolve
 - **TroopsFullCycle v2 — lifecycle complet** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-05]) — lifecycle troops+JTAC transitions validé : embark(no lase)→deploy(2 lasing)→re-embark(idle+freed)→re-deploy(2 lasing)→1 JTAC dead(target freed)→timer destruction successive→reacquisition chain. Feature J déconfliction + claim/release lifecycle intégral + reacquisition après destroy confirmés.
 - **Feature H — Smoke auto-resume** : diag validés ✅ PASS live DCS [2026-05-05] — smoke bleue persistante en boucle (270s interval), toggle label bascule [activate]↔[deactivate], désactivation purge mémoire. CTLDSmokeManager singleton (diag_smoke_mgr.lua + diag_smoke_menu.lua).
-- **Total** : **222 cas** — 1008/1008 PASS ✅
+- **Feature K Sprint 1 — JTAC vehicle in-transit (GAP-K1+K2)** : 3 fonctionnels = **3 cas** ✅ PASS (F-125 10/10 + F-126 4/4 + F-127 5/5 [2026-05-06]) — parachuteVehicle setState WAITING + resumeJTAC ; transport destroy → deregisterJTAC + purge vehicle
+- **Total** : **225 cas** — 1027/1027 PASS ✅
 
 ---
 

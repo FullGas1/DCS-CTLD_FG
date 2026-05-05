@@ -821,42 +821,95 @@ end
 -- ============================================================
 
 --- Handle S_EVENT_DEAD: if the dead unit is a tracked vehicle, publish OnVehicleDead.
+-- Also handles transport destruction: if the dead unit is a transport carrying LOADED
+-- vehicles, each vehicle is considered lost — JTAC is deregistered and OnVehicleDead
+-- is published for each.
 function CTLDVehicleSpawner:onDead(event)
     if not event or not event.initiator then return end
     local ok, unitName = pcall(function() return event.initiator:getName() end)
     if not ok then return end
 
     local vehicleId = self._unitToVehicle[unitName]
-    if not vehicleId then return end
+    if vehicleId then
+        -- Dead unit is a tracked ground vehicle.
+        local vehicle = self._vehicles[vehicleId]
+        if not vehicle then return end
 
-    local vehicle = self._vehicles[vehicleId]
-    if not vehicle then return end
+        local pos      = vehicle.unit and vehicle.unit:getPoint() or { x = 0, y = 0, z = 0 }
+        local spawnedAt = vehicle.spawnTime or 0
 
-    local pos = vehicle.unit and vehicle.unit:getPoint() or { x = 0, y = 0, z = 0 }
-    local spawnedAt = vehicle.spawnTime or 0
+        self._vehicles[vehicleId]    = nil
+        self._unitToVehicle[unitName] = nil
 
-    self._vehicles[vehicleId]           = nil
-    self._unitToVehicle[unitName]        = nil
+        EventDispatcher.getInstance():publish("OnVehicleDead", {
+            vehicleId     = vehicleId,
+            vehicle       = event.initiator,
+            vehicleType   = vehicle.vehicleType,
+            coalition     = vehicle.spawnData and vehicle.spawnData.coalitionId or nil,
+            position      = pos,
+            durationAlive = timer.getTime() - spawnedAt,
+            timestamp     = timer.getAbsTime(),
+        })
+        EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
+            vehicleType = vehicle.vehicleType,
+            position    = pos,
+            reason      = "dead",
+            timestamp   = timer.getAbsTime(),
+        })
 
-    EventDispatcher.getInstance():publish("OnVehicleDead", {
-        vehicleId     = vehicleId,
-        vehicle       = event.initiator,
-        vehicleType   = vehicle.vehicleType,
-        coalition     = vehicle.spawnData and vehicle.spawnData.coalitionId or nil,
-        position      = pos,
-        durationAlive = timer.getTime() - spawnedAt,
-        timestamp     = timer.getAbsTime(),
-    })
-    EventDispatcher.getInstance():publish("OnGroundUnitRemoved", {
-        vehicleType = vehicle.vehicleType,
-        position    = pos,
-        reason      = "dead",
-        timestamp   = timer.getAbsTime(),
-    })
+        ctld.utils.log("INFO", string.format(
+            "CTLDVehicleSpawner: vehicle %s (%s) dead",
+            vehicleId, vehicle.vehicleType))
+        return
+    end
 
-    ctld.utils.log("INFO", string.format(
-        "CTLDVehicleSpawner: vehicle %s (%s) dead",
-        vehicleId, vehicle.vehicleType))
+    -- Dead unit is not a tracked vehicle — check if it is a transport carrying LOADED vehicles.
+    -- Collect all vehicles loaded on this transport before iterating (safe pairs modification).
+    local lost = {}
+    for id, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.LOADED
+            and veh.loadTransportName == unitName then
+            table.insert(lost, { id = id, veh = veh })
+        end
+    end
+
+    if #lost == 0 then return end
+
+    local transportPos = { x = 0, y = 0, z = 0 }
+    local ok2, pos2 = pcall(function() return event.initiator:getPoint() end)
+    if ok2 and pos2 then transportPos = pos2 end
+
+    local jtacMgr = CTLDJTACManager.get()
+    for _, entry in ipairs(lost) do
+        local id  = entry.id
+        local veh = entry.veh
+
+        -- Deregister JTAC silently (frees laser code + claim, no OnJTACDead).
+        local gname = veh.spawnData and veh.spawnData.groupName
+        if gname and jtacMgr.jtacs and jtacMgr.jtacs[gname] then
+            jtacMgr:deregisterJTAC(gname)
+        end
+
+        -- Clear reverse lookup if still present (dcs_native load keeps unit alive briefly).
+        if veh.unit then
+            self._unitToVehicle[veh.unit:getName()] = nil
+        end
+        self._vehicles[id] = nil
+
+        EventDispatcher.getInstance():publish("OnVehicleDead", {
+            vehicleId     = id,
+            vehicle       = nil,   -- unit was inside transport, no live DCS ref
+            vehicleType   = veh.vehicleType,
+            coalition     = veh.spawnData and veh.spawnData.coalitionId or nil,
+            position      = transportPos,
+            durationAlive = timer.getTime() - (veh.spawnTime or 0),
+            timestamp     = timer.getAbsTime(),
+        })
+
+        ctld.utils.log("INFO", string.format(
+            "CTLDVehicleSpawner: vehicle %s (%s) lost — transport %s destroyed",
+            id, veh.vehicleType, unitName))
+    end
 end
 
 -- ============================================================
@@ -912,9 +965,12 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
-    -- Unload from transport (mark as delivered — will be re-spawned at landing position)
+    -- Unload from transport — vehicle will be re-spawned at landing position.
+    -- State is set to WAITING (not DELIVERED) so the vehicle can be reloaded after landing.
     local spawnData = vehicle.spawnData
-    vehicle:setState(CTLDVehicle.STATE.DELIVERED)
+    vehicle:setState(CTLDVehicle.STATE.WAITING)
+    vehicle.loadTransportName = nil
+    vehicle.loadMethod        = nil
 
     local dropData = {
         type          = "vehicle",
@@ -948,6 +1004,15 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
         if _spawnData then
             self:spawnVehicleAt(_spawnData, spawnPos)
+        end
+
+        -- Resume JTAC lasing if this vehicle is a registered JTAC (was set IN_TRANSIT on load).
+        local gname = _spawnData and _spawnData.groupName
+        if gname then
+            local jtacMgr = CTLDJTACManager.get()
+            if jtacMgr.jtacs and jtacMgr.jtacs[gname] then
+                jtacMgr:resumeJTAC(gname)
+            end
         end
 
         self._parachuteEffect:onLanded(_dropData)

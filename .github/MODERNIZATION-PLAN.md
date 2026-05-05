@@ -601,53 +601,42 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
         Spec + implémentation à planifier.
 
-⬜  FG  Feature K — JTAC vehicle in-transit lifecycle (idle/active on load/unload)
+🔄  FG  Feature K — JTAC vehicle in-transit lifecycle (idle/active on load/unload)
         Objectif : garantir que les JTACs de type vehicle (autoLase group-keyed) transitent
         correctement entre états LASING ↔ idle lors des opérations load/unload du transport,
         symétrique au comportement déjà implémenté pour les JTACs infantry (troop unit-keyed).
 
-        Comportement attendu :
-          • Load vehicle JTAC dans transport → JTAC passe en idle (stopAutoLase / standby)
-            → claim libéré → target disponible pour d'autres JTACs
-          • Unload vehicle JTAC → JTAC reprend l'autoLase (resumeJTAC ou startLase)
-            → claim re-posé sur première target disponible non claimée
-          • Si le transport est détruit pendant le transit → JTAC vehicle traité comme mort
-            (deregisterJTAC → claim libéré)
-          • Déconfliction Feature J s'applique identiquement aux JTACs vehicle
+        Analyse flows [2026-05-06] :
+          FLOW 1 (caisses) : 0 gap JTAC — JTAC vehicle inexistant pendant transport caisses.
+            Seules transitions : PACK→deregisterJTAC ✅ ; UNPACK→startLase+register ✅
+          FLOW 2 (vehicle entier) : 2 gaps JTAC identifiés :
+            GAP-K1 : parachuteVehicle ne résumait pas JTAC → fixé [2026-05-06]
+            GAP-K2 : transport détruit avec vehicle LOADED → JTAC orphelin → fixé [2026-05-06]
+          GAP-K3 (Sprint 2) : _checkNativeLoading stub vide → logique linkOffsetRef à implémenter
 
-        ⚠️  Travaux séparés en deux flows distincts — traiter séquentiellement :
+        Sprint 1 — JTAC pur [2026-05-06] :
+          ✅ GAP-K1 fix : parachuteVehicle → setState(WAITING) + resumeJTAC dans callback landing
+             (CTLD_vehicle.lua:parachuteVehicle)
+          ✅ GAP-K2 fix : onDead transport → purge vehicles LOADED + deregisterJTAC + OnVehicleDead
+             (CTLD_vehicle.lua:onDead)
+          ✅ F-125 : baseline JTAC vehicle load/setJTACInTransit — 10/10 PASS [2026-05-06]
+          ✅ F-126 : GAP-K1 parachuteVehicle → WAITING + resumeJTAC — 4/4 PASS [2026-05-06]
+          ✅ F-127 : GAP-K2 transport destroy → deregisterJTAC + purge — 5/5 PASS [2026-05-06]
+          Scénario : recette/scenarios/scenario_feature_k_jtac_vehicle.lua (4/4 steps ALL SUCCESS)
 
-        FLOW 1 — JTAC vehicle via crates (spawn par unpack)
-          Chemin : CTLDCrateManager:unpackCrate → _spawnUnpacked → _dispatchPostSpawn
-                   → CTLDVehicleSpawner:loadVehicle / unloadVehicle
-          Load variants à couvrir :
-            • "menu_ctld"    : menu F10 Load Vehicle → unit détruite + respawn in transport
-            • "dcs_native"   : unité entre dans bbox transport → _checkNativeLoading
-          Unload variants à couvrir :
-            • "menu_ctld"    : menu F10 Unload Vehicle → respawn near transport
-            • "dcs_native"   : DCS place l'unité au sol (unload natif DCS)
-            • "parachute"    : CTLDVehicleSpawner:parachuteVehicle → dépose aérienne CTLD simulée
+        Sprint 2 — bbox detection (GAP-K3) :
+          Logique linkOffsetRef (tick 1s) :
+            LOAD  : objet bouge (pos ≠ pos initiale) → bbox check → dans bbox → load détecté
+                    → mémoriser linkOffsetRef = offset centre objet/centre appareil (repère local)
+            UNLOAD: tick — linkActuel ≠ linkOffsetRef → unload
+                    • 2A appareil au sol → unload posé
+                    • 2B appareil en vol → parachute DCS natif
+          Commun Flow 1 (caisses) et Flow 2 (vehicles entiers).
+          Recette nécessite C-130/Il-76 physique.
 
-        FLOW 2 — JTAC vehicle entier (MM-placed ou spawned, non issu de crate)
-          Chemin : CTLDVehicleSpawner:loadVehicle / unloadVehicle (mêmes méthodes, vehicle pré-existant)
-          Load variants : identiques FLOW 1 ("menu_ctld", "dcs_native")
-          Unload variants : identiques FLOW 1 ("menu_ctld", "dcs_native", "parachute")
-          Différence : pas de _spawnUnpacked, le CTLDVehicle est détecté MM ou via Request Equipment
-
-        ⚠️  Hors scope (pas de JTAC concern) :
-            • Crate parachute (CTLDCrateManager:parachuteCrates) → caisses, pas vehicles
-            • Slingload (releaseSlingload / cutSlingload) → caisses uniquement
-            • Parachutage DCS natif (S_EVENT_PARACHUTE_OPEN) → troops, pas vehicles
-
-        Vérification à faire (commun aux deux flows) :
-          1. loadVehicle → appelle-t-il stopAutoLase / idle JTAC ? (pour toutes méthodes)
-          2. unloadVehicle → appelle-t-il resumeJTAC ? (pour toutes méthodes)
-          3. Si transport détruit → JTAC vehicle traité comme mort ?
-          4. Comparer avec flow infantry : embarkFromField → deregisterJTAC / disembark → startLaseTroopUnit
-
-        Recette à créer :
-          • Scénario Witchcraft Flow 1 : spawn JTAC via crate → load → idle → unload → lasing reprend
-          • Scénario Witchcraft Flow 2 : JTAC vehicle MM → load → idle → unload → lasing reprend
+        Recette (commun) :
+          • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1)
+          • F-113/F-114 : bbox load/unload — différé Sprint 2 (C-130J-30/CH-47Fbl1 requis)
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
