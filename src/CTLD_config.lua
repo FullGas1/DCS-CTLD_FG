@@ -900,7 +900,7 @@ function CTLDConfig:load()
         ["load"] = {
             ["category"] = "Cargos", --"Fortifications"
             ["type"] = "ammo_cargo", --"uh1h_cargo"    --"Cargo04"
-            ["canCargo"] = false,
+            ["canCargo"] = true,
         },
         ["sling"] = {
             ["category"] = "Cargos",
