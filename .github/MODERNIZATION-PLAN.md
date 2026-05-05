@@ -512,12 +512,20 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         toutes les fumées actives avant leur expiration (~5 min DCS fixe).
         Comportement attendu :
           • Toggle F10 "Smoke Auto-Resume [activate]" / "[deactivate]" par joueur
+            → label dynamique : [activate] quand désactivé, [deactivate] quand activé
+            → scope : par joueur (chaque pilote gère ses propres smokes)
           • Quand activé : toutes les fumées lancées par ce joueur (position + couleur mémorisées)
             sont relancées automatiquement via trigger.action.smoke() juste avant l'expiration
           • Quand désactivé : les fumées en cours expirent naturellement, aucune nouvelle relance
           • Stockage : { pos, color, launchTime } par smoke active ; timer périodique vérifie
-            si launchTime + 4min30 atteint → relance
-        Config : smokeAutoResumeInterval (défaut 270 s = 4min30) pour contrôler le délai de relance
+            si launchTime + smokeAutoResumeInterval atteint → trigger.action.smoke(pos, color)
+          • Une relance repart le compteur de la smoke relancée (launchTime = now)
+          • Scope des smokes suivies : toutes celles déclenchées via le menu CTLD F10
+            (Drop Smoke, Zone Smoke) — pas les smokes natives DCS hors CTLD
+        Config :
+          • smokeAutoResume (bool, défaut false) — état initial global (surchargeable par joueur)
+          • smokeAutoResumeInterval (int, défaut 270 s = 4min30) — délai avant relance
+        Menu F10 : entrée dans "Smoke Commands" (ou équivalent) par joueur
         Spec + implémentation à planifier.
 
 ⬜  FG  Feature I — Route/behaviour assignment post-deploy (étude de faisabilité)
