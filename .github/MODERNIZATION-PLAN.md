@@ -615,15 +615,39 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             (deregisterJTAC → claim libéré)
           • Déconfliction Feature J s'applique identiquement aux JTACs vehicle
 
-        Vérification à faire :
-          1. Audit code load vehicle (CTLDVehicleSpawner:loadVehicle) → appelle-t-il stopAutoLase ?
-          2. Audit code unload vehicle → appelle-t-il resumeJTAC ?
-          3. Comparer avec flow infantry : embarkFromField → deregisterJTAC / disembark → startLaseTroopUnit
-          4. Identifier gaps et implémenter si manquants
+        ⚠️  Travaux séparés en deux flows distincts — traiter séquentiellement :
+
+        FLOW 1 — JTAC vehicle via crates (spawn par unpack)
+          Chemin : CTLDCrateManager:unpackCrate → _spawnUnpacked → _dispatchPostSpawn
+                   → CTLDVehicleSpawner:loadVehicle / unloadVehicle
+          Load variants à couvrir :
+            • "menu_ctld"    : menu F10 Load Vehicle → unit détruite + respawn in transport
+            • "dcs_native"   : unité entre dans bbox transport → _checkNativeLoading
+          Unload variants à couvrir :
+            • "menu_ctld"    : menu F10 Unload Vehicle → respawn near transport
+            • "dcs_native"   : DCS place l'unité au sol (unload natif DCS)
+            • "parachute"    : CTLDVehicleSpawner:parachuteVehicle → dépose aérienne CTLD simulée
+
+        FLOW 2 — JTAC vehicle entier (MM-placed ou spawned, non issu de crate)
+          Chemin : CTLDVehicleSpawner:loadVehicle / unloadVehicle (mêmes méthodes, vehicle pré-existant)
+          Load variants : identiques FLOW 1 ("menu_ctld", "dcs_native")
+          Unload variants : identiques FLOW 1 ("menu_ctld", "dcs_native", "parachute")
+          Différence : pas de _spawnUnpacked, le CTLDVehicle est détecté MM ou via Request Equipment
+
+        ⚠️  Hors scope (pas de JTAC concern) :
+            • Crate parachute (CTLDCrateManager:parachuteCrates) → caisses, pas vehicles
+            • Slingload (releaseSlingload / cutSlingload) → caisses uniquement
+            • Parachutage DCS natif (S_EVENT_PARACHUTE_OPEN) → troops, pas vehicles
+
+        Vérification à faire (commun aux deux flows) :
+          1. loadVehicle → appelle-t-il stopAutoLase / idle JTAC ? (pour toutes méthodes)
+          2. unloadVehicle → appelle-t-il resumeJTAC ? (pour toutes méthodes)
+          3. Si transport détruit → JTAC vehicle traité comme mort ?
+          4. Comparer avec flow infantry : embarkFromField → deregisterJTAC / disembark → startLaseTroopUnit
 
         Recette à créer :
-          • Scénario Witchcraft : spawn JTAC vehicle + load → vérifier idle + claim libéré
-            → unload → vérifier lasing reprend + claim re-posé sur target libre
+          • Scénario Witchcraft Flow 1 : spawn JTAC via crate → load → idle → unload → lasing reprend
+          • Scénario Witchcraft Flow 2 : JTAC vehicle MM → load → idle → unload → lasing reprend
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
