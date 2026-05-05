@@ -82,9 +82,10 @@ end
 --- Load the crate into a transport unit.
 -- @param transport Unit
 function CTLDCrate:load(transport)
-    self.state    = CTLDCrate.STATE.LOADED
-    self.loadedBy = transport
-    self.loadTime = timer.getAbsTime()
+    self.state         = CTLDCrate.STATE.LOADED
+    self.loadedBy      = transport
+    self.loadTime      = timer.getAbsTime()
+    self.fromParachute = false   -- reset: a new load clears any prior parachute flag
 end
 
 --- Unload the crate to the ground (transport is landed).
