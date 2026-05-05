@@ -992,7 +992,7 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                             local playerObj   = pm:getPlayer(carrierName)
                             -- Determine if transport is airborne at release time
                             local tp        = transport:getPoint()
-                            local groundH   = land.getHeight({ x = tp.x, z = tp.z })
+                            local groundH   = land.getHeight({ x = tp.x, y = tp.z })
                             local inFlight  = (tp.y - groundH) > 5
                             self._nativeCrateLink[crate.crateName] = nil
                             crate.position = cratePos
