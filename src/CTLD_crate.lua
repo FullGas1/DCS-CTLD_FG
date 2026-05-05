@@ -195,12 +195,18 @@ function CTLDSmokeManager:isActive(playerName)
 end
 
 --- Toggle auto-resume for a player. Returns new state (bool).
+-- Deactivating clears the stored smoke list so stale smokes are not
+-- replayed if the player re-activates later.
 function CTLDSmokeManager:toggle(playerName)
     if not self._players[playerName] then
         self._players[playerName] = { active = false, smokes = {} }
     end
-    self._players[playerName].active = not self._players[playerName].active
-    return self._players[playerName].active
+    local newState = not self._players[playerName].active
+    self._players[playerName].active = newState
+    if not newState then
+        self._players[playerName].smokes = {}
+    end
+    return newState
 end
 
 --- Register a smoke dropped by a player (called from doSmoke).
@@ -2195,12 +2201,11 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
         local pos = { x = pt.x, y = land.getHeight({ x = pt.x, y = pt.z }), z = pt.z }
         trigger.action.smoke(pos, arg.color)
         trigger.action.outTextForCoalition(unit:getCoalition(),
-            string.format(ctld.tr("%1 dropped %2 smoke."), arg.unitName, arg.colorName), 10)
+            arg.unitName .. " dropped " .. arg.colorName .. " smoke.", 10)
         ctld.utils.log("INFO", "CTLDCrateManager:dropSmoke — %s %s", arg.unitName, arg.colorName)
-        -- Feature H: register smoke for auto-resume if enabled for this unit
-        if smMgr:isActive(arg.unitName) then
-            smMgr:registerSmoke(arg.unitName, pos, arg.color)
-        end
+        -- Feature H: always track the smoke so auto-resume can fire it
+        -- even if the player activates the toggle after the drop.
+        smMgr:registerSmoke(arg.unitName, pos, arg.color)
     end
 
     local function doToggleAutoResume(arg)
@@ -2214,9 +2219,13 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
         local gid = u and u:getGroup() and u:getGroup():getID() or -1
         trigger.action.outTextForGroup(gid, msg, 10)
         ctld.utils.log("INFO", "CTLDSmokeManager: toggle for '%s' active=%s", arg.unitName, tostring(newState))
-        -- Rebuild the full menu so the toggle label updates
+        -- Rebuild the full menu model (not just DCS layer) so the toggle label updates.
+        -- refreshForUnit only replays the frozen memory model — buildMenu reconstructs it.
         local pm = CTLDPlayerManager.getInstance()
-        if pm then pm:refreshForUnit(arg.unitName) end
+        if pm then
+            local pObj = pm:getPlayer(arg.unitName)
+            if pObj then pm:buildMenu(pObj) end
+        end
     end
 
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Red Smoke"),    doSmoke,

@@ -315,6 +315,11 @@ function CTLDPlayerManager:buildMenu(playerObj)
         return
     end
 
+    -- Reset memory model before rebuilding so sections don't accumulate on successive calls.
+    menu.children  = {}
+    menu._lookup   = {}
+    menu.nextItemId = 1
+
     local root     = ctld.tr("CTLD")
     local gid      = playerObj.groupId
     local unitName = playerObj.unitName
