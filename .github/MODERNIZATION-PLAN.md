@@ -348,15 +348,13 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
          refreshLoadSectionForUnit + refreshPackSectionForUnit(playerName) → menu Load ET Pack
          rafraîchis après unpack sans re-entry F10 (F-124 1/1 PASS live)
 
-⬜  FG  GAP-2 — Auto-unpack post-parachute crates (subscriber manquant)
-        Contexte : config autoUnpackRadiusParachute=1000m existe et OnCrateParachuteLanded est
-        publié par parachutesCrates(), mais AUCUN subscriber ne déclenche l'unpack automatique.
-        À implémenter :
-          • Subscribe à OnCrateParachuteLanded dans CTLDCrateManager (ou CTLDCrateAssemblyManager)
-          • À la réception : scanner les crates au sol dans autoUnpackRadiusParachute autour
-            du point d'atterrissage → si crateSet complet trouvé → unpackCrate() automatique
-          • Publier OnCrateUnpacked normalement (startLase si isJTAC)
-          • Config : autoUnpackRadiusParachute (déjà existant, défaut 1000m)
+✅  FG  GAP-2 — Auto-unpack post-parachute crates [2026-05-06]
+        Implémenté dans CTLDCrateManager:_checkAutoUnpack() :
+          • fromParachute=true posé par parachuteCrates() callback ET _checkNativeDCSCargo UNLOAD en vol
+          • Scan LANDED+fromParachute dans autoUnpackRadiusParachute autour de la dernière caisse atterrie
+          • Si cratesRequired trouvées → unpackCrate() + _spawnUnpacked() au centroïde, sans joueur
+          • Fonctionne mixte CTLD menu + DCS natif (intégrité du set suffit)
+          • Sprint 2a : _nativeCrateLink {lx,ly,lz} remplace _nativeLoadDist (linkOffsetRef 3D, seuil 1m)
 
 ⬜  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
         Use case : spawn d'un véhicule via "Request Vehicle" (logistic zone) → load dans transport
@@ -624,19 +622,22 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ F-127 : GAP-K2 transport destroy → deregisterJTAC + purge — 5/5 PASS [2026-05-06]
           Scénario : recette/scenarios/scenario_feature_k_jtac_vehicle.lua (4/4 steps ALL SUCCESS)
 
-        Sprint 2 — bbox detection (GAP-K3) :
-          Logique linkOffsetRef (tick 1s) :
-            LOAD  : objet bouge (pos ≠ pos initiale) → bbox check → dans bbox → load détecté
-                    → mémoriser linkOffsetRef = offset centre objet/centre appareil (repère local)
-            UNLOAD: tick — linkActuel ≠ linkOffsetRef → unload
-                    • 2A appareil au sol → unload posé
-                    • 2B appareil en vol → parachute DCS natif
-          Commun Flow 1 (caisses) et Flow 2 (vehicles entiers).
+        Sprint 2a — bbox crates (GAP-K3 Flow 1) [2026-05-06] :
+          ✅ _checkNativeDCSCargo refactorisé : _nativeCrateLink {lx,ly,lz} remplace _nativeLoadDist
+             LOAD : _pointInBBox → mémoriser offset local 3D via getPosition() + dot product
+             UNLOAD : drift > 1m → unload détecté immédiatement (appareil stationnaire OK)
+             Airborne UNLOAD (AGL > 5m) : fromParachute=true → _checkAutoUnpack()
+          ✅ _checkAutoUnpack() : autoUnpack crateSet complet au centroïde, sans joueur
+          Recette Sprint 2a : à créer (UH-1H + 1 crate DCS native)
+
+        Sprint 2b — bbox vehicles entiers (GAP-K3 Flow 2) :
+          CTLDVehicleSpawner._checkNativeLoading stub vide → même logique linkOffsetRef.
           Recette nécessite C-130/Il-76 physique.
 
-        Recette (commun) :
-          • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1)
-          • F-113/F-114 : bbox load/unload — différé Sprint 2 (C-130J-30/CH-47Fbl1 requis)
+        Recette :
+          • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1) ✅
+          • Sprint 2a : à créer (UH-1H crate DCS native load/unload sol + airborne)
+          • F-113/F-114 : bbox vehicles entiers — différé Sprint 2b (C-130J-30/CH-47Fbl1 requis)
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
