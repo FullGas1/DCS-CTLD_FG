@@ -276,6 +276,8 @@ function CTLDConfig:load()
     -- to use the other method.
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
+    self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
+    self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
     self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
@@ -1827,6 +1829,12 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
 
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["en"]["Smoke Auto-Resume [activate]"]   = "Smoke Auto-Resume [activate]"
+ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactivate]"
+ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
+ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -2232,6 +2240,12 @@ ctld.i18n["fr"]["FOB Positions:"] = "Positions FOB :"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["fr"]["→ Next Page"] = "→ Page suivante"
+
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["fr"]["Smoke Auto-Resume [activate]"]   = "Fumée auto-reprise [activer]"
+ctld.i18n["fr"]["Smoke Auto-Resume [deactivate]"] = "Fumée auto-reprise [désactiver]"
+ctld.i18n["fr"]["Smoke auto-resume ON (%1s interval)"]  = "Fumée auto-reprise ACTIVE (intervalle %1s)"
+ctld.i18n["fr"]["Smoke auto-resume OFF"]                = "Fumée auto-reprise DÉSACTIVÉE"
 
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
@@ -2640,6 +2654,12 @@ ctld.i18n["es"]["FOB Positions:"] = "Posiciones FOB:"
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["es"]["→ Next Page"] = "→ Página siguiente"
 
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["es"]["Smoke Auto-Resume [activate]"]   = "Humo auto-reanudación [activar]"
+ctld.i18n["es"]["Smoke Auto-Resume [deactivate]"] = "Humo auto-reanudación [desactivar]"
+ctld.i18n["es"]["Smoke auto-resume ON (%1s interval)"]  = "Humo auto-reanudación ACTIVO (intervalo %1s)"
+ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudación DESACTIVADO"
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2893,6 +2913,12 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["ko"]["Smoke Auto-Resume [activate]"]   = "연막 자동재개 [활성화]"
+ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활성화]"
+ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
+ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -9366,6 +9392,89 @@ function CTLDCrate:canUnpack()
 end
 
 -- ============================================================
+-- ============================================================
+-- CTLDSmokeManager  (Feature H — Smoke auto-resume)
+-- Singleton. Tracks smokes dropped via CTLD menus per player.
+-- When a player enables auto-resume, their smokes are re-triggered
+-- every smokeAutoResumeInterval seconds (default 270s, DCS lasts ~5min).
+-- ============================================================
+
+CTLDSmokeManager = class()
+local _smInstance = nil
+
+function CTLDSmokeManager.getInstance()
+    if _smInstance == nil then
+        _smInstance = setmetatable({}, CTLDSmokeManager)
+        -- Per-player state: { active=bool, smokes=[{pos,color,launchTime}] }
+        _smInstance._players = {}
+        -- Start the periodic check (every 15s — lightweight, no re-trigger unless interval reached)
+        timer.scheduleFunction(function(_, t)
+            CTLDSmokeManager.getInstance():_tick()
+            return t + 15
+        end, nil, timer.getTime() + 15)
+    end
+    return _smInstance
+end
+
+--- Returns true if the player has auto-resume enabled.
+function CTLDSmokeManager:isActive(playerName)
+    local p = self._players[playerName]
+    if p == nil then return ctld.gs("smokeAutoResume") == true end
+    return p.active == true
+end
+
+--- Toggle auto-resume for a player. Returns new state (bool).
+function CTLDSmokeManager:toggle(playerName)
+    if not self._players[playerName] then
+        self._players[playerName] = { active = false, smokes = {} }
+    end
+    self._players[playerName].active = not self._players[playerName].active
+    return self._players[playerName].active
+end
+
+--- Register a smoke dropped by a player (called from doSmoke).
+-- @param playerName string
+-- @param pos        table  {x,y,z} world position (on ground)
+-- @param color      number trigger.smokeColor.*
+function CTLDSmokeManager:registerSmoke(playerName, pos, color)
+    if not self._players[playerName] then
+        self._players[playerName] = { active = ctld.gs("smokeAutoResume") == true, smokes = {} }
+    end
+    local list = self._players[playerName].smokes
+    list[#list + 1] = { pos = pos, color = color, launchTime = timer.getTime() }
+end
+
+--- Remove all tracked smokes for a player (e.g. on disconnect).
+function CTLDSmokeManager:clearSmokes(playerName)
+    if self._players[playerName] then
+        self._players[playerName].smokes = {}
+    end
+end
+
+--- Periodic tick: re-trigger smokes whose interval has elapsed (per active player).
+function CTLDSmokeManager:_tick()
+    local interval = ctld.gs("smokeAutoResumeInterval") or 270
+    local now      = timer.getTime()
+    for playerName, pState in pairs(self._players) do
+        if pState.active then
+            local list    = pState.smokes
+            local newList = {}
+            for _, entry in ipairs(list) do
+                if now - entry.launchTime >= interval then
+                    -- Re-trigger and reset the timer
+                    pcall(trigger.action.smoke, entry.pos, entry.color)
+                    ctld.utils.log("INFO", "CTLDSmokeManager: auto-resume smoke for '%s'", playerName)
+                    newList[#newList + 1] = { pos = entry.pos, color = entry.color, launchTime = now }
+                else
+                    newList[#newList + 1] = entry
+                end
+            end
+            pState.smokes = newList
+        end
+    end
+end
+
+-- ============================================================
 -- CTLDCrateManager  (singleton)
 -- ============================================================
 
@@ -11304,6 +11413,10 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
     local smokeSub = ctld.tr("Smoke")
     menu:addSubMenu({ root }, smokeSub, { order = 80 })
 
+    local smMgr = CTLDSmokeManager.getInstance()
+
+    local uName = playerObj.unitName
+
     local function doSmoke(arg)
         local unit = Unit.getByName(arg.unitName)
         if not (unit and unit:isExist()) then return end
@@ -11313,16 +11426,42 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
         trigger.action.outTextForCoalition(unit:getCoalition(),
             string.format(ctld.tr("%1 dropped %2 smoke."), arg.unitName, arg.colorName), 10)
         ctld.utils.log("INFO", "CTLDCrateManager:dropSmoke — %s %s", arg.unitName, arg.colorName)
+        -- Feature H: register smoke for auto-resume if enabled for this unit
+        if smMgr:isActive(arg.unitName) then
+            smMgr:registerSmoke(arg.unitName, pos, arg.color)
+        end
+    end
+
+    local function doToggleAutoResume(arg)
+        local newState = smMgr:toggle(arg.unitName)
+        local interval = ctld.gs("smokeAutoResumeInterval") or 270
+        local msgKey   = newState
+            and "Smoke auto-resume ON (%1s interval)"
+            or  "Smoke auto-resume OFF"
+        local msg = ctld.tr(msgKey):gsub("%%1", tostring(interval))
+        local u = Unit.getByName(arg.unitName)
+        local gid = u and u:getGroup() and u:getGroup():getID() or -1
+        trigger.action.outTextForGroup(gid, msg, 10)
+        ctld.utils.log("INFO", "CTLDSmokeManager: toggle for '%s' active=%s", arg.unitName, tostring(newState))
+        -- Rebuild the full menu so the toggle label updates
+        local pm = CTLDPlayerManager.getInstance()
+        if pm then pm:refreshForUnit(arg.unitName) end
     end
 
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Red Smoke"),    doSmoke,
-        { unitName = playerObj.unitName, color = trigger.smokeColor.Red,    colorName = "RED" })
+        { unitName = uName, color = trigger.smokeColor.Red,    colorName = "RED" })
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Blue Smoke"),   doSmoke,
-        { unitName = playerObj.unitName, color = trigger.smokeColor.Blue,   colorName = "BLUE" })
+        { unitName = uName, color = trigger.smokeColor.Blue,   colorName = "BLUE" })
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Orange Smoke"), doSmoke,
-        { unitName = playerObj.unitName, color = trigger.smokeColor.Orange, colorName = "ORANGE" })
+        { unitName = uName, color = trigger.smokeColor.Orange, colorName = "ORANGE" })
     menu:addCommand({ root, smokeSub }, ctld.tr("Drop Green Smoke"),  doSmoke,
-        { unitName = playerObj.unitName, color = trigger.smokeColor.Green,  colorName = "GREEN" })
+        { unitName = uName, color = trigger.smokeColor.Green,  colorName = "GREEN" })
+
+    -- Feature H: toggle auto-resume (label reflects current state per unit)
+    local toggleLabel = smMgr:isActive(uName)
+        and ctld.tr("Smoke Auto-Resume [deactivate]")
+        or  ctld.tr("Smoke Auto-Resume [activate]")
+    menu:addCommand({ root, smokeSub }, toggleLabel, doToggleAutoResume, { unitName = uName })
 end
 
 -- ============================================================

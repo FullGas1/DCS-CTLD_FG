@@ -231,6 +231,8 @@ function CTLDConfig:load()
     -- to use the other method.
     -- Set staticBugFix    to FALSE if use set ctld.slingLoad to TRUE
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
+    self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
+    self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
     self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
     self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation

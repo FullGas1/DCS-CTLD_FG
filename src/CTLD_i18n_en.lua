@@ -404,3 +404,9 @@ ctld.i18n["en"]["FOB Positions:"] = "FOB Positions:"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-03-21
 ctld.i18n["en"]["→ Next Page"] = "→ Next Page"
+
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["en"]["Smoke Auto-Resume [activate]"]   = "Smoke Auto-Resume [activate]"
+ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactivate]"
+ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
+ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"

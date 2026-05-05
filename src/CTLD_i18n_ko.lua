@@ -248,3 +248,9 @@ ctld.i18n["ko"]["You must be landed to request a crate."] = "화물을 요청하
 ctld.i18n["ko"]["You are not close enough to friendly logistics to get a crate!"] = "아군 보급계가 화물을 싣기에 충분한 거리에 있지 않습니다!"
 ctld.i18n["ko"]["A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock "] = "%2 KG의 %1 화물이 %3 시 방향에 있습니다."
 ctld.i18n["ko"]["%1 crates have been brought out at your %2 o'clock"] = "%1개의 화물이 %2시 방향에 배치되었습니다"
+
+--- Feature H — Smoke auto-resume toggle
+ctld.i18n["ko"]["Smoke Auto-Resume [activate]"]   = "연막 자동재개 [활성화]"
+ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활성화]"
+ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
+ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
