@@ -10174,6 +10174,9 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                         ctld.utils.log("INFO",
                             "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s lx=%.2f ly=%.2f lz=%.2f",
                             crate.crateName, entry.unitName, ref.lx, ref.ly, ref.lz)
+                        local _descLabel = crate.descriptor and crate.descriptor.desc or crate.crateName
+                        trigger.action.outTextForGroup(entry.playerObj.groupId,
+                            string.format("[CTLD] Crate loaded (DCS native): %s", _descLabel), 8)
                         break
                     end
                 end
@@ -10244,6 +10247,13 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                             ctld.utils.log("INFO",
                                 "CTLDCrateManager: DCS native UNLOAD — crate=%s drift=%.2f inFlight=%s fromParachute=%s",
                                 crate.crateName, drift, tostring(inFlight), tostring(crate.fromParachute))
+                            local _descLabel2 = crate.descriptor and crate.descriptor.desc or crate.crateName
+                            local _unloadMsg  = inFlight
+                                and string.format("[CTLD] Crate dropped (DCS native, airborne): %s", _descLabel2)
+                                or  string.format("[CTLD] Crate unloaded (DCS native): %s", _descLabel2)
+                            if playerObj then
+                                trigger.action.outTextForGroup(playerObj.groupId, _unloadMsg, 8)
+                            end
                             if crate.fromParachute then
                                 self:_checkAutoUnpack(crate)
                             end
