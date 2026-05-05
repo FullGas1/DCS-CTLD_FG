@@ -6,17 +6,18 @@
 -- Pre-requisites:
 --   - BLUE player slot occupied (UH-1H or any transport)
 --   - TRZ zone "TRZ_alpha_B_10_nil_0" in mission
---   - RED group "Sol_g-2" (unit "Sol_g-2-1") for JTAC targeting
---   - ctldLogPath set via mission .miz MISSION START trigger
+--   - ctldLogPath set via patch_logpath.lua after each CTLD_Next injection
 --
 -- Steps:
---   1. Create "Test2JTAC" template (inf=4, jtac=2)
---   2. Simulate TRZ_LOADED group in _inTransit
---   3. Deploy → DCS group spawn → _syncFromDCSGroup → _jtacUnits populated (BUG-03)
---   4. S_EVENT_DEAD on JTAC unit #2 → onUnitDead → deregisterJTAC (BUG-02)
---   5. embarkFromField → deregisterJTAC BEFORE group:destroy()
---   6. Redeploy → resumeJTAC
---   7. returnToTroopZone → deregisterJTAC + _inTransit cleared
+--   1. Spawn 4 RED Hummers ~300m south + create "Test2JTAC" template (inf=4, jtac=2)
+--   2. Simulate TRZ embark → TRZ_LOADED in _inTransit, 0 JTAC registered (no lasing)
+--   3. Deploy → 2 JTACs registered + startLaseTroopUnit; wait 10s then re-inject step 4
+--   4. Re-embark → verify _claimedTargets=2 (distinct targets), deregisterJTAC x2 → verify empty
+--   5. Re-deploy → startLaseTroopUnit x2; wait 10s then re-inject step 6
+--   6. 1 JTAC dead (onUnitDead) → its target freed (_claimedTargets: 2→1); alive JTAC keeps claim
+--   7. Timer-driven destruction of all targets → successive reacquisition by alive JTAC
+--      Phase A (first injection): install timer → re-inject in ~50s
+--      Phase B (re-injection): validate claimLog shows ≥2 distinct targets claimed
 --   8. Final report + cleanupAll
 -- =============================================================================
 
@@ -224,20 +225,19 @@ do
 end
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 1 — Cleanup previous run + create 2-JTAC test template
--- Expected: template hasJtac=true, jtac=2, total=6
+-- STEP 1 — Cleanup + spawn 4 RED Hummers + create 2-JTAC template
+-- Expected: 4 RED vehicles ~300m south; template hasJtac=true, jtac=2, total=6
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
     cleanupAll()
 
-    -- Spawn 4 unarmed RED vehicles ~300m south as JTAC target pool.
-    -- DCS coalition.addGroup ground unit coords: unit.x = world-x (East), unit.y = world-z (North).
+    -- Spawn 4 unarmed RED Hummers ~300m south as JTAC target pool.
+    -- unit.x = world-x (East), unit.y = world-z (North) in DCS ground coords.
     -- Spread east-west by 25m so each unit is individually targetable.
+    -- country.id.RUSSIA = RED coalition in standard DCS (USA = BLUE).
     do
         local units = {}
-        -- Hummer spawned as RED (country.id.RUSSIA = RED coalition in standard DCS).
-        -- Troops/JTACs use country.id.USA = BLUE — no coalition inversion.
         for i = 1, 4 do
             units[i] = {
                 name    = string.format("TFC_Target_%d", ctld.utils.getNextUniqId()),
@@ -255,7 +255,14 @@ if step == 1 then
         })
         if tgtGrp then
             _G["_TFC_TARGET_GROUP"] = tgtGrp:getName()
-            log("Step 1: RED targets spawned — group='" .. tgtGrp:getName() .. "' (4x Hummer RED, ~300m south)")
+            -- Store individual unit names for step 7 timer-driven destruction
+            local unames = {}
+            for _, u in ipairs(tgtGrp:getUnits() or {}) do
+                unames[#unames + 1] = u:getName()
+            end
+            _G["_TFC_TARGET_UNITS"] = unames
+            log("Step 1: RED targets spawned — group='" .. tgtGrp:getName()
+                .. "' (" .. #unames .. "x Hummer RED, ~300m south)")
         else
             log("Step 1: WARNING — RED target group spawn failed")
         end
@@ -279,23 +286,22 @@ if step == 1 then
 
     log("Step 1: template created hasJtac=" .. tostring(tmpl.hasJtac)
         .. " jtac=" .. tmpl.jtac .. " inf=" .. tmpl.inf .. " total=" .. tostring(tmpl.total))
-
-    pass("Step 1 — 2-JTAC template created (inf=4, jtac=2). Re-inject for Step 2.")
+    pass("Step 1 — RED targets spawned, 2-JTAC template created (inf=4, jtac=2). Re-inject for Step 2.")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 2 — Simulate TRZ pickup → TRZ_LOADED group in _inTransit
--- Expected: grp in _inTransit[playerName], state=TRZ_LOADED, hasJtac=true
+-- STEP 2 — Simulate TRZ embark → TRZ_LOADED group in _inTransit (no lasing)
+-- Expected: group in _inTransit, state=TRZ_LOADED, 0 JTAC registered in jtacMgr
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
     local troopMgr = CTLDTroopManager.getInstance()
+    local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
     local tmpl = troopMgr:_findTemplate(TEST_TMPL_NAME)
     assert_not_nil("F-T2.1", tmpl, "template found — run Step 1 first")
 
-    -- Build virtual slot maps matching production embarkFromTroopZone:
-    -- _aliveUnits: ALL units (inf + jtac), _jtacUnits: jtac subset only
+    -- Build virtual slot maps (mirrors embarkFromTroopZone)
     local allAliveUnits = {}
     local jtacUnits     = {}
     local unitIndex     = 0
@@ -304,10 +310,8 @@ elseif step == 2 then
         for _ = 1, n do
             unitIndex = unitIndex + 1
             local slotName = string.format("%s_u%d", tmpl.name, unitIndex)
-            allAliveUnits[slotName] = unitIndex  -- all slots
-            if role == "jtac" then
-                jtacUnits[slotName] = true
-            end
+            allAliveUnits[slotName] = unitIndex
+            if role == "jtac" then jtacUnits[slotName] = true end
         end
     end
 
@@ -323,30 +327,31 @@ elseif step == 2 then
         _jtacUnits   = jtacUnits,
     })
     assert_not_nil("F-T2.2", grp, "CTLDTroopGroup:new() returned object")
-
     troopMgr._inTransit[playerName] = grp
 
     local jtacCount  = countPairs(grp._jtacUnits)
     local totalCount = countPairs(grp._aliveUnits)
+    check("F-T2.3", "state=TRZ_LOADED", grp.state == CTLDTroopGroup.STATE.TRZ_LOADED, grp.state)
+    assert_eq("F-T2.4", jtacCount, 2)
+    assert_eq("F-T2.5", totalCount, 6)
 
-    check("F-T2.3", "state=TRZ_LOADED",
-        grp.state == CTLDTroopGroup.STATE.TRZ_LOADED, grp.state)
-    -- hasJtac lives on the template; group uses _jtacUnits
-    check("F-T2.4", "_jtacUnits non-empty (template has jtac=2)",
-        jtacCount > 0, "jtacCount=" .. jtacCount)
-    assert_eq("F-T2.5", jtacCount, 2)
-    assert_eq("F-T2.6", totalCount, 6)   -- 4 inf + 2 jtac = 6
+    -- No JTAC registered yet — troops are in transit, no lasing
+    local jtacMgrCount = jtacMgr and countPairs(jtacMgr.jtacs) or 0
+    check("F-T2.6", "no JTAC registered in jtacMgr while in transit",
+        jtacMgr == nil or not jtacMgr.jtacs[tmpl.name .. "_u5"],
+        "unexpected JTAC entry found")
 
     log("Step 2: TRZ_LOADED | templateKey=" .. grp.templateKey
-        .. " | total=" .. totalCount .. " | jtac=" .. jtacCount)
-    pass("Step 2 — TRZ_LOADED (inf=4, jtac=2). Re-inject for Step 3 (deploy).")
+        .. " | total=" .. totalCount .. " | jtac=" .. jtacCount
+        .. " | jtacMgr.jtacs=" .. jtacMgrCount .. " (no lasing while embarked)")
+    pass("Step 2 — TRZ_LOADED, no JTAC active (troops embarked). Re-inject for Step 3 (deploy).")
     _G[STEP_N] = 3
     _result = "step=2 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 3 — Deploy → DCS group spawned → _syncFromDCSGroup → _jtacUnits populated
--- Validates BUG-03 fix: unit names come from DCS, not template slots
--- Expected: _jtacUnits has 2 entries keyed by real DCS unit names (JTAC-N)
+-- STEP 3 — Deploy → 2 JTACs registered + lasing 2 distinct targets
+-- Expected: _jtacUnits=2, startLaseTroopUnit x2; wait 10s for autoLaseLoop
+--           then re-inject for Step 4 which checks _claimedTargets
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 3 then
 
@@ -360,58 +365,47 @@ elseif step == 3 then
     local tmpl = troopMgr:_findTemplate(TEST_TMPL_NAME)
     assert_not_nil("F-T3.3", tmpl, "template found")
 
-    -- Spawn right at helicopter position (no north offset) facing south (hdg=180)
-    -- so troops have direct LOS to the RED vehicles 300m south.
-    local spawnX = pPos.x + 5
-    local spawnZ = pPos.z
-    local dcsGroup = spawnTroopGroup(tmpl, coalition.side.BLUE, country.id.USA, spawnX, spawnZ, 180)
+    -- Spawn at helicopter position facing south (LOS to RED vehicles 300m south)
+    local dcsGroup = spawnTroopGroup(tmpl, coalition.side.BLUE, country.id.USA,
+        pPos.x + 5, pPos.z, 180)
     assert_not_nil("F-T3.4", dcsGroup, "DCS group spawned")
 
-    local gname = dcsGroup:getName()
     grp.dcsGroup = dcsGroup
     grp.state    = "DEPLOYED"
-
-    -- BUG-03 fix validation: _syncFromDCSGroup rebuilds from real DCS unit names
-    grp:_syncFromDCSGroup(dcsGroup)
+    grp:_syncFromDCSGroup(dcsGroup)  -- BUG-03 fix: rebuilds _jtacUnits from real DCS names
 
     local jtacCount  = countPairs(grp._jtacUnits)
     local aliveCount = countPairs(grp._aliveUnits)
-
     check("F-T3.5", "state=DEPLOYED", grp.state == "DEPLOYED", grp.state)
-    assert_eq("F-T3.6", jtacCount, 2)    -- BUG-03 fix: was 0 before
-    assert_eq("F-T3.7", aliveCount, 6)   -- _aliveUnits = all units (inf+jtac)
+    assert_eq("F-T3.6", jtacCount, 2)
+    assert_eq("F-T3.7", aliveCount, 6)
 
-    -- Verify JTAC unit names start with "JTAC" prefix (real DCS names, not template slots)
     for uname in pairs(grp._jtacUnits) do
         check("F-T3.8", "JTAC unit has JTAC prefix",
             uname:match("^JTAC") ~= nil, "unitName=" .. uname)
-        break  -- check first entry only (all should match by construction)
+        break
     end
 
-    -- startLaseTroopUnit: unit-keyed lasing (unit-level tracking, corrects group-level mismatch).
-    -- Each call creates a CTLDJTAC entry keyed by unitName in jtacMgr.jtacs and starts the loop.
-    -- Mission may have pre-existing JTACs → persist only our unit names.
+    -- Start lasing — autoLaseLoop will claim targets asynchronously (timer-based)
     local registeredNames = {}
     for uname in pairs(grp._jtacUnits) do
         jtacMgr:startLaseTroopUnit(uname)
-        table.insert(registeredNames, uname)
+        registeredNames[#registeredNames + 1] = uname
     end
     _G["_TFC_JTAC_NAMES"] = registeredNames
-    -- (unit-keyed entries: no separate _TFC_GROUP_NAME needed)
-
     troopMgr._inTransit[playerName] = nil
 
-    log("Step 3: DEPLOYED | group='" .. gname .. "' | alive=" .. aliveCount
-        .. " | jtac=" .. jtacCount .. " | startLaseTroopUnit x" .. #registeredNames
-        .. " | jtacMgr.jtacs=" .. countPairs(jtacMgr.jtacs))
-    pass("Step 3 — deploy: group='" .. gname .. "', startLaseTroopUnit active. OBSERVE LASING 10s — inject step 4.")
+    log("Step 3: DEPLOYED group='" .. dcsGroup:getName() .. "' alive=" .. aliveCount
+        .. " jtac=" .. jtacCount .. " startLaseTroopUnit x" .. #registeredNames
+        .. " jtacMgr.jtacs=" .. countPairs(jtacMgr.jtacs))
+    pass("Step 3 — deployed, 2 JTACs lasing started. WAIT 10s for autoLaseLoop — re-inject for Step 4.")
     _G[STEP_N] = 4
     _result = "step=3 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 4 — S_EVENT_DEAD on JTAC unit #2 → onUnitDead → deregisterJTAC
--- Validates BUG-02 fix: wasJtac captured BEFORE _removeDeadUnit
--- Expected: 1 JTAC removed from jtacMgr, _jtacUnits updated
+-- STEP 4 — Re-embark: 2 JTACs idle, targets freed
+-- Verify _claimedTargets has 2 entries (from step 3 lasing), then deregister both
+-- Expected: after deregister, _claimedTargets empty; targets available again
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 4 then
 
@@ -419,33 +413,62 @@ elseif step == 4 then
     local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
     assert_not_nil("F-T4.1", jtacMgr, "CTLDJTACManager available")
 
-    -- Use only the JTAC names we registered in step 3 (mission may have pre-existing JTACs)
     local jtacNames = _G["_TFC_JTAC_NAMES"] or {}
-    check("F-T4.2", "step 3 registered ≥2 JTAC mocks",
+    check("F-T4.2", "step 3 registered 2 JTACs",
         #jtacNames >= 2, "got " .. #jtacNames .. " — run Step 3 first")
 
-    local deadUnitName = jtacNames[2]
-    check("F-T4.3", "dead unit still in jtacMgr",
-        jtacMgr.jtacs[deadUnitName] ~= nil, "key='" .. deadUnitName .. "' missing")
+    -- Verify _claimedTargets has 2 distinct entries (one per JTAC)
+    local claimedBefore = countPairs(jtacMgr._claimedTargets)
+    check("F-T4.3", "_claimedTargets has 2 entries (both JTACs lasing)",
+        claimedBefore == 2, "got " .. claimedBefore .. " — wait longer after step 3")
+    -- Verify the 2 claimed targets are different
+    local claimedTargetNames = {}
+    for tgt in pairs(jtacMgr._claimedTargets) do
+        claimedTargetNames[#claimedTargetNames + 1] = tgt
+    end
+    check("F-T4.4", "2 distinct targets claimed (deconfliction)",
+        claimedTargetNames[1] ~= claimedTargetNames[2],
+        "targets: " .. (claimedTargetNames[1] or "?") .. " / " .. (claimedTargetNames[2] or "?"))
 
-    log("Step 4: simulating S_EVENT_DEAD for unit '" .. deadUnitName .. "'")
-    local jtacBefore = countPairs(jtacMgr.jtacs)
-    troopMgr:onUnitDead(deadUnitName)
-    local jtacAfter  = countPairs(jtacMgr.jtacs)
+    -- Simulate re-embark: deregisterJTAC both (mirrors embarkFromField)
+    local deregCount = 0
+    for _, uname in ipairs(jtacNames) do
+        if jtacMgr.jtacs[uname] then
+            jtacMgr:deregisterJTAC(uname)
+            log("Step 4: deregisterJTAC('" .. uname .. "')")
+            deregCount = deregCount + 1
+        end
+    end
 
-    -- Expected: the dead unit removed from jtacMgr.jtacs (net -1)
-    assert_eq("F-T4.4", jtacAfter, jtacBefore - 1)
-    check("F-T4.5", "dead unit removed from jtacMgr",
-        jtacMgr.jtacs[deadUnitName] == nil, "still present")
+    -- Destroy deployed DCS group
+    local deployedGrp = nil
+    for _, gname in ipairs(troopMgr._droppedGroups[coalition.side.BLUE] or {}) do
+        local g = Group.getByName(gname)
+        if g and g:isExist() then
+            deployedGrp = g
+            troopMgr:_removeFromDropped(coalition.side.BLUE, gname)
+            troopMgr._droppedTemplates[gname] = nil
+            g:destroy()
+            log("Step 4: group:destroy() called for '" .. gname .. "'")
+            break
+        end
+    end
 
-    log("Step 4: jtacMgr.jtacs before=" .. jtacBefore .. " after=" .. jtacAfter)
-    pass("Step 4 — S_EVENT_DEAD: JTAC '" .. deadUnitName .. "' removed from manager (BUG-02 verified). Re-inject for Step 5.")
+    -- Verify _claimedTargets now empty (targets freed for other JTACs)
+    local claimedAfter = countPairs(jtacMgr._claimedTargets)
+    assert_eq("F-T4.5", claimedAfter, 0)
+    assert_eq("F-T4.6", deregCount, 2)
+
+    _G["_TFC_JTAC_NAMES"] = nil
+    log("Step 4: deregCount=" .. deregCount .. " claimedBefore=" .. claimedBefore
+        .. " claimedAfter=" .. claimedAfter .. " (targets freed)")
+    pass("Step 4 — re-embark: " .. deregCount .. " JTACs idle, _claimedTargets empty. Re-inject for Step 5.")
     _G[STEP_N] = 5
     _result = "step=4 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 5 — embarkFromField: deregisterJTAC BEFORE group:destroy()
--- Expected: 0 JTAC in manager after deregister, DCS group destroyed cleanly
+-- STEP 5 — Re-deploy → 2 JTACs lasing 2 distinct targets (2nd cycle)
+-- Expected: same as step 3 but from a field re-deploy; wait 10s then re-inject
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 5 then
 
@@ -453,79 +476,15 @@ elseif step == 5 then
     local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
     assert_not_nil("F-T5.1", jtacMgr, "CTLDJTACManager available")
 
-    local deployedName = nil
-    local deployedGrp  = nil
-    for _, gname in ipairs(troopMgr._droppedGroups[coalition.side.BLUE] or {}) do
-        local g = Group.getByName(gname)
-        if g and g:isExist() then
-            deployedName = gname
-            deployedGrp  = g
-            break
-        end
-    end
-    assert_not_nil("F-T5.2", deployedGrp, "deployed group exists — run Step 3 first")
-
-    -- Deregister unit-keyed JTAC entries (stops lasing loops) — BEFORE group:destroy()
-    local jtacNames = _G["_TFC_JTAC_NAMES"] or {}
-    local deregCount = 0
-    for _, uname in ipairs(jtacNames) do
-        if jtacMgr.jtacs[uname] then
-            jtacMgr:deregisterJTAC(uname)
-            log("Step 5: deregisterJTAC(mock uname='" .. uname .. "')")
-            deregCount = deregCount + 1
-        end
-    end
-
-    deployedGrp:destroy()
-    log("Step 5: group:destroy() called for '" .. deployedName .. "'")
-
-    -- Verify our mocks are gone from jtacMgr
-    local ourMocksRemaining = 0
-    for _, uname in ipairs(jtacNames) do
-        if jtacMgr.jtacs[uname] then ourMocksRemaining = ourMocksRemaining + 1 end
-    end
-    assert_eq("F-T5.3", ourMocksRemaining, 0)
-
-    -- NOTE: Group:destroy() is not instantaneous in DCS (takes ≥1 frame).
-    -- Cannot assert group is gone synchronously in Witchcraft — just log.
-    local stillAlive = Group.getByName(deployedName)
-    log("Step 5: DCS group post-destroy still visible=" .. tostring(stillAlive ~= nil)
-        .. " (expected: may be true within same tick — ok)")
-
-    troopMgr:_removeFromDropped(coalition.side.BLUE, deployedName)
-    troopMgr._droppedTemplates[deployedName] = nil
-    _G["_TFC_JTAC_NAMES"] = nil  -- reset for steps 6-7
-
-    log("Step 5: deregCount=" .. deregCount .. " ourMocksRemaining=" .. ourMocksRemaining)
-    pass("Step 5 — embarkFromField: " .. deregCount
-        .. " mock JTAC(s) deregistered before destroy (ordering verified). Re-inject for Step 6.")
-    _G[STEP_N] = 6
-    _result = "step=5 SUCCESS"
-
--- ══════════════════════════════════════════════════════════════════════════════
--- STEP 6 — Redeploy after field pickup → spawn new group → re-register JTAC mocks
--- Tests: _syncFromDCSGroup on a fresh spawn (same as step 3 but from a field pickup)
--- Expected: new DCS group spawned, JTAC units found by prefix, mocks re-registered
--- ══════════════════════════════════════════════════════════════════════════════
-elseif step == 6 then
-
-    local troopMgr = CTLDTroopManager.getInstance()
-    local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
-    assert_not_nil("F-T6.1", jtacMgr, "CTLDJTACManager available")
-
     local tmpl = troopMgr:_findTemplate(TEST_TMPL_NAME)
-    assert_not_nil("F-T6.2", tmpl, "template found — run Step 1 first")
+    assert_not_nil("F-T5.2", tmpl, "template found — run Step 1 first")
 
-    -- Same as step 3: right at helicopter, facing south toward RED vehicles.
-    local spawnX = pPos.x + 5
-    local spawnZ = pPos.z
-    local dcsGroup = spawnTroopGroup(tmpl, coalition.side.BLUE, country.id.USA, spawnX, spawnZ, 180)
-    assert_not_nil("F-T6.3", dcsGroup, "DCS group spawned")
+    -- Spawn again at helicopter, facing south
+    local dcsGroup = spawnTroopGroup(tmpl, coalition.side.BLUE, country.id.USA,
+        pPos.x + 5, pPos.z, 180)
+    assert_not_nil("F-T5.3", dcsGroup, "DCS group spawned")
 
-    local gname = dcsGroup:getName()
-
-    -- Rebuild a CTLDTroopGroup from the new DCS group (mirrors disembark flow)
-    local grp6 = CTLDTroopGroup:new({
+    local grp5 = CTLDTroopGroup:new({
         templateKey  = tmpl._dbKey,
         templateName = tmpl.name,
         unitTotal    = tmpl.total,
@@ -534,74 +493,185 @@ elseif step == 6 then
         countryId    = country.id.USA,
         state        = CTLDTroopGroup.STATE.TRZ_LOADED,
     })
-    grp6:_syncFromDCSGroup(dcsGroup)
+    grp5:_syncFromDCSGroup(dcsGroup)
 
-    local jtacCount = countPairs(grp6._jtacUnits)
-    check("F-T6.4", "_syncFromDCSGroup found JTAC units",
-        jtacCount > 0, "jtacCount=" .. jtacCount)
+    local jtacCount = countPairs(grp5._jtacUnits)
+    check("F-T5.4", "_syncFromDCSGroup found 2 JTAC units",
+        jtacCount == 2, "jtacCount=" .. jtacCount)
 
-    -- startLaseTroopUnit per unit (unit-keyed, mirrors production disembark flow)
     local registeredNames = {}
-    for uname in pairs(grp6._jtacUnits) do
+    for uname in pairs(grp5._jtacUnits) do
         jtacMgr:startLaseTroopUnit(uname)
-        table.insert(registeredNames, uname)
+        registeredNames[#registeredNames + 1] = uname
     end
     _G["_TFC_JTAC_NAMES"] = registeredNames
+    assert_eq("F-T5.5", #registeredNames, 2)
 
-    assert_eq("F-T6.5", #registeredNames, jtacCount)
+    log("Step 5: re-deploy group='" .. dcsGroup:getName() .. "' jtac=" .. jtacCount
+        .. " startLaseTroopUnit x" .. #registeredNames)
+    pass("Step 5 — re-deployed, 2 JTACs lasing. WAIT 10s for autoLaseLoop — re-inject for Step 6.")
+    _G[STEP_N] = 6
+    _result = "step=5 SUCCESS"
 
-    log("Step 6: group='" .. gname .. "' | jtac units found=" .. jtacCount
-        .. " | startLaseTroopUnit x" .. #registeredNames)
-    pass("Step 6 — redeploy: group='" .. gname .. "', " .. #registeredNames
-        .. " JTAC unit(s) lasing. Re-inject for Step 7.")
+-- ══════════════════════════════════════════════════════════════════════════════
+-- STEP 6 — 1 JTAC destroyed → its target freed, other JTAC keeps its claim
+-- Expected: _claimedTargets goes from 2 to 1; dead JTAC's target no longer blocked
+-- ══════════════════════════════════════════════════════════════════════════════
+elseif step == 6 then
+
+    local troopMgr = CTLDTroopManager.getInstance()
+    local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
+    assert_not_nil("F-T6.1", jtacMgr, "CTLDJTACManager available")
+
+    local jtacNames = _G["_TFC_JTAC_NAMES"] or {}
+    check("F-T6.2", "step 5 registered 2 JTACs",
+        #jtacNames >= 2, "got " .. #jtacNames .. " — run Step 5 first")
+
+    -- Verify both JTACs have claimed targets
+    local claimedBefore = countPairs(jtacMgr._claimedTargets)
+    check("F-T6.3", "_claimedTargets has 2 entries before kill",
+        claimedBefore == 2, "got " .. claimedBefore .. " — wait longer after step 5")
+
+    -- Find the dead JTAC's target BEFORE killing it
+    local deadUnitName = jtacNames[2]
+    local aliveUnitName = jtacNames[1]
+    local deadJtacTarget = nil
+    for tgt, owner in pairs(jtacMgr._claimedTargets) do
+        if owner == deadUnitName then deadJtacTarget = tgt end
+    end
+    log("Step 6: killing JTAC '" .. deadUnitName
+        .. "' | its target='" .. tostring(deadJtacTarget) .. "'")
+
+    -- Simulate S_EVENT_DEAD for the JTAC unit
+    troopMgr:onUnitDead(deadUnitName)
+
+    -- Verify: dead JTAC removed, its target freed, alive JTAC still claims its target
+    check("F-T6.4", "dead JTAC removed from jtacMgr",
+        jtacMgr.jtacs[deadUnitName] == nil, "still present")
+    local claimedAfter = countPairs(jtacMgr._claimedTargets)
+    assert_eq("F-T6.5", claimedAfter, 1)
+    if deadJtacTarget then
+        check("F-T6.6", "dead JTAC's target released from _claimedTargets",
+            jtacMgr._claimedTargets[deadJtacTarget] == nil, "still claimed")
+    end
+    check("F-T6.7", "alive JTAC still in jtacMgr",
+        jtacMgr.jtacs[aliveUnitName] ~= nil, "alive JTAC missing")
+
+    -- Store alive JTAC key for step 7 monitoring
+    _G["_TFC_ALIVE_JTAC"]  = aliveUnitName
+    _G["_TFC_JTAC_NAMES"]  = nil
+    _G["_TFC_STEP7_DONE"]  = nil  -- reset step 7 monitor flag
+
+    log("Step 6: claimedBefore=" .. claimedBefore .. " claimedAfter=" .. claimedAfter
+        .. " aliveJtac='" .. aliveUnitName .. "'")
+    pass("Step 6 — 1 JTAC dead: target freed, alive JTAC keeps claim. Re-inject for Step 7.")
     _G[STEP_N] = 7
     _result = "step=6 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 7 — returnToTroopZone → deregisterJTAC(our mocks) + _inTransit cleared
--- Expected: our mock JTACs gone from manager, _inTransit empty
+-- STEP 7 — Timer-driven destruction of all targets → validate successive reacquisition
+-- Phase A (first injection): install timer + return "re-inject in 40s"
+-- Phase B (re-injection when done): validate claim log shows ≥2 distinct claims
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 7 then
 
-    local troopMgr = CTLDTroopManager.getInstance()
-    local jtacMgr  = CTLDJTACManager and CTLDJTACManager.get() or nil
+    local jtacMgr = CTLDJTACManager and CTLDJTACManager.get() or nil
     assert_not_nil("F-T7.1", jtacMgr, "CTLDJTACManager available")
 
-    -- Deregister unit-keyed JTAC entries registered in step 6 (stops lasing loops)
-    local jtacNames = _G["_TFC_JTAC_NAMES"] or {}
-    local jtacBefore = countPairs(jtacMgr.jtacs)
-    check("F-T7.2", "step 6 registered mock JTACs", #jtacNames > 0,
-        "got " .. #jtacNames .. " — run Step 6 first")
+    -- Phase B: re-injection after timer completes
+    if _G["_TFC_STEP7_DONE"] == true then
+        local claimLog = _G["_TFC_STEP7_CLAIM_LOG"] or {}
+        log("Step 7 Phase B: claimLog entries=" .. #claimLog)
 
-    -- Deregister: collect first to avoid mutating during iteration
-    local deregCount = 0
-    for _, uname in ipairs(jtacNames) do
-        if jtacMgr.jtacs[uname] then
-            log("Step 7: deregisterJTAC('" .. uname .. "')")
-            jtacMgr:deregisterJTAC(uname)
-            deregCount = deregCount + 1
+        -- Collect all distinct target names that were claimed across all cycles
+        local allTargetsSeen = {}
+        for _, entry in ipairs(claimLog) do
+            for tgt in pairs(entry.claims) do
+                allTargetsSeen[tgt] = true
+            end
         end
+        local distinctTargets = countPairs(allTargetsSeen)
+        -- Alive JTAC should have claimed at least 2 different targets
+        -- (current + at least 1 reacquisition after first target destroyed)
+        check("F-T7.2", "alive JTAC reacquired targets successively (>=2 distinct targets claimed)",
+            distinctTargets >= 2, "only " .. distinctTargets .. " distinct target(s) seen in log")
+
+        -- None of our test targets should remain in _claimedTargets
+        -- (JTAC may have picked up other mission RED units — that is correct behaviour)
+        local testTargets = _G["_TFC_TARGET_UNITS"] or {}
+        local testTargetSet = {}
+        for _, n in ipairs(testTargets) do testTargetSet[n] = true end
+        local ourTargetsClaimed = 0
+        for tgt in pairs(jtacMgr._claimedTargets) do
+            if testTargetSet[tgt] then ourTargetsClaimed = ourTargetsClaimed + 1 end
+        end
+        check("F-T7.3", "none of our test targets remain claimed (all freed after destroy)",
+            ourTargetsClaimed == 0, "still " .. ourTargetsClaimed .. " test target(s) claimed")
+
+        _G["_TFC_STEP7_DONE"]      = nil
+        _G["_TFC_STEP7_CLAIM_LOG"] = nil
+        log("Step 7: successive reacquisition validated — distinctTargets=" .. distinctTargets)
+        pass("Step 7 — all targets destroyed, reacquisition chain validated. Re-inject for Step 8.")
+        _G[STEP_N] = 8
+        _result = "step=7 SUCCESS"
+
+    else
+        -- Phase A: install timer-driven sequence
+        local aliveJtacKey  = _G["_TFC_ALIVE_JTAC"]
+        local targetUnits   = _G["_TFC_TARGET_UNITS"] or {}
+        check("F-T7.4", "alive JTAC key stored from step 6",
+            aliveJtacKey ~= nil, "run Step 6 first")
+        check("F-T7.5", "target unit list available",
+            #targetUnits >= 1, "run Step 1 first")
+
+        -- Initialize monitoring state
+        _G["_TFC_STEP7_CLAIM_LOG"] = {}
+        _G["_TFC_STEP7_DONE"]      = false
+        _G["_TFC_STEP7_IDX"]       = 1
+
+        -- Timer: every 8s, snapshot _claimedTargets then destroy next target unit.
+        -- 8s > autoLaseLoop searchInterval (~5s) — enough time for reacquisition.
+        timer.scheduleFunction(function(_, t)
+            local jm      = CTLDJTACManager and CTLDJTACManager.get()
+            local idx     = _G["_TFC_STEP7_IDX"]
+            local targets = _G["_TFC_TARGET_UNITS"] or {}
+
+            -- Snapshot current claims
+            local snapshot = {}
+            if jm then
+                for tgt, owner in pairs(jm._claimedTargets) do
+                    snapshot[tgt] = owner
+                end
+            end
+            local claimLog = _G["_TFC_STEP7_CLAIM_LOG"] or {}
+            claimLog[#claimLog + 1] = { idx = idx, claims = snapshot }
+            _G["_TFC_STEP7_CLAIM_LOG"] = claimLog
+
+            -- Destroy next target unit
+            if idx <= #targets then
+                local u = Unit.getByName(targets[idx])
+                if u and u:isExist() then
+                    ctld.utils.log("INFO", "[TFC] Step7 timer: destroying target '%s' (idx=%d)", targets[idx], idx)
+                    u:destroy()
+                else
+                    ctld.utils.log("INFO", "[TFC] Step7 timer: target '%s' already gone (idx=%d)", targets[idx], idx)
+                end
+                _G["_TFC_STEP7_IDX"] = idx + 1
+                return t + 8   -- next cycle in 8s
+            else
+                -- All targets processed — wait one more cycle for final reacquisition attempt
+                ctld.utils.log("INFO", "[TFC] Step7 timer: all targets destroyed, final claim snapshot done")
+                _G["_TFC_STEP7_DONE"] = true
+                return nil  -- stop timer
+            end
+        end, nil, timer.getTime() + 3)
+
+        log("Step 7 Phase A: monitoring timer installed | aliveJtac='" .. tostring(aliveJtacKey)
+            .. "' | targets=" .. #targetUnits .. " | interval=8s per target")
+        pass("Step 7 — timer running (destroys 1 target every 8s). RE-INJECT IN ~" .. (#targetUnits * 8 + 15) .. "s.")
+        -- Stay at step 7 so re-injection hits Phase B
+        _result = "step=7 MONITORING"
     end
-
-    troopMgr._inTransit[playerName] = nil
-
-    -- Verify our mocks are gone
-    local ourMocksRemaining = 0
-    for _, uname in ipairs(jtacNames) do
-        if jtacMgr.jtacs[uname] then ourMocksRemaining = ourMocksRemaining + 1 end
-    end
-    local inTransit = countPairs(troopMgr._inTransit)
-
-    assert_eq("F-T7.3", ourMocksRemaining, 0)
-    assert_eq("F-T7.4", inTransit, 0)
-    _G["_TFC_JTAC_NAMES"] = nil
-
-    log("Step 7: jtac before=" .. jtacBefore .. " deregCount=" .. deregCount
-        .. " ourMocksRemaining=" .. ourMocksRemaining .. " inTransit=" .. inTransit)
-    pass("Step 7 — returnToTroopZone: " .. deregCount
-        .. " mock JTAC(s) deregistered, _inTransit cleared. Re-inject for Step 8.")
-    _G[STEP_N] = 8
-    _result = "step=7 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
 -- STEP 8 — Final report + full cleanup
@@ -614,29 +684,34 @@ elseif step >= 8 then
     local droppedBlue = #(troopMgr._droppedGroups[coalition.side.BLUE] or {})
     local inTransit   = countPairs(troopMgr._inTransit)
     local jtacCount   = jtacMgr and countPairs(jtacMgr.jtacs) or -1
-    local templates   = #(troopMgr._templates or {})
 
     log("Final: droppedGroups[BLUE]=" .. droppedBlue
-        .. " inTransit=" .. inTransit
-        .. " jtacs=" .. jtacCount
-        .. " templates=" .. templates)
+        .. " inTransit=" .. inTransit .. " jtacs=" .. jtacCount)
 
     report("═══════════════════════════════════════")
-    report("SCENARIO COMPLETE — Full Troop Cycle (inf=4, jtac=2)")
-    report("Steps 1-8 all PASS")
-    report("BUG-02 verified: onUnitDead reads wasJtac before _removeDeadUnit")
-    report("BUG-03 verified: _syncFromDCSGroup rebuilds _jtacUnits from DCS names")
+    report("SCENARIO COMPLETE — Full Troop + JTAC Deconfliction Cycle")
+    report("S1: spawn RED targets + template")
+    report("S2: embark (TRZ_LOADED, no lasing)")
+    report("S3: deploy → 2 JTACs lasing")
+    report("S4: re-embark → 2 JTACs idle, targets freed")
+    report("S5: re-deploy → 2 JTACs lasing 2nd cycle")
+    report("S6: 1 JTAC dead → target released, other keeps claim")
+    report("S7: all targets destroyed → successive reacquisition validated")
     report("droppedGroups[BLUE]=" .. droppedBlue
-        .. " | inTransit=" .. inTransit
-        .. " | jtacMgr=" .. jtacCount)
+        .. " | inTransit=" .. inTransit .. " | jtacMgr=" .. jtacCount)
     report("═══════════════════════════════════════")
 
     cleanupAll()
+    _G["_TFC_ALIVE_JTAC"]      = nil
+    _G["_TFC_TARGET_UNITS"]    = nil
+    _G["_TFC_STEP7_CLAIM_LOG"] = nil
+    _G["_TFC_STEP7_DONE"]      = nil
+    _G["_TFC_STEP7_IDX"]       = nil
     _G[STEP_N] = 1
     report("Cleanup done. Re-inject to restart from Step 1.")
     _result = "ALL SUCCESS"
 
--- ── INCOMPLETE guard: step counter drift or missing elseif ────────────────────
+-- ── INCOMPLETE guard ──────────────────────────────────────────────────────────
 else
     fail("step=" .. step .. " has no matching branch — reset with _reset_steps.lua or add elseif")
 end

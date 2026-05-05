@@ -592,6 +592,30 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
         Spec + implémentation à planifier.
 
+⬜  FG  Feature K — JTAC vehicle in-transit lifecycle (idle/active on load/unload)
+        Objectif : garantir que les JTACs de type vehicle (autoLase group-keyed) transitent
+        correctement entre états LASING ↔ idle lors des opérations load/unload du transport,
+        symétrique au comportement déjà implémenté pour les JTACs infantry (troop unit-keyed).
+
+        Comportement attendu :
+          • Load vehicle JTAC dans transport → JTAC passe en idle (stopAutoLase / standby)
+            → claim libéré → target disponible pour d'autres JTACs
+          • Unload vehicle JTAC → JTAC reprend l'autoLase (resumeJTAC ou startLase)
+            → claim re-posé sur première target disponible non claimée
+          • Si le transport est détruit pendant le transit → JTAC vehicle traité comme mort
+            (deregisterJTAC → claim libéré)
+          • Déconfliction Feature J s'applique identiquement aux JTACs vehicle
+
+        Vérification à faire :
+          1. Audit code load vehicle (CTLDVehicleSpawner:loadVehicle) → appelle-t-il stopAutoLase ?
+          2. Audit code unload vehicle → appelle-t-il resumeJTAC ?
+          3. Comparer avec flow infantry : embarkFromField → deregisterJTAC / disembark → startLaseTroopUnit
+          4. Identifier gaps et implémenter si manquants
+
+        Recette à créer :
+          • Scénario Witchcraft : spawn JTAC vehicle + load → vérifier idle + claim libéré
+            → unload → vérifier lasing reprend + claim re-posé sur target libre
+
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
         (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
