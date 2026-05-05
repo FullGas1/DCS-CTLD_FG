@@ -507,7 +507,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         À distinguer d'un éventuel "kneeboard" (infos coa friendly — scope différent, feature séparée).
         Spec + implémentation à planifier.
 
-⬜  FG  Feature H — Smoke auto-resume (toggle [activate]/[deactivate])
+✅  FG  Feature H — Smoke auto-resume (toggle [activate]/[deactivate]) [2026-05-05]
         Objectif : simuler une durée de fumée perpétuelle en relançant automatiquement
         toutes les fumées actives avant leur expiration (~5 min DCS fixe).
         Comportement attendu :
@@ -516,17 +516,18 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             → scope : par joueur (chaque pilote gère ses propres smokes)
           • Quand activé : toutes les fumées lancées par ce joueur (position + couleur mémorisées)
             sont relancées automatiquement via trigger.action.smoke() juste avant l'expiration
-          • Quand désactivé : les fumées en cours expirent naturellement, aucune nouvelle relance
-          • Stockage : { pos, color, launchTime } par smoke active ; timer périodique vérifie
+          • Quand désactivé : les fumées en cours expirent naturellement + mémoire effacée
+          • Stockage : { pos, color, launchTime } par smoke active ; timer périodique (15s) vérifie
             si launchTime + smokeAutoResumeInterval atteint → trigger.action.smoke(pos, color)
           • Une relance repart le compteur de la smoke relancée (launchTime = now)
           • Scope des smokes suivies : toutes celles déclenchées via le menu CTLD F10
-            (Drop Smoke, Zone Smoke) — pas les smokes natives DCS hors CTLD
+            (Drop Smoke) — tracées systématiquement, le tick filtre sur active
         Config :
           • smokeAutoResume (bool, défaut false) — état initial global (surchargeable par joueur)
           • smokeAutoResumeInterval (int, défaut 270 s = 4min30) — délai avant relance
-        Menu F10 : entrée dans "Smoke Commands" (ou équivalent) par joueur
-        Spec + implémentation à planifier.
+        Implémentation : CTLDSmokeManager singleton (src/CTLD_crate.lua) + buildSmokeSection
+        Recette : diag_smoke_mgr.lua + diag_smoke_menu.lua ✅ PASS [2026-05-05]
+        Validé en live DCS : smoke bleue persistante en boucle, menu label bascule, désactivation purge ✅
 
 ⬜  FG  Feature I — Route/behaviour assignment post-deploy (étude de faisabilité)
         Objectif : permettre d'assigner automatiquement une route ou un comportement prédéfini

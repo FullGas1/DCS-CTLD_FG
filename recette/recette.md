@@ -325,6 +325,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **GAP-1 fix — refresh Load+Pack menus après unpack** : 1 fonctionnel = **1 cas** ✅ PASS live (F-124 [2026-04-30]) — _spawnUnpacked refreshLoadSectionForUnit + refreshPackSectionForUnit → Hummer visible dans Load ET Pack sans re-entry menu
 - **GAP-1 scénario end-to-end** : 1 scénario = **4 étapes** ✅ PASS (scenario_vehicle_load_unload [2026-04-29]) — cleanup→crate→unpack→load→unload cycle complet UH-1H, lazy unit-ref resolve
 - **TroopsFullCycle v2 — lifecycle complet** : 1 scénario = **8 steps** ✅ PASS (scenarioTroopsFullCycle\_v2 [2026-05-05]) — lifecycle troops+JTAC transitions validé : embark(no lase)→deploy(2 lasing)→re-embark(idle+freed)→re-deploy(2 lasing)→1 JTAC dead(target freed)→timer destruction successive→reacquisition chain. Feature J déconfliction + claim/release lifecycle intégral + reacquisition après destroy confirmés.
+- **Feature H — Smoke auto-resume** : diag validés ✅ PASS live DCS [2026-05-05] — smoke bleue persistante en boucle (270s interval), toggle label bascule [activate]↔[deactivate], désactivation purge mémoire. CTLDSmokeManager singleton (diag_smoke_mgr.lua + diag_smoke_menu.lua).
 - **Total** : **222 cas** — 1008/1008 PASS ✅
 
 ---

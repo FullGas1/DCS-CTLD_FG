@@ -1589,4 +1589,42 @@ AA systems (Hawk, Patriot, NASAM, BUK, KUB, S-300) are multi-crate kits. Each sy
 | `OnCrateUnpacked` | AA system assembled (same event as vehicle unpack, check `descriptor.isAASystem`) |
 | `OnCrateLost` | AA crate destroyed before assembly |
 
+## 17. Smoke Drop
+
+### 17.1 Overview
+
+Transport aircraft with `enableSmokeDrop = true` get a **Smoke** submenu in F10. Players can drop coloured smoke grenades at their current position and optionally enable **auto-resume** to simulate a perpetual smoke signal.
+
+### 17.2 Actions
+
+#### Drop Smoke
+
+**Utility:** Places a coloured smoke grenade at the aircraft's ground position.
+
+**Activation:** F10 → Smoke → Drop Red / Blue / Orange / Green Smoke
+
+**Notes:** DCS smoke lasts approximately 5 minutes and cannot be extended natively. Every drop is tracked internally for auto-resume (see below).
+
+#### Smoke Auto-Resume toggle
+
+**Utility:** Automatically re-triggers all smokes dropped by this player before they expire, creating a perpetual smoke signal.
+
+**Activation:** F10 → Smoke → Smoke Auto-Resume [activate] / [deactivate]
+
+**Behaviour:**
+
+- **[activate]** → label switches to **[deactivate]**; any smoke dropped from this point is re-triggered every `smokeAutoResumeInterval` seconds.
+- **[deactivate]** → label switches back to **[activate]**; all stored smoke positions are cleared; smokes currently burning expire naturally.
+- The toggle is **per player** (each pilot manages their own smokes independently).
+- Smokes dropped **before** activating the toggle are also tracked and will be resumed when the interval elapses.
+
+### 17.3 Key configuration parameters
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `enableSmokeDrop` | `true` | Show the Smoke submenu for transport aircraft |
+| `disableAllSmoke` | `false` | Globally disable all CTLD smoke actions |
+| `smokeAutoResume` | `false` | Default auto-resume state at mission start (per-player toggle overrides this) |
+| `smokeAutoResumeInterval` | `270` | Seconds between smoke re-triggers (default 270 s ≈ 4 min 30 s, matching DCS smoke lifetime) |
+
 *— End of missionmaker_guide.md —*
