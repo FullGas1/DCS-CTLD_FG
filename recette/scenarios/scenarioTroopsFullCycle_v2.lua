@@ -236,8 +236,8 @@ if step == 1 then
     -- Spread east-west by 25m so each unit is individually targetable.
     do
         local units = {}
-        -- "Hummer" is the confirmed unarmed RED vehicle type in this mission (country.id.USA = RED).
-        -- "Ural-4320 Transport" does not exist in DCS and caused Leopard-2 to spawn.
+        -- Hummer spawned as RED (country.id.RUSSIA = RED coalition in standard DCS).
+        -- Troops/JTACs use country.id.USA = BLUE — no coalition inversion.
         for i = 1, 4 do
             units[i] = {
                 name    = string.format("TFC_Target_%d", ctld.utils.getNextUniqId()),
@@ -248,14 +248,14 @@ if step == 1 then
                 skill   = "Average",
             }
         end
-        local tgtGrp = coalition.addGroup(country.id.USA, Group.Category.GROUND, {
+        local tgtGrp = coalition.addGroup(country.id.RUSSIA, Group.Category.GROUND, {
             name  = string.format("TFC_Targets_%d", ctld.utils.getNextUniqId()),
             task  = "Ground Nothing",
             units = units,
         })
         if tgtGrp then
             _G["_TFC_TARGET_GROUP"] = tgtGrp:getName()
-            log("Step 1: RED targets spawned — group='" .. tgtGrp:getName() .. "' (4x Ural-4320, ~300m south)")
+            log("Step 1: RED targets spawned — group='" .. tgtGrp:getName() .. "' (4x Hummer RED, ~300m south)")
         else
             log("Step 1: WARNING — RED target group spawn failed")
         end
