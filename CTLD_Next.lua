@@ -700,7 +700,7 @@ function CTLDConfig:load()
         --["SA342M"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
         --["SA342Mistral"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
         --["SA342Minigun"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        ["UH-1H"]     = { crates = true, troops = true, canParachute = false, canSlingload = true },
+        ["UH-1H"]     = { crates = true, troops = true, canParachute = true, canSlingload = true },
         ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false, canSlingload = true },
 
         --%%%%% AIRCRAFTS %%%%%
@@ -9385,6 +9385,14 @@ function CTLDCrate:isLoaded()
     return self.state == CTLDCrate.STATE.LOADED
 end
 
+--- Returns true if the crate is loaded via CTLD (not DCS native).
+-- DCS-native loads keep dcsStatic alive inside the aircraft.
+-- CTLD-managed loads destroy the static (dcsStatic = nil).
+-- Use this to guard Drop/Parachute/Unpack CTLD menu actions.
+function CTLDCrate:isLoadedByCTLD()
+    return self.state == CTLDCrate.STATE.LOADED and self.dcsStatic == nil
+end
+
 --- Returns true if this crate can be unpacked.
 -- A complete crate set anywhere on the ground can be unpacked at any time.
 function CTLDCrate:canUnpack()
@@ -11059,7 +11067,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateCrates") or 5
     local loaded      = {}
     for _, crate in pairs(self.crates) do
-        if crate:isLoaded() and crate.loadedBy == transport then
+        if crate:isLoadedByCTLD() and crate.loadedBy == transport then
             table.insert(loaded, crate)
         end
     end
@@ -11386,11 +11394,12 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                     ctld.tr("You must land before dropping crates!"), 10)
                 return
             end
-            -- Collect all crates loaded on this transport
+            -- Collect all CTLD-managed crates loaded on this transport
+            -- (DCS-native loads keep dcsStatic alive → excluded, must unload via DCS)
             local mgr     = CTLDCrateManager.getInstance()
             local loaded  = {}
             for _, c in pairs(mgr.crates) do
-                if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == t:getName() then
+                if c:isLoadedByCTLD() and c.loadedBy and c.loadedBy:getName() == t:getName() then
                     table.insert(loaded, c)
                 end
             end
