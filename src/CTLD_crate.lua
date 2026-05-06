@@ -677,6 +677,21 @@ function CTLDCrateManager:setParachuteEffect(effect)
     self._parachuteEffect = effect
 end
 
+--- Returns the total CTLD-managed crate weight loaded on a transport.
+--- DCS-native loaded crates are excluded (isLoadedByCTLD guard: dcsStatic still alive).
+--- @param unitName string  transport unit name
+--- @return number  kg
+function CTLDCrateManager:getLoadedCrateWeight(unitName)
+    local total = 0
+    for _, crate in pairs(self.crates) do
+        if crate:isLoadedByCTLD()
+           and crate.loadedBy and crate.loadedBy:getName() == unitName then
+            total = total + (crate.descriptor and crate.descriptor.weight or 0)
+        end
+    end
+    return total
+end
+
 -- ============================================================
 -- Feature B — Virtual Slingload
 -- ============================================================
@@ -827,6 +842,7 @@ function CTLDCrateManager:checkHoverStatus()
                                 end
                                 trigger.action.outTextForGroup(playerObj.groupId,
                                     string.format(ctld.tr("Slingloaded %s crate!"), nearestCrate.descriptor.desc), 10)
+                                ctld.utils.updateTransportWeight(unitName)
                                 self:_publish("OnCrateLoaded", {
                                     crate           = nearestCrate,
                                     crateName       = nearestCrate.crateName,
@@ -1476,6 +1492,7 @@ function CTLDCrateManager:loadCrate(crateName, transport)
     local pos = crate.position   -- capture before state change
     crate:load(transport)
     crate:destroy()              -- remove DCS static from ground
+    ctld.utils.updateTransportWeight(transport:getName())
     self:_publish("OnCrateLoaded", {
         crate           = crate,
         crateName       = crateName,
@@ -1503,7 +1520,10 @@ end
 function CTLDCrateManager:unloadCrate(crateName, position, method)
     local crate = self.crates[crateName]
     if not crate then return end
+    -- Capture transport name before unload clears loadedBy
+    local transportName = crate.loadedBy and crate.loadedBy:getName()
     crate:unload(position)
+    if transportName then ctld.utils.updateTransportWeight(transportName) end
     -- Recreate DCS static on the ground (was destroyed when loaded)
     self:_respawnStatic(crate, position)
     -- Use the updated crateName (may have changed in _respawnStatic)
@@ -1684,12 +1704,15 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
         return
     end
 
-    local maxDropHeight = ctld.gs("maxDropHeight") or 7.5
+    local maxDropHeight    = ctld.gs("maxDropHeight") or 7.5
+    -- Capture transport name before state transition clears loadedBy (via land/drop)
+    local transportName    = crate.loadedBy and crate.loadedBy:getName()
 
     if altitudeAGL <= maxDropHeight then
         -- Safe drop: crate lands at current position
         local pos = crate.position
         crate:land(pos)
+        if transportName then ctld.utils.updateTransportWeight(transportName) end
         self:_publish("OnCrateUnloaded", {
             crate           = crate,
             crateName       = crateName,
@@ -1701,6 +1724,9 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
     else
         -- Too high: crate destroyed on impact
         _log("CTLDCrateManager:dropCrate - destroyed on impact (alt=" .. tostring(altitudeAGL) .. "m): " .. crateName, "INFO")
+        crate:destroy()
+        self:_unregister(crateName)
+        if transportName then ctld.utils.updateTransportWeight(transportName) end
         self:_publish("OnCrateDestroyed", {
             crate     = crate,
             crateName = crateName,
@@ -1708,8 +1734,6 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
             reason    = "drop_impact",
             timestamp = timer.getAbsTime(),
         })
-        crate:destroy()
-        self:_unregister(crateName)
     end
 end
 

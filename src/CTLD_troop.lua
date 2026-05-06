@@ -485,10 +485,11 @@ function CTLDTroopManager:getWeight(unitName)
     return group and group.weight or 0
 end
 
--- Updates DCS internal cargo weight for this transport (troops weight only).
--- NOTE: temporary — CTLDPlayerManager will aggregate all cargo sources when built.
+--- Updates DCS internal cargo weight for this transport.
+--- Delegates to ctld.utils.updateTransportWeight to aggregate all cargo sources
+--- (troops + crates + vehicles) into a single setUnitInternalCargo call.
 function CTLDTroopManager:_updateWeight(unitName)
-    trigger.action.setUnitInternalCargo(unitName, self:getWeight(unitName))
+    ctld.utils.updateTransportWeight(unitName)
 end
 
 -- ============================================================

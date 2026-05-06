@@ -266,7 +266,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
            → deregisterJTAC() pour chaque JTAC avant de niler _inTransit[unitName]
          [2026-05-02]
 
-⬜  FG  TROOPS — Refonte complète CTLDTroopGroup/CTLDTroopManager [2026-05-04]
+✅  FG  TROOPS — Refonte complète CTLDTroopGroup/CTLDTroopManager [2026-05-06]
         Regroupe 4 évolutions identifiées + 4 bugs critiques découverts en révision de code.
 
         A. Terminologie actions / états — clarification
@@ -325,15 +325,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
              • Label dynamique : `[activate]` / `[deactivate]` selon jtac.laseSpotCorrections
         Séquence : implémenter toggleStandby + toggleSpotCorrections → _rebuildJTACBranch → recette
 
-⬜  FG  JTAC InTransit — recettes live manquantes + cas option A/B/C MM-placed vehicle
+⬜  FG  JTAC InTransit — recettes live manquantes (modules requis)
         À revenir quand modules C-130J-30 ou CH-47Fbl1 disponibles :
           • F-113 + F-114 (voir ci-dessus)
-        Question spec non tranchée :
-          • Cas 3 (MM-placed vehicle chargé) — critère isJTAC au load :
-            A = nom groupe contient "jtac"
-            B = typename dans JTAC_unitTypeNames
-            C = A OU B
-          → Trancher avant d'implémenter le hook load dans CTLDVehicleSpawner pour ce cas.
+        Décision MM-placed vehicle [2026-05-06] :
+          • Les caisses posées par le MM sont du décor — CTLD ne peut pas connaître leur contenu
+            (même type de static pour tous les objets DCS transportables).
+          • Traitement : considérées comme caisses vides, aucun hook JTAC au load.
+          • CTLDVehicleSpawner._checkNativeLoading ne tentera pas de détecter isJTAC sur MM crates.
 
 ✅  FG  GAP-1 — Load / Unload vehicle menu  [2026-04-30]
          findLoadableVehicles + refreshLoadSection + findLoadedVehicles + refreshUnloadSection
@@ -355,6 +354,17 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • Si cratesRequired trouvées → unpackCrate() + _spawnUnpacked() au centroïde, sans joueur
           • Fonctionne mixte CTLD menu + DCS natif (intégrité du set suffit)
           • Sprint 2a : _nativeCrateLink {lx,ly,lz} remplace _nativeLoadDist (linkOffsetRef 3D, seuil 1m)
+
+✅  FG  Correction poids appareil — agrégateur ctld.utils.updateTransportWeight [2026-05-06]
+        Implémentation : agrégateur central (conforme legacy ctld.getWeightOfCargo) :
+          • ctld.utils.updateTransportWeight(unitName) — unique appel setUnitInternalCargo
+          • CTLDTroopManager:_updateWeight → délègue à l'agrégateur
+          • CTLDVehicleSpawner:getLoadedVehicleWeight + _updateVehicleCargo → délègue
+          • CTLDCrateManager:getLoadedCrateWeight + weight update à tous les call sites :
+              load sol, slingload virtuel, unload, drop safe, drop impact
+          • DCS native exclu : isLoadedByCTLD() guard + loadMethod=="menu_ctld" filtre
+          • StaticObject.getCargoWeight() : lecture seule du type, pas setter → non utilisable
+        Recette : scenario_weight_aggregation.lua — 4/4 PASS (320→2820→2500→0 kg) ✅
 
 ⬜  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
         Use case : spawn d'un véhicule via "Request Vehicle" (logistic zone) → load dans transport
@@ -426,25 +436,15 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         - Ordre menu garanti : singleCrates (+ singleTypeSet adjacent) → mixedSets en fin
         - Recette visuelle ✅ PASS [2026-04-26] F-109
 
-⬜  FG  Beacon FM — remplacer radioTransmission par activateBeacon HOMER pour canal FM
-        Diagnostic confirmé : trigger.action.radioTransmission mode=1 (FM) ne produit pas un
-        signal carrier FM reçu par le module UH-1H (ARC-131 / ARN-83). Le VHF AM fonctionne
-        car il passe par l'ADF (chemin audio séparé). radioTransmission FM = audio overlay sans
-        carrier FM réel → invisible pour les radios FM full fidelity.
-        Solution : activer un beacon natif DCS type HOMER (type=8) sur l'unité FM via
-        Unit:getController():setCommand({id="ActivateBeacon", params={type=8, ...}})
-        Paramètres à vérifier sur Hoggit avant implémentation :
-          - type = 8 (BEACON_TYPE_HOMER) pour FM homing
-          - system, AA, callsign : valeurs exactes à confirmer
-          - 1 beacon max par unité → utiliser l'unité FM dédiée, VHF/UHF gardent radioTransmission
-        radioTransmission reste pour VHF (ADF, fonctionne) et UHF (son silencieux FC3).
-        ⚠️ POINT CRITIQUE à vérifier AVANT d'implémenter :
-          "un seul beacon actif à la fois" = par unité ou global mission ?
-          - Si par unité → OK : chaque balise CTLD a sa propre unité FM dédiée
-          - Si global mission → activateBeacon inutilisable pour CTLD (N FOBs simultanés impossibles)
-            → fallback obligatoire : solution B (boucle timer pulsée par unité FM)
-        Test : spawner 2 balises FM sur freq différentes, vérifier réception simultanée des 2.
-        → VÉRIFIER API Hoggit avant de coder : https://wiki.hoggitworld.com/view/DCS_command_activateBeacon
+✅  FG  Beacon FM — investigation activateBeacon HOMER [2026-05-06]
+        Conclusion tests live (2 balises simultanées, UH-1H ARC-131) :
+          - activateBeacon type=8 system=4 et system=7 sur unités infantry → aucun signal reçu
+          - radioTransmission mode=1 (FM) à 1000W → signal fort et clair sur les 2 fréquences simultanément
+          - radioTransmission FM à 100000W → idem (la puissance n'est pas le facteur limitant)
+        Décision : aucun changement de code — radioTransmission FM est correct et fonctionnel.
+        La root cause du problème d'origine était l'absence de beacon.ogg/beaconsilent.ogg dans le .miz
+        (déjà diagnostiqué et documenté en session 2026-04-26). Le MM doit ajouter ces sons.
+        activateBeacon HOMER : abandonné pour usage CTLD sur ground units.
 
 ✅  FG  Mark IDs — compteur global monotonique app-wide [2026-04-27]
         ctld.utils.getNextMarkId() / MarkIdCounter : compteur partagé par Recon, Beacon, drawQuad.
@@ -638,6 +638,18 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1) ✅
           • Sprint 2a : à créer (UH-1H crate DCS native load/unload sol + airborne)
           • F-113/F-114 : bbox vehicles entiers — différé Sprint 2b (C-130J-30/CH-47Fbl1 requis)
+
+✅  FG  JTAC vehicle in-transit — vérification code coverage [2026-05-06]
+        Analyse + recette des 4 hooks JTAC (vehicle via crate + vehicle entier) :
+          • deregisterJTAC @ packVehicle (vehicle via crate)   → ✅ F-132 7/7 PASS [2026-05-06]
+            scenario_jtac_crate_pack.lua — deregCalled + jtacs=nil confirmés
+          • setJTACInTransit @ loadVehicle (vehicle entier)    → ✅ F-125 PASS [2026-05-06]
+          • resumeJTAC @ unloadVehicle (vehicle entier)        → ✅ F-125 PASS [2026-05-06]
+          • resumeJTAC @ parachuteVehicle (vehicle entier)     → ✅ F-126 PASS [2026-05-06]
+          • deregisterJTAC @ onDead transport (vehicle entier) → ✅ F-127 PASS [2026-05-06]
+          • startLase @ unpackCrate(isJTAC) (vehicle via crate) → ✅ F-107/F-108 PASS live
+        Code coverage : 6/6 hooks implémentés et recettés. groupName cohérent entre
+        enregistrement et appel (respawn conserve sd.groupName). ✅
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg

@@ -2026,3 +2026,19 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
         trigger.action.outSoundForCoalition(side, "radiobeep.ogg")
     end
 end
+
+--- Aggregates cargo weight from all managers for the given transport and
+--- applies it as the DCS internal cargo weight (single authoritative call).
+--- Replaces the independent per-manager setUnitInternalCargo calls to avoid
+--- each manager overwriting the others.
+--- DCS-native loaded crates/vehicles are excluded: DCS manages their weight.
+--- @param unitName string  transport unit name
+function ctld.utils.updateTransportWeight(unitName)
+    local total = 0
+    total = total + CTLDTroopManager.getInstance():getWeight(unitName)
+    total = total + CTLDCrateManager.getInstance():getLoadedCrateWeight(unitName)
+    total = total + CTLDVehicleSpawner.getInstance():getLoadedVehicleWeight(unitName)
+    trigger.action.setUnitInternalCargo(unitName, total)
+    ctld.utils.log("INFO",
+        "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
+end

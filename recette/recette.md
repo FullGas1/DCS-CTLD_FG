@@ -277,6 +277,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-129 | Sprint 2a — DCS native UNLOAD au sol : drift > 1m → LANDED, fromParachute=false | CTLDCrateManager:_checkNativeDCSCargo | static déplacé 5m → drift calculé > 1m → state LANDED + fromParachute=false + _nativeCrateLink nil | ✅ PASS 5/5 [2026-05-06] | mock |
 | F-130 | Sprint 2a — DCS native UNLOAD en vol : fromParachute=true | CTLDCrateManager:_checkNativeDCSCargo | transport AGL=200m → inFlight=true → fromParachute=true après unload | ✅ PASS 5/5 [2026-05-06] | mock |
 | F-131 | Sprint 2a — autoUnpack crateSet complet après parachutage | CTLDCrateManager:_checkAutoUnpack | 3 crates LANDED+fromParachute=true+même descriptor → _spawnUnpacked au centroïde, toutes 3 dé-enregistrées | ✅ PASS 4/4 [2026-05-06] | mock |
+| F-132 | JTAC vehicle via crate — pack → deregisterJTAC | CTLDVehicleSpawner:packVehicle + CTLDJTACManager:deregisterJTAC | startLase+register → packVehicle → deregCalled + jtacs=nil + laserCode freed | ✅ PASS 7/7 [2026-05-06] | Witchcraft |
 
 ---
 
@@ -335,7 +336,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Feature H — Smoke auto-resume** : diag validés ✅ PASS live DCS [2026-05-05] — smoke bleue persistante en boucle (270s interval), toggle label bascule [activate]↔[deactivate], désactivation purge mémoire. CTLDSmokeManager singleton (diag_smoke_mgr.lua + diag_smoke_menu.lua).
 - **Feature K Sprint 1 — JTAC vehicle in-transit (GAP-K1+K2)** : 3 fonctionnels = **3 cas** ✅ PASS (F-125 10/10 + F-126 4/4 + F-127 5/5 [2026-05-06]) — parachuteVehicle setState WAITING + resumeJTAC ; transport destroy → deregisterJTAC + purge vehicle
 - **Sprint 2a — DCS native crate load/unload + autoUnpack parachute** : 4 fonctionnels = **19 cas** ✅ PASS (F-128 5/5 + F-129 5/5 + F-130 5/5 + F-131 4/4 [2026-05-06]) — nativeCrateLink linkOffsetRef 3D, drift>1m UNLOAD sol+vol, fromParachute, checkAutoUnpack centroïde
-- **Total** : **229 cas** — 1046/1046 PASS ✅
+- **JTAC vehicle via crate pack** : 1 fonctionnel = **7 cas** ✅ PASS (F-132 7/7 [2026-05-06]) — deregisterJTAC@packVehicle, jtacs=nil, laserCode freed
+- **Total** : **230 cas** — 1053/1053 PASS ✅
 
 ---
 

@@ -4952,6 +4952,22 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
     end
 end
 
+--- Aggregates cargo weight from all managers for the given transport and
+--- applies it as the DCS internal cargo weight (single authoritative call).
+--- Replaces the independent per-manager setUnitInternalCargo calls to avoid
+--- each manager overwriting the others.
+--- DCS-native loaded crates/vehicles are excluded: DCS manages their weight.
+--- @param unitName string  transport unit name
+function ctld.utils.updateTransportWeight(unitName)
+    local total = 0
+    total = total + CTLDTroopManager.getInstance():getWeight(unitName)
+    total = total + CTLDCrateManager.getInstance():getLoadedCrateWeight(unitName)
+    total = total + CTLDVehicleSpawner.getInstance():getLoadedVehicleWeight(unitName)
+    trigger.action.setUnitInternalCargo(unitName, total)
+    ctld.utils.log("INFO",
+        "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
+end
+
 -- End : CTLD_utils.lua
 -- ====================================================================================================
 -- Start : CTLD_menu.lua
@@ -7933,10 +7949,11 @@ function CTLDTroopManager:getWeight(unitName)
     return group and group.weight or 0
 end
 
--- Updates DCS internal cargo weight for this transport (troops weight only).
--- NOTE: temporary — CTLDPlayerManager will aggregate all cargo sources when built.
+--- Updates DCS internal cargo weight for this transport.
+--- Delegates to ctld.utils.updateTransportWeight to aggregate all cargo sources
+--- (troops + crates + vehicles) into a single setUnitInternalCargo call.
 function CTLDTroopManager:_updateWeight(unitName)
-    trigger.action.setUnitInternalCargo(unitName, self:getWeight(unitName))
+    ctld.utils.updateTransportWeight(unitName)
 end
 
 -- ============================================================
@@ -9906,6 +9923,21 @@ function CTLDCrateManager:setParachuteEffect(effect)
     self._parachuteEffect = effect
 end
 
+--- Returns the total CTLD-managed crate weight loaded on a transport.
+--- DCS-native loaded crates are excluded (isLoadedByCTLD guard: dcsStatic still alive).
+--- @param unitName string  transport unit name
+--- @return number  kg
+function CTLDCrateManager:getLoadedCrateWeight(unitName)
+    local total = 0
+    for _, crate in pairs(self.crates) do
+        if crate:isLoadedByCTLD()
+           and crate.loadedBy and crate.loadedBy:getName() == unitName then
+            total = total + (crate.descriptor and crate.descriptor.weight or 0)
+        end
+    end
+    return total
+end
+
 -- ============================================================
 -- Feature B — Virtual Slingload
 -- ============================================================
@@ -10056,6 +10088,7 @@ function CTLDCrateManager:checkHoverStatus()
                                 end
                                 trigger.action.outTextForGroup(playerObj.groupId,
                                     string.format(ctld.tr("Slingloaded %s crate!"), nearestCrate.descriptor.desc), 10)
+                                ctld.utils.updateTransportWeight(unitName)
                                 self:_publish("OnCrateLoaded", {
                                     crate           = nearestCrate,
                                     crateName       = nearestCrate.crateName,
@@ -10705,6 +10738,7 @@ function CTLDCrateManager:loadCrate(crateName, transport)
     local pos = crate.position   -- capture before state change
     crate:load(transport)
     crate:destroy()              -- remove DCS static from ground
+    ctld.utils.updateTransportWeight(transport:getName())
     self:_publish("OnCrateLoaded", {
         crate           = crate,
         crateName       = crateName,
@@ -10732,7 +10766,10 @@ end
 function CTLDCrateManager:unloadCrate(crateName, position, method)
     local crate = self.crates[crateName]
     if not crate then return end
+    -- Capture transport name before unload clears loadedBy
+    local transportName = crate.loadedBy and crate.loadedBy:getName()
     crate:unload(position)
+    if transportName then ctld.utils.updateTransportWeight(transportName) end
     -- Recreate DCS static on the ground (was destroyed when loaded)
     self:_respawnStatic(crate, position)
     -- Use the updated crateName (may have changed in _respawnStatic)
@@ -10913,12 +10950,15 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
         return
     end
 
-    local maxDropHeight = ctld.gs("maxDropHeight") or 7.5
+    local maxDropHeight    = ctld.gs("maxDropHeight") or 7.5
+    -- Capture transport name before state transition clears loadedBy (via land/drop)
+    local transportName    = crate.loadedBy and crate.loadedBy:getName()
 
     if altitudeAGL <= maxDropHeight then
         -- Safe drop: crate lands at current position
         local pos = crate.position
         crate:land(pos)
+        if transportName then ctld.utils.updateTransportWeight(transportName) end
         self:_publish("OnCrateUnloaded", {
             crate           = crate,
             crateName       = crateName,
@@ -10930,6 +10970,9 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
     else
         -- Too high: crate destroyed on impact
         _log("CTLDCrateManager:dropCrate - destroyed on impact (alt=" .. tostring(altitudeAGL) .. "m): " .. crateName, "INFO")
+        crate:destroy()
+        self:_unregister(crateName)
+        if transportName then ctld.utils.updateTransportWeight(transportName) end
         self:_publish("OnCrateDestroyed", {
             crate     = crate,
             crateName = crateName,
@@ -10937,8 +10980,6 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
             reason    = "drop_impact",
             timestamp = timer.getAbsTime(),
         })
-        crate:destroy()
-        self:_unregister(crateName)
     end
 end
 
@@ -13060,26 +13101,29 @@ function CTLDVehicleSpawner:findLoadedVehicles(transport)
     return result
 end
 
---- Compute total weight of menu_ctld-loaded vehicles on a transport and
---- apply it to the DCS internal cargo weight so the aircraft cannot take off
---- when overloaded.  dcs_native vehicles are excluded: DCS already manages
---- their physical weight internally.
+--- Returns total weight of CTLD-loaded (menu_ctld) vehicles on a transport.
+--- dcs_native vehicles are excluded: DCS manages their physical weight.
 --- @param transportUnitName string
-function CTLDVehicleSpawner:_updateVehicleCargo(transportUnitName)
+--- @return number  kg
+function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
     local weights = ctld.gs("vehiclesWeight") or {}
     local total   = 0
     for _, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.LOADED
             and veh.loadTransportName == transportUnitName
             and veh.loadMethod == "menu_ctld" then
-            local w = weights[veh.vehicleType] or 2500
-            total   = total + w
+            total = total + (weights[veh.vehicleType] or 2500)
         end
     end
-    trigger.action.setUnitInternalCargo(transportUnitName, total)
-    ctld.utils.log("INFO",
-        "CTLDVehicleSpawner: setUnitInternalCargo %s = %d kg (vehicles)",
-        transportUnitName, total)
+    return total
+end
+
+--- Updates DCS internal cargo weight for a transport.
+--- Delegates to ctld.utils.updateTransportWeight to aggregate all cargo sources
+--- (troops + crates + vehicles) into a single setUnitInternalCargo call.
+--- @param transportUnitName string
+function CTLDVehicleSpawner:_updateVehicleCargo(transportUnitName)
+    ctld.utils.updateTransportWeight(transportUnitName)
 end
 
 --- Rebuild the "Load / Extract Vehicles" dynamic submenu for playerObj.

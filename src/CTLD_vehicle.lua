@@ -1373,26 +1373,29 @@ function CTLDVehicleSpawner:findLoadedVehicles(transport)
     return result
 end
 
---- Compute total weight of menu_ctld-loaded vehicles on a transport and
---- apply it to the DCS internal cargo weight so the aircraft cannot take off
---- when overloaded.  dcs_native vehicles are excluded: DCS already manages
---- their physical weight internally.
+--- Returns total weight of CTLD-loaded (menu_ctld) vehicles on a transport.
+--- dcs_native vehicles are excluded: DCS manages their physical weight.
 --- @param transportUnitName string
-function CTLDVehicleSpawner:_updateVehicleCargo(transportUnitName)
+--- @return number  kg
+function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
     local weights = ctld.gs("vehiclesWeight") or {}
     local total   = 0
     for _, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.LOADED
             and veh.loadTransportName == transportUnitName
             and veh.loadMethod == "menu_ctld" then
-            local w = weights[veh.vehicleType] or 2500
-            total   = total + w
+            total = total + (weights[veh.vehicleType] or 2500)
         end
     end
-    trigger.action.setUnitInternalCargo(transportUnitName, total)
-    ctld.utils.log("INFO",
-        "CTLDVehicleSpawner: setUnitInternalCargo %s = %d kg (vehicles)",
-        transportUnitName, total)
+    return total
+end
+
+--- Updates DCS internal cargo weight for a transport.
+--- Delegates to ctld.utils.updateTransportWeight to aggregate all cargo sources
+--- (troops + crates + vehicles) into a single setUnitInternalCargo call.
+--- @param transportUnitName string
+function CTLDVehicleSpawner:_updateVehicleCargo(transportUnitName)
+    ctld.utils.updateTransportWeight(transportUnitName)
 end
 
 --- Rebuild the "Load / Extract Vehicles" dynamic submenu for playerObj.
