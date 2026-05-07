@@ -249,6 +249,13 @@ function CTLDConfig:load()
     -- [4] TROOPS — Infantry loading, fast rope, extraction limits
     -- ═══════════════════════════════════════════════════════════
     self.settings["numberOfTroops"]                     = 10       -- default number of troops to load on a transport heli or C-130
+    self.settings["multiGroupTransport"]                = false    -- allow loading multiple troop-groups simultaneously (large transports)
+    -- Per-aircraft max vehicles in hold (0 = no vehicle transport). Falls back to 1 if entry absent and vehicleTransportEnabled=true.
+    self.settings["maxVehiclesByType"]                  = {
+        ["C-130J-30"] = 2,
+        ["CH-47Fbl1"] = 1,
+        ["Hercules"]  = 2,
+    }
     -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
@@ -655,7 +662,7 @@ function CTLDConfig:load()
         --["SA342M"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
         --["SA342Mistral"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
         --["SA342Minigun"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        ["UH-1H"]     = { crates = true, troops = true, canParachute = false, canSlingload = true },
+        ["UH-1H"]     = { crates = true, troops = true, canParachute = true, canSlingload = true },
         ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false, canSlingload = true },
 
         --%%%%% AIRCRAFTS %%%%%
