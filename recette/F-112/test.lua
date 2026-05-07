@@ -31,7 +31,7 @@ dofile(SRC .. "CTLD_vehicle.lua")
 ctld_test.start("F-112", "Repack JTAC vehicle — deregisterJTAC, no false OnJTACDead")
 ctld_test.cleanup()
 
-local jmgr = CTLDJTACManager.get()
+local jmgr = CTLDJTACManager.getInstance()
 local ed   = EventDispatcher.getInstance()
 
 -- ── Track events ─────────────────────────────────────────────────────────────

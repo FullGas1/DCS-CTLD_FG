@@ -35,7 +35,7 @@ ctld_test.cleanup()
 local transport = ctld_test.getTransport()
 if not transport then ctld_test.finish() return end
 
-local jmgr   = CTLDJTACManager.get()
+local jmgr   = CTLDJTACManager.getInstance()
 local vspawn = CTLDVehicleSpawner.getInstance()
 
 -- Mock logistic zone (coalition + point only needed by spawnVehicleForTransport)

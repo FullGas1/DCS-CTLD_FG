@@ -16675,6 +16675,8 @@ function CTLDJTACManager.getInstance()
     end
     return CTLDJTACManager._instance
 end
+--- Backward-compatibility alias — prefer getInstance() in new code.
+CTLDJTACManager.get = CTLDJTACManager.getInstance
 
 --- Spawn a JTAC from an unpacked crate.
 -- The DCS group must already exist in the world (spawned by CTLDCrateManager).
