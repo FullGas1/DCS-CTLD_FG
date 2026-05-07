@@ -254,3 +254,7 @@ ctld.i18n["ko"]["Smoke Auto-Resume [activate]"]   = "연막 자동재개 [활성
 ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활성화]"
 ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
 ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
+
+--- Troop parachute
+ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
+ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"

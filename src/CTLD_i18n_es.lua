@@ -407,3 +407,7 @@ ctld.i18n["es"]["Smoke Auto-Resume [activate]"]   = "Humo auto-reanudación [act
 ctld.i18n["es"]["Smoke Auto-Resume [deactivate]"] = "Humo auto-reanudación [desactivar]"
 ctld.i18n["es"]["Smoke auto-resume ON (%1s interval)"]  = "Humo auto-reanudación ACTIVO (intervalo %1s)"
 ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudación DESACTIVADO"
+
+--- Troop parachute
+ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
+ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"

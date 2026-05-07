@@ -1279,6 +1279,11 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local descentTime = firstDescentTime or
         select(2, ctld.utils.calcDropPosition(transport, descentRate))
 
+    -- Announce drop to the player group
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting %1 (%2 troops) — landing in ~%3s",
+            troopGroup.templateName, troopGroup.unitTotal, math.floor(descentTime)), 10)
+
     -- Unload from transport cargo
     self._inTransit[playerObj.unitName] = nil
 

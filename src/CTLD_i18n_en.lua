@@ -410,3 +410,7 @@ ctld.i18n["en"]["Smoke Auto-Resume [activate]"]   = "Smoke Auto-Resume [activate
 ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactivate]"
 ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
 ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"
+
+--- Troop parachute
+ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
+ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"

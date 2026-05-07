@@ -1835,6 +1835,10 @@ ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactiva
 ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
 ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"
 
+--- Troop parachute
+ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
+ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -2246,6 +2250,10 @@ ctld.i18n["fr"]["Smoke Auto-Resume [activate]"]   = "Fumée auto-reprise [active
 ctld.i18n["fr"]["Smoke Auto-Resume [deactivate]"] = "Fumée auto-reprise [désactiver]"
 ctld.i18n["fr"]["Smoke auto-resume ON (%1s interval)"]  = "Fumée auto-reprise ACTIVE (intervalle %1s)"
 ctld.i18n["fr"]["Smoke auto-resume OFF"]                = "Fumée auto-reprise DÉSACTIVÉE"
+
+--- Troop parachute
+ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
+ctld.i18n["fr"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachutage de %1 (%2 soldats) — atterrissage dans ~%3s"
 
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
@@ -2660,6 +2668,10 @@ ctld.i18n["es"]["Smoke Auto-Resume [deactivate]"] = "Humo auto-reanudación [des
 ctld.i18n["es"]["Smoke auto-resume ON (%1s interval)"]  = "Humo auto-reanudación ACTIVO (intervalo %1s)"
 ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudación DESACTIVADO"
 
+--- Troop parachute
+ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
+ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2919,6 +2931,10 @@ ctld.i18n["ko"]["Smoke Auto-Resume [activate]"]   = "연막 자동재개 [활성
 ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활성화]"
 ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
 ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
+
+--- Troop parachute
+ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
+ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -8744,6 +8760,11 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
 
     local descentTime = firstDescentTime or
         select(2, ctld.utils.calcDropPosition(transport, descentRate))
+
+    -- Announce drop to the player group
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting %1 (%2 troops) — landing in ~%3s",
+            troopGroup.templateName, troopGroup.unitTotal, math.floor(descentTime)), 10)
 
     -- Unload from transport cargo
     self._inTransit[playerObj.unitName] = nil

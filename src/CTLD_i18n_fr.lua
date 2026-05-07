@@ -406,3 +406,7 @@ ctld.i18n["fr"]["Smoke Auto-Resume [activate]"]   = "Fumée auto-reprise [active
 ctld.i18n["fr"]["Smoke Auto-Resume [deactivate]"] = "Fumée auto-reprise [désactiver]"
 ctld.i18n["fr"]["Smoke auto-resume ON (%1s interval)"]  = "Fumée auto-reprise ACTIVE (intervalle %1s)"
 ctld.i18n["fr"]["Smoke auto-resume OFF"]                = "Fumée auto-reprise DÉSACTIVÉE"
+
+--- Troop parachute
+ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
+ctld.i18n["fr"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachutage de %1 (%2 soldats) — atterrissage dans ~%3s"
