@@ -4719,27 +4719,29 @@ end
 -- Keep ctld.debug=false on standard sanitized DCS installations.
 -- ====================================================================================================
 
-local _logFile = nil -- module-local file handle
+-- File handle stored in ctld namespace so it survives CTLD_Next.lua re-injections.
+-- (A local upvalue would be reset to nil on every re-injection of the merged script.)
+-- ctld.__logFile is set by initLog(), cleared by closeLog(), never reset at module level.
 
 -- Opens CTLD.log for writing if ctld.debug==true. Safe on sanitized DCS.
 -- Always closes any existing handle before opening (allows test harness to reuse the file).
 function ctld.utils.initLog()
     if ctld.gs("debug") ~= true then return end
     -- Close any previously open handle (prevents file lock accumulation across test reloads)
-    if _logFile ~= nil then
+    if ctld.__logFile ~= nil then
         pcall(function()
-            _logFile:flush(); _logFile:close()
+            ctld.__logFile:flush(); ctld.__logFile:close()
         end)
-        _logFile = nil
+        ctld.__logFile = nil
     end
     local path     = ctld.gs("ctldLogPath") or ""
     local filePath = path .. "CTLD.log"
     local ok, _    = pcall(function()
         local f, err = io.open(filePath, "w")
         if f then
-            _logFile = f
-            _logFile:write(string.format("[CTLD] Log started : %s\n", os.date("%Y-%m-%d %H:%M:%S")))
-            _logFile:flush()
+            ctld.__logFile = f
+            ctld.__logFile:write(string.format("[CTLD] Log started : %s\n", os.date("%Y-%m-%d %H:%M:%S")))
+            ctld.__logFile:flush()
         else
             env.info(string.format("[CTLD][WARN] Cannot open log file '%s': %s", filePath, tostring(err)))
         end
@@ -4757,13 +4759,13 @@ function ctld.utils.log(level, fmt, ...)
     local ok, msg = pcall(string.format, "[CTLD][" .. level .. "] " .. fmt, ...)
     if not ok then msg = "[CTLD][" .. level .. "] (log format error)" end
     env.info(msg)
-    if not _logFile then
+    if not ctld.__logFile then
         pcall(ctld.utils.reopenLogAppend)
     end
-    if _logFile then
+    if ctld.__logFile then
         pcall(function()
-            _logFile:write(msg .. "\n")
-            _logFile:flush()
+            ctld.__logFile:write(msg .. "\n")
+            ctld.__logFile:flush()
         end)
     end
     if ctld.gs("debugScreenLog") == true then
@@ -4775,24 +4777,24 @@ end
 -- Reopens CTLD.log in append mode (used after closeLog + read to resume logging).
 -- File is opened only when config debug=true (ctld.gs("debug")).
 function ctld.utils.reopenLogAppend()
-    if _logFile ~= nil then return end -- already open
+    if ctld.__logFile ~= nil then return end -- already open
     if ctld.gs("debug") ~= true then return end
     local path     = ctld.gs("ctldLogPath") or ""
     local filePath = path .. "CTLD.log"
     pcall(function()
         local f = io.open(filePath, "a")
-        if f then _logFile = f end
+        if f then ctld.__logFile = f end
     end)
 end
 
 -- Flushes and closes CTLD.log.
 function ctld.utils.closeLog()
-    if _logFile then
+    if ctld.__logFile then
         pcall(function()
-            _logFile:flush()
-            _logFile:close()
+            ctld.__logFile:flush()
+            ctld.__logFile:close()
         end)
-        _logFile = nil
+        ctld.__logFile = nil
     end
 end
 
