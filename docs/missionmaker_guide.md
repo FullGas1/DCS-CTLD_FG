@@ -706,16 +706,22 @@ The menu appears automatically for all transport-capable aircraft (types listed 
 ```
 CTLD
   └── Troop Commands                   ← empty while in flight; rebuilt on landing/takeoff
-        ├── Unload / Extract Troops    ← visible on ground only (context-sensitive, see below)
+        ├── Unload / Extract Troops    ← single group: direct action (context-sensitive)
+        ├── Unload Troops              ← multi-group only: submenu with individual + "Unload All"
+        │     ├── Unload All           ← deploy all groups in sequence
+        │     ├── [1] Standard Group   ← deploy group at index 1
+        │     └── [2] Anti Air         ← deploy group at index 2
         ├── Load from <zone1>          ← one sub-menu per TRZ pickup zone the player is inside
         │     ├── Load Standard Group
         │     ├── Load Anti Air
         │     └── ...                  ← templates filtered by aircraft capacity
         ├── Load from <zone2>          ← only shown if player is also inside zone2
         │     └── ...
-        └── Check Troops Onboard       ← shows loaded template name and count
+        ├── Check Cargo                ← shows all onboard groups with count, weight, and total
+        └── Parachute Troops           ← single group: direct / multi-group: submenu with "Parachute All"
 ```
 
+> Multi-group submenus only appear when `multiGroupTransport = true` (see config below) AND more than one group is onboard.
 > The "Load from" entries reflect the player's **current position**: only TRZ pickup zones the aircraft is physically inside appear. The menu is rebuilt automatically on landing and takeoff. Overlapping zones all appear simultaneously.
 
 **"Unload / Extract Troops" behaviour (priority order):**
@@ -774,6 +780,7 @@ ctld.loadableGroups = {
 | `spawnDistanceInCircle` | `10` | Extra distance (m) added to aircraft safe-distance for the troop formation circle radius |
 | `maxExtractDistance` | `125` | Max radius (m) to search for extractable friendly groups |
 | `nbLimitSpawnedTroops` | `{0, 0}` | `{red, blue}` — max simultaneous troops in the field per coalition. `0` = unlimited |
+| `multiGroupTransport` | `false` | Allow loading multiple troop groups on large transports (C-130, CH-47…). When `true`, load is cumulative up to `transportLimitByType`/`numberOfTroops` |
 
 **Per-aircraft type capacity override** (optional):
 
@@ -786,6 +793,18 @@ ctld.transportLimitByType = {
 ```
 
 If a type is not listed, `numberOfTroops` applies.
+
+**Per-aircraft max vehicle override** (optional):
+
+```lua
+ctld.settings["maxVehiclesByType"] = {
+    ["C-130J-30"]  = 2,
+    ["CH-47Fbl1"]  = 1,
+    ["Hercules"]   = 2,
+}
+```
+
+Maximum number of vehicles loadable simultaneously per aircraft type. Types not listed use the default slingload rules.
 
 ---
 

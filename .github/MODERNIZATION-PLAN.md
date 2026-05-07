@@ -651,6 +651,25 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Code coverage : 6/6 hooks implémentés et recettés. groupName cohérent entre
         enregistrement et appel (respawn conserve sd.groupName). ✅
 
+🔄  FG  Feature L — Multi-group transport [2026-05-07]
+        Spec validée : multiGroupTransport guard, _inTransit list, _currentTroopCount/_canEmbark
+        Codé :
+          ✅ _inTransit[unitName] → {CTLDTroopGroup,...} toujours liste
+          ✅ hasTroops/getWeight/getInTransit mis à jour
+          ✅ _currentTroopCount/_canEmbark helpers (count + poids)
+          ✅ embarkFromTroopZone/embarkFromField : multi-group append quand multiGroupTransport=true
+          ✅ disembark/returnToTroopZone/parachuteTroops : consume list[1]
+          ✅ disembarkAll/disembarkIndex/parachuteAll/parachuteTroopsIndex
+          ✅ cleanupDeadTransports/_findGroupByAliveUnit : iterate list
+          ✅ refreshMenuSection : sous-menus Unload/Parachute si N>1, Check Cargo
+          ✅ _menuCheckCargo : affiche tous les groupes + total
+          ✅ config : multiGroupTransport=false, maxVehiclesByType
+          ✅ i18n EN/FR/ES/KO : Unload All, Parachute All, Check Cargo, weight limit
+          ✅ MM guide §Troop Commands mis à jour
+        Recette :
+          ⬜ Scénario multi-group : UH-1H (2 embarquements séquentiels, unload all, check cargo)
+          ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
+
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
         (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
