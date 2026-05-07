@@ -1840,7 +1840,7 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
         end
     end
 
-    self._inTransit[unitName] = CTLDTroopGroup:new({
+    self._inTransit[unitName] = { CTLDTroopGroup:new({
         templateKey  = tmpl._dbKey,
         templateName = tmpl.name,
         unitTotal    = tmpl.total,
@@ -1850,7 +1850,7 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
         state        = CTLDTroopGroup.STATE.TRZ_LOADED,
         _aliveUnits  = _aliveUnits,
         _jtacUnits   = _jtacUnits,
-    })
+    }) }
     self:_updateWeight(unitName)
     ctld.utils.log("INFO", "CTLDTroopManager:preLoadTransport — '%s' loaded [%s]", unitName, tmpl.name)
     return true

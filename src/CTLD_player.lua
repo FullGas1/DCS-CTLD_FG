@@ -358,12 +358,14 @@ function CTLDPlayerManager:buildMenu(playerObj)
                     ctld.tr("%1: %2 crate(s) onboard (%3 kg)", desc, info.count, info.totalWeight))
             end
 
-            -- Troops loaded on this transport
+            -- Troops loaded on this transport (may be multiple groups)
             local troopMgr = CTLDTroopManager.getInstance()
-            local tGroup   = troopMgr:getInTransit(unitName)
-            if tGroup then
-                table.insert(lines, ctld.tr("%1 troop(s) onboard (%2 kg)", tGroup.unitTotal, tGroup.weight))
-                total = total + tGroup.weight
+            local tList    = troopMgr:getInTransit(unitName)
+            if tList then
+                for _, tGroup in ipairs(tList) do
+                    table.insert(lines, ctld.tr("%1 troop(s) onboard (%2 kg)", tGroup.unitTotal, tGroup.weight))
+                    total = total + tGroup.weight
+                end
             end
 
             -- Whole vehicles loaded on this transport (GAP-1)
