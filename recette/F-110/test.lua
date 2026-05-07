@@ -8,8 +8,8 @@
 --   2. Settings exist: JTAC_droneRadius, JTAC_droneAltitude, JTAC_unitTypeNames
 --   3. BLUE coalition has >= 1 requestable JTAC vehicle type
 --   4. RED coalition has >= 1 requestable JTAC vehicle type (isolated per coalition)
---   5. Default BLUE types include "Hummer" and "MQ-9 Reaper"
---   6. Default RED  types include "SKP-11" and "RQ-1A Predator"
+--   5. Default BLUE types include "Hummer" (drones are in unitList, not JTAC_unitTypeNames)
+--   6. Default RED  types include "SKP-11" (drones are in unitList, not JTAC_unitTypeNames)
 --
 -- Does NOT perform in-game menu injection (requires actual mission + player slot).
 -- Verified visually in F-109a: menu appeared correctly in BLUE, absent in RED.
@@ -47,17 +47,15 @@ local redTypes = typeNames and typeNames[1] or {}
 ctld_test.assert(type(redTypes) == "table" and #redTypes >= 1,
     string.format("[4] RED has >= 1 JTAC vehicle type (found %d)", #redTypes))
 
--- 5. Default BLUE types: Hummer + MQ-9 Reaper
+-- 5. Default BLUE types: Hummer (only default; drones are separate unitList entries)
 local blueSet = {}
 for _, t in ipairs(blueTypes) do blueSet[t] = true end
-ctld_test.assert(blueSet["Hummer"],        "[5a] BLUE default: 'Hummer' present")
-ctld_test.assert(blueSet["MQ-9 Reaper"],   "[5b] BLUE default: 'MQ-9 Reaper' present")
+ctld_test.assert(blueSet["Hummer"], "[5] BLUE default: 'Hummer' present")
 
--- 6. Default RED types: SKP-11 + RQ-1A Predator
+-- 6. Default RED types: SKP-11 (only default; drones are separate unitList entries)
 local redSet = {}
 for _, t in ipairs(redTypes) do redSet[t] = true end
-ctld_test.assert(redSet["SKP-11"],              "[6a] RED default: 'SKP-11' present")
-ctld_test.assert(redSet["RQ-1A Predator"],      "[6b] RED default: 'RQ-1A Predator' present")
+ctld_test.assert(redSet["SKP-11"], "[6] RED default: 'SKP-11' present")
 
 -- 7. Type names are strings (no nil entries)
 local allStrings = true

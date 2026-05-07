@@ -213,7 +213,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • weight=1001.11 SKP-11 - JTAC        (unit="SKP-11",        side=1, isJTAC=true)
           • weight=1006.01 MQ-9 Reaper - JTAC   (unit="MQ-9 Reaper",   side=2, isJTAC=true)
           • weight=1006.11 RQ-1A Predator - JTAC (unit="RQ-1A Predator", side=1, isJTAC=true)
-        ✅ F-110: config JTAC_unitTypeNames — 10/10 PASS [2026-04-27]
+        ✅ F-110: config JTAC_unitTypeNames — 8/8 PASS [2026-05-07] (assertions MQ-9/RQ-1A retirées : non dans JTAC_unitTypeNames)
         ✅ F-111: spawnJTACVehicleForTransport + registerJTACVehicle + deregister — 6/6 PASS [2026-04-27]
         ✅ F-112: deregisterJTAC anti-false-KIA + laser pool freed + idempotent — 7/7 PASS [2026-04-27]
         ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
