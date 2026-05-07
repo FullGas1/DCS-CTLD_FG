@@ -1326,6 +1326,30 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
         local grp = Group.getByName(_troopGroup.templateName)
         if grp then
             table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.templateName)
+            -- Mirror _droppedTemplates so embarkFromField can restore template info
+            self._droppedTemplates[_troopGroup.templateName] = {
+                key    = _troopGroup.templateKey,
+                name   = _troopGroup.templateName,
+                weight = _troopGroup.weight,
+                total  = _troopGroup.unitTotal,
+            }
+            -- Register any JTAC units with CTLDJTACManager.
+            -- _jtacUnits slot names end with "_u<idx>" — map to spawned unit by position.
+            if _troopGroup:hasAliveJtac() then
+                local jtacSlots = {}
+                for slotName, _ in pairs(_troopGroup._jtacUnits) do
+                    local idx = tonumber(slotName:match("_u(%d+)$"))
+                    if idx then jtacSlots[idx] = true end
+                end
+                local jm = CTLDJTACManager.getInstance()
+                local spawnedUnits = grp:getUnits()
+                for pos, u in ipairs(spawnedUnits) do
+                    if jtacSlots[pos] and u:isExist() then
+                        jm:startLaseTroopUnit(u:getName())
+                        ctld.utils.log("INFO", "parachuteTroops: startLaseTroopUnit('%s') slot %d", u:getName(), pos)
+                    end
+                end
+            end
         end
 
         self._parachuteEffect:onLanded(_dropData)
