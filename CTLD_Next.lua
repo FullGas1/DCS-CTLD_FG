@@ -8504,7 +8504,7 @@ function CTLDTroopManager:onUnitDead(unitName)
     ctld.utils.log("INFO", "onUnitDead: '%s' removed from group (aliveUnits=%d, jtacUnits=%d)",
         unitName, grp:getAliveCount(), grp:getJtacCount())
     if wasJtac then
-        CTLDJTACManager.get():deregisterJTAC(unitName)
+        CTLDJTACManager.getInstance():deregisterJTAC(unitName)
         ctld.utils.log("INFO", "onUnitDead: JTAC unit '%s' deregistered", unitName)
     end
 end
@@ -8845,11 +8845,12 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     local unit  = Unit.getByName(playerObj.unitName)
     local inAir = not unit or self:_isInAir(unit)
 
+    local hasTroops = self:hasTroops(playerObj.unitName)
+
     if not inAir and unit then
         local pt = unit:getPoint()
 
         -- "Unload / Extract" — ground only
-        local hasTroops   = self:hasTroops(playerObj.unitName)
         local hasNearby   = self:_findNearestDropped(unit, playerObj.coalition) ~= nil
         if hasTroops or hasNearby then
             menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
@@ -8914,9 +8915,12 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             end,
             { unitName = playerObj.unitName })
 
-        -- "Parachute Troops" — if capable
+    end
+
+    -- "Parachute Troops" — in-flight, if capable and troops onboard
+    if unit then
         local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
-        if acts2 and acts2.canParachute then
+        if acts2 and acts2.canParachute and hasTroops then
             menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
                 function(arg)
                     local transport = Unit.getByName(arg.unitName)
@@ -11063,7 +11067,7 @@ end
 -- @param gname  string spawned DCS group name
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
-        CTLDJTACManager.get():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
+        CTLDJTACManager.getInstance():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
         -- Register in CTLDVehicleSpawner so load/unload can suspend/resume JTAC lasing.
         CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
     elseif (desc.spawnAs == nil or desc.spawnAs == "GROUND") and desc.unit then
@@ -12111,7 +12115,7 @@ function CTLDVehicleSpawner:spawnJTACVehicleForTransport(vehicleType, spawner, l
     local vehicle = self:spawnVehicleForTransport(vehicleType, spawner, logisticZone)
     if not vehicle then return nil end
     -- Register as JTAC and start lasing
-    CTLDJTACManager.get():startLase(vehicle.spawnData.groupName)
+    CTLDJTACManager.getInstance():startLase(vehicle.spawnData.groupName)
     return vehicle
 end
 
@@ -12160,7 +12164,7 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- For dcs_native: unit stays alive inside aircraft but lasing from inside a soute is nonsensical.
     local groupName = vehicle.spawnData and vehicle.spawnData.groupName
     if groupName then
-        CTLDJTACManager.get():setJTACInTransit(groupName,
+        CTLDJTACManager.getInstance():setJTACInTransit(groupName,
             { unitName = transport:getName(), playerName = player })
     end
 
@@ -12295,7 +12299,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     -- Resume JTAC lasing if this vehicle is a registered JTAC.
     local groupName = sd and sd.groupName
     if groupName then
-        CTLDJTACManager.get():resumeJTAC(groupName)
+        CTLDJTACManager.getInstance():resumeJTAC(groupName)
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
@@ -12609,7 +12613,7 @@ function CTLDVehicleSpawner:onDead(event)
     local ok2, pos2 = pcall(function() return event.initiator:getPoint() end)
     if ok2 and pos2 then transportPos = pos2 end
 
-    local jtacMgr = CTLDJTACManager.get()
+    local jtacMgr = CTLDJTACManager.getInstance()
     for _, entry in ipairs(lost) do
         local id  = entry.id
         local veh = entry.veh
@@ -12739,7 +12743,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         -- Resume JTAC lasing if this vehicle is a registered JTAC (was set IN_TRANSIT on load).
         local gname = _spawnData and _spawnData.groupName
         if gname then
-            local jtacMgr = CTLDJTACManager.get()
+            local jtacMgr = CTLDJTACManager.getInstance()
             if jtacMgr.jtacs and jtacMgr.jtacs[gname] then
                 jtacMgr:resumeJTAC(gname)
             end
@@ -12957,7 +12961,7 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
     local packGroup = packableUnit:getGroup()
     if packGroup then
-        CTLDJTACManager.get():deregisterJTAC(packGroup:getName())
+        CTLDJTACManager.getInstance():deregisterJTAC(packGroup:getName())
     end
 
     packableUnit:destroy()
@@ -16628,7 +16632,7 @@ CTLDJTACManager = class()
 CTLDJTACManager._instance = nil
 
 --- Return (or create) the singleton instance.
-function CTLDJTACManager.get()
+function CTLDJTACManager.getInstance()
     if not CTLDJTACManager._instance then
         local o          = setmetatable({}, CTLDJTACManager)
         o.jtacs          = {}
@@ -16724,7 +16728,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     -- isFlying may be false if the unit wasn't readable yet. Schedule a T+2s retry
     -- that re-classifies the unit and starts orbit loop if needed.
     local function _tryInitFlying()
-        local mgr = CTLDJTACManager.get()
+        local mgr = CTLDJTACManager.getInstance()
         local j   = mgr.jtacs[groupName]
         if not j then return end
         local g = Group.getByName(groupName)
@@ -16748,7 +16752,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         -- Start orbit loop if not already running
         if j.isFlying and not mgr._orbitScheduleId then
             mgr._orbitScheduleId = timer.scheduleFunction(
-                function(_, t) return CTLDJTACManager.get():_orbitLoop(t) end,
+                function(_, t) return CTLDJTACManager.getInstance():_orbitLoop(t) end,
                 nil,
                 timer.getTime() + 3
             )
@@ -16761,7 +16765,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
 
     -- DCS spawn bug: delay first auto-lase loop by 1s so group:getUnits()[1] is populated
     timer.scheduleFunction(
-        function(gn, t) return CTLDJTACManager.get():_autoLaseLoop(gn, t) end,
+        function(gn, t) return CTLDJTACManager.getInstance():_autoLaseLoop(gn, t) end,
         groupName,
         timer.getTime() + 1
     )
@@ -16974,7 +16978,7 @@ end
 function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
     timer.scheduleFunction(
         function(args, t)
-            CTLDJTACManager.get():autoLase(
+            CTLDJTACManager.getInstance():autoLase(
                 args[1], args[2], args[3], args[4], args[5], args[6], args[7])
         end,
         { groupName, laserCode, smoke, lock, colour, radio, orbitParams },
@@ -17047,7 +17051,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
     self.jtacs[unitName] = jtac
 
     timer.scheduleFunction(
-        function(un, t) return CTLDJTACManager.get():_autoLaseLoop(un, t) end,
+        function(un, t) return CTLDJTACManager.getInstance():_autoLaseLoop(un, t) end,
         unitName,
         timer.getTime() + 1
     )
@@ -17742,7 +17746,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
 
     menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
         function(arg)
-            local mgr   = CTLDJTACManager.get()
+            local mgr   = CTLDJTACManager.getInstance()
             local lines = {}
             for gname, j in pairs(mgr.jtacs) do
                 if j.coalitionId == arg.coalition and j.state ~= CTLDJTAC.STATE.DEAD then
@@ -17772,7 +17776,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
             if ctld.gs("JTAC_allowSmokeRequest") then
                 menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
                     function(arg)
-                        CTLDJTACManager.get():requestSmoke(arg.groupName)
+                        CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
                     end,
                     { groupName = groupName })
             end
@@ -17942,7 +17946,7 @@ function CTLDPlayerManager:init()
     -- who may now be within the new FOB logistic zone.
     ed:subscribe("OnFOBDeployed", function(_p)
         local crateMgr = CTLDCrateManager.getInstance()
-        local jtacMgr  = CTLDJTACManager.get()
+        local jtacMgr  = CTLDJTACManager.getInstance()
         for _, playerObj in pairs(self._players) do
             local unit = Unit.getByName(playerObj.unitName)
             if unit and unit:isExist() and not ctld.utils.inAir(unit) then
@@ -18053,7 +18057,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
-        CTLDJTACManager.get():refreshJtacEquipmentSection(captured)
+        CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
     end, nil, timer.getTime() + 1)
 end
 
@@ -18065,7 +18069,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
-    CTLDJTACManager.get():refreshJtacEquipmentSection(playerObj)
+    CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
 end
 
 --- Register a menu section contributed by a manager.
@@ -18592,7 +18596,7 @@ function CTLDCoreManager:init()
 
     -- Register late-activation handlers
     bridge:register(CTLDCrateManager.getInstance(),    world.event.S_EVENT_BIRTH, "onBirth")
-    bridge:register(CTLDJTACManager.get(),             world.event.S_EVENT_BIRTH, "onBirth")
+    bridge:register(CTLDJTACManager.getInstance(),             world.event.S_EVENT_BIRTH, "onBirth")
     bridge:register(CTLDVehicleSpawner.getInstance(),  world.event.S_EVENT_BIRTH, "onBirth")
 
     -- Register land/takeoff for dynamic troop menu rebuild
@@ -18663,10 +18667,10 @@ function CTLDCoreManager:_initMMJTACs()
                 local ok, isAct = pcall(function() return group:isActive() end)
                 if not ok then isAct = true end
                 if isAct then
-                    CTLDJTACManager.get():registerMMJTAC(group)
+                    CTLDJTACManager.getInstance():registerMMJTAC(group)
                 else
                     -- Late activation: will be picked up by onBirth handler
-                    CTLDJTACManager.get():markPendingJTAC(group:getName())
+                    CTLDJTACManager.getInstance():markPendingJTAC(group:getName())
                 end
                 count = count + 1
             end
@@ -19328,19 +19332,19 @@ end
 --- @deprecated Use CTLDJTACManager:autoLase()
 function ctld.JTACAutoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLase — use CTLDJTACManager:autoLase()")
-    CTLDJTACManager.get():autoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
+    CTLDJTACManager.getInstance():autoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:startLase()
 function ctld.JTACStart(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
     ctld.logWarning("DEPRECATED: ctld.JTACStart — use CTLDJTACManager:startLase()")
-    CTLDJTACManager.get():startLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
+    CTLDJTACManager.getInstance():startLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:stopAutoLase()
 function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
-    CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
+    CTLDJTACManager.getInstance():stopAutoLase(_jtacGroupName)
 end
 
 -- End : compat/legacy_api.lua
@@ -20292,7 +20296,7 @@ function ctld.initialize()
     CTLDFOBManager.getInstance()
     CTLDBeaconManager.getInstance()   -- registers "beacons" section
     CTLDReconManager.getInstance()    -- registers "recon" section
-    CTLDJTACManager.get()             -- registers "jtac" section
+    CTLDJTACManager.getInstance()             -- registers "jtac" section
     CTLDCrateAssemblyManager.getInstance()
     CTLDCoreManager.getInstance()     -- INIT-B (MM crates) + INIT-C (MM JTACs)
 

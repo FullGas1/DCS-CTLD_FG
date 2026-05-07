@@ -162,17 +162,17 @@ end
 --- @deprecated Use CTLDJTACManager:autoLase()
 function ctld.JTACAutoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLase — use CTLDJTACManager:autoLase()")
-    CTLDJTACManager.get():autoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
+    CTLDJTACManager.getInstance():autoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:startLase()
 function ctld.JTACStart(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
     ctld.logWarning("DEPRECATED: ctld.JTACStart — use CTLDJTACManager:startLase()")
-    CTLDJTACManager.get():startLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
+    CTLDJTACManager.getInstance():startLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _radio)
 end
 
 --- @deprecated Use CTLDJTACManager:stopAutoLase()
 function ctld.JTACAutoLaseStop(_jtacGroupName)
     ctld.logWarning("DEPRECATED: ctld.JTACAutoLaseStop — use CTLDJTACManager:stopAutoLase()")
-    CTLDJTACManager.get():stopAutoLase(_jtacGroupName)
+    CTLDJTACManager.getInstance():stopAutoLase(_jtacGroupName)
 end

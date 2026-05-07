@@ -406,7 +406,7 @@ CTLDJTACManager = class()
 CTLDJTACManager._instance = nil
 
 --- Return (or create) the singleton instance.
-function CTLDJTACManager.get()
+function CTLDJTACManager.getInstance()
     if not CTLDJTACManager._instance then
         local o          = setmetatable({}, CTLDJTACManager)
         o.jtacs          = {}
@@ -502,7 +502,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     -- isFlying may be false if the unit wasn't readable yet. Schedule a T+2s retry
     -- that re-classifies the unit and starts orbit loop if needed.
     local function _tryInitFlying()
-        local mgr = CTLDJTACManager.get()
+        local mgr = CTLDJTACManager.getInstance()
         local j   = mgr.jtacs[groupName]
         if not j then return end
         local g = Group.getByName(groupName)
@@ -526,7 +526,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         -- Start orbit loop if not already running
         if j.isFlying and not mgr._orbitScheduleId then
             mgr._orbitScheduleId = timer.scheduleFunction(
-                function(_, t) return CTLDJTACManager.get():_orbitLoop(t) end,
+                function(_, t) return CTLDJTACManager.getInstance():_orbitLoop(t) end,
                 nil,
                 timer.getTime() + 3
             )
@@ -539,7 +539,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
 
     -- DCS spawn bug: delay first auto-lase loop by 1s so group:getUnits()[1] is populated
     timer.scheduleFunction(
-        function(gn, t) return CTLDJTACManager.get():_autoLaseLoop(gn, t) end,
+        function(gn, t) return CTLDJTACManager.getInstance():_autoLaseLoop(gn, t) end,
         groupName,
         timer.getTime() + 1
     )
@@ -752,7 +752,7 @@ end
 function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
     timer.scheduleFunction(
         function(args, t)
-            CTLDJTACManager.get():autoLase(
+            CTLDJTACManager.getInstance():autoLase(
                 args[1], args[2], args[3], args[4], args[5], args[6], args[7])
         end,
         { groupName, laserCode, smoke, lock, colour, radio, orbitParams },
@@ -825,7 +825,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
     self.jtacs[unitName] = jtac
 
     timer.scheduleFunction(
-        function(un, t) return CTLDJTACManager.get():_autoLaseLoop(un, t) end,
+        function(un, t) return CTLDJTACManager.getInstance():_autoLaseLoop(un, t) end,
         unitName,
         timer.getTime() + 1
     )
@@ -1520,7 +1520,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
 
     menu:addCommand({ root, jtacSub }, ctld.tr("JTAC Status"),
         function(arg)
-            local mgr   = CTLDJTACManager.get()
+            local mgr   = CTLDJTACManager.getInstance()
             local lines = {}
             for gname, j in pairs(mgr.jtacs) do
                 if j.coalitionId == arg.coalition and j.state ~= CTLDJTAC.STATE.DEAD then
@@ -1550,7 +1550,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
             if ctld.gs("JTAC_allowSmokeRequest") then
                 menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
                     function(arg)
-                        CTLDJTACManager.get():requestSmoke(arg.groupName)
+                        CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
                     end,
                     { groupName = groupName })
             end

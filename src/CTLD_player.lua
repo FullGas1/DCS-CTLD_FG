@@ -149,7 +149,7 @@ function CTLDPlayerManager:init()
     -- who may now be within the new FOB logistic zone.
     ed:subscribe("OnFOBDeployed", function(_p)
         local crateMgr = CTLDCrateManager.getInstance()
-        local jtacMgr  = CTLDJTACManager.get()
+        local jtacMgr  = CTLDJTACManager.getInstance()
         for _, playerObj in pairs(self._players) do
             local unit = Unit.getByName(playerObj.unitName)
             if unit and unit:isExist() and not ctld.utils.inAir(unit) then
@@ -260,7 +260,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
-        CTLDJTACManager.get():refreshJtacEquipmentSection(captured)
+        CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
     end, nil, timer.getTime() + 1)
 end
 
@@ -272,7 +272,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
-    CTLDJTACManager.get():refreshJtacEquipmentSection(playerObj)
+    CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
 end
 
 --- Register a menu section contributed by a manager.

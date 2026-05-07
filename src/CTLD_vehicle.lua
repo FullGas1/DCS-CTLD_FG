@@ -381,7 +381,7 @@ function CTLDVehicleSpawner:spawnJTACVehicleForTransport(vehicleType, spawner, l
     local vehicle = self:spawnVehicleForTransport(vehicleType, spawner, logisticZone)
     if not vehicle then return nil end
     -- Register as JTAC and start lasing
-    CTLDJTACManager.get():startLase(vehicle.spawnData.groupName)
+    CTLDJTACManager.getInstance():startLase(vehicle.spawnData.groupName)
     return vehicle
 end
 
@@ -430,7 +430,7 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- For dcs_native: unit stays alive inside aircraft but lasing from inside a soute is nonsensical.
     local groupName = vehicle.spawnData and vehicle.spawnData.groupName
     if groupName then
-        CTLDJTACManager.get():setJTACInTransit(groupName,
+        CTLDJTACManager.getInstance():setJTACInTransit(groupName,
             { unitName = transport:getName(), playerName = player })
     end
 
@@ -565,7 +565,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     -- Resume JTAC lasing if this vehicle is a registered JTAC.
     local groupName = sd and sd.groupName
     if groupName then
-        CTLDJTACManager.get():resumeJTAC(groupName)
+        CTLDJTACManager.getInstance():resumeJTAC(groupName)
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
@@ -879,7 +879,7 @@ function CTLDVehicleSpawner:onDead(event)
     local ok2, pos2 = pcall(function() return event.initiator:getPoint() end)
     if ok2 and pos2 then transportPos = pos2 end
 
-    local jtacMgr = CTLDJTACManager.get()
+    local jtacMgr = CTLDJTACManager.getInstance()
     for _, entry in ipairs(lost) do
         local id  = entry.id
         local veh = entry.veh
@@ -1009,7 +1009,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         -- Resume JTAC lasing if this vehicle is a registered JTAC (was set IN_TRANSIT on load).
         local gname = _spawnData and _spawnData.groupName
         if gname then
-            local jtacMgr = CTLDJTACManager.get()
+            local jtacMgr = CTLDJTACManager.getInstance()
             if jtacMgr.jtacs and jtacMgr.jtacs[gname] then
                 jtacMgr:resumeJTAC(gname)
             end
@@ -1227,7 +1227,7 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
     local packGroup = packableUnit:getGroup()
     if packGroup then
-        CTLDJTACManager.get():deregisterJTAC(packGroup:getName())
+        CTLDJTACManager.getInstance():deregisterJTAC(packGroup:getName())
     end
 
     packableUnit:destroy()

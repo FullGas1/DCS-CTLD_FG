@@ -1038,7 +1038,7 @@ function CTLDTroopManager:onUnitDead(unitName)
     ctld.utils.log("INFO", "onUnitDead: '%s' removed from group (aliveUnits=%d, jtacUnits=%d)",
         unitName, grp:getAliveCount(), grp:getJtacCount())
     if wasJtac then
-        CTLDJTACManager.get():deregisterJTAC(unitName)
+        CTLDJTACManager.getInstance():deregisterJTAC(unitName)
         ctld.utils.log("INFO", "onUnitDead: JTAC unit '%s' deregistered", unitName)
     end
 end
@@ -1379,11 +1379,12 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     local unit  = Unit.getByName(playerObj.unitName)
     local inAir = not unit or self:_isInAir(unit)
 
+    local hasTroops = self:hasTroops(playerObj.unitName)
+
     if not inAir and unit then
         local pt = unit:getPoint()
 
         -- "Unload / Extract" — ground only
-        local hasTroops   = self:hasTroops(playerObj.unitName)
         local hasNearby   = self:_findNearestDropped(unit, playerObj.coalition) ~= nil
         if hasTroops or hasNearby then
             menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
@@ -1448,9 +1449,12 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             end,
             { unitName = playerObj.unitName })
 
-        -- "Parachute Troops" — if capable
+    end
+
+    -- "Parachute Troops" — in-flight, if capable and troops onboard
+    if unit then
         local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
-        if acts2 and acts2.canParachute then
+        if acts2 and acts2.canParachute and hasTroops then
             menu:addCommand({ root, troopSub }, ctld.tr("Parachute Troops"),
                 function(arg)
                     local transport = Unit.getByName(arg.unitName)

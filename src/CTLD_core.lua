@@ -326,7 +326,7 @@ function CTLDCoreManager:init()
 
     -- Register late-activation handlers
     bridge:register(CTLDCrateManager.getInstance(),    world.event.S_EVENT_BIRTH, "onBirth")
-    bridge:register(CTLDJTACManager.get(),             world.event.S_EVENT_BIRTH, "onBirth")
+    bridge:register(CTLDJTACManager.getInstance(),             world.event.S_EVENT_BIRTH, "onBirth")
     bridge:register(CTLDVehicleSpawner.getInstance(),  world.event.S_EVENT_BIRTH, "onBirth")
 
     -- Register land/takeoff for dynamic troop menu rebuild
@@ -397,10 +397,10 @@ function CTLDCoreManager:_initMMJTACs()
                 local ok, isAct = pcall(function() return group:isActive() end)
                 if not ok then isAct = true end
                 if isAct then
-                    CTLDJTACManager.get():registerMMJTAC(group)
+                    CTLDJTACManager.getInstance():registerMMJTAC(group)
                 else
                     -- Late activation: will be picked up by onBirth handler
-                    CTLDJTACManager.get():markPendingJTAC(group:getName())
+                    CTLDJTACManager.getInstance():markPendingJTAC(group:getName())
                 end
                 count = count + 1
             end
