@@ -527,24 +527,22 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Recette : diag_smoke_mgr.lua + diag_smoke_menu.lua ✅ PASS [2026-05-05]
         Validé en live DCS : smoke bleue persistante en boucle, menu label bascule, désactivation purge ✅
 
-⬜  FG  Feature I — Route/behaviour assignment post-deploy (étude de faisabilité)
-        Objectif : permettre d'assigner automatiquement une route ou un comportement prédéfini
-        à un équipement ou des troupes au moment de leur dépose/unpack.
-        Questions à étudier avant spec :
-          • Faisabilité DCS API : Group.setTask / GroupAI / group:getController():setTask()
-            pour les groupes spawnés via dynAdd/coalition.addGroup — vérifier Hoggit
-          • Définition des pseudoRoutes : ex. "goToNearestEnemy", "goToNearestWPZ",
-            "holdPosition", waypoints explicites {x,z}
-          • Point d'injection pour crates : via crateSettings.specificParams dans spawnableCrates
-            ex. spawnableCrates = { { ... , specificParams = { route = "goToNearestEnemy" } } }
-          • Point d'injection pour troops : via le template loadableGroups, champ specificParams
-            analogue — vérifier cohérence avec architecture CTLDTroopManager:deploy()
-          • Timing : setTask doit être appelé au moins 1 frame après coalition.addGroup
-            (même contrainte que _onBirthDeferred)
-          • Scope : uniquement pour les unités spawnées par CTLD (unpack crate, deploy troops,
-            unload vehicle) — pas pour les unités MM existantes
-        Livrable attendu : note de faisabilité + spec si réalisable
-        Spec + implémentation à planifier.
+✅  FG  Feature I — Route/behaviour assignment post-deploy [2026-05-11]
+        Objectif : assigner automatiquement une route ou un comportement prédéfini
+        à un groupe de troupes au moment de leur dépose (disembark ou parachute).
+        Implémentation :
+          • CTLDTroopGroup.specificParams propagé depuis loadableGroups template
+            (embark, field extract, parachute — incluant _droppedTemplates)
+          • CTLDZoneManager:getNearestWaypointZone(point, coalition) — nouvelle méthode
+          • CTLDTroopManager:_assignPostSpawnTask — helper schedulé +2 s post-spawn
+          • Tâches supportées :
+            - "gotoNearestWPZ"               → route vers le centre de la WPZ la plus proche
+            - "gotoAttackNearestEnemyOnLos"  → route vers l'ennemi le plus proche avec LOS
+              (world.searchObjects sphere 10 km + land.isVisible +2m offset)
+          • ROE OPEN_FIRE + ALARM_STATE AUTO dans les deux cas
+          • Fallback silencieux si aucune cible trouvée
+          • Exemples commentés dans loadableGroups (CTLD_config.lua)
+        Scope : troupes uniquement (disembark + parachute). Crates/véhicules = backlog.
 
 ✅  FG  Feature J — JTAC target deconfliction (multi-JTAC, anti-doublon) [2026-05-04]
         Objectif : lorsque plusieurs JTACs actifs (infantry slot, vehicle, drone) sont concurrents

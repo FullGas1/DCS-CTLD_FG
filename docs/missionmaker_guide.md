@@ -773,6 +773,33 @@ ctld.loadableGroups = {
 >
 > **Mortar servants:** each `mortar` unit spawns one additional infantry "crew member" (servant) positioned within 1 m of the tube. Servants are cosmetic — they do not count toward the troop capacity limit, zone stock, or the `unitTotal` displayed in Check Cargo.
 
+#### Post-deploy task (`specificParams.task`)
+
+Adding `specificParams = { task = "..." }` to a template makes the spawned group automatically receive a route or behaviour 2 seconds after landing.
+
+| Value | Behaviour |
+|---|---|
+| `"gotoNearestWPZ"` | Group marches toward the center of the nearest active `WPZ_` zone for its coalition. No movement if no WPZ exists. |
+| `"gotoAttackNearestEnemyOnLos"` | Group advances toward the nearest enemy unit within 10 km with line-of-sight. No movement if no visible enemy is found. |
+| *(absent / nil)* | No task assigned after spawn (default). |
+
+In both cases the group is set to ROE `OPEN_FIRE` and alarm state `AUTO`.
+
+```lua
+ctld.loadableGroups = {
+    -- Standard groups (no post-spawn task)
+    { name = "Standard Group", inf = 6, mg = 2, at = 2 },
+    -- Assault team: automatically advance toward nearest visible enemy
+    { name = "Assault Team",   inf = 6, mg = 2, at = 2,
+      specificParams = { task = "gotoAttackNearestEnemyOnLos" } },
+    -- Advance guard: march to the nearest waypoint zone
+    { name = "Advance Guard",  inf = 4, at = 2,
+      specificParams = { task = "gotoNearestWPZ" } },
+}
+```
+
+> The task is also re-applied after a field extraction and re-deployment: `specificParams` is preserved through the `_droppedTemplates` mechanism.
+
 ---
 
 ### Key configuration parameters

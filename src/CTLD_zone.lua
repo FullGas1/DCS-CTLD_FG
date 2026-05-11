@@ -809,6 +809,28 @@ function CTLDZoneManager:getWaypointZoneAt(point, coalition)
     return nil
 end
 
+--- Return the nearest active WPZ zone for the given coalition, or nil.
+-- Unlike getWaypointZoneAt, does not require the point to be inside the zone.
+-- Used by Feature I (_assignPostSpawnTask / "gotoNearestWPZ").
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getNearestWaypointZone(point, coalition)
+    local best     = nil
+    local bestDist = math.huge
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasWaypoint()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
+            local dist = ctld.utils.getDistance("getNearestWaypointZone", point, zone:getCenter())
+            if dist < bestDist then
+                bestDist = dist
+                best     = zone
+            end
+        end
+    end
+    return best
+end
+
 --- Return the active IAZ zone containing point for the given coalition, or nil.
 -- Used by AI transport auto-drop logic.
 -- @param point     vec3

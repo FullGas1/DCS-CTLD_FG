@@ -51,8 +51,9 @@ function CTLDTroopGroup:init(data)
     self.state       = data.state or CTLDTroopGroup.STATE.TRZ_LOADED
     self.dcsGroup    = nil
     self.loadTime    = timer.getAbsTime()
-    self._aliveUnits = data._aliveUnits or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
-    self._jtacUnits  = data._jtacUnits  or {}  -- map[unitName] = true
+    self._aliveUnits    = data._aliveUnits    or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
+    self._jtacUnits     = data._jtacUnits     or {}  -- map[unitName] = true
+    self.specificParams = data.specificParams or {}   -- { task = "gotoNearestWPZ" | "gotoAttackNearestEnemyOnLos" }
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -601,15 +602,16 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
 
     -- Store transit group entity (append to list)
     local troopGroup = CTLDTroopGroup:new({
-        templateKey  = template._dbKey,
-        templateName = template.name,
-        unitTotal    = template.total,
-        weight       = weight,
-        coalitionId  = coalition,
-        countryId    = unit:getCountry(),
-        state        = CTLDTroopGroup.STATE.TRZ_LOADED,
-        _aliveUnits  = _aliveUnits,
-        _jtacUnits   = _jtacUnits,
+        templateKey    = template._dbKey,
+        templateName   = template.name,
+        unitTotal      = template.total,
+        weight         = weight,
+        coalitionId    = coalition,
+        countryId      = unit:getCountry(),
+        state          = CTLDTroopGroup.STATE.TRZ_LOADED,
+        _aliveUnits    = _aliveUnits,
+        _jtacUnits     = _jtacUnits,
+        specificParams = template.specificParams or {},
     })
     troopGroup.dcsGroup = nil
     if not self._inTransit[unitName] then self._inTransit[unitName] = {} end
@@ -695,10 +697,11 @@ function CTLDTroopManager:disembark(unit)
         -- Store both key and display name to restore templateName correctly after field pickup (BUG-06)
         -- Store original weight and total for accurate weight estimation after unit losses (BUG-07)
         self._droppedTemplates[dcsGroup:getName()] = {
-            key    = group.templateKey,
-            name   = group.templateName,
-            weight = group.weight,
-            total  = group.unitTotal,
+            key            = group.templateKey,
+            name           = group.templateName,
+            weight         = group.weight,
+            total          = group.unitTotal,
+            specificParams = group.specificParams,
         }
 
         if group:hasAliveJtac() then
@@ -739,6 +742,9 @@ function CTLDTroopManager:disembark(unit)
                     wpzZone.zoneName, grpName)
             end
         end
+
+        -- Feature I: specificParams.task post-spawn route assignment
+        self:_assignPostSpawnTask(grpName, pt, group.coalitionId, group.specificParams)
     end
 
     table.remove(list, 1)
@@ -906,15 +912,16 @@ function CTLDTroopManager:embarkFromField(unit)
 
     if not self._inTransit[unitName] then self._inTransit[unitName] = {} end
     table.insert(self._inTransit[unitName], CTLDTroopGroup:new({
-        templateKey  = stored.key,
-        templateName = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
-        unitTotal    = logicalCount,   -- logical count (no mortar servants) for capacity/stock
-        weight       = weight,
-        coalitionId  = coalition,
-        countryId    = country,
-        state        = CTLDTroopGroup.STATE.FIELD_LOADED,
-        _aliveUnits  = _aliveUnits,
-        _jtacUnits   = _jtacUnits,
+        templateKey    = stored.key,
+        templateName   = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
+        unitTotal      = logicalCount,   -- logical count (no mortar servants) for capacity/stock
+        weight         = weight,
+        coalitionId    = coalition,
+        countryId      = country,
+        state          = CTLDTroopGroup.STATE.FIELD_LOADED,
+        _aliveUnits    = _aliveUnits,
+        _jtacUnits     = _jtacUnits,
+        specificParams = stored.specificParams or {},
     }))
 
     self:_removeFromDropped(coalition, nearest.groupName)
@@ -1403,6 +1410,93 @@ function CTLDTroopManager:_menuCheckCargo(unit)
 end
 
 -- ============================================================
+-- Feature I — Post-spawn task assignment
+-- ============================================================
+
+--- Assign a post-spawn route/task to a ground group based on specificParams.task.
+-- Scheduled 2 s after spawn (DCS group controller needs one frame to initialise).
+--
+-- Supported tasks:
+--   "gotoNearestWPZ"                — march toward center of nearest active WPZ for the coalition
+--   "gotoAttackNearestEnemyOnLos"   — advance toward nearest enemy unit with LOS (world.searchObjects)
+--
+-- No task is assigned if specificParams.task is nil, or if no suitable target is found.
+--
+-- @param grpName       string   DCS group name (after spawn)
+-- @param spawnPt       Vec3     world position where the group was spawned
+-- @param coalitionId   number   coalition.side.*
+-- @param specificParams table   template specificParams table (may be nil or empty)
+function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, specificParams)
+    local task = specificParams and specificParams.task
+    if not task then return end
+
+    timer.scheduleFunction(function(arg)
+        local grp = Group.getByName(arg.grpName)
+        if not grp or not grp:isExist() then return end
+        local ctrl = grp:getController()
+
+        local destPt = nil  -- Vec3 destination, set by each branch
+
+        if arg.task == "gotoNearestWPZ" then
+            local wpzZone = CTLDZoneManager.getInstance():getNearestWaypointZone(
+                arg.spawnPt, arg.coalitionId)
+            if wpzZone then
+                destPt = wpzZone:getCenter()
+                ctld.utils.log("INFO",
+                    "_assignPostSpawnTask: '%s' gotoNearestWPZ → '%s'",
+                    arg.grpName, wpzZone.zoneName)
+            end
+
+        elseif arg.task == "gotoAttackNearestEnemyOnLos" then
+            local enemyCoa = (arg.coalitionId == coalition.side.RED)
+                             and coalition.side.BLUE or coalition.side.RED
+            local offsetA  = { x = arg.spawnPt.x, y = arg.spawnPt.y + 2, z = arg.spawnPt.z }
+            local bestDist = math.huge
+            local bestPos  = nil
+
+            world.searchObjects(
+                Object.Category.UNIT,
+                { id = world.VolumeType.SPHERE,
+                  params = { point = arg.spawnPt, radius = 10000 } },
+                function(unit, _)
+                    if not unit:isExist() or unit:getLife() <= 1 then return true end
+                    if unit:getCoalition() ~= enemyCoa then return true end
+                    local uPos    = unit:getPoint()
+                    local offsetB = { x = uPos.x, y = uPos.y + 2, z = uPos.z }
+                    if not land.isVisible(offsetA, offsetB) then return true end
+                    local dist = ctld.utils.getDistance(
+                        "CTLDTroopManager._assignPostSpawnTask", arg.spawnPt, uPos)
+                    if dist < bestDist then
+                        bestDist = dist
+                        bestPos  = uPos
+                    end
+                    return true
+                end
+            )
+
+            if bestPos then
+                destPt = bestPos
+                ctld.utils.log("INFO",
+                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → (%.1f, %.1f)",
+                    arg.grpName, bestPos.x, bestPos.z)
+            end
+        end
+
+        if not destPt then return end  -- no valid target found
+
+        local wpFrom = ctld.utils.buildWP("_assignPostSpawnTask", arg.spawnPt, 'Off Road', 50)
+        local wpDest = ctld.utils.buildWP("_assignPostSpawnTask", destPt,      'Off Road', 50)
+        if not (wpFrom and wpDest) then return end
+
+        ctrl:setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.AUTO)
+        ctrl:setOption(AI.Option.Ground.id.ROE,         AI.Option.Ground.val.ROE.OPEN_FIRE)
+        ctrl:setTask({ id = 'Mission',
+                       params = { route = { points = { wpFrom, wpDest } } } })
+    end, { grpName = grpName, spawnPt = spawnPt, coalitionId = coalitionId, task = task },
+         timer.getTime() + 2)
+end
+
+-- ============================================================
 -- Feature A — Virtual parachute
 -- ============================================================
 
@@ -1513,10 +1607,11 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
             table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.templateName)
             -- Mirror _droppedTemplates so embarkFromField can restore template info
             self._droppedTemplates[_troopGroup.templateName] = {
-                key    = _troopGroup.templateKey,
-                name   = _troopGroup.templateName,
-                weight = _troopGroup.weight,
-                total  = _troopGroup.unitTotal,
+                key            = _troopGroup.templateKey,
+                name           = _troopGroup.templateName,
+                weight         = _troopGroup.weight,
+                total          = _troopGroup.unitTotal,
+                specificParams = _troopGroup.specificParams,
             }
             -- Register any JTAC units with CTLDJTACManager.
             -- _jtacUnits slot names end with "_u<idx>" — map to spawned unit by position.
@@ -1534,6 +1629,14 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
                         ctld.utils.log("INFO", "parachuteTroops: startLaseTroopUnit('%s') slot %d", u:getName(), pos)
                     end
                 end
+            end
+
+            -- Feature I: specificParams.task post-spawn route assignment
+            local _landPt = _landPositions and _landPositions[1]
+            if _landPt then
+                self:_assignPostSpawnTask(
+                    _troopGroup.templateName, _landPt,
+                    _coalition, _troopGroup.specificParams)
             end
         end
 

@@ -745,6 +745,11 @@ function CTLDConfig:load()
         { name = ctld.tr("3x - Mortar Squad"),                mortar = 18 },
         { name = ctld.tr("5x - Mortar Squad"),                mortar = 30 },
         -- {name = ctld.tr("Mortar Squad Red"), inf = 2, mortar = 5, side =1 }, --would make a group loadable by RED only
+        -- Feature I: post-deploy task assignment examples (specificParams.task)
+        -- { name = ctld.tr("Assault Team"), inf = 6, mg = 2, at = 2,
+        --   specificParams = { task = "gotoAttackNearestEnemyOnLos" } },
+        -- { name = ctld.tr("Advance Guard"), inf = 4, at = 2,
+        --   specificParams = { task = "gotoNearestWPZ" } },
     }
 
     -- ************** SPAWNABLE CRATES ******************
