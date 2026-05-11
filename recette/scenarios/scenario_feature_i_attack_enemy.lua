@@ -56,6 +56,10 @@ local function cleanup()
         local grp = Group.getByName(name)
         if grp and grp:isExist() then grp:destroy() end
     end
+    -- Remove F10 draw marks
+    for i = 98801, 98901 do pcall(function() trigger.action.removeMark(i) end) end
+    _G["_FI_ATK_ENEMY_PT"]  = nil
+    _G["_FI_ATK_DIST_ORIG"] = nil
     log("cleanup done")
 end
 
@@ -95,91 +99,128 @@ local _ok, _err = pcall(function()
 if step == 1 then
     cleanup()
 
-    local pPos    = playerUnit:getPoint()
-    local spawnPt = { x = pPos.x, y = land.getHeight({ x = pPos.x, y = pPos.z }), z = pPos.z }
-
-    -- Enemy position: ENEMY_DIST metres east (x axis) — flat terrain, LOS guaranteed
-    local enemyPt = { x = pPos.x + ENEMY_DIST, z = pPos.z }
+    local pPos = playerUnit:getPoint()
+    -- Offset 50 m south to avoid airbase concrete (same fix as scenario 1)
+    local spawnPt = { x = pPos.x, y = 0, z = pPos.z - 50 }
+    spawnPt.y = land.getHeight({ x = spawnPt.x, y = spawnPt.z })
+    -- Enemy 300 m east of spawn
+    local enemyPt = { x = spawnPt.x + ENEMY_DIST, y = 0, z = spawnPt.z }
     enemyPt.y = land.getHeight({ x = enemyPt.x, y = enemyPt.z })
 
-    -- LOS pre-check (informational — test continues either way)
+    -- LOS pre-check
     local offsetA = { x = spawnPt.x, y = spawnPt.y + 2, z = spawnPt.z }
     local offsetB = { x = enemyPt.x, y = enemyPt.y + 2, z = enemyPt.z }
     local hasLOS  = land.isVisible(offsetA, offsetB)
-    log("LOS pre-check (player→enemy " .. ENEMY_DIST .. "m east): " .. tostring(hasLOS))
-    -- Not asserting here — flat terrain required by pre-requisite
+    log("LOS pre-check (spawn→enemy " .. ENEMY_DIST .. "m east): " .. tostring(hasLOS))
 
-    -- Determine country IDs from player's coalition (red coalition = first country for RED)
     local blueCountry = playerUnit:getCountry()
-    local redCountry  = country.id.RUSSIA   -- safe fallback for RED unit
+    local redCountry  = country.id.RUSSIA
 
-    -- Spawn RED enemy ground unit
-    local redGrpData = {
-        name  = RED_GRP,
-        task  = "Ground Nothing",
-        units = {
-            { name = RED_GRP .. "_u1", type = "Infantry AK",
-              x = enemyPt.x, y = enemyPt.z, heading = 0, skill = "High",
-              playerCanDrive = false, unitId = math.random(91000, 91999) },
-        },
-    }
-    local redGrp = coalition.addGroup(redCountry, Group.Category.GROUND, redGrpData)
+    -- Spawn RED enemy
+    local redGrp = coalition.addGroup(redCountry, Group.Category.GROUND, {
+        name  = RED_GRP, task = "Ground Nothing",
+        units = {{ name = RED_GRP .. "_u1", type = "Infantry AK",
+                   x = enemyPt.x, y = enemyPt.z, heading = 0, skill = "High",
+                   playerCanDrive = false, unitId = math.random(91000, 91999) }},
+    })
     check("FI-ATK.1.1", "RED enemy group spawned", redGrp ~= nil)
-    log("RED enemy spawned at (" .. enemyPt.x .. ", " .. enemyPt.z .. ")")
 
-    -- Spawn BLUE friendly ground group at player position
-    local blueGrpData = {
-        name  = BLUE_GRP,
-        task  = "Ground Nothing",
-        units = {
-            { name = BLUE_GRP .. "_u1", type = "Soldier M4",
-              x = spawnPt.x, y = spawnPt.z, heading = 0, skill = "High",
-              playerCanDrive = false, unitId = math.random(92000, 92999) },
-        },
-    }
-    local blueGrp = coalition.addGroup(blueCountry, Group.Category.GROUND, blueGrpData)
+    -- Spawn BLUE group
+    local blueGrp = coalition.addGroup(blueCountry, Group.Category.GROUND, {
+        name  = BLUE_GRP, task = "Ground Nothing",
+        units = {{ name = BLUE_GRP .. "_u1", type = "Soldier M4",
+                   x = spawnPt.x, y = spawnPt.z, heading = 0, skill = "High",
+                   playerCanDrive = false, unitId = math.random(92000, 92999) }},
+    })
     check("FI-ATK.1.2", "BLUE group spawned", blueGrp ~= nil)
 
-    -- Call _assignPostSpawnTask (scheduled +2s; world.searchObjects will find the RED unit)
+    -- Store initial distance for step 2 comparison
+    _G["_FI_ATK_ENEMY_PT"]  = enemyPt
+    _G["_FI_ATK_DIST_ORIG"] = ctld.utils.getDistance("FI-ATK.1", spawnPt, enemyPt)
+
+    -- ── Visual draws on F10 map ─────────────────────────────────────────────
+    -- Enemy marker: red cross (two lines)
+    local r = 40
+    trigger.action.lineToAll(-1, 98801, { x=enemyPt.x-r, y=enemyPt.y, z=enemyPt.z   },
+                                         { x=enemyPt.x+r, y=enemyPt.y, z=enemyPt.z   },
+                             { 1, 0, 0, 0.9 }, 3)
+    trigger.action.lineToAll(-1, 98802, { x=enemyPt.x,   y=enemyPt.y, z=enemyPt.z-r },
+                                         { x=enemyPt.x,   y=enemyPt.y, z=enemyPt.z+r },
+                             { 1, 0, 0, 0.9 }, 3)
+    -- Enemy circle r=80m
+    local steps = 24
+    for i = 0, steps-1 do
+        local a1 = i       * (2*math.pi/steps)
+        local a2 = (i+1)   * (2*math.pi/steps)
+        trigger.action.lineToAll(-1, 98810+i,
+            { x=enemyPt.x+r*2*math.cos(a1), y=enemyPt.y, z=enemyPt.z+r*2*math.sin(a1) },
+            { x=enemyPt.x+r*2*math.cos(a2), y=enemyPt.y, z=enemyPt.z+r*2*math.sin(a2) },
+            { 1, 0, 0, 0.7 }, 2)
+    end
+    -- Label
+    trigger.action.textToAll(-1, 98899, enemyPt, { 1, 0, 0, 1 }, { 0,0,0,0 }, 14, true, "Enemy")
+    -- LOS line (yellow): spawn → enemy
+    trigger.action.lineToAll(-1, 98900, spawnPt, enemyPt, { 1, 1, 0, 0.7 }, 1)
+    -- BLUE spawn marker (blue dot)
+    trigger.action.textToAll(-1, 98901, spawnPt, { 0, 0.5, 1, 1 }, { 0,0,0,0 }, 12, true, "BLUE spawn")
+    log("F10 draw: enemy cross+circle (red), LOS line (yellow)")
+
+    -- Schedule zone-entry detection (BLUE approaching enemy within 60 m)
+    timer.scheduleFunction(function(arg)
+        local bg = Group.getByName(arg.blueGrp)
+        if not bg or not bg:isExist() then return end
+        local u = bg:getUnit(1)
+        if not (u and u:isExist()) then return end
+        local dist = ctld.utils.getDistance("FI-ATK.enter", u:getPoint(), arg.enemyPt)
+        if dist < 60 then
+            trigger.action.outText("[FI-ATK] BLUE reached enemy area (dist=" ..
+                string.format("%.0f", dist) .. "m)", 20)
+            ctld.utils.log("INFO", "[FI-ATK] BLUE reached enemy area dist=%.0f", dist)
+        else
+            return timer.getTime() + 2
+        end
+    end, { blueGrp = BLUE_GRP, enemyPt = enemyPt }, timer.getTime() + 3)
+
+    -- Trigger post-spawn task
     CTLDTroopManager.getInstance():_assignPostSpawnTask(
         BLUE_GRP, spawnPt, coalition.side.BLUE, { task = "gotoAttackNearestEnemyOnLos" })
     log("_assignPostSpawnTask called — task will execute in 2s")
 
-    pass("Step 1 OK — re-inject in 3s+ for Step 2")
+    pass("Step 1 OK — re-inject in 8s+ for Step 2")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 2 — Verify CTLD.log + group alive
+-- STEP 2 — Verify movement toward enemy
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
-    -- Force log flush before reading
-    pcall(function() ctld.utils.closeLog(); ctld.utils.reopenLogAppend() end)
+    -- BLUE group still alive
+    local grp = Group.getByName(BLUE_GRP)
+    check("FI-ATK.2.1", "BLUE group still alive", grp ~= nil and grp:isExist())
 
-    local logPath = (cfg.settings["ctldLogPath"] or "") .. "CTLD.log"
-    local f = io.open(logPath, "r")
-    local logContent = f and f:read("*a") or ""
-    if f then f:close() end
+    -- Unit is moving
+    local unit1 = grp and grp:getUnit(1)
+    local vel   = unit1 and unit1:getVelocity()
+    local speed = vel and math.sqrt((vel.x or 0)^2 + (vel.z or 0)^2) or 0
+    log("BLUE unit speed: " .. string.format("%.3f", speed) .. " m/s")
+    check("FI-ATK.2.2", "BLUE unit is moving toward enemy (speed > 0.1 m/s)",
+        speed > 0.1, "speed=" .. string.format("%.3f", speed) .. " m/s")
 
-    -- Expect either the task confirmation OR a "no valid target" trace
-    -- (LOS may fail on some terrains — we accept both outcomes as valid)
-    local hasTaskLog = logContent:find("_assignPostSpawnTask.*gotoAttackNearestEnemyOnLos", 1, false)
-    check("FI-ATK.2.1", "CTLD.log contains gotoAttackNearestEnemyOnLos trace",
-        hasTaskLog ~= nil, "pattern not found in CTLD.log")
-
-    local hasAssignLog = logContent:find("gotoAttackNearestEnemyOnLos.*%.1f", 1, false)
-                      or logContent:find("gotoAttackNearestEnemyOnLos", 1, false)
-    if hasAssignLog then
-        pass("FI-ATK.2.2 — task assigned (enemy found in LOS)")
-    else
-        pass("FI-ATK.2.2 — no LOS enemy found (terrain occlusion) — fallback OK")
+    -- Closer to enemy than at spawn
+    local uPt    = unit1 and unit1:getPoint()
+    local ePt    = _G["_FI_ATK_ENEMY_PT"]
+    local dOrig  = _G["_FI_ATK_DIST_ORIG"] or math.huge
+    if uPt and ePt then
+        local dNow = ctld.utils.getDistance("FI-ATK.2.3", uPt, ePt)
+        log("dist orig=" .. string.format("%.1f", dOrig) ..
+            " now=" .. string.format("%.1f", dNow))
+        check("FI-ATK.2.3", "BLUE unit closer to enemy than at spawn",
+            dNow < dOrig,
+            "orig=" .. string.format("%.1f", dOrig) ..
+            " now=" .. string.format("%.1f", dNow))
     end
 
-    -- Verify BLUE group still exists
-    local grp = Group.getByName(BLUE_GRP)
-    check("FI-ATK.2.3", "BLUE group still alive", grp ~= nil and grp:isExist())
-
-    pass("Step 2 OK — gotoAttackNearestEnemyOnLos verified. Re-inject for cleanup.")
+    pass("Step 2 OK — gotoAttackNearestEnemyOnLos confirmed. Re-inject for cleanup.")
     _G[STEP_N] = 99
     _result = "step=2 SUCCESS"
 
