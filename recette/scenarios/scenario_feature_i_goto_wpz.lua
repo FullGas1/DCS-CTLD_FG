@@ -97,9 +97,12 @@ local _ok, _err = pcall(function()
 if step == 1 then
     cleanup()
 
-    local pPos     = playerUnit:getPoint()
-    local spawnPt  = { x = pPos.x, y = land.getHeight({ x = pPos.x, y = pPos.z }), z = pPos.z }
-    local wpzCenter = { x = pPos.x + WPZ_OFFSET, y = 0, z = pPos.z }
+    local pPos = playerUnit:getPoint()
+    -- Offset spawn 50 m south of player to avoid airbase concrete/runway (no-walk zones)
+    local spawnPt  = { x = pPos.x, y = 0, z = pPos.z - 50 }
+    spawnPt.y = land.getHeight({ x = spawnPt.x, y = spawnPt.z })
+    -- WPZ 600 m north of spawn
+    local wpzCenter = { x = pPos.x + WPZ_OFFSET, y = 0, z = pPos.z - 50 }
     wpzCenter.y = land.getHeight({ x = wpzCenter.x, y = wpzCenter.z })
 
     -- Inject a mock WPZ CTLDTroopZone into the zone manager
@@ -138,12 +141,57 @@ if step == 1 then
     local spawnedGrp = coalition.addGroup(country, Group.Category.GROUND, grpData)
     check("FI-WPZ.1.3", "test group spawned", spawnedGrp ~= nil)
 
+    -- Store WPZ center + initial distance for step 2 verification
+    _G["_FI_WPZ_DEST"]      = wpzCenter
+    _G["_FI_WPZ_DIST_ORIG"] = ctld.utils.getDistance("FI-WPZ.1", spawnPt, wpzCenter)
+
+    -- Draw WPZ circle on F10 map (all coalitions) so the zone is visible
+    local drawPts = {}
+    local steps   = 32
+    local r       = 300
+    for i = 0, steps - 1 do
+        local a = i * (2 * math.pi / steps)
+        drawPts[#drawPts + 1] = { x = wpzCenter.x + r * math.cos(a), y = wpzCenter.y,
+                                   z = wpzCenter.z + r * math.sin(a) }
+    end
+    -- Close the circle
+    drawPts[#drawPts + 1] = drawPts[1]
+    for i = 1, #drawPts - 1 do
+        trigger.action.lineToAll(-1, 99900 + i, drawPts[i], drawPts[i+1],
+            { 0, 0.8, 0, 0.9 }, 2)
+    end
+    -- Zone label
+    trigger.action.textToAll(-1, 99999, wpzCenter, { 0, 0.9, 0, 1 }, { 0, 0, 0, 0 },
+        14, true, "WPZ Target")
+    log("WPZ zone drawn on F10 map (green circle r=300m)")
+
+    -- Schedule zone-entry detection: poll every 1s, message when unit enters 300m radius
+    local _dest    = wpzCenter
+    local _entered = false
+    timer.scheduleFunction(function(arg)
+        if _entered then return end
+        local grp2 = Group.getByName(arg.grpName)
+        if not grp2 or not grp2:isExist() then return end
+        local u = grp2:getUnit(1)
+        if not (u and u:isExist()) then return end
+        local dist = ctld.utils.getDistance("FI-WPZ.enter", u:getPoint(), arg.dest)
+        if dist < 300 then
+            _entered = true
+            trigger.action.outText("[FI-WPZ] Troops entered WPZ zone (dist=" ..
+                string.format("%.0f", dist) .. "m)", 20)
+            ctld.utils.log("INFO", "[FI-WPZ] Troops entered WPZ zone dist=%.0f", dist)
+        else
+            -- Continue polling every 2s (return next fire time)
+            return timer.getTime() + 2
+        end
+    end, { grpName = GRP_NAME, dest = _dest }, timer.getTime() + 3)
+
     -- Call _assignPostSpawnTask (scheduled +2s)
     CTLDTroopManager.getInstance():_assignPostSpawnTask(
         GRP_NAME, spawnPt, coalition.side.BLUE, { task = "gotoNearestWPZ" })
     log("_assignPostSpawnTask called — task will execute in 2s")
 
-    pass("Step 1 OK — re-inject in 3s+ for Step 2")
+    pass("Step 1 OK — re-inject in 6s+ for Step 2 (wait for unit to start moving)")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
@@ -151,20 +199,31 @@ if step == 1 then
 -- STEP 2 — Verify CTLD.log + group alive
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
-    -- Read CTLD.log and check for assignment confirmation
-    local logPath = (cfg.settings["ctldLogPath"] or "") .. "CTLD.log"
-    local f = io.open(logPath, "r")
-    local logContent = f and f:read("*a") or ""
-    if f then f:close() end
-
-    local hasWPZLog = logContent:find("_assignPostSpawnTask.*gotoNearestWPZ", 1, false)
-                   or logContent:find("_assignPostSpawnTask.*" .. ZONE_NAME, 1, false)
-    check("FI-WPZ.2.1", "CTLD.log confirms WPZ task assignment",
-        hasWPZLog ~= nil, "pattern not found in CTLD.log")
-
-    -- Verify group still exists
+    -- Primary: group still exists
     local grp = Group.getByName(GRP_NAME)
-    check("FI-WPZ.2.2", "test group still alive after task assignment", grp ~= nil and grp:isExist())
+    check("FI-WPZ.2.1", "test group still alive after task assignment",
+        grp ~= nil and grp:isExist())
+
+    -- Secondary: unit is moving (velocity > 0 → route task was applied by controller)
+    local unit1  = grp and grp:getUnit(1)
+    local vel    = unit1 and unit1:getVelocity()
+    local speed  = vel and math.sqrt((vel.x or 0)^2 + (vel.z or 0)^2) or 0
+    log("unit velocity: " .. string.format("%.3f", speed) .. " m/s")
+    check("FI-WPZ.2.2", "unit is moving toward WPZ (speed > 0.1 m/s)",
+        speed > 0.1, "speed=" .. string.format("%.3f", speed) .. " m/s")
+
+    -- Tertiary: current position is closer to WPZ than spawn was
+    local uPt   = unit1 and unit1:getPoint()
+    local dest  = _G["_FI_WPZ_DEST"]
+    if uPt and dest then
+        local distNow = ctld.utils.getDistance("FI-WPZ.2.3", uPt, dest)
+        local distOrig = _G["_FI_WPZ_DIST_ORIG"] or math.huge
+        log("distOrig=" .. string.format("%.1f", distOrig) ..
+            " distNow=" .. string.format("%.1f", distNow))
+        check("FI-WPZ.2.3", "unit closer to WPZ than at spawn", distNow < distOrig,
+            "orig=" .. string.format("%.1f", distOrig) ..
+            " now=" .. string.format("%.1f", distNow))
+    end
 
     pass("Step 2 OK — gotoNearestWPZ task confirmed. Re-inject for cleanup.")
     _G[STEP_N] = 99

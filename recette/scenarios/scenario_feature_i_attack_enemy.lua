@@ -153,6 +153,9 @@ if step == 1 then
 -- STEP 2 — Verify CTLD.log + group alive
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
+    -- Force log flush before reading
+    pcall(function() ctld.utils.closeLog(); ctld.utils.reopenLogAppend() end)
+
     local logPath = (cfg.settings["ctldLogPath"] or "") .. "CTLD.log"
     local f = io.open(logPath, "r")
     local logContent = f and f:read("*a") or ""
