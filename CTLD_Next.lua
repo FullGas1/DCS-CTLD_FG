@@ -4986,11 +4986,18 @@ function ctld.utils.calcDropPosition(transport, descentRate)
     local inertiaX      = (velocity.x or 0) * inertiaFactor * descentTime
     local inertiaZ      = (velocity.z or 0) * inertiaFactor * descentTime
 
+    -- Wind drift: sample wind at drop altitude, propagate for full descent duration.
+    -- atmosphere.getWind returns a velocity Vec3 {x,y,z} in m/s (direction the air moves toward).
+    local wind  = atmosphere.getWind({ x = dropPos.x, y = dropPos.y, z = dropPos.z })
+    local windX = (wind.x or 0) * descentTime
+    local windZ = (wind.z or 0) * descentTime
+
+    -- Random lateral scatter for gameplay dispersion (isotropic, independent per unit).
     local angle         = math.random(0, 359) * math.pi / 180
     local magnitude     = driftMin + math.random() * (driftMax - driftMin)
 
-    local spawnX        = dropPos.x + inertiaX + math.cos(angle) * magnitude
-    local spawnZ        = dropPos.z + inertiaZ + math.sin(angle) * magnitude
+    local spawnX        = dropPos.x + inertiaX + windX + math.cos(angle) * magnitude
+    local spawnZ        = dropPos.z + inertiaZ + windZ + math.sin(angle) * magnitude
     local spawnY        = land.getHeight({ x = spawnX, y = spawnZ })
 
     return { x = spawnX, y = spawnY, z = spawnZ }, descentTime
