@@ -249,7 +249,7 @@ function CTLDConfig:load()
     -- [4] TROOPS — Infantry loading, fast rope, extraction limits
     -- ═══════════════════════════════════════════════════════════
     self.settings["numberOfTroops"]                     = 10       -- default number of troops to load on a transport heli or C-130
-    self.settings["multiGroupTransport"]                = false    -- allow loading multiple troop-groups simultaneously (large transports)
+    -- multiGroupTransport removed: multiple groups always allowed up to transport capacity.
     -- Per-aircraft max vehicles in hold (0 = no vehicle transport). Falls back to 1 if entry absent and vehicleTransportEnabled=true.
     self.settings["maxVehiclesByType"]                  = {
         ["C-130J-30"] = 2,

@@ -348,29 +348,51 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
 
         -- Circle formation: offsets computed dynamically from overrides.circleRadius.
         -- Linear formation: offsets come from uDesc.dx / uDesc.dz (static per descriptor).
+        -- Units marked svntOf=true (mortar servants) are excluded from the circle count and
+        -- positioned 1 m from the preceding unit instead of on the circle arc.
         local useCircle  = desc.formation and desc.formation.type == "circle"
         local circleR    = (overrides and overrides.circleRadius) or 10
-        local unitCount  = #desc.units
 
-        local units = {}
+        -- Count only non-servant units for the circle arc distribution.
+        local circleCount = 0
+        if useCircle then
+            for _, uD in ipairs(desc.units) do
+                if not uD.svntOf then circleCount = circleCount + 1 end
+            end
+            if circleCount == 0 then circleCount = 1 end
+        end
+
+        local units      = {}
+        local circleIdx  = 0           -- index among non-svnt units (0-based)
+        local lastUx, lastUz = x, z    -- position of the last non-svnt unit spawned
+
         for i, uDesc in ipairs(desc.units) do
             local uid      = ctld.utils.getNextUniqId()
             local uName    = string.format("%s-%d", uDesc.namePrefix, uid)
             local uType    = type(uDesc.unitType) == "function"
                              and uDesc.unitType(coalitionId)
                              or  uDesc.unitType
-            -- Compute intra-group offset (circle or static dx/dz), then rotate by heading
-            local dx, dz
+            local ux, uz
             if useCircle then
-                local angle = (i - 1) * (2 * math.pi / unitCount)
-                dx = circleR * math.cos(angle)
-                dz = circleR * math.sin(angle)
+                if uDesc.svntOf then
+                    -- Servant: placed 1 m to the right of the preceding mortar (world frame)
+                    ux = lastUx + 1
+                    uz = lastUz
+                else
+                    local angle = circleIdx * (2 * math.pi / circleCount)
+                    circleIdx   = circleIdx + 1
+                    local dx    = circleR * math.cos(angle)
+                    local dz    = circleR * math.sin(angle)
+                    ux = x + dx * cosH - dz * sinH
+                    uz = z + dx * sinH + dz * cosH
+                    lastUx, lastUz = ux, uz
+                end
             else
-                dx = uDesc.dx or 0
-                dz = uDesc.dz or 0
+                local dx = uDesc.dx or 0
+                local dz = uDesc.dz or 0
+                ux = x + dx * cosH - dz * sinH
+                uz = z + dx * sinH + dz * cosH
             end
-            local ux = x + dx * cosH - dz * sinH
-            local uz = z + dx * sinH + dz * cosH
 
             local unit = {
                 name           = uName,

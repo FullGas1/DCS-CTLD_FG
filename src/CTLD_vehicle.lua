@@ -169,24 +169,14 @@ function CTLDVehicleSpawner:init()
         end
     end)
 
-    -- Load / Unload vehicle: refresh both submenus for the transport player
+    -- Load / Unload vehicle: refresh all vehicle submenus for the transport player
     ed:subscribe("OnVehicleLoaded", function(payload)
         local t = payload and payload.transportUnitObject
-        if t then
-            local tName = t:getName()
-            local inst  = CTLDVehicleSpawner.getInstance()
-            inst:refreshLoadSectionForUnit(tName)
-            inst:refreshUnloadSectionForUnit(tName)
-        end
+        if t then CTLDVehicleSpawner.getInstance():refreshVehicleMenuSectionsForUnit(t:getName()) end
     end)
     ed:subscribe("OnVehicleUnloaded", function(payload)
         local t = payload and payload.transportUnitObject
-        if t then
-            local tName = t:getName()
-            local inst  = CTLDVehicleSpawner.getInstance()
-            inst:refreshLoadSectionForUnit(tName)
-            inst:refreshUnloadSectionForUnit(tName)
-        end
+        if t then CTLDVehicleSpawner.getInstance():refreshVehicleMenuSectionsForUnit(t:getName()) end
     end)
 
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
@@ -467,6 +457,17 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
         self:_updateVehicleCargo(transport:getName())
     end
 
+    -- Confirmation message to player (menu_ctld only; dcs_native load is confirmed by DCS itself).
+    if method == "menu_ctld" then
+        local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
+        if pObj then
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(vehicle.vehicleType)
+            local label = desc and desc.desc or vehicle.vehicleType
+            trigger.action.outTextForGroup(pObj.groupId,
+                ctld.tr("Vehicle loaded: %1.", label), 8)
+        end
+    end
+
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
         vehicleId            = vehicle.id,
         ctldVehicleObject    = vehicle,
@@ -566,6 +567,17 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     local groupName = sd and sd.groupName
     if groupName then
         CTLDJTACManager.getInstance():resumeJTAC(groupName)
+    end
+
+    -- Confirmation message to player (menu_ctld only; dcs_native unload is confirmed by DCS itself).
+    if method == "menu_ctld" then
+        local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
+        if pObj then
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(vehicle.vehicleType)
+            local label = desc and desc.desc or vehicle.vehicleType
+            trigger.action.outTextForGroup(pObj.groupId,
+                ctld.tr("Vehicle unloaded: %1.", label), 8)
+        end
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
@@ -1453,7 +1465,8 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
 end
 
 --- Rebuild the "Unload Vehicles" dynamic submenu for playerObj.
--- Transport must be landed; lists vehicles currently LOADED on this transport.
+-- Hidden entirely when no vehicle is loaded; shows "Land to unload" when in air + loaded;
+-- shows the vehicle list when on the ground + loaded.
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
     if not playerObj.canCarryVehicles then return end
@@ -1469,17 +1482,21 @@ function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
     menu:clearBranch({ root, vehSub, unloadSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, vehSub, unloadSub },
-            ctld.tr("Land to unload vehicles"), function() end, {})
+    local inAir     = not (transport and transport:isExist()) or ctld.utils.inAir(transport)
+    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+
+    if #loaded == 0 then
+        -- No vehicle loaded: hide the entire submenu
+        menu:setBranchEnabled({ root, vehSub, unloadSub }, false)
         menu:refresh()
         return
     end
 
-    local loaded = self:findLoadedVehicles(transport)
-    if #loaded == 0 then
+    menu:setBranchEnabled({ root, vehSub, unloadSub }, true)
+
+    if inAir then
         menu:addCommand({ root, vehSub, unloadSub },
-            ctld.tr("No vehicle loaded."), function() end, {})
+            ctld.tr("Land to unload vehicles"), function() end, {})
     else
         for _, veh in ipairs(loaded) do
             local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
@@ -1521,6 +1538,42 @@ function CTLDVehicleSpawner:refreshUnloadSectionForUnit(unitName)
     if playerObj then self:refreshUnloadSection(playerObj) end
 end
 
+--- Refresh "Parachute Vehicle" visibility: shown only when in air + vehicle loaded.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
+    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
+    if not (playerObj.canCarryVehicles and acts and acts.canParachute) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root   = ctld.tr("CTLD")
+    local vehSub = ctld.tr("Vehicle Commands")
+
+    local transport = Unit.getByName(playerObj.unitName)
+    local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
+    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+
+    menu:setBranchEnabled({ root, vehSub, ctld.tr("Parachute Vehicle") }, inAir and #loaded > 0)
+    menu:refresh()
+end
+
+--- Refresh all Vehicle Commands submenus (load, unload, parachute) for a player.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshVehicleMenuSections(playerObj)
+    self:refreshLoadSection(playerObj)
+    self:refreshUnloadSection(playerObj)
+    self:refreshParachuteVehicleSection(playerObj)
+end
+
+--- Refresh all Vehicle Commands submenus for a player identified by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshVehicleMenuSectionsForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshVehicleMenuSections(playerObj) end
+end
+
 --- Build the "Vehicle Commands" F10 submenu for a player.
 -- Added only when the unit can carry vehicles (canCarryVehicles = true).
 -- @param playerObj CTLDPlayer
@@ -1540,7 +1593,8 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
     self:refreshUnloadSection(playerObj)
 
-    -- Parachute Vehicle: only if canParachute=true for this unit type
+    -- Parachute Vehicle: only if canParachute=true for this unit type.
+    -- Created disabled; refreshParachuteVehicleSection enables it only when in air + vehicle loaded.
     local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
     if acts and acts.canParachute then
         menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
@@ -1551,5 +1605,6 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
             end,
             { unitName = playerObj.unitName, groupId = playerObj.groupId,
               coalition = playerObj.coalition })
+        menu:setBranchEnabled({ root, vehSub, ctld.tr("Parachute Vehicle") }, false)
     end
 end

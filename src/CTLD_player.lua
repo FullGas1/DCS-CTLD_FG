@@ -260,6 +260,8 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
         CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
     end, nil, timer.getTime() + 1)
 end
@@ -272,6 +274,8 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
+    CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
     CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
 end
 

@@ -294,7 +294,7 @@ function CTLDConfig:load()
     -- [4] TROOPS — Infantry loading, fast rope, extraction limits
     -- ═══════════════════════════════════════════════════════════
     self.settings["numberOfTroops"]                     = 10       -- default number of troops to load on a transport heli or C-130
-    self.settings["multiGroupTransport"]                = false    -- allow loading multiple troop-groups simultaneously (large transports)
+    -- multiGroupTransport removed: multiple groups always allowed up to transport capacity.
     -- Per-aircraft max vehicles in hold (0 = no vehicle transport). Falls back to 1 if entry absent and vehicleTransportEnabled=true.
     self.settings["maxVehiclesByType"]                  = {
         ["C-130J-30"] = 2,
@@ -1795,6 +1795,8 @@ ctld.i18n["en"]["No vehicles nearby"] = "No vehicles nearby"
 ctld.i18n["en"]["Vehicle no longer available."] = "Vehicle no longer available."
 ctld.i18n["en"]["Land to unload vehicles"] = "Land to unload vehicles"
 ctld.i18n["en"]["No vehicle loaded."] = "No vehicle loaded."
+ctld.i18n["en"]["Vehicle loaded: %1."] = "Vehicle loaded: %1."
+ctld.i18n["en"]["Vehicle unloaded: %1."] = "Vehicle unloaded: %1."
 ctld.i18n["en"]["Vehicle no longer loaded."] = "Vehicle no longer loaded."
 ctld.i18n["en"]["Cannot load more vehicles (max: %d)."] = "Cannot load more vehicles (max: %d)."
 
@@ -1851,6 +1853,12 @@ ctld.i18n["en"]["Unload Troops"]                              = "Unload Troops"
 ctld.i18n["en"]["Unload All"]                                 = "Unload All"
 ctld.i18n["en"]["Parachute All"]                              = "Parachute All"
 ctld.i18n["en"]["Check Cargo"]                                = "Check Cargo"
+ctld.i18n["en"]["Disembark Troops"]                           = "Disembark Troops"
+ctld.i18n["en"]["Disembark All"]                              = "Disembark All"
+ctld.i18n["en"]["Embark / Extract Troops"]                    = "Embark / Extract Troops"
+ctld.i18n["en"]["Extract from field"]                         = "Extract from field"
+ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
+ctld.i18n["en"]["No troops onboard."]                         = "No troops onboard."
 ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport weight limit exceeded (%1 kg max)."
 
 -- End : CTLD_i18n_en.lua
@@ -2218,6 +2226,8 @@ ctld.i18n["fr"]["No vehicles nearby"] = "Aucun véhicule à proximité"
 ctld.i18n["fr"]["Vehicle no longer available."] = "Le véhicule n'est plus disponible."
 ctld.i18n["fr"]["Land to unload vehicles"] = "Atterrissez pour décharger des véhicules"
 ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
+ctld.i18n["fr"]["Vehicle loaded: %1."] = "Véhicule chargé : %1."
+ctld.i18n["fr"]["Vehicle unloaded: %1."] = "Véhicule déchargé : %1."
 ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
 ctld.i18n["fr"]["Cannot load more vehicles (max: %d)."] = "Impossible de charger davantage de véhicules (max : %d)."
 
@@ -2274,6 +2284,12 @@ ctld.i18n["fr"]["Unload Troops"]                              = "Décharger les 
 ctld.i18n["fr"]["Unload All"]                                 = "Tout décharger"
 ctld.i18n["fr"]["Parachute All"]                              = "Tout parachuter"
 ctld.i18n["fr"]["Check Cargo"]                                = "Vérifier la cargaison"
+ctld.i18n["fr"]["Disembark Troops"]                           = "Débarquer les troupes"
+ctld.i18n["fr"]["Disembark All"]                              = "Tout débarquer"
+ctld.i18n["fr"]["Embark / Extract Troops"]                    = "Embarquer / Extraire des troupes"
+ctld.i18n["fr"]["Extract from field"]                         = "Extraire du terrain"
+ctld.i18n["fr"]["Extract: %1"]                                = "Extraire : %1"
+ctld.i18n["fr"]["No troops onboard."]                         = "Aucune troupe à bord."
 ctld.i18n["fr"]["Transport weight limit exceeded (%1 kg max)."] = "Limite de poids dépassée (%1 kg max)."
 
 -- End : CTLD_i18n_fr.lua
@@ -2642,6 +2658,8 @@ ctld.i18n["es"]["No vehicles nearby"] = "No hay vehículos cercanos"
 ctld.i18n["es"]["Vehicle no longer available."] = "El vehículo ya no está disponible."
 ctld.i18n["es"]["Land to unload vehicles"] = "Aterriza para descargar vehículos"
 ctld.i18n["es"]["No vehicle loaded."] = "No hay ningún vehículo cargado."
+ctld.i18n["es"]["Vehicle loaded: %1."] = "Vehículo cargado: %1."
+ctld.i18n["es"]["Vehicle unloaded: %1."] = "Vehículo descargado: %1."
 ctld.i18n["es"]["Vehicle no longer loaded."] = "El vehículo ya no está cargado."
 ctld.i18n["es"]["Cannot load more vehicles (max: %d)."] = "No se pueden cargar más vehículos (máx: %d)."
 
@@ -2698,6 +2716,12 @@ ctld.i18n["es"]["Unload Troops"]                              = "Desembarcar tro
 ctld.i18n["es"]["Unload All"]                                 = "Desembarcar todo"
 ctld.i18n["es"]["Parachute All"]                              = "Lanzar todo en paracaídas"
 ctld.i18n["es"]["Check Cargo"]                                = "Verificar carga"
+ctld.i18n["es"]["Disembark Troops"]                           = "Desembarcar tropas"
+ctld.i18n["es"]["Disembark All"]                              = "Desembarcar todo"
+ctld.i18n["es"]["Embark / Extract Troops"]                    = "Embarcar / Extraer tropas"
+ctld.i18n["es"]["Extract from field"]                         = "Extraer del campo"
+ctld.i18n["es"]["Extract: %1"]                                = "Extraer: %1"
+ctld.i18n["es"]["No troops onboard."]                         = "No hay tropas a bordo."
 ctld.i18n["es"]["Transport weight limit exceeded (%1 kg max)."] = "Límite de peso superado (%1 kg máx)."
 
 -- End : CTLD_i18n_es.lua
@@ -2922,6 +2946,8 @@ ctld.i18n["ko"]["No vehicles nearby"] = "근처에 차량 없음"
 ctld.i18n["ko"]["Vehicle no longer available."] = "차량을 더 이상 사용할 수 없습니다."
 ctld.i18n["ko"]["Land to unload vehicles"] = "차량을 하역하려면 착륙하세요"
 ctld.i18n["ko"]["No vehicle loaded."] = "탑재된 차량이 없습니다."
+ctld.i18n["ko"]["Vehicle loaded: %1."] = "차량 탑재 완료: %1."
+ctld.i18n["ko"]["Vehicle unloaded: %1."] = "차량 하역 완료: %1."
 ctld.i18n["ko"]["Vehicle no longer loaded."] = "차량이 더 이상 탑재되어 있지 않습니다."
 ctld.i18n["ko"]["Cannot load more vehicles (max: %d)."] = "차량을 더 이상 탑재할 수 없습니다 (최대: %d)."
 
@@ -2969,6 +2995,12 @@ ctld.i18n["ko"]["Unload Troops"]                              = "병력 하차"
 ctld.i18n["ko"]["Unload All"]                                 = "전체 하차"
 ctld.i18n["ko"]["Parachute All"]                              = "전체 낙하산 투하"
 ctld.i18n["ko"]["Check Cargo"]                                = "화물 확인"
+ctld.i18n["ko"]["Disembark Troops"]                           = "병력 하차"
+ctld.i18n["ko"]["Disembark All"]                              = "전체 하차"
+ctld.i18n["ko"]["Embark / Extract Troops"]                    = "병력 탑승 / 추출"
+ctld.i18n["ko"]["Extract from field"]                         = "현장에서 추출"
+ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
+ctld.i18n["ko"]["No troops onboard."]                         = "탑승 병력 없음."
 ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량 한계 초과 (최대 %1 kg)."
 
 -- End : CTLD_i18n_ko.lua
@@ -5907,29 +5939,51 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
 
         -- Circle formation: offsets computed dynamically from overrides.circleRadius.
         -- Linear formation: offsets come from uDesc.dx / uDesc.dz (static per descriptor).
+        -- Units marked svntOf=true (mortar servants) are excluded from the circle count and
+        -- positioned 1 m from the preceding unit instead of on the circle arc.
         local useCircle  = desc.formation and desc.formation.type == "circle"
         local circleR    = (overrides and overrides.circleRadius) or 10
-        local unitCount  = #desc.units
 
-        local units = {}
+        -- Count only non-servant units for the circle arc distribution.
+        local circleCount = 0
+        if useCircle then
+            for _, uD in ipairs(desc.units) do
+                if not uD.svntOf then circleCount = circleCount + 1 end
+            end
+            if circleCount == 0 then circleCount = 1 end
+        end
+
+        local units      = {}
+        local circleIdx  = 0           -- index among non-svnt units (0-based)
+        local lastUx, lastUz = x, z    -- position of the last non-svnt unit spawned
+
         for i, uDesc in ipairs(desc.units) do
             local uid      = ctld.utils.getNextUniqId()
             local uName    = string.format("%s-%d", uDesc.namePrefix, uid)
             local uType    = type(uDesc.unitType) == "function"
                              and uDesc.unitType(coalitionId)
                              or  uDesc.unitType
-            -- Compute intra-group offset (circle or static dx/dz), then rotate by heading
-            local dx, dz
+            local ux, uz
             if useCircle then
-                local angle = (i - 1) * (2 * math.pi / unitCount)
-                dx = circleR * math.cos(angle)
-                dz = circleR * math.sin(angle)
+                if uDesc.svntOf then
+                    -- Servant: placed 1 m to the right of the preceding mortar (world frame)
+                    ux = lastUx + 1
+                    uz = lastUz
+                else
+                    local angle = circleIdx * (2 * math.pi / circleCount)
+                    circleIdx   = circleIdx + 1
+                    local dx    = circleR * math.cos(angle)
+                    local dz    = circleR * math.sin(angle)
+                    ux = x + dx * cosH - dz * sinH
+                    uz = z + dx * sinH + dz * cosH
+                    lastUx, lastUz = ux, uz
+                end
             else
-                dx = uDesc.dx or 0
-                dz = uDesc.dz or 0
+                local dx = uDesc.dx or 0
+                local dz = uDesc.dz or 0
+                ux = x + dx * cosH - dz * sinH
+                uz = z + dx * sinH + dz * cosH
             end
-            local ux = x + dx * cosH - dz * sinH
-            local uz = z + dx * sinH + dz * cosH
 
             local unit = {
                 name           = uName,
@@ -7613,9 +7667,12 @@ function CTLDTroopGroup:_syncFromDCSGroup(dcsGroup)
     for _, unit in ipairs(units) do
         if unit:isExist() then
             local name = unit:getName()
-            self._aliveUnits[name] = unit
-            if name:match("^JTAC") then
-                self._jtacUnits[name] = true
+            -- SVNT units are mortar servants (cosmetic crew); exclude from tracking and count.
+            if not name:match("^SVNT") then
+                self._aliveUnits[name] = unit
+                if name:match("^JTAC") then
+                    self._jtacUnits[name] = true
+                end
             end
         end
     end
@@ -7783,6 +7840,8 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
     tmpl.hasJtac = hasJtac
 
     -- Build the units array (no dx/dz: circle formation computes them at spawn time)
+    -- Each mortar system spawns an additional servant soldier (crew member).
+    -- The servant does not count toward tmpl.total or weight.
     local units = {}
     for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
         local n      = tmpl[role] or 0
@@ -7798,6 +7857,18 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
                     end
                 end)(capturedRole),
             })
+            if capturedRole == "mortar" then
+                -- svntOf = true: spawnObject anchors this unit 1 m from the preceding mortar
+                -- instead of placing it in the circle; it does not count toward the circle spread.
+                table.insert(units, {
+                    namePrefix = "SVNT",
+                    svntOf     = true,
+                    unitType   = function(cid)
+                        return CTLDTroopManager._UNIT_TYPES["inf"][cid]
+                            or CTLDTroopManager._UNIT_TYPES["inf"][2]
+                    end,
+                })
+            end
         end
     end
 
@@ -8063,22 +8134,11 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
         weight  = weight + n * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
     end
 
-    -- Capacity check: multi-group mode uses _canEmbark (cumulative); single-group blocks
-    if ctld.gs("multiGroupTransport") then
+    -- Capacity check: always cumulative via _canEmbark (multiple groups allowed up to transport limit).
+    do
         local ok, reason = self:_canEmbark(typeName, unitName, template.total, weight)
         if not ok then
             trigger.action.outTextForGroup(unit:getGroup():getID(), reason, 10)
-            return false
-        end
-    elseif self:hasTroops(unitName) then
-        trigger.action.outTextForGroup(unit:getGroup():getID(),
-            ctld.tr("You already have troops onboard."), 10)
-        return false
-    else
-        local limit = self:_transportLimit(typeName)
-        if template.total > limit then
-            trigger.action.outTextForGroup(unit:getGroup():getID(),
-                ctld.tr("Group too large for this aircraft (capacity: %1 troops).", limit), 10)
             return false
         end
     end
@@ -8136,6 +8196,10 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
         unitName, template.name, template.total, weight)
 
     pcall(self._updateWeight, self, unitName)
+
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
+    if _pObj then self:refreshMenuSection(_pObj) end
+
     return true
 end
 
@@ -8252,6 +8316,9 @@ function CTLDTroopManager:disembark(unit)
     if #list == 0 then self._inTransit[unitName] = nil end
     pcall(self._updateWeight, self, unitName)
 
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
+    if _pObj then self:refreshMenuSection(_pObj) end
+
     -- Confirm message
     local method = (canFastRope and self:_isInAir(unit)) and "fast-roped" or "dropped"
     local dest   = exzZone and ctld.tr("into %1", exzZone.zoneName) or ctld.tr("into combat")
@@ -8330,6 +8397,9 @@ function CTLDTroopManager:returnToTroopZone(unit, zone)
     self._inTransit[unitName] = nil
     pcall(self._updateWeight, self, unitName)
 
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
+    if _pObj then self:refreshMenuSection(_pObj) end
+
     trigger.action.outTextForGroup(unit:getGroup():getID(),
         ctld.tr("Troops returned to base."), 10)
     return true
@@ -8366,30 +8436,20 @@ function CTLDTroopManager:embarkFromField(unit)
     local country  = nearest.group:getUnit(1):getCountry()
     local stored   = self._droppedTemplates[nearest.groupName] or {}
 
-    -- Weight: proportional to surviving units using original avg weight (BUG-07)
+    -- Logical troop count: prefer stored.total (excludes mortar servants) so that servants
+    -- do not inflate the capacity check on re-embark (Bug 2).
+    local logicalCount = (stored.total and stored.total > 0) and stored.total or groupSize
+
+    -- Weight: proportional to surviving logical units using original avg weight (BUG-07)
     local avgWeight = (stored.weight and stored.total and stored.total > 0)
                       and (stored.weight / stored.total) or 130
-    local weight    = math.floor(avgWeight * groupSize)
+    local weight    = math.floor(avgWeight * logicalCount)
 
-    -- Capacity check: multi-group mode uses _canEmbark (cumulative); single-group blocks
-    if ctld.gs("multiGroupTransport") then
-        local ok, reason = self:_canEmbark(typeName, unitName, groupSize, weight)
-        if not ok then
-            trigger.action.outTextForGroup(unit:getGroup():getID(), reason, 10)
-            return false
-        end
-    elseif self:hasTroops(unitName) then
-        trigger.action.outTextForGroup(unit:getGroup():getID(),
-            ctld.tr("You already have troops onboard."), 10)
+    -- Capacity check: always use _canEmbark (cumulative); multi-group flag controls UI only.
+    local ok, reason = self:_canEmbark(typeName, unitName, logicalCount, weight)
+    if not ok then
+        trigger.action.outTextForGroup(unit:getGroup():getID(), reason, 10)
         return false
-    else
-        local limit = self:_transportLimit(typeName)
-        if groupSize > limit then
-            trigger.action.outTextForGroup(unit:getGroup():getID(),
-                ctld.tr("Group too large to fit (%1 troops, limit %2 for %3).",
-                    groupSize, limit, typeName), 10)
-            return false
-        end
     end
 
     -- Sync _aliveUnits / _jtacUnits from current DCS group before destroy.
@@ -8419,7 +8479,7 @@ function CTLDTroopManager:embarkFromField(unit)
     table.insert(self._inTransit[unitName], CTLDTroopGroup:new({
         templateKey  = stored.key,
         templateName = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
-        unitTotal    = groupSize,
+        unitTotal    = logicalCount,   -- logical count (no mortar servants) for capacity/stock
         weight       = weight,
         coalitionId  = coalition,
         countryId    = country,
@@ -8433,11 +8493,14 @@ function CTLDTroopManager:embarkFromField(unit)
 
     pcall(self._updateWeight, self, unitName)
 
-    trigger.action.outTextForGroup(unit:getGroup():getID(),
-        ctld.tr("Extracted [%1] (%2 troops).", nearest.groupName, groupSize), 10)
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
+    if _pObj then self:refreshMenuSection(_pObj) end
 
-    ctld.utils.log("INFO", "extract: '%s' extracted group '%s' (%d units)",
-        unitName, nearest.groupName, groupSize)
+    trigger.action.outTextForGroup(unit:getGroup():getID(),
+        ctld.tr("Extracted [%1] (%2 troops).", nearest.groupName, logicalCount), 10)
+
+    ctld.utils.log("INFO", "extract: '%s' extracted group '%s' (%d logical troops, %d DCS units)",
+        unitName, nearest.groupName, logicalCount, groupSize)
     return true
 end
 
@@ -8816,6 +8879,72 @@ function CTLDTroopManager:_menuUnloadOrExtract(unit)
         ctld.tr("No troops onboard and no extractable troops nearby."), 10)
 end
 
+--- "Disembark Troops" button handler (pt1).
+-- In TRZ pickup → returnToTroopZone; in EXZ → disembark to objective; elsewhere → combat drop.
+-- @param unit DCS Unit
+function CTLDTroopManager:_menuDisembark(unit)
+    local unitName = unit:getName()
+    if not self:hasTroops(unitName) then
+        trigger.action.outTextForGroup(unit:getGroup():getID(), ctld.tr("No troops onboard."), 10)
+        return
+    end
+    local zm      = CTLDZoneManager.getInstance()
+    local exzZone = zm:isUnitInZone(unitName, "extract")
+    if exzZone then
+        self:disembark(unit)
+    else
+        local pkzZone = zm:isUnitInZone(unitName, "pickup")
+        if pkzZone then
+            self:returnToTroopZone(unit, pkzZone)
+        else
+            self:disembark(unit)
+        end
+    end
+end
+
+--- Returns all dropped groups within maxExtractDistance of unit, sorted by distance asc (pt3).
+-- @param unit      DCS Unit
+-- @param coalition number
+-- @return table  array of { groupName, group, distM }
+function CTLDTroopManager:_findAllNearbyDropped(unit, coalition)
+    local pt      = unit:getPoint()
+    local maxDist = ctld.gs("maxExtractDistance") or 125
+    local found   = {}
+    for _, name in ipairs(self._droppedGroups[coalition]) do
+        local g = Group.getByName(name)
+        if g and g:isExist() and #g:getUnits() > 0 then
+            local leader = g:getUnit(1)
+            if leader then
+                local gpt  = leader:getPoint()
+                local dist = math.sqrt((pt.x - gpt.x)^2 + (pt.z - gpt.z)^2)
+                if dist <= maxDist then
+                    table.insert(found, { groupName = name, group = g, distM = dist })
+                end
+            end
+        end
+    end
+    table.sort(found, function(a, b) return a.distM < b.distM end)
+    return found
+end
+
+--- Extract a specific dropped group by name (pt3).
+-- Swaps it to the front of _droppedGroups so embarkFromField picks it.
+-- @param unit      DCS Unit
+-- @param groupName string  DCS group name to extract
+-- @return bool
+function CTLDTroopManager:embarkFromFieldByGroup(unit, groupName)
+    local coalition = unit:getCoalition()
+    local list      = self._droppedGroups[coalition]
+    for i, name in ipairs(list) do
+        if name == groupName then
+            table.remove(list, i)
+            table.insert(list, 1, groupName)
+            break
+        end
+    end
+    return self:embarkFromField(unit)
+end
+
 function CTLDTroopManager:_menuCheckCargo(unit)
     local unitName = unit:getName()
     local list     = self._inTransit[unitName]
@@ -8936,15 +9065,15 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     })
 
     -- Capture for timer closure
-    local _troopGroup   = troopGroup
-    local _unitDefs     = unitDefs
+    local _troopGroup    = troopGroup
+    local _unitDefs      = unitDefs
     local _landPositions = landPositions
-    local _dropData     = dropData
-    local _coalition    = playerObj.coalition or 2
+    local _dropData      = dropData
+    local _coalition     = playerObj.coalition or 2
+    local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
 
     timer.scheduleFunction(function()
-        local country = coalition.getCountryCoalition and coalition.getCountryCoalition(_coalition) or _coalition
-        local spawnedGroup = coalition.addGroup(country, Group.Category.GROUND, {
+        local spawnedGroup = coalition.addGroup(_countryId, Group.Category.GROUND, {
             name  = _troopGroup.templateName,
             task  = "Ground Nothing",
             units = _unitDefs,
@@ -9065,17 +9194,18 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     local hasTroops = self:hasTroops(playerObj.unitName)
 
     if not inAir and unit then
-        local pt = unit:getPoint()
-
-        -- "Unload / Extract" — ground only
-        local hasNearby     = self:_findNearestDropped(unit, playerObj.coalition) ~= nil
+        local pt            = unit:getPoint()
         local inTransitList = self._inTransit[playerObj.unitName]
-        if hasTroops or hasNearby then
-            if ctld.gs("multiGroupTransport") and hasTroops and inTransitList and #inTransitList > 1 then
-                -- Multi-group: submenu per group + "Unload All"
-                local unloadSub = ctld.tr("Unload Troops")
-                menu:addSubMenu({ root, troopSub }, unloadSub)
-                menu:addCommand({ root, troopSub, unloadSub }, ctld.tr("Unload All"),
+        local nearbyGroups  = self:_findAllNearbyDropped(unit, playerObj.coalition)
+        local limit         = self:_transportLimit(playerObj.typeName)
+
+        -- ── Disembark Troops ─────────────────────────────────────────────────
+        if hasTroops then
+            if inTransitList and #inTransitList > 1 then
+                -- Multi-group: one entry per group + "Disembark All"
+                local disembarkSub = ctld.tr("Disembark Troops")
+                menu:addSubMenu({ root, troopSub }, disembarkSub, { order = 10 })
+                menu:addCommand({ root, troopSub, disembarkSub }, ctld.tr("Disembark All"),
                     function(arg)
                         local u = Unit.getByName(arg.unitName)
                         if not u then return end
@@ -9084,7 +9214,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                     { unitName = playerObj.unitName })
                 for i, grp in ipairs(inTransitList) do
                     local capturedIdx = i
-                    menu:addCommand({ root, troopSub, unloadSub },
+                    menu:addCommand({ root, troopSub, disembarkSub },
                         string.format("[%d] %s", i, grp.templateName),
                         function(arg)
                             local u = Unit.getByName(arg.unitName)
@@ -9094,27 +9224,31 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                         { unitName = playerObj.unitName, idx = capturedIdx })
                 end
             else
-                -- Single group or extract: direct action
-                menu:addCommand({ root, troopSub }, ctld.tr("Unload / Extract Troops"),
+                -- Single group
+                menu:addCommand({ root, troopSub }, ctld.tr("Disembark Troops"),
                     function(arg)
                         local u = Unit.getByName(arg.unitName)
                         if not u then return end
-                        CTLDTroopManager.getInstance():_menuUnloadOrExtract(u)
+                        CTLDTroopManager.getInstance():_menuDisembark(u)
                     end,
-                    { unitName = playerObj.unitName })
+                    { unitName = playerObj.unitName }, { order = 10 })
             end
         end
 
-        -- "Load from X" — one submenu per TRZ the player is physically inside
-        local limit = self:_transportLimit(playerObj.typeName)
+        -- ── Embark / Extract Troops ───────────────────────────────────────────
+        -- Container created first so its order is set before children are added.
+        local embarkSub        = ctld.tr("Embark / Extract Troops")
+        local hasEmbarkContent = false
+        menu:addSubMenu({ root, troopSub }, embarkSub, { order = 20 })
 
+        -- TRZ submenus (one per zone the player is physically inside)
         for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
             if zone:hasPickup() and zone:isInZone(pt) then
-                local zName   = zone.zoneName   -- short name used for getTroopZone() lookup in callback
-                local zoneSub = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
-                -- Stock available in this zone (unlimited if pickMaxStock==0)
+                hasEmbarkContent = true
+                local zName     = zone.zoneName
+                local zoneSub   = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
-                menu:addSubMenu({ root, troopSub }, zoneSub)
+                menu:addSubMenu({ root, troopSub, embarkSub }, zoneSub)
                 for _, tmpl in ipairs(self._templates) do
                     local sideOk  = (tmpl.side == nil or tmpl.side == playerObj.coalition)
                     local sizeOk  = (tmpl.total <= limit)
@@ -9122,7 +9256,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
                     if not tmpl.disabled and sideOk and sizeOk and stockOk then
                         local capturedTmpl  = tmpl
                         local capturedZName = zName
-                        menu:addCommand({ root, troopSub, zoneSub },
+                        menu:addCommand({ root, troopSub, embarkSub, zoneSub },
                             ctld.tr("Load ") .. tmpl.name,
                             function(arg)
                                 local u = Unit.getByName(arg.unitName)
@@ -9141,23 +9275,60 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             end
         end
 
-        -- "Check Cargo" — shows all onboard troop groups
+        -- Extract from field (only when no troops onboard)
+        if not hasTroops and #nearbyGroups > 0 then
+            hasEmbarkContent = true
+            if #nearbyGroups == 1 then
+                -- Single nearby group: direct button
+                local capturedName = nearbyGroups[1].groupName
+                menu:addCommand({ root, troopSub, embarkSub },
+                    ctld.tr("Extract: %1", nearbyGroups[1].groupName),
+                    function(arg)
+                        local u = Unit.getByName(arg.unitName)
+                        if not u then return end
+                        CTLDTroopManager.getInstance():embarkFromFieldByGroup(u, arg.groupName)
+                    end,
+                    { unitName = playerObj.unitName, groupName = capturedName })
+            else
+                -- Multiple nearby groups: submenu with distance hints
+                local extractSub = ctld.tr("Extract from field")
+                menu:addSubMenu({ root, troopSub, embarkSub }, extractSub)
+                for _, entry in ipairs(nearbyGroups) do
+                    local capturedName = entry.groupName
+                    menu:addCommand({ root, troopSub, embarkSub, extractSub },
+                        string.format("%s (%dm)", entry.groupName, math.floor(entry.distM)),
+                        function(arg)
+                            local u = Unit.getByName(arg.unitName)
+                            if not u then return end
+                            CTLDTroopManager.getInstance():embarkFromFieldByGroup(u, arg.groupName)
+                        end,
+                        { unitName = playerObj.unitName, groupName = capturedName })
+                end
+            end
+        end
+
+        -- Hide the container if nothing to show inside
+        if not hasEmbarkContent then
+            menu:setBranchEnabled({ root, troopSub, embarkSub }, false)
+        end
+
+        -- ── Check Cargo ───────────────────────────────────────────────────────
         menu:addCommand({ root, troopSub }, ctld.tr("Check Cargo"),
             function(arg)
                 local u = Unit.getByName(arg.unitName)
                 if not u then return end
                 CTLDTroopManager.getInstance():_menuCheckCargo(u)
             end,
-            { unitName = playerObj.unitName })
+            { unitName = playerObj.unitName }, { order = 30 })
 
     end
 
-    -- "Parachute Troops" — in-flight, if capable and troops onboard
-    if unit then
+    -- "Parachute Troops" — in-flight only, if capable and troops onboard
+    if unit and inAir then
         local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
         if acts2 and acts2.canParachute and hasTroops then
             local inTransitList = self._inTransit[playerObj.unitName]
-            if ctld.gs("multiGroupTransport") and inTransitList and #inTransitList > 1 then
+            if inTransitList and #inTransitList > 1 then
                 -- Multi-group: submenu per group + "Parachute All"
                 local parachuteSub = ctld.tr("Parachute Troops")
                 menu:addSubMenu({ root, troopSub }, parachuteSub)
@@ -12165,24 +12336,14 @@ function CTLDVehicleSpawner:init()
         end
     end)
 
-    -- Load / Unload vehicle: refresh both submenus for the transport player
+    -- Load / Unload vehicle: refresh all vehicle submenus for the transport player
     ed:subscribe("OnVehicleLoaded", function(payload)
         local t = payload and payload.transportUnitObject
-        if t then
-            local tName = t:getName()
-            local inst  = CTLDVehicleSpawner.getInstance()
-            inst:refreshLoadSectionForUnit(tName)
-            inst:refreshUnloadSectionForUnit(tName)
-        end
+        if t then CTLDVehicleSpawner.getInstance():refreshVehicleMenuSectionsForUnit(t:getName()) end
     end)
     ed:subscribe("OnVehicleUnloaded", function(payload)
         local t = payload and payload.transportUnitObject
-        if t then
-            local tName = t:getName()
-            local inst  = CTLDVehicleSpawner.getInstance()
-            inst:refreshLoadSectionForUnit(tName)
-            inst:refreshUnloadSectionForUnit(tName)
-        end
+        if t then CTLDVehicleSpawner.getInstance():refreshVehicleMenuSectionsForUnit(t:getName()) end
     end)
 
     ctld.utils.log("INFO", "CTLDVehicleSpawner: init complete")
@@ -12463,6 +12624,17 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
         self:_updateVehicleCargo(transport:getName())
     end
 
+    -- Confirmation message to player (menu_ctld only; dcs_native load is confirmed by DCS itself).
+    if method == "menu_ctld" then
+        local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
+        if pObj then
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(vehicle.vehicleType)
+            local label = desc and desc.desc or vehicle.vehicleType
+            trigger.action.outTextForGroup(pObj.groupId,
+                ctld.tr("Vehicle loaded: %1.", label), 8)
+        end
+    end
+
     EventDispatcher.getInstance():publish("OnVehicleLoaded", {
         vehicleId            = vehicle.id,
         ctldVehicleObject    = vehicle,
@@ -12562,6 +12734,17 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     local groupName = sd and sd.groupName
     if groupName then
         CTLDJTACManager.getInstance():resumeJTAC(groupName)
+    end
+
+    -- Confirmation message to player (menu_ctld only; dcs_native unload is confirmed by DCS itself).
+    if method == "menu_ctld" then
+        local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
+        if pObj then
+            local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(vehicle.vehicleType)
+            local label = desc and desc.desc or vehicle.vehicleType
+            trigger.action.outTextForGroup(pObj.groupId,
+                ctld.tr("Vehicle unloaded: %1.", label), 8)
+        end
     end
 
     EventDispatcher.getInstance():publish("OnVehicleUnloaded", {
@@ -13449,7 +13632,8 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
 end
 
 --- Rebuild the "Unload Vehicles" dynamic submenu for playerObj.
--- Transport must be landed; lists vehicles currently LOADED on this transport.
+-- Hidden entirely when no vehicle is loaded; shows "Land to unload" when in air + loaded;
+-- shows the vehicle list when on the ground + loaded.
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
     if not playerObj.canCarryVehicles then return end
@@ -13465,17 +13649,21 @@ function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
     menu:clearBranch({ root, vehSub, unloadSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, vehSub, unloadSub },
-            ctld.tr("Land to unload vehicles"), function() end, {})
+    local inAir     = not (transport and transport:isExist()) or ctld.utils.inAir(transport)
+    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+
+    if #loaded == 0 then
+        -- No vehicle loaded: hide the entire submenu
+        menu:setBranchEnabled({ root, vehSub, unloadSub }, false)
         menu:refresh()
         return
     end
 
-    local loaded = self:findLoadedVehicles(transport)
-    if #loaded == 0 then
+    menu:setBranchEnabled({ root, vehSub, unloadSub }, true)
+
+    if inAir then
         menu:addCommand({ root, vehSub, unloadSub },
-            ctld.tr("No vehicle loaded."), function() end, {})
+            ctld.tr("Land to unload vehicles"), function() end, {})
     else
         for _, veh in ipairs(loaded) do
             local desc  = CTLDCrateManager.getInstance():findDescriptorByUnitType(veh.vehicleType)
@@ -13517,6 +13705,42 @@ function CTLDVehicleSpawner:refreshUnloadSectionForUnit(unitName)
     if playerObj then self:refreshUnloadSection(playerObj) end
 end
 
+--- Refresh "Parachute Vehicle" visibility: shown only when in air + vehicle loaded.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
+    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
+    if not (playerObj.canCarryVehicles and acts and acts.canParachute) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root   = ctld.tr("CTLD")
+    local vehSub = ctld.tr("Vehicle Commands")
+
+    local transport = Unit.getByName(playerObj.unitName)
+    local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
+    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+
+    menu:setBranchEnabled({ root, vehSub, ctld.tr("Parachute Vehicle") }, inAir and #loaded > 0)
+    menu:refresh()
+end
+
+--- Refresh all Vehicle Commands submenus (load, unload, parachute) for a player.
+-- @param playerObj CTLDPlayer
+function CTLDVehicleSpawner:refreshVehicleMenuSections(playerObj)
+    self:refreshLoadSection(playerObj)
+    self:refreshUnloadSection(playerObj)
+    self:refreshParachuteVehicleSection(playerObj)
+end
+
+--- Refresh all Vehicle Commands submenus for a player identified by unit name.
+-- @param unitName string
+function CTLDVehicleSpawner:refreshVehicleMenuSectionsForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshVehicleMenuSections(playerObj) end
+end
+
 --- Build the "Vehicle Commands" F10 submenu for a player.
 -- Added only when the unit can carry vehicles (canCarryVehicles = true).
 -- @param playerObj CTLDPlayer
@@ -13536,7 +13760,8 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
     self:refreshUnloadSection(playerObj)
 
-    -- Parachute Vehicle: only if canParachute=true for this unit type
+    -- Parachute Vehicle: only if canParachute=true for this unit type.
+    -- Created disabled; refreshParachuteVehicleSection enables it only when in air + vehicle loaded.
     local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
     if acts and acts.canParachute then
         menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
@@ -13547,6 +13772,7 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
             end,
             { unitName = playerObj.unitName, groupId = playerObj.groupId,
               coalition = playerObj.coalition })
+        menu:setBranchEnabled({ root, vehSub, ctld.tr("Parachute Vehicle") }, false)
     end
 end
 
@@ -18321,6 +18547,8 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
         CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
     end, nil, timer.getTime() + 1)
 end
@@ -18333,6 +18561,8 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
+    CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
     CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
 end
 

@@ -705,36 +705,39 @@ The menu appears automatically for all transport-capable aircraft (types listed 
 
 ```
 CTLD
-  └── Troop Commands                   ← empty while in flight; rebuilt on landing/takeoff
-        ├── Unload / Extract Troops    ← single group: direct action (context-sensitive)
-        ├── Unload Troops              ← multi-group only: submenu with individual + "Unload All"
-        │     ├── Unload All           ← deploy all groups in sequence
-        │     ├── [1] Standard Group   ← deploy group at index 1
-        │     └── [2] Anti Air         ← deploy group at index 2
-        ├── Load from <zone1>          ← one sub-menu per TRZ pickup zone the player is inside
-        │     ├── Load Standard Group
-        │     ├── Load Anti Air
-        │     └── ...                  ← templates filtered by aircraft capacity
-        ├── Load from <zone2>          ← only shown if player is also inside zone2
-        │     └── ...
-        ├── Check Cargo                ← shows all onboard groups with count, weight, and total
-        └── Parachute Troops           ← single group: direct / multi-group: submenu with "Parachute All"
+  └── Troop Commands                         ← rebuilt on landing/takeoff
+        ├── Disembark Troops                 ← single group: direct action
+        │   or Disembark Troops (submenu)    ← if 2+ groups onboard:
+        │       ├── Disembark All            ←   deploy all groups in sequence
+        │       ├── [1] Standard Group       ←   deploy group at index 1
+        │       └── [2] Anti Air             ←   deploy group at index 2
+        ├── Embark / Extract Troops          ← always present on ground
+        │     ├── Load from <zone1>          ←   one sub-menu per TRZ pickup zone the player is inside
+        │     │     ├── Load Standard Group  ←     templates filtered by remaining capacity
+        │     │     └── ...
+        │     ├── Extract: <group name>      ←   single nearby group: direct button
+        │     │   or Extract from field      ←   if 2+ groups nearby: submenu with distances
+        │     │       ├── GroupA (25m)
+        │     │       └── GroupB (87m)
+        │     └── (disabled if nothing to load or extract)
+        ├── Check Cargo                      ← count + weight of all onboard groups
+        └── Parachute Troops                 ← single group: direct
+            or Parachute Troops (submenu)    ← if 2+ groups: submenu + "Parachute All"
 ```
 
-> Multi-group submenus only appear when `multiGroupTransport = true` (see config below) AND more than one group is onboard.
-> The "Load from" entries reflect the player's **current position**: only TRZ pickup zones the aircraft is physically inside appear. The menu is rebuilt automatically on landing and takeoff. Overlapping zones all appear simultaneously.
+> The menu is rebuilt automatically on every landing and takeoff, and immediately after each embark/disembark operation.
+> "Embark / Extract Troops" is greyed out if the aircraft is at capacity, if no TRZ pickup zone is within range, and if no friendly group is within `maxExtractDistance` metres.
 
-**"Unload / Extract Troops" behaviour (priority order):**
+**"Disembark Troops" context logic (priority order):**
 
-| Aircraft state | Action | New method name |
-|---|---|---|
-| In flight | Button not shown | — |
-| On ground + friendly dropped group ≤ `maxExtractDistance` m + no troops onboard | Extract group from combat → `FIELD_LOADED` | `embarkFromField()` |
-| Has troops onboard + inside a TRZ with `flag` (objective zone) | Silent drop → counter incremented, no DCS group spawned | `dispatchToEXZ()` → `DEPLOYED_EXZ` |
-| Has troops onboard + inside a TRZ pickup-only (no flag) | Return troops to TroopZone — zone stock restored | `returnToTroopZone()` |
-| Has troops onboard + not in any TRZ | Fast-rope (if conditions met) or ground drop into combat | `disembark()` → `DEPLOYED` |
-| In air + no troops + dropped group nearby | Show "Land near troops to extract them (Xm away)" | — |
-| None of the above | "No troops onboard and no extractable troops nearby" | — |
+| Aircraft state | Action |
+|---|---|
+| In flight | Button not shown |
+| On ground + inside a TRZ with `flag` (objective zone) | Silent drop → objective counter incremented, no DCS group spawned |
+| On ground + inside a TRZ pickup-only (no flag) | Return troops to TroopZone — zone stock restored |
+| On ground + not in any TRZ | Fast-rope (if conditions met) or ground drop into combat |
+
+**Multi-group transport:** players may load multiple groups sequentially as long as the cumulative troop count stays within the aircraft's capacity (`numberOfTroops` or per-type override). Each group is tracked independently. The disembark and parachute menus automatically switch to per-group submenus when two or more groups are onboard.
 
 ---
 
@@ -763,10 +766,12 @@ ctld.loadableGroups = {
 | `mg` | Soldier M249 / Paratrooper AKS-74 | +10 kg |
 | `at` | Paratrooper RPG-16 (both sides) | +7.6 kg |
 | `aa` | Soldier stinger / SA-18 Igla manpad | +18 kg |
-| `mortar` | 2B11 mortar (both sides) | +26 kg |
+| `mortar` | 2B11 mortar (both sides) + 1 servant soldier per tube | +26 kg |
 | `jtac` | Same model as `inf`, name tagged "JTAC" | +15+5 kg |
 
 > A template with `jtac > 0` automatically triggers JTAC lasing upon deployment (laser code attributed by CTLDJtacManager).
+>
+> **Mortar servants:** each `mortar` unit spawns one additional infantry "crew member" (servant) positioned within 1 m of the tube. Servants are cosmetic — they do not count toward the troop capacity limit, zone stock, or the `unitTotal` displayed in Check Cargo.
 
 ---
 
@@ -780,7 +785,6 @@ ctld.loadableGroups = {
 | `spawnDistanceInCircle` | `10` | Extra distance (m) added to aircraft safe-distance for the troop formation circle radius |
 | `maxExtractDistance` | `125` | Max radius (m) to search for extractable friendly groups |
 | `nbLimitSpawnedTroops` | `{0, 0}` | `{red, blue}` — max simultaneous troops in the field per coalition. `0` = unlimited |
-| `multiGroupTransport` | `false` | Allow loading multiple troop groups on large transports (C-130, CH-47…). When `true`, load is cumulative up to `transportLimitByType`/`numberOfTroops` |
 
 **Per-aircraft type capacity override** (optional):
 
