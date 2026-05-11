@@ -119,7 +119,7 @@ if step == 1 then
     -- Spawn RED enemy
     local redGrp = coalition.addGroup(redCountry, Group.Category.GROUND, {
         name  = RED_GRP, task = "Ground Nothing",
-        units = {{ name = RED_GRP .. "_u1", type = "Infantry AK",
+        units = {{ name = RED_GRP .. "_u1", type = "UAZ-469",   -- unarmed RED jeep, won't engage BLUE
                    x = enemyPt.x, y = enemyPt.z, heading = 0, skill = "High",
                    playerCanDrive = false, unitId = math.random(91000, 91999) }},
     })
