@@ -29,7 +29,7 @@ local STEP_N = "_FI_ATK_STEP"
 
 local BLUE_GRP  = "FI_ATK_BlueGroup"
 local RED_GRP   = "FI_ATK_RedEnemy"
-local ENEMY_DIST = 300   -- metres east of player
+local ENEMY_DIST = 100   -- metres east of spawn — close enough for infantry to engage quickly
 
 local function log(msg)
     ctld.utils.log("INFO", TAG .. " " .. msg)
@@ -117,25 +117,30 @@ if step == 1 then
     local redCountry  = country.id.RUSSIA
 
     -- Spawn RED enemy
+    -- RED: unarmed Hummer in RED coalition — stationary target, won't shoot
     local redGrp = coalition.addGroup(redCountry, Group.Category.GROUND, {
         name  = RED_GRP, task = "Ground Nothing",
-        units = {{ name = RED_GRP .. "_u1", type = "UAZ-469",   -- unarmed RED jeep, won't engage BLUE
+        units = {{ name = RED_GRP .. "_u1", type = "Hummer",
                    x = enemyPt.x, y = enemyPt.z, heading = 0, skill = "High",
                    playerCanDrive = false, unitId = math.random(91000, 91999) }},
     })
-    check("FI-ATK.1.1", "RED enemy group spawned", redGrp ~= nil)
+    check("FI-ATK.1.1", "RED Hummer spawned", redGrp ~= nil)
 
-    -- Spawn BLUE group
+    -- BLUE: infantry soldier — approaches and fires on the Hummer
     local blueGrp = coalition.addGroup(blueCountry, Group.Category.GROUND, {
-        name  = BLUE_GRP, task = "Ground Nothing",
+        name       = BLUE_GRP,
+        task       = "Ground Nothing",
+        start_time = 0,
+        groupId    = math.random(93000, 93999),
         units = {{ name = BLUE_GRP .. "_u1", type = "Soldier M4",
                    x = spawnPt.x, y = spawnPt.z, heading = 0, skill = "High",
-                   playerCanDrive = false, unitId = math.random(92000, 92999) }},
+                   unitId = math.random(92000, 92999) }},  -- no playerCanDrive on infantry
     })
     check("FI-ATK.1.2", "BLUE group spawned", blueGrp ~= nil)
 
-    -- Store initial distance for step 2 comparison
+    -- Store positions for step 2 comparison
     _G["_FI_ATK_ENEMY_PT"]  = enemyPt
+    _G["_FI_ATK_SPAWN_PT"]  = { x = spawnPt.x, y = spawnPt.y, z = spawnPt.z }
     _G["_FI_ATK_DIST_ORIG"] = ctld.utils.getDistance("FI-ATK.1", spawnPt, enemyPt)
 
     -- ── Visual draws on F10 map ─────────────────────────────────────────────
@@ -198,21 +203,23 @@ elseif step == 2 then
     local grp = Group.getByName(BLUE_GRP)
     check("FI-ATK.2.1", "BLUE group still alive", grp ~= nil and grp:isExist())
 
-    -- Unit is moving
-    local unit1 = grp and grp:getUnit(1)
-    local vel   = unit1 and unit1:getVelocity()
-    local speed = vel and math.sqrt((vel.x or 0)^2 + (vel.z or 0)^2) or 0
-    log("BLUE unit speed: " .. string.format("%.3f", speed) .. " m/s")
-    check("FI-ATK.2.2", "BLUE unit is moving toward enemy (speed > 0.1 m/s)",
-        speed > 0.1, "speed=" .. string.format("%.3f", speed) .. " m/s")
+    -- Unit has moved from its spawn position (getVelocity unreliable for infantry)
+    local unit1   = grp and grp:getUnit(1)
+    local uPt     = unit1 and unit1:getPoint()
+    local sPt     = _G["_FI_ATK_SPAWN_PT"]
+    local ePt     = _G["_FI_ATK_ENEMY_PT"]
+    local dOrig   = _G["_FI_ATK_DIST_ORIG"] or math.huge
 
-    -- Closer to enemy than at spawn
-    local uPt    = unit1 and unit1:getPoint()
-    local ePt    = _G["_FI_ATK_ENEMY_PT"]
-    local dOrig  = _G["_FI_ATK_DIST_ORIG"] or math.huge
+    if uPt and sPt then
+        local moved = ctld.utils.getDistance("FI-ATK.2.2", uPt, sPt)
+        log("BLUE moved from spawn: " .. string.format("%.1f", moved) .. " m")
+        check("FI-ATK.2.2", "BLUE unit moved from spawn position (> 1 m)",
+            moved > 1, "moved=" .. string.format("%.1f", moved) .. "m")
+    end
+
     if uPt and ePt then
         local dNow = ctld.utils.getDistance("FI-ATK.2.3", uPt, ePt)
-        log("dist orig=" .. string.format("%.1f", dOrig) ..
+        log("dist to enemy: orig=" .. string.format("%.1f", dOrig) ..
             " now=" .. string.format("%.1f", dNow))
         check("FI-ATK.2.3", "BLUE unit closer to enemy than at spawn",
             dNow < dOrig,
