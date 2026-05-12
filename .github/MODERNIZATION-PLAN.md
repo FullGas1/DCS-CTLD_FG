@@ -925,19 +925,19 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 
 | Module | Impl | Spec | Recette | % recette | Notes |
 | ------ | ---- | ---- | ------- | --------- | ----- |
-| Config (`CTLD_config.lua`) | ✅ | ✅ | ✅ | 100% | U-84→U-89 + F-101→F-102, 57/57 PASS [2026-04-16] |
+| Config (`CTLD_config.lua`) | ✅ | ✅ | ✅ | 100% | U-84→U-89 + F-101→F-102, 57/57 PASS [2026-04-16]. CL-4/5/6: JTAC_unitTypeNames supprimé, poids soldats connectés, 7 clés undeclared exposées [2026-05-12] |
 | Utils (`CTLD_utils.lua`) | ✅ | N/A | ✅ | 100% | M9: U-67→U-73 + F-78→F-80, 118/118 PASS [2026-04-09] |
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |
-| **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07] |
-| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07] |
-| **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07] |
+| **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation [SW×0.9,SW×1.2] + config keys actifs [2026-05-12] |
+| **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
 | Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116 6/6 visual PASS [2026-04-28] + F-117/F-118/F-119 19/19 PASS [2026-04-29] — reconEnabled=false message, toggle-OFF immédiat, AA icon fill+apex, layers scenario, reconIconScale |
 | FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 + F-90/F-93 visual ✅ [2026-04-14] |
-| Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07] |
+| Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07]. CL-4: spawnJTACFromDescriptor (ground+air) [2026-05-12] |
 | AA System (`CTLD_aasystem.lua`) | ✅ | ✅ | ✅ | 100% | 6/6 PASS [2026-04-07] |
 | Player (`CTLD_player.lua`) | ✅ | ✅ | ✅ | 100% | 7/7 PASS [2026-04-07] |
 | mineFieldScene | ✅ | ✅ | ✅ | 100% | U-74→U-75 + F-83→F-87, 40/40 PASS visual ✅ [2026-04-09] — quinconce + setLandMineAuto + showMinefieldOnF10Map |
