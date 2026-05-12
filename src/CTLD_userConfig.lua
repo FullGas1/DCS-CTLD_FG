@@ -60,6 +60,12 @@ ctld.yamlConfigDatas = [[
 # Minimum distance (m) from a friendly pickup zone at which a crate may be deployed.
 # ctld.minimumDeployDistance: 1000
 
+# Radius (m) of the logistic zone created around each LGZ_ trigger zone (dynamic logistic zones).
+# ctld.dynamicZoneRadius: 200
+
+# Interval (s) between successive smoke signal refreshes at logistic / troop zones.
+# ctld.smokeRefreshInterval: 300
+
 
 # ============================================================
 # Crates
@@ -96,6 +102,12 @@ ctld.yamlConfigDatas = [[
 # Minimum time (s) a player must wait after spawning a crate before spawning another.
 # ctld.crateWaitTime: 40
 
+# Spacing (m) between consecutive crate spawn positions along the spawn axis.
+# ctld.crateSpacing: 5
+
+# Extra radius (m) added to the transport's safe-radius when placing troops/crates in a circle.
+# ctld.spawnDistanceInCircle: 10
+
 
 
 # ============================================================
@@ -123,6 +135,11 @@ ctld.yamlConfigDatas = [[
 # Default number of troops loaded per transport (also acts as maximum group size
 # unless overridden per aircraft type in unitLoadLimits).
 # ctld.numberOfTroops: 10
+
+# Maximum total troop weight (kg) a transport can carry.
+# 0 = no weight limit (default).  When > 0, groups whose total weight would exceed
+# the limit cannot be loaded.
+# ctld.maxTransportWeight: 0
 
 # Maximum distance (m) from the transport to a troop group to allow extraction.
 # ctld.maxExtractDistance: 125
@@ -678,6 +695,30 @@ local _cfg = CTLDConfig.get()
 --     ["BTR_D"]                = 8000,
 --     ["M1045 HMMWV TOW"]      = 3220,
 --     ["M1043 HMMWV Armament"] = 2500,
+-- }
+
+-- ============================================================
+-- Per-aircraft troop capacity override
+-- Sets a custom max-troop count for specific aircraft types,
+-- overriding the global ctld.numberOfTroops default.
+-- Aircraft types not listed here use the global default.
+-- ============================================================
+-- _cfg.settings["transportLimitByType"] = {
+--     ["UH-1H"]     = 8,
+--     ["Mi-8MT"]    = 16,
+--     ["CH-47Fbl1"] = 33,
+--     ["C-130J-30"] = 80,
+-- }
+
+-- ============================================================
+-- Smoke colour at troop pickup zones (TRZ_ trigger zones)
+-- Table indexed by coalition number: 1 = RED, 2 = BLUE.
+-- -1 = no smoke ; 0=Green  1=Red  2=White  3=Orange  4=Blue.
+-- Omit the table entirely (default) to use no smoke.
+-- ============================================================
+-- _cfg.settings["troopZoneSmokeColor"] = {
+--     [1] = 1,  -- RED side zones use red smoke
+--     [2] = 4,  -- BLUE side zones use blue smoke
 -- }
 
 -- ============================================================
