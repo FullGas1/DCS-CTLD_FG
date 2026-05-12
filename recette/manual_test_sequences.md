@@ -47,9 +47,66 @@ touches that perimeter.
 
 ---
 
-## MT-02 — (placeholder for next manual sequence)
+## MT-02 — Véhicule entier transport (load / unload / parachute)
 
-*To be filled in when a new manual test sequence is validated.*
+**Perimeter / files:** `src/CTLD_vehicle.lua` — `loadVehicle`, `unloadVehicle`, `parachuteVehicle`,
+`spawnVehicleAt`, `refreshMenuSection` (Vehicle Commands)
+
+**Pre-requisites:**
+- Mission with at least 1 logistic zone containing a vehicle crate (e.g. Hummer, BTR-80)
+- Player in UH-1H (or any transport with `vehicles: true` in unitActions config)
+- `parachuteMinAltitudeVehicles` reachable with UH-1H (default 30 m AGL)
+- Config `ctld.settings["requestEquipmentTypes"]` includes the vehicle crate type
+
+### Sequence
+
+| # | Action | Verify |
+|---|--------|--------|
+| 1 | Land at logistic zone. Open Request Equipment → request the vehicle crate. | ✓ Crate spawns near helicopter. ✓ Screen message confirms spawn. |
+| 2 | Open Crate Commands → Unpack Crates. | ✓ Screen message confirms vehicle spawn. ✓ Ground vehicle unit is visible in the mission. |
+| 3 | Open Vehicle Commands → Load Vehicle (select the spawned vehicle). | ✓ Screen message confirms load. ✓ Vehicle unit disappears (destroyed on load for `menu_ctld`). ✓ Vehicle Commands → Check Cargo shows the vehicle type and weight. |
+| 4 | Take off to cruise altitude. Open Vehicle Commands in flight. | ✓ "Unload Vehicle" is **not visible** or **disabled** (ground-only). ✓ "Parachute Vehicle" is **visible and enabled** when in-flight. |
+| 5 | Land. Open Vehicle Commands → Unload Vehicle. | ✓ Screen message confirms unload. ✓ Vehicle respawns on the ground near the helicopter. ✓ Position is at least ~10 m from helicopter. |
+| 6 | Open Vehicle Commands → Load Vehicle (reload the same vehicle). | ✓ Load confirmed. ✓ Vehicle disappears. ✓ Check Cargo still shows vehicle. |
+| 7 | Take off to ≥ 50 m AGL. Open Vehicle Commands → Parachute Vehicle. | ✓ **Screen message appears**: "Parachuting vehicle \<type\> — landing in ~Xs". ✓ Message duration ~10 s. |
+| 8 | Wait for descent time (shown in step 7 message). | ✓ Vehicle spawns automatically on the ground at the computed drop position. ✓ No player action required after the menu command. |
+| 9 | Attempt Parachute Vehicle at < 30 m AGL. | ✓ Error message "Altitude too low for parachute drop..." is shown. ✓ No vehicle is unloaded. ✓ Vehicle Commands still shows vehicle in cargo. |
+
+### Pass criteria
+- Step 7: confirmation message present with vehicle type and estimated landing time
+- Step 8: vehicle auto-spawns without manual intervention after descentTime
+- Step 9: low-altitude guard prevents accidental drop
+
+---
+
+## MT-03 — Multi-véhicule entier : load / unload / parachute
+
+**Perimeter / files:** `src/CTLD_vehicle.lua` — `refreshLoadSection`, `refreshUnloadSection`,
+`refreshParachuteVehicleSection`, `loadVehicle`, `unloadVehicle`, `parachuteVehicle`,
+`getLoadedVehicleWeight`, `_updateVehicleCargo`
+
+**Pre-requisites:**
+- 2 vehicles entiers de types différents (or same type) spawned near the helicopter (via unpack or Witchcraft)
+- Player in UH-1H with `vehicles: true` and `canParachute: true` in unitActions config
+- Transport weight limit high enough to hold both vehicles (or explicitly lower to test limit guard)
+
+### Sequence
+
+| # | Action | Verify |
+|---|--------|--------|
+| 1 | Land. Open Vehicle Commands → Load / Extract Vehicles. | ✓ Submenu lists **both** nearby vehicles as separate entries (one per vehicle). ✓ Labels match the descriptor desc (or vehicleType fallback). |
+| 2 | Load vehicle A. | ✓ Vehicle A unit disappears. ✓ Load submenu now shows only vehicle B. ✓ Unload Vehicles submenu becomes enabled with 1 entry (vehicle A). ✓ Check Cargo (via Vehicle Commands) shows vehicle A with its weight. |
+| 3 | Load vehicle B. | ✓ Vehicle B unit disappears. ✓ Load submenu shows "No vehicles nearby". ✓ Unload Vehicles shows **2 entries** — one for A, one for B. ✓ Check Cargo shows cumulative weight (A + B). |
+| 4 | Open Unload Vehicles → choose vehicle A. | ✓ Vehicle A respawns on the ground (≥ 10 m from helicopter). ✓ Unload submenu now shows only vehicle B (1 entry). ✓ Check Cargo weight is reduced by vehicle A's weight. |
+| 5 | Take off to ≥ 50 m AGL. Open Vehicle Commands. | ✓ Unload Vehicles → "Land to unload vehicles" (command disabled in air). ✓ "Parachute Vehicle" command is **enabled**. |
+| 6 | Parachute Vehicle. | ✓ Screen message: "Parachuting vehicle \<typeB\> — landing in ~Xs". ✓ After descent time, vehicle B auto-spawns on the ground. ✓ Unload Vehicles becomes disabled (no vehicle left). ✓ "Parachute Vehicle" becomes disabled. |
+| 7 | Land. Reload both vehicles A and B. Take off. Use Parachute Vehicle twice in sequence. | ✓ First "Parachute Vehicle" drops one vehicle (confirmation message). ✓ "Parachute Vehicle" still enabled after first drop (second vehicle still loaded). ✓ Second "Parachute Vehicle" drops the remaining vehicle. ✓ After second drop: "Parachute Vehicle" becomes disabled. |
+
+### Pass criteria
+- Step 3: Unload submenu lists all loaded vehicles — no merge, no duplicate
+- Step 4: partial unload does not affect the other loaded vehicle
+- Step 6: single "Parachute Vehicle" command drops exactly one vehicle per press
+- Step 7: "Parachute Vehicle" re-enables after first drop while second vehicle still loaded
 
 ---
 
@@ -58,3 +115,6 @@ touches that perimeter.
 | Date | Sequence | Notes |
 |------|----------|-------|
 | 2026-05-12 | MT-01 | First validation — all 10 steps PASS after fixes: extract guard, spawn offset |
+| 2026-05-12 | MT-02 | Sequence defined; bug fix: missing parachute confirmation message added |
+| 2026-05-12 | MT-03 | PASS live DCS — bugs fixed: Load menu visible in-flight (inAir guard + refreshLoadSection missing from onTakeoff/onLand) |
+| 2026-05-13 | MT-04 | PASS live DCS — bug fix: missing parachute confirmation message in parachuteCrates |

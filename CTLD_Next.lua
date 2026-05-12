@@ -1841,6 +1841,8 @@ ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF
 --- Troop parachute
 ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
 ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
+ctld.i18n["en"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachuting vehicle %1 — landing in ~%2s"
+ctld.i18n["en"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachuting %1 crate(s) — landing in ~%2s"
 
 --- Multi-group transport menus
 ctld.i18n["en"]["Unload Troops"]                              = "Unload Troops"
@@ -2273,6 +2275,8 @@ ctld.i18n["fr"]["Smoke auto-resume OFF"]                = "Fumée auto-reprise D
 --- Troop parachute
 ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
 ctld.i18n["fr"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachutage de %1 (%2 soldats) — atterrissage dans ~%3s"
+ctld.i18n["fr"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachutage du véhicule %1 — atterrissage dans ~%2s"
+ctld.i18n["fr"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachutage de %1 caisse(s) — atterrissage dans ~%2s"
 
 --- Multi-group transport menus
 ctld.i18n["fr"]["Unload Troops"]                              = "Décharger les troupes"
@@ -2706,6 +2710,8 @@ ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudació
 --- Troop parachute
 ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
 ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"
+ctld.i18n["es"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Lanzamiento en paracaídas del vehículo %1 — aterrizaje en ~%2s"
+ctld.i18n["es"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Lanzamiento en paracaídas de %1 caja(s) — aterrizaje en ~%2s"
 
 --- Multi-group transport menus
 ctld.i18n["es"]["Unload Troops"]                              = "Desembarcar tropas"
@@ -2986,6 +2992,8 @@ ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 O
 --- Troop parachute
 ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
 ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"
+ctld.i18n["ko"]["Parachuting vehicle %1 — landing in ~%2s"]    = "차량 %1 낙하산 투하 — 약 %2초 후 착지"
+ctld.i18n["ko"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "박스 %1개 낙하산 투하 — 약 %2초 후 착지"
 
 --- Multi-group transport menus
 ctld.i18n["ko"]["Unload Troops"]                              = "병력 하차"
@@ -11831,6 +11839,12 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         return
     end
 
+    -- Announce drop to the player group (estimate descent time from current altitude)
+    local _, estDescentTime = ctld.utils.calcDropPosition(transport, descentRate)
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting %1 crate(s) — landing in ~%2s",
+            #loaded, math.floor(estDescentTime)), 10)
+
     for _, crate in ipairs(loaded) do
         local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
         crate:startParachute(altAGL)
@@ -13436,6 +13450,11 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
+    -- Announce drop to the player group
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting vehicle %1 — landing in ~%2s",
+            vehicle.vehicleType, math.floor(descentTime)), 10)
+
     -- Unload from transport — vehicle will be re-spawned at landing position.
     -- State is set to WAITING (not DELIVERED) so the vehicle can be reloaded after landing.
     local spawnData = vehicle.spawnData
@@ -13887,11 +13906,11 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
 
     local transport = Unit.getByName(playerObj.unitName)
     if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, vehSub, loadSub },
-            ctld.tr("Land to load vehicles"), function() end, {})
+        menu:setBranchEnabled({ root, vehSub, loadSub }, false)
         menu:refresh()
         return
     end
+    menu:setBranchEnabled({ root, vehSub, loadSub }, true)
 
     local loadable = self:findLoadableVehicles(transport)
     if #loadable == 0 then
@@ -13905,6 +13924,11 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
                 function(arg)
                     local t = Unit.getByName(arg.unitName)
                     if not (t and t:isExist()) then return end
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Land to load vehicles"), 8)
+                        return
+                    end
                     local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
                     if not v or v:getState() ~= CTLDVehicle.STATE.WAITING then
                         trigger.action.outTextForGroup(arg.groupId,
@@ -18850,6 +18874,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
+        CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
         CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
@@ -18864,6 +18889,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
     CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)

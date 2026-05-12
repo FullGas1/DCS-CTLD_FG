@@ -261,6 +261,8 @@ ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 O
 --- Troop parachute
 ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
 ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"
+ctld.i18n["ko"]["Parachuting vehicle %1 — landing in ~%2s"]    = "차량 %1 낙하산 투하 — 약 %2초 후 착지"
+ctld.i18n["ko"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "박스 %1개 낙하산 투하 — 약 %2초 후 착지"
 
 --- Multi-group transport menus
 ctld.i18n["ko"]["Unload Troops"]                              = "병력 하차"

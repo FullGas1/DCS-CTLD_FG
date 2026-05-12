@@ -995,6 +995,11 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
+    -- Announce drop to the player group
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting vehicle %1 — landing in ~%2s",
+            vehicle.vehicleType, math.floor(descentTime)), 10)
+
     -- Unload from transport — vehicle will be re-spawned at landing position.
     -- State is set to WAITING (not DELIVERED) so the vehicle can be reloaded after landing.
     local spawnData = vehicle.spawnData
@@ -1446,11 +1451,11 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
 
     local transport = Unit.getByName(playerObj.unitName)
     if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, vehSub, loadSub },
-            ctld.tr("Land to load vehicles"), function() end, {})
+        menu:setBranchEnabled({ root, vehSub, loadSub }, false)
         menu:refresh()
         return
     end
+    menu:setBranchEnabled({ root, vehSub, loadSub }, true)
 
     local loadable = self:findLoadableVehicles(transport)
     if #loadable == 0 then
@@ -1464,6 +1469,11 @@ function CTLDVehicleSpawner:refreshLoadSection(playerObj)
                 function(arg)
                     local t = Unit.getByName(arg.unitName)
                     if not (t and t:isExist()) then return end
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(arg.groupId,
+                            ctld.tr("Land to load vehicles"), 8)
+                        return
+                    end
                     local v = CTLDVehicleSpawner.getInstance()._vehicles[arg.vehicleId]
                     if not v or v:getState() ~= CTLDVehicle.STATE.WAITING then
                         trigger.action.outTextForGroup(arg.groupId,

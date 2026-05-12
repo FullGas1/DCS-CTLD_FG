@@ -417,6 +417,8 @@ ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF
 --- Troop parachute
 ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
 ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
+ctld.i18n["en"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachuting vehicle %1 — landing in ~%2s"
+ctld.i18n["en"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachuting %1 crate(s) — landing in ~%2s"
 
 --- Multi-group transport menus
 ctld.i18n["en"]["Unload Troops"]                              = "Unload Troops"

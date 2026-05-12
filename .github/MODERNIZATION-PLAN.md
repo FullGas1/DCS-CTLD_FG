@@ -665,9 +665,9 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ F-140→F-146 : 22/22 PASS [2026-05-12] — menu direct/sous-menu disembark, disembarkAll/Index,
              _menuCheckCargo multi-ligne+TOTAL, extract 1/N groupes avec distances
           ✅ MT-01 : test manuel 10 étapes PASS live DCS [2026-05-12] (recette/manual_test_sequences.md)
-          ⬜ MT-02 : test manuel multi-crate — menu pick/unload 1 vs N crates, spawn positions, Check Cargo
-          ⬜ MT-03 : test manuel multi-vehicle entier — load/unload 1 vs N véhicules, menu sélection, positions
-          ⬜ MT-04 : test manuel combinaison crate + troops — embarquement mixte, Check Cargo agrégé, disembark sélectif
+          ✅ MT-02 : test manuel véhicule entier PASS live DCS [2026-05-12] — bug fix: message confirmation parachutage manquant (parachuteVehicle)
+          ✅ MT-03 : test manuel multi-vehicle entier PASS live DCS [2026-05-12] — bugs fixed: inAir guard load closure + refreshLoadSection absent de onTakeoff/onLand
+          ✅ MT-04 : test manuel combinaison crate + troops PASS live DCS [2026-05-13] — bug fix: message confirmation parachutage crates manquant (parachuteCrates)
           ⬜ MT-05 : test manuel combinaison crate + vehicle entier — embarquement mixte, Check Cargo agrégé, unload sélectif
           ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
 

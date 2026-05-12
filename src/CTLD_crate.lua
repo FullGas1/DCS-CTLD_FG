@@ -1904,6 +1904,12 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         return
     end
 
+    -- Announce drop to the player group (estimate descent time from current altitude)
+    local _, estDescentTime = ctld.utils.calcDropPosition(transport, descentRate)
+    trigger.action.outTextForGroup(playerObj.groupId,
+        ctld.tr("Parachuting %1 crate(s) — landing in ~%2s",
+            #loaded, math.floor(estDescentTime)), 10)
+
     for _, crate in ipairs(loaded) do
         local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
         crate:startParachute(altAGL)
