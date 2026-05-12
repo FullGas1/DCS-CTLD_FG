@@ -427,8 +427,9 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ TroopsFullCycle v2 (8 steps PASS [2026-05-05]) — couvre JTAC troops lifecycle
           ✅ Drone JTAC orbit (F-106 visual PASS [2026-04-25])
           ✅ IN_TRANSIT vehicle (F-125→F-127 PASS [2026-05-06])
-          ⬜ JTAC sol Hummer end-to-end (Request Equipment → unpack → 9-Line)
-          ⬜ Beacon radio 3 émetteurs (VHF/UHF/FM) — recette visuelle manquante
+          ✅ JTAC sol Hummer end-to-end (Request Equipment → unpack → 9-Line) — PASS live DCS [2026-05-12]
+          ✅ Beacon radio 3 émetteurs (VHF/UHF/FM) — PASS live DCS [2026-05-12]
+             VHF ADF ✅ | FM homing ARC-131 ✅ | UHF soundSilent (beaconsilent.ogg) normal par design
 
 ✅  FG  Refonte système spawnableCrates — singleTypeSets auto + mixedSet [2026-04-26]
         - Suppression ~25 entrées multiple={w,w,...} manuelles dans config
