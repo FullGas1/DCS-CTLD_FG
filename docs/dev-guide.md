@@ -108,7 +108,9 @@ Full event catalogue: `docs/specs/CTLD_Events.md`
 All crate unpack outcomes (ground vehicle, air JTAC, future static) go through a single three-step pipeline in `CTLDCrateManager`:
 
 ```
-_spawnUnpacked(desc, pos, coa, cId)
+_spawnUnpacked(desc, pos, coa, cId, playerName)
+  ├── desc.isJTAC → CTLDJTACManager:_consumeJTACSlot(coa)   ← quota gate (definitive)
+  │     └── limit reached → notify player + return (no spawn)
   ├── ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
   │     ├── spawnAs == "GROUND"   → minimal {name, task, units[{x,y,heading}]}
   │     └── spawnAs == "AIRPLANE" → full {groupId, units[{alt,speed}], route[orbit+EPLRS]}
@@ -125,6 +127,7 @@ _spawnUnpacked(desc, pos, coa, cId)
 - `ctld.utils.buildGroupUnitDef` is the single builder for GROUND and AIR unitDefs. STATIC objects have a separate schema and go directly to `addStaticObject`.
 - Post-spawn role activation belongs exclusively in `_dispatchPostSpawn`. Do not add role logic elsewhere in the unpack path.
 - `CTLDJTACManager:deployAirJTAC` (legacy/script entry point) also routes through `buildGroupUnitDef` + `spawnFromDescriptor`.
+- JTAC quota (`JTAC_LIMIT_RED/BLUE`) is consumed **before** spawn in `_spawnUnpacked` (crate path) and in `spawnJTACFromDescriptor` (Request Equipment path). The quota is definitive — it is never refilled when a JTAC is killed. MM JTACs and infantry JTAC soldiers do not consume the quota.
 
 **Crate descriptor fields driving the pipeline:**
 
@@ -140,12 +143,14 @@ _spawnUnpacked(desc, pos, coa, cId)
 
 | Context | Rule |
 |---|---|
-| Request Equipment menu visibility | `_crateIsJTAC(desc)` — checks `desc.isJTAC` for singleCrates; for singleTypeSets/mixedSets resolves each weight via `findDescriptorByWeight` and returns true if any has `isJTAC=true` |
+| Request Equipment menu population | `CTLDCrateManager:getJTACDescriptors(coalition)` — iterates `_processedCrates`, returns all singleCrate entries with `isJTAC=true` for the player's coalition (or side=nil). No separate type list. |
+| Request Equipment spawn | `CTLDVehicleSpawner:spawnJTACFromDescriptor(desc, spawner, zone)` — quota check → ground: `spawnVehicleForTransport`+`startLase`; air: `deployAirJTAC` |
 | Post-unpack activation | `_dispatchPostSpawn`: `if desc.isJTAC → CTLDJTACManager:startLase()` |
 | Pre-placed MM group detection | Group name contains `"jtac"` (case-insensitive) — unit type not used |
 | Troop deploy with JTAC soldier | `tmpl.hasJtac == true` (computed from `jtac > 0` in template) → `startLase` after deploy |
 
 > **Do not add new JTAC detection paths.** If a new unit type needs JTAC behaviour, add `isJTAC=true` to its crate descriptor — never add it to a type-name list.
+> **Do not add a separate type list.** `JTAC_unitTypeNames` has been removed — the crate catalogue is the single source of truth for both the crate menu and the Request Equipment menu.
 
 ---
 

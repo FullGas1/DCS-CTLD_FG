@@ -416,6 +416,9 @@ function CTLDJTACManager.getInstance()
         -- Target deconfliction: { [enemyUnitName] = jtacKey } — tracks targets currently being lased.
         -- Prevents multiple concurrent JTACs from lasing the same target.
         o._claimedTargets = {}
+        -- JTAC quota counters: number of JTAC objects spawned by players (definitive, non-refillable).
+        -- Keyed by coalition.side (1=RED, 2=BLUE). Does NOT count MM JTACs or infantry JTAC soldiers.
+        o._jtacSlotsUsed  = { [1] = 0, [2] = 0 }
         o:_initLaserPool()
         CTLDJTACManager._instance = o
         CTLDPlayerManager.getInstance():registerMenuSection({
@@ -1363,6 +1366,22 @@ function CTLDJTACManager:_stopLaseAndPublish(jtac, reason)
     })
 end
 
+--- Attempt to consume one JTAC slot for a coalition.
+-- The quota is definitive (legacy behaviour): slots are never refilled when a JTAC dies.
+-- Does NOT apply to MM JTACs (registerMMJTAC) or infantry JTAC soldiers.
+-- @param coalitionId number  coalition.side.RED (1) or BLUE (2)
+-- @return boolean, string|nil   true on success; false + i18n message when limit reached
+function CTLDJTACManager:_consumeJTACSlot(coalitionId)
+    local key   = (coalitionId == coalition.side.RED) and "JTAC_LIMIT_RED" or "JTAC_LIMIT_BLUE"
+    local limit = ctld.gs(key) or 10
+    local used  = self._jtacSlotsUsed[coalitionId] or 0
+    if used >= limit then
+        return false, ctld.tr("JTAC limit reached for your coalition.")
+    end
+    self._jtacSlotsUsed[coalitionId] = used + 1
+    return true
+end
+
 --- Fill the laser pool with all valid codes (1111–1688). Called at init and cleanup.
 function CTLDJTACManager:_initLaserPool()
     self._laserPool = {}
@@ -1443,14 +1462,17 @@ end
 function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
     if ctld.gs("JTAC_dropEnabled") == false then return end
     if not playerObj.isTransport then return end
-    local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
-    if #typeNames == 0 then return end
+
+    -- Derive available JTAC types from spawnableCrates descriptors (isJTAC=true)
+    -- rather than a separate JTAC_unitTypeNames list — single source of truth.
+    local descs = CTLDCrateManager.getInstance():getJTACDescriptors(playerObj.coalition)
+    if #descs == 0 then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
     if not menu then return end
 
-    local root   = ctld.tr("CTLD")
+    local root    = ctld.tr("CTLD")
     local jtacSub = ctld.tr("JTAC")
     local reqSub  = ctld.tr("Request JTAC Equipment")
     menu:clearBranch({ root, jtacSub, reqSub })
@@ -1472,8 +1494,8 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
         return
     end
 
-    for _, typeName in ipairs(typeNames) do
-        menu:addCommand({ root, jtacSub, reqSub }, typeName,
+    for _, desc in ipairs(descs) do
+        menu:addCommand({ root, jtacSub, reqSub }, desc.desc,
             function(arg)
                 local t = Unit.getByName(arg.unitName)
                 if not (t and t:isExist()) then return end
@@ -1484,17 +1506,17 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
                         ctld.tr("You are not close enough to friendly logistics."), 10)
                     return
                 end
-                local vehicle = CTLDVehicleSpawner.getInstance()
-                    :spawnJTACVehicleForTransport(arg.typeName, t, z)
-                if vehicle then
+                local result = CTLDVehicleSpawner.getInstance()
+                    :spawnJTACFromDescriptor(arg.desc, t, z)
+                if result then
                     trigger.action.outTextForGroup(arg.groupId,
-                        string.format(ctld.tr("%s is ready for pickup."), arg.typeName), 10)
+                        string.format(ctld.tr("%s is ready for pickup."), arg.desc.desc), 10)
                 end
             end,
             { unitName  = playerObj.unitName,
               groupId   = playerObj.groupId,
               coalition = playerObj.coalition,
-              typeName  = typeName })
+              desc      = desc })
     end
     menu:refresh()
 end
@@ -1511,10 +1533,11 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     local jtacSub = ctld.tr("JTAC")
     menu:addSubMenu({ root }, jtacSub, { order = 90 })
 
-    -- Request JTAC Equipment: dynamic section rebuilt on landing/takeoff/FOB events
+    -- Request JTAC Equipment: dynamic section rebuilt on landing/takeoff/FOB events.
+    -- Populated from spawnableCrates descriptors with isJTAC=true (no separate type list).
     if ctld.gs("JTAC_dropEnabled") ~= false and playerObj.isTransport then
-        local typeNames = (ctld.gs("JTAC_unitTypeNames") or {})[playerObj.coalition] or {}
-        if #typeNames > 0 then
+        local descs = CTLDCrateManager.getInstance():getJTACDescriptors(playerObj.coalition)
+        if #descs > 0 then
             menu:addSubMenu({ root, jtacSub }, ctld.tr("Request JTAC Equipment"))
             self:refreshJtacEquipmentSection(playerObj)
         end

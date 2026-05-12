@@ -361,18 +361,36 @@ function CTLDVehicleSpawner:registerJTACVehicle(groupName, vehicleType, spawner,
     return vehicle
 end
 
---- Spawn a JTAC vehicle near a transport (Request JTAC Equipment menu action).
--- Delegates spawn to spawnVehicleForTransport then starts JTAC lasing.
--- @param vehicleType  string        DCS type name from JTAC_unitTypeNames
--- @param spawner      DCS Unit      requesting transport
+--- Spawn a JTAC unit from a crate descriptor (Request JTAC Equipment menu action).
+-- Handles both ground vehicles (spawnAs=nil/"GROUND") and drones (spawnAs="AIRPLANE").
+-- Consumes one JTAC quota slot before spawning (definitive, non-refillable — legacy behaviour).
+-- @param desc         table             crate descriptor with isJTAC=true
+-- @param spawner      DCS Unit          requesting transport
 -- @param logisticZone CTLDLogisticZone
--- @return CTLDVehicle or nil
-function CTLDVehicleSpawner:spawnJTACVehicleForTransport(vehicleType, spawner, logisticZone)
-    local vehicle = self:spawnVehicleForTransport(vehicleType, spawner, logisticZone)
-    if not vehicle then return nil end
-    -- Register as JTAC and start lasing
-    CTLDJTACManager.getInstance():startLase(vehicle.spawnData.groupName)
-    return vehicle
+-- @return CTLDVehicle|true|nil   CTLDVehicle for ground, true for air, nil on failure
+function CTLDVehicleSpawner:spawnJTACFromDescriptor(desc, spawner, logisticZone)
+    -- Quota check — same slot pool as the crate unpack path
+    local coa = spawner:getCoalition()
+    local ok, reason = CTLDJTACManager.getInstance():_consumeJTACSlot(coa)
+    if not ok then
+        local pObj = CTLDPlayerManager.getInstance()._players[spawner:getName()]
+        if pObj then trigger.action.outTextForGroup(pObj.groupId, reason, 10) end
+        ctld.utils.log("WARN", "CTLDVehicleSpawner:spawnJTACFromDescriptor — quota: %s", tostring(reason))
+        return nil
+    end
+
+    local spawnAs = desc.spawnAs or "GROUND"
+    if spawnAs ~= "GROUND" and spawnAs ~= "STATIC" then
+        -- Air JTAC (drone): delegate to deployAirJTAC with transport position
+        CTLDJTACManager.getInstance():deployAirJTAC(spawner, spawner:getPoint(), desc, spawner:getCountry())
+        return true
+    else
+        -- Ground JTAC vehicle: spawn then register + start lasing
+        local vehicle = self:spawnVehicleForTransport(desc.unit, spawner, logisticZone)
+        if not vehicle then return nil end
+        CTLDJTACManager.getInstance():startLase(vehicle.spawnData.groupName)
+        return vehicle
+    end
 end
 
 -- ============================================================

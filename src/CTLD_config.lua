@@ -371,18 +371,11 @@ function CTLDConfig:load()
     self.settings["JTAC_targetDeconfliction"]             = true  -- prevent multiple JTACs from lasing the same target simultaneously
     self.settings["enableAutoOrbitingFlyingJtacOnTarget"] = true  -- if true, flying JTAC drones auto-orbit detected targets
 
-    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list)
+    -- JTAC role is declared via isJTAC=true in spawnableCrates descriptors (no separate type list).
+    -- The "Request JTAC Equipment" F10 menu is auto-populated from those same descriptors —
+    -- no separate JTAC_unitTypeNames table is needed.
     self.settings["JTAC_droneRadius"]                     = 1000 -- fallback orbit radius (m) when crate specificParams absent
     self.settings["JTAC_droneAltitude"]                   = 4000 -- fallback orbit altitude AGL (m) when crate specificParams absent
-
-    -- JTAC equipment requestable via F10 JTAC > Request JTAC Equipment, per coalition.
-    -- Values are exact DCS type names passed directly to coalition.addGroup — no pattern matching.
-    -- Note: DCS may encode the dash character differently in some typenames (legacy issue with SKP-11).
-    -- If a vehicle does not appear in-game, verify the typename via unit:getTypeName() in a test script.
-    self.settings["JTAC_unitTypeNames"]                   = {
-        [1] = { "SKP-11" }, -- RED: JTAC vehicles available to RED coalition
-        [2] = { "Hummer" }, -- BLUE: JTAC vehicles available to BLUE coalition
-    }
 
     -- ═══════════════════════════════════════════════════════════
     -- [10] RECON — Recon menu, LOS search, auto-refresh

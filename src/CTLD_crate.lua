@@ -1606,6 +1606,25 @@ function CTLDCrateManager:destroyCrate(crateName)
 end
 
 --- Find a CTLD descriptor by the DCS unit field (vehicle typeName for pack lookup).
+--- Returns all single-crate descriptors with isJTAC=true available to a coalition.
+-- Used by CTLDJTACManager to populate the "Request JTAC Equipment" F10 menu.
+-- Includes descriptors for all sides (side=nil), the given coalition, and ignores cratesRequired.
+-- @param coalitionId number  coalition.side.RED (1) or coalition.side.BLUE (2)
+-- @return table  list of descriptor tables (may be empty)
+function CTLDCrateManager:getJTACDescriptors(coalitionId)
+    local result = {}
+    if not self._processedCrates then return result end
+    for _, catData in pairs(self._processedCrates) do
+        for _, entry in ipairs(catData.singleCrates or {}) do
+            local sc = entry.singleCrate
+            if sc and sc.isJTAC and (sc.side == nil or sc.side == coalitionId) then
+                table.insert(result, sc)
+            end
+        end
+    end
+    return result
+end
+
 -- Uses self._weightIndex (singleCrates only) built by _processSpawnableCrates.
 -- @param typeName string  DCS typeName (e.g. "M-1 Abrams")
 -- @return descriptor table or nil
@@ -1775,6 +1794,19 @@ function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
     if isAir and ctld.gs("JTAC_dropEnabled") == false then
         ctld.utils.log("INFO", "CTLDCrateManager:_spawnUnpacked — JTAC_dropEnabled=false, skipped")
         return
+    end
+
+    -- Consume one JTAC slot before spawning (quota is definitive — legacy behaviour).
+    if desc.isJTAC then
+        local ok, reason = CTLDJTACManager.getInstance():_consumeJTACSlot(coa)
+        if not ok then
+            ctld.utils.log("WARN", "CTLDCrateManager:_spawnUnpacked — JTAC slot limit: %s", tostring(reason))
+            if playerName then
+                local pObj = CTLDPlayerManager.getInstance()._players[playerName]
+                if pObj then trigger.action.outTextForGroup(pObj.groupId, reason, 10) end
+            end
+            return
+        end
     end
 
     local gid   = ctld.utils.getNextUniqId()

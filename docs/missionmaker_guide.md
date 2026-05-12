@@ -170,8 +170,8 @@ CTLD calculates group weight to check whether a troop group fits inside a transp
 
 | Parameter | Default | Description |
 |---|---|---|
-| `JTAC_LIMIT_BLUE` | `10` | Max JTAC crates for BLUE |
-| `JTAC_LIMIT_RED` | `10` | Max JTAC crates for RED |
+| `JTAC_LIMIT_BLUE` | `10` | Max JTAC objects BLUE may spawn (definitive quota — not refilled when a JTAC is killed) |
+| `JTAC_LIMIT_RED` | `10` | Max JTAC objects RED may spawn (same) |
 | `JTAC_dropEnabled` | `true` | Allow JTAC crate spawn from F10 |
 | `JTAC_maxDistance` | `10000` | JTAC line-of-sight range (metres) |
 | `JTAC_lock` | `"all"` | Target filter: `"vehicle"` \| `"troop"` \| `"all"` |
@@ -1454,7 +1454,7 @@ CTLD provides two JTAC modes: **crate-deployed JTACs** (spawned by players from 
 
 > **Menu constraint:** The "Request JTAC Equipment" submenu is **dynamic**. It shows available types only when the player is landed inside an active logistics zone. Outside a LGZ the submenu displays "No logistics in range" (no-op). The submenu refreshes automatically on landing, takeoff, and FOB deployment.
 >
-> **Visibility gate:** The submenu only appears if `JTAC_dropEnabled ≠ false`, the player's aircraft is a transport (`isTransport=true`), and `JTAC_unitTypeNames[coalition]` is non-empty.
+> **Visibility gate:** The submenu only appears if `JTAC_dropEnabled ≠ false`, the player's aircraft is a transport (`isTransport=true`), and at least one `spawnableCrates` descriptor with `isJTAC=true` is available for the player's coalition. No separate type list is required — JTAC types are derived directly from the crate catalogue.
 
 #### Spawn JTAC (from crate)
 **Utility:** Deploys a JTAC unit from a crate near the current position. The JTAC starts lasing immediately.
@@ -1505,8 +1505,8 @@ When a troop template includes `jtac` slots (e.g. `composition = { inf = 4, jtac
 
 | Parameter | Default | Description |
 |---|---|---|
-| `JTAC_LIMIT_BLUE` | `10` | Max JTAC crates for BLUE |
-| `JTAC_LIMIT_RED` | `10` | Max JTAC crates for RED |
+| `JTAC_LIMIT_BLUE` | `10` | Max JTAC objects BLUE may spawn (definitive — not refilled on JTAC death) |
+| `JTAC_LIMIT_RED` | `10` | Max JTAC objects RED may spawn (same) |
 | `JTAC_dropEnabled` | `true` | Enable JTAC crate spawn from F10 |
 | `JTAC_maxDistance` | `10000` | JTAC LOS scan range (m) |
 | `JTAC_lock` | `"all"` | Target filter: `"vehicle"`, `"troop"`, `"all"` |

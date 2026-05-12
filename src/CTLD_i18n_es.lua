@@ -385,6 +385,7 @@ ctld.i18n["es"]["Request JTAC Equipment"] = "Solicitar equipo JTAC"
 ctld.i18n["es"]["You must be landed to request JTAC equipment."] = "Debes estar posado para solicitar equipo JTAC."
 ctld.i18n["es"]["You are not close enough to friendly logistics."] = "No estás suficientemente cerca de la logística aliada."
 ctld.i18n["es"]["%s is ready for pickup."] = "%s listo para embarque."
+ctld.i18n["es"]["JTAC limit reached for your coalition."] = "Límite JTAC alcanzado para tu coalición."
 
 --- Request Equipment spawn messages
 ctld.i18n["es"]["Land near logistics to request equipment"] = "Aterriza cerca de la logística para solicitar equipo"
