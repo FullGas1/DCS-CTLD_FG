@@ -981,9 +981,11 @@ Minor cleanups identified — low priority, no functional impact.
 - **CL-4** ⚠️ Analyse approfondie requise — Implémenter `JTAC_LIMIT_BLUE` / `JTAC_LIMIT_RED` :
   lu via `ctld.gs()` mais jamais connecté dans `CTLDJTACManager`. Vérifier spec JTAC + comportement
   legacy avant implémentation.
-- **CL-5** ⚠️ Analyse approfondie requise — Poids soldats (`SOLDIER_WEIGHT`, `KIT_WEIGHT`, `RIFLE_WEIGHT`,
-  `MANPAD_WEIGHT`, `MG_WEIGHT`, `MORTAR_WEIGHT`) : déclarés dans userConfig mais jamais lus via
-  `ctld.gs()`. Localiser l'accès réel (direct `ctld.X` ? hardcodé ?) avant toute modification.
+- ~~**CL-5**~~ ✅ Poids soldats connectés à la config. `_ROLE_WEIGHTS` (hardcodée, base=84 figée) remplacée par
+  `_ROLE_EQUIP_WEIGHTS` (fallback), `_initWeightConfig()` (lecture `ctld.gs()` à l'init) et
+  `_weightForGroup()` (randomisation par soldat dans [SW×0.9, SW×1.2] + kit + équipement).
+  Clés `SOLDIER_WEIGHT`, `KIT_WEIGHT`, `RIFLE_WEIGHT`, `MANPAD_WEIGHT`, `MG_WEIGHT`,
+  `MORTAR_WEIGHT`, `JTAC_WEIGHT`, `RPG_WEIGHT` désormais actives. [2026-05-12]
 - ~~**CL-6**~~ ✅ 7 clés lues via `ctld.gs()` mais non déclarées dans userConfig ajoutées :
   `crateSpacing`, `dynamicZoneRadius`, `maxTransportWeight`, `smokeRefreshInterval`,
   `spawnDistanceInCircle`, `transportLimitByType`, `troopZoneSmokeColor`. [2026-05-12]
