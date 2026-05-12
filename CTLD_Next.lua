@@ -5082,6 +5082,55 @@ function ctld.utils.updateTransportWeight(unitName)
         "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
 end
 
+-- ============================================================
+-- ctld.scheduler  — central registry for long-running timer loops
+-- ============================================================
+-- Stores functionIds returned by timer.scheduleFunction so they can be
+-- cancelled individually or all at once (e.g. before CTLD re-injection).
+--
+-- Usage:
+--   local fid = timer.scheduleFunction(myLoop, nil, timer.getTime() + 5)
+--   ctld.scheduler.register("my_loop_name", fid)
+--
+-- Shutdown (inject recette/shutdown_ctld.lua before re-injecting CTLD_Next):
+--   ctld.scheduler.cancelAll()
+-- ============================================================
+
+ctld.scheduler = {
+    _ids = {}
+}
+
+--- Register a scheduled function by name. Cancels any previous loop with the
+-- same name before storing the new ID (re-injection guard).
+-- @param name       string   unique key (e.g. "beacon_refresh", "ai_transport")
+-- @param functionId number   value returned by timer.scheduleFunction
+function ctld.scheduler.register(name, functionId)
+    if ctld.scheduler._ids[name] then
+        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+    end
+    ctld.scheduler._ids[name] = functionId
+end
+
+--- Cancel a single loop by name.
+-- @param name string
+function ctld.scheduler.cancel(name)
+    if ctld.scheduler._ids[name] then
+        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+        ctld.scheduler._ids[name] = nil
+    end
+end
+
+--- Cancel all registered loops (call before re-injecting CTLD_Next.lua).
+function ctld.scheduler.cancelAll()
+    local n = 0
+    for name, fid in pairs(ctld.scheduler._ids) do
+        pcall(timer.removeFunction, fid)
+        ctld.scheduler._ids[name] = nil
+        n = n + 1
+    end
+    ctld.utils.log("INFO", "ctld.scheduler.cancelAll: %d loop(s) cancelled", n)
+end
+
 -- End : CTLD_utils.lua
 -- ====================================================================================================
 -- Start : CTLD_menu.lua
@@ -15745,11 +15794,14 @@ end
 function CTLDBeaconManager:_scheduleRefresh()
     local interval = ctld.gs("beaconRefreshInterval") or 60
     local self_ref = self
-    local function refresh()
+    local function refresh(_, t)
+        -- Guard B: stop zombie loop if this instance is no longer the singleton.
+        if CTLDBeaconManager._instance ~= self_ref then return nil end
         self_ref:_refreshAll()
-        timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+        return t + interval
     end
-    timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    local fid = timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    ctld.scheduler.register("beacon_refresh", fid)
 end
 
 function CTLDBeaconManager:_refreshAll()
@@ -19462,10 +19514,13 @@ function CTLDCoreManager:_initAITransports()
     -- Start polling loop (2 s interval — same as legacy).
     local selfRef = self
     local function loop(_, t)
+        -- Guard B: stop zombie loop if this instance is no longer the singleton.
+        if CTLDCoreManager._instance ~= selfRef then return nil end
         selfRef:_checkAIStatus()
         return t + 2
     end
-    timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    local fid = timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    ctld.scheduler.register("ai_transport", fid)
     ctld.utils.log("INFO", "CTLDCoreManager: INIT-A complete — AI transport loop started (%d pilot name(s))",
         #pilotNames)
 end

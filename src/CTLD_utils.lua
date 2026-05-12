@@ -2076,3 +2076,52 @@ function ctld.utils.updateTransportWeight(unitName)
     ctld.utils.log("INFO",
         "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
 end
+
+-- ============================================================
+-- ctld.scheduler  — central registry for long-running timer loops
+-- ============================================================
+-- Stores functionIds returned by timer.scheduleFunction so they can be
+-- cancelled individually or all at once (e.g. before CTLD re-injection).
+--
+-- Usage:
+--   local fid = timer.scheduleFunction(myLoop, nil, timer.getTime() + 5)
+--   ctld.scheduler.register("my_loop_name", fid)
+--
+-- Shutdown (inject recette/shutdown_ctld.lua before re-injecting CTLD_Next):
+--   ctld.scheduler.cancelAll()
+-- ============================================================
+
+ctld.scheduler = {
+    _ids = {}
+}
+
+--- Register a scheduled function by name. Cancels any previous loop with the
+-- same name before storing the new ID (re-injection guard).
+-- @param name       string   unique key (e.g. "beacon_refresh", "ai_transport")
+-- @param functionId number   value returned by timer.scheduleFunction
+function ctld.scheduler.register(name, functionId)
+    if ctld.scheduler._ids[name] then
+        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+    end
+    ctld.scheduler._ids[name] = functionId
+end
+
+--- Cancel a single loop by name.
+-- @param name string
+function ctld.scheduler.cancel(name)
+    if ctld.scheduler._ids[name] then
+        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+        ctld.scheduler._ids[name] = nil
+    end
+end
+
+--- Cancel all registered loops (call before re-injecting CTLD_Next.lua).
+function ctld.scheduler.cancelAll()
+    local n = 0
+    for name, fid in pairs(ctld.scheduler._ids) do
+        pcall(timer.removeFunction, fid)
+        ctld.scheduler._ids[name] = nil
+        n = n + 1
+    end
+    ctld.utils.log("INFO", "ctld.scheduler.cancelAll: %d loop(s) cancelled", n)
+end

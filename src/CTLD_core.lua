@@ -454,10 +454,13 @@ function CTLDCoreManager:_initAITransports()
     -- Start polling loop (2 s interval — same as legacy).
     local selfRef = self
     local function loop(_, t)
+        -- Guard B: stop zombie loop if this instance is no longer the singleton.
+        if CTLDCoreManager._instance ~= selfRef then return nil end
         selfRef:_checkAIStatus()
         return t + 2
     end
-    timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    local fid = timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    ctld.scheduler.register("ai_transport", fid)
     ctld.utils.log("INFO", "CTLDCoreManager: INIT-A complete — AI transport loop started (%d pilot name(s))",
         #pilotNames)
 end

@@ -542,11 +542,14 @@ end
 function CTLDBeaconManager:_scheduleRefresh()
     local interval = ctld.gs("beaconRefreshInterval") or 60
     local self_ref = self
-    local function refresh()
+    local function refresh(_, t)
+        -- Guard B: stop zombie loop if this instance is no longer the singleton.
+        if CTLDBeaconManager._instance ~= self_ref then return nil end
         self_ref:_refreshAll()
-        timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+        return t + interval
     end
-    timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    local fid = timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    ctld.scheduler.register("beacon_refresh", fid)
 end
 
 function CTLDBeaconManager:_refreshAll()
