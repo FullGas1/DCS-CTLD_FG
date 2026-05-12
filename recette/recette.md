@@ -340,7 +340,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Sprint 2a — DCS native crate load/unload + autoUnpack parachute** : 4 fonctionnels = **19 cas** ✅ PASS (F-128 5/5 + F-129 5/5 + F-130 5/5 + F-131 4/4 [2026-05-06]) — nativeCrateLink linkOffsetRef 3D, drift>1m UNLOAD sol+vol, fromParachute, checkAutoUnpack centroïde
 - **JTAC vehicle via crate pack** : 1 fonctionnel = **7 cas** ✅ PASS (F-132 7/7 [2026-05-06]) — deregisterJTAC@packVehicle, jtacs=nil, laserCode freed
 - **Feature N — AI transport INIT-A** : 2 fonctionnels = **10 cas** ✅ PASS (F-133 4/4 + F-134 6/6 [2026-05-12]) — `_aiTeams` population ; pickup/dropoff branch logic (mocks)
-- **Total** : **232 cas** — 1063/1063 PASS ✅
+- **ctld.scheduler — registre central + guard B** : 5 fonctionnels = **17 cas** ✅ PASS (F-135 9/9 + F-136 3/3 + F-137 3/3 + F-138 3/3 + F-139 4/4 [2026-05-12]) — register/cancel/cancelAll ; beacon+AI registration ; zombie guard ; re-registration post-cancelAll
+- **Total** : **237 cas** — 1080/1080 PASS ✅
 
 ---
 
