@@ -181,14 +181,15 @@ CTLDTroopManager._UNIT_TYPES = {
     jtac   = { [1] = "Infantry AK",        [2] = "Soldier M4 GRG"    },  -- same model, name prefix = "JTAC"
 }
 
--- Average weight (kg) per soldier per role: base 84 + kit 20 + equipment
-CTLDTroopManager._ROLE_WEIGHTS = {
-    inf    = 109,   -- 84+20+5
-    mg     = 114,   -- 84+20+10
-    at     = 112,   -- 84+20+7.6 (rounded)
-    aa     = 122,   -- 84+20+18
-    mortar = 130,   -- 84+20+26
-    jtac   = 124,   -- 84+20+15+5
+-- Equipment-only weight (kg) per role, used as additive on top of base+kit.
+-- Fallback defaults — overridden at init() time from ctld.gs() config keys.
+CTLDTroopManager._ROLE_EQUIP_WEIGHTS = {
+    inf    = 5,    -- RIFLE_WEIGHT
+    mg     = 10,   -- MG_WEIGHT
+    at     = 7.6,  -- RPG_WEIGHT
+    aa     = 18,   -- MANPAD_WEIGHT
+    mortar = 26,   -- MORTAR_WEIGHT
+    jtac   = 20,   -- JTAC_WEIGHT + RIFLE_WEIGHT
 }
 
 -- Processing order matches ctld.generateTroopTypes in source
@@ -218,6 +219,7 @@ function CTLDTroopManager:init()
     self._templates        = {}              -- mutable runtime list (standard + custom)
     self:_registerTemplates()
     self:_loadUserConfig()
+    self:_initWeightConfig()
     self._templateCount = #self._templates
     CTLDPlayerManager.getInstance():registerMenuSection({
         key    = "troops",
@@ -319,6 +321,41 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
 end
 
 -- Applies ctld_config_user.customLoadableGroups and ctld_config_user.disableLoadableGroups.
+-- Reads weight config keys and caches runtime values on the instance.
+-- Called once at init() after config is loaded.
+function CTLDTroopManager:_initWeightConfig()
+    self._soldierWeight = ctld.gs("SOLDIER_WEIGHT") or 80
+    self._kitWeight     = ctld.gs("KIT_WEIGHT")     or 20
+    self._roleEquipWeights = {
+        inf    = ctld.gs("RIFLE_WEIGHT")   or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.inf,
+        mg     = ctld.gs("MG_WEIGHT")      or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.mg,
+        at     = ctld.gs("RPG_WEIGHT")     or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.at,
+        aa     = ctld.gs("MANPAD_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.aa,
+        mortar = ctld.gs("MORTAR_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.mortar,
+        jtac   = (ctld.gs("JTAC_WEIGHT") or 15) + (ctld.gs("RIFLE_WEIGHT") or 5),
+    }
+end
+
+-- Computes total weight (kg) for a troop group template.
+-- Each soldier's base weight is randomised in [SOLDIER_WEIGHT×0.9, SOLDIER_WEIGHT×1.2].
+-- KIT_WEIGHT and role-specific equipment are then added.
+-- @param template  table  group template with role count fields (inf, mg, at, aa, mortar, jtac)
+-- @return number  total weight in kg
+function CTLDTroopManager:_weightForGroup(template)
+    local sw   = self._soldierWeight   or 80
+    local kit  = self._kitWeight       or 20
+    local equip = self._roleEquipWeights or CTLDTroopManager._ROLE_EQUIP_WEIGHTS
+    local total = 0
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        local n = template[role] or 0
+        for _ = 1, n do
+            local base = sw * (0.9 + math.random() * 0.3)
+            total = total + base + kit + (equip[role] or 5)
+        end
+    end
+    return total
+end
+
 function CTLDTroopManager:_loadUserConfig()
     local cfg = (type(ctld_config_user) == "table") and ctld_config_user or {}
 
@@ -558,11 +595,7 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
     end
 
     -- Compute weight from role counts (needed for capacity check)
-    local weight = 0
-    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
-        local n = template[role] or 0
-        weight  = weight + n * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
-    end
+    local weight = self:_weightForGroup(template)
 
     -- Capacity check: always cumulative via _canEmbark (multiple groups allowed up to transport limit).
     do
@@ -2040,10 +2073,7 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
         ctld.utils.log("ERROR", "CTLDTroopManager:preLoadTransport — no template for '%s'", unitName)
         return false
     end
-    local weight = 0
-    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
-        weight = weight + (tmpl[role] or 0) * (CTLDTroopManager._ROLE_WEIGHTS[role] or 109)
-    end
+    local weight = self:_weightForGroup(tmpl)
 
     local _aliveUnits = {}
     local _jtacUnits  = {}
