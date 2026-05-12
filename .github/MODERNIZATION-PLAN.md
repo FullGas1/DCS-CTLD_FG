@@ -463,6 +463,8 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ AI transport loop : guard B + register "ai_transport"
           ✅ recette/shutdown_ctld.lua : script Witchcraft → ctld.scheduler.cancelAll() avant réinjection
         Vérifié live DCS : cancelAll annule 2 boucles (beacon_refresh + ai_transport) ✅
+        Note : l'item "CTLDCoreManager:shutdown()" du backlog est couvert par ctld.scheduler.cancelAll()
+               → aucun wrapper shutdown() séparé nécessaire
         (D) Bonne pratique recette : ne pas détruire de vrais groupes DCS dans les scénarios
             Witchcraft (déclenche S_EVENT_DEAD → rebuild menu concurrent) — documenté ici
 
@@ -635,7 +637,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Code coverage : 6/6 hooks implémentés et recettés. groupName cohérent entre
         enregistrement et appel (respawn conserve sd.groupName). ✅
 
-🔄  FG  Feature L — Multi-group transport [2026-05-07]
+✅  FG  Feature L — Multi-group transport [2026-05-12]
         Spec validée : multiGroupTransport guard, _inTransit list, _currentTroopCount/_canEmbark
         Codé :
           ✅ _inTransit[unitName] → {CTLDTroopGroup,...} toujours liste
@@ -650,8 +652,12 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ config : multiGroupTransport=false, maxVehiclesByType
           ✅ i18n EN/FR/ES/KO : Unload All, Parachute All, Check Cargo, weight limit
           ✅ MM guide §Troop Commands mis à jour
+          ✅ Bugfix : extract from field visible avec troupes à bord si capacité disponible
+          ✅ Bugfix : spawn center décalé à (safeR + spreadR) en direction aléatoire — évite overlap
         Recette :
-          ⬜ Scénario multi-group : UH-1H (2 embarquements séquentiels, unload all, check cargo)
+          ✅ F-140→F-146 : 22/22 PASS [2026-05-12] — menu direct/sous-menu disembark, disembarkAll/Index,
+             _menuCheckCargo multi-ligne+TOTAL, extract 1/N groupes avec distances
+          ✅ MT-01 : test manuel 10 étapes PASS live DCS [2026-05-12] (recette/manual_test_sequences.md)
           ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
 
 ✅  FG  Feature M — JTAC smoke x/z offset [2026-05-12]

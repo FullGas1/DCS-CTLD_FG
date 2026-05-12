@@ -708,16 +708,22 @@ function CTLDTroopManager:disembark(unit)
         ctld.utils.log("INFO", "deploy: %d troops sent to objective TRZ '%s' (flag %s = %d)",
             group.unitTotal, exzZone.zoneName, exzZone.objectiveFlag, current + group.unitTotal)
     else
-        -- Compute circle radius: safe distance from aircraft + config offset
-        local safeR   = ctld.utils.getSecureDistanceFromUnit(unitName) or 10
-        local circleR = safeR + (ctld.gs("spawnDistanceInCircle") or 10)
+        -- Place group center at (safeR + spreadR) from the aircraft in a random direction.
+        -- This guarantees the closest unit in the circle stays at least safeR (≥10m)
+        -- from the transport, and successive disembark calls do not spawn on top of each other.
+        local safeR     = ctld.utils.getSecureDistanceFromUnit(unitName) or 10
+        local spreadR   = ctld.gs("spawnDistanceInCircle") or 10
+        local randAngle = math.random() * 2 * math.pi
+        local centerDist = safeR + spreadR
+        local spawnX    = pt.x + math.sin(randAngle) * centerDist
+        local spawnZ    = pt.z + math.cos(randAngle) * centerDist
 
         local dcsGroup = CTLDObjectRegistry.spawnObject(
             group.templateKey,
             group.coalitionId,
             group.countryId,
-            pt.x, pt.z, hdg,
-            { circleRadius = circleR }
+            spawnX, spawnZ, hdg,
+            { circleRadius = spreadR }
         )
 
         if not dcsGroup then
@@ -1840,8 +1846,11 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             end
         end
 
-        -- Extract from field (only when no troops onboard)
-        if not hasTroops and #nearbyGroups > 0 then
+        -- Extract from field: shown when no troops onboard, or when there is still
+        -- troop capacity available (field rescue is always allowed if capacity permits).
+        local _canExtract = not hasTroops
+            or self:_currentTroopCount(playerObj.unitName) < limit
+        if _canExtract and #nearbyGroups > 0 then
             hasEmbarkContent = true
             if #nearbyGroups == 1 then
                 -- Single nearby group: direct button

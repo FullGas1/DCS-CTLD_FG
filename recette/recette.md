@@ -280,6 +280,18 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-132 | JTAC vehicle via crate — pack → deregisterJTAC | CTLDVehicleSpawner:packVehicle + CTLDJTACManager:deregisterJTAC | startLase+register → packVehicle → deregCalled + jtacs=nil + laserCode freed | ✅ PASS 7/7 [2026-05-06] | Witchcraft |
 | F-133 | Feature N — `_aiTeams` population après `_initAITransports()` | `CTLDCoreManager:_initAITransports` | `_aiTeams` existe + `_aiTeams[1]` et `[2]` ≥1 entrée + toutes actives et nommées | ✅ PASS 4/4 [2026-05-12] | Witchcraft |
 | F-134 | Feature N — `_checkAIStatus` pickup / dropoff branches | `CTLDCoreManager:_checkAIStatus` | pickup AI→embark appelé (1×, bonne zone+tmpl) ; human ignoré ; dropoff AI+troops→disembarkAll ; dropoff sans troupes→non appelé | ✅ PASS 6/6 [2026-05-12] | Witchcraft mock |
+| F-135 | ctld.scheduler — ops de base (register/cancel/cancelAll) | `ctld.scheduler` (CTLD_utils.lua) | register stocke ID ; re-register annule ancien+stocke nouveau ; cancel supprime entrée+appelle removeFunction ; cancelAll vide _ids | ✅ PASS 9/9 [2026-05-12] | Witchcraft mock |
+| F-136 | ctld.scheduler — enregistrement beacon_refresh à l'init | `CTLDBeaconManager:_scheduleRefresh` | _scheduleRefresh enregistre "beacon_refresh" ; re-schedule remplace ID stale | ✅ PASS 3/3 [2026-05-12] | Witchcraft |
+| F-137 | ctld.scheduler — enregistrement ai_transport + pas de doublon | `CTLDCoreManager:_initAITransports` | _initAITransports enregistre "ai_transport" ; second register remplace (pas doublon) | ✅ PASS 3/3 [2026-05-12] | Witchcraft |
+| F-138 | ctld.scheduler — guard B zombie loop auto-stop | `CTLDBeaconManager:_scheduleRefresh` closure | closure retourne nil si _instance remplacée (zombie stoppé) ; exécution normale si instance inchangée | ✅ PASS 3/3 [2026-05-12] | Witchcraft mock |
+| F-139 | ctld.scheduler — cancelAll + re-registration | `ctld.scheduler.cancelAll` | cancelAll vide _ids ; register fonctionne après cancelAll ; beacon re-enregistré après _scheduleRefresh | ✅ PASS 4/4 [2026-05-12] | Witchcraft |
+| F-140 | Feature L — menu disembark 1 groupe = commande directe | `CTLDTroopManager:refreshMenuSection` | 1 group onboard → "Disembark Troops" est une commande directe (pas sous-menu) | ✅ PASS 2/2 [2026-05-12] | Witchcraft mock |
+| F-141 | Feature L — menu disembark 2 groupes = sous-menu 3 entrées | `CTLDTroopManager:refreshMenuSection` | 2 groups onboard → sous-menu "Disembark Troops" avec Disembark All + [1] + [2] = exactement 3 entrées | ✅ PASS 5/5 [2026-05-12] | Witchcraft mock |
+| F-142 | Feature L — disembarkAll vide _inTransit | `CTLDTroopManager:disembarkAll` | disembarkAll sur 2 groupes → _inTransit nil + 2 appels disembark | ✅ PASS 2/2 [2026-05-12] | Witchcraft mock |
+| F-143 | Feature L — disembarkIndex(2) sort le groupe 2 en premier | `CTLDTroopManager:disembarkIndex` | disembarkIndex(2) → group 2 disembarked first, group 1 reste onboard | ✅ PASS 2/2 [2026-05-12] | Witchcraft mock |
+| F-144 | Feature L — _menuCheckCargo multi-groupe | `CTLDTroopManager:_menuCheckCargo` | 2 groupes → message multi-lignes avec [1] [2] + ligne TOTAL | ✅ PASS 4/4 [2026-05-12] | Witchcraft mock |
+| F-145 | Feature L — extract menu 1 groupe nearby = commande directe | `CTLDTroopManager:refreshMenuSection` | 1 groupe dropped nearby → commande "Extract:" directe, pas de sous-menu | ✅ PASS 2/2 [2026-05-12] | Witchcraft mock |
+| F-146 | Feature L — extract menu 2 groupes nearby = sous-menu avec distances | `CTLDTroopManager:refreshMenuSection` | 2 groupes dropped nearby → sous-menu "Extract from field" avec 2 entrées annotées distance (m) | ✅ PASS 5/5 [2026-05-12] | Witchcraft mock |
 
 ---
 
@@ -340,8 +352,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Sprint 2a — DCS native crate load/unload + autoUnpack parachute** : 4 fonctionnels = **19 cas** ✅ PASS (F-128 5/5 + F-129 5/5 + F-130 5/5 + F-131 4/4 [2026-05-06]) — nativeCrateLink linkOffsetRef 3D, drift>1m UNLOAD sol+vol, fromParachute, checkAutoUnpack centroïde
 - **JTAC vehicle via crate pack** : 1 fonctionnel = **7 cas** ✅ PASS (F-132 7/7 [2026-05-06]) — deregisterJTAC@packVehicle, jtacs=nil, laserCode freed
 - **Feature N — AI transport INIT-A** : 2 fonctionnels = **10 cas** ✅ PASS (F-133 4/4 + F-134 6/6 [2026-05-12]) — `_aiTeams` population ; pickup/dropoff branch logic (mocks)
-- **ctld.scheduler — registre central + guard B** : 5 fonctionnels = **17 cas** ✅ PASS (F-135 9/9 + F-136 3/3 + F-137 3/3 + F-138 3/3 + F-139 4/4 [2026-05-12]) — register/cancel/cancelAll ; beacon+AI registration ; zombie guard ; re-registration post-cancelAll
-- **Total** : **237 cas** — 1080/1080 PASS ✅
+- **ctld.scheduler — registre central + guard B** : 5 fonctionnels = **22 cas** ✅ PASS (F-135 9/9 + F-136 3/3 + F-137 3/3 + F-138 3/3 + F-139 4/4 [2026-05-12]) — register/cancel/cancelAll ; beacon+AI registration ; zombie guard ; re-registration post-cancelAll
+- **Feature L — Multi-group transport menus + disembark/extract** : 7 fonctionnels = **22 cas** ✅ PASS (F-140 2/2 + F-141 5/5 + F-142 2/2 + F-143 2/2 + F-144 4/4 + F-145 2/2 + F-146 5/5 [2026-05-12]) — menu direct vs sous-menu disembark (1 vs N groupes) ; disembarkAll/Index ; _menuCheckCargo multi-ligne ; extract from field 1 vs N groupes avec distances ; bugfixes : extract visible avec troupes à bord si capacité dispo, spawn center décalé (safeR+spreadR) pour éviter overlap
+- **Total** : **249 cas** — 1124/1124 PASS ✅
 
 ---
 
