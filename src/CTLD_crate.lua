@@ -1655,7 +1655,7 @@ function CTLDCrateManager:findDescriptorByTypeName(typeName)
     if not typeName then return nil end
     if self._weightIndex then
         for _, descriptor in pairs(self._weightIndex) do
-            if descriptor.unit == typeName or descriptor.type == typeName then
+            if descriptor.unit == typeName then
                 return descriptor
             end
         end
@@ -1666,7 +1666,7 @@ function CTLDCrateManager:findDescriptorByTypeName(typeName)
     if not spawnableCrates then return nil end
     for _, category in pairs(spawnableCrates) do
         for _, descriptor in ipairs(category) do
-            if descriptor.unit == typeName or descriptor.type == typeName then
+            if descriptor.unit == typeName then
                 return descriptor
             end
         end
