@@ -1596,7 +1596,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
 
     timer.scheduleFunction(function()
-        local spawnedGroup = coalition.addGroup(_countryId, Group.Category.GROUND, {
+        local _, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
             name  = _troopGroup.templateName,
             task  = "Ground Nothing",
             units = _unitDefs,

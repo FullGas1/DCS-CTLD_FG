@@ -4181,7 +4181,7 @@ function ctld.utils.dynAddStatic(caller, n)
     end
     if newObj.x and newObj.y and newObj.type and type(newObj.x) == 'number' and type(newObj.y) == 'number' and type(newObj.type) == 'string' then
         --ctld.logWarning(newObj)
-        coalition.addStaticObject(country.id[newCountry], newObj)
+        ctld.utils.spawnAs("STATIC", country.id[newCountry], newObj)
 
         return newObj
     end
@@ -4191,36 +4191,61 @@ function ctld.utils.dynAddStatic(caller, n)
 end
 
 --------------------------------------------------------------------------------------------------------
---- Unified DCS object spawner — single call-site for coalition.addGroup / coalition.addStaticObject.
--- All CTLD spawners must route through this function instead of calling DCS APIs directly.
+--- DCS category constants (informational — authoritative values validated against DCS API).
 --
--- descriptor.spawnAs (string, optional, default "GROUND"):
---   "GROUND"    → coalition.addGroup(..., Group.Category.GROUND, ...)
---   "AIRPLANE"  → coalition.addGroup(..., Group.Category.AIRPLANE, ...)
---   "HELICOPTER"→ coalition.addGroup(..., Group.Category.HELICOPTER, ...)
---   "SHIP"      → coalition.addGroup(..., Group.Category.SHIP, ...)
---   "TRAIN"     → coalition.addGroup(..., Group.Category.TRAIN, ...)
---   "STATIC"    → coalition.addStaticObject(...)
+-- Group.Category  (second arg of coalition.addGroup):
+--   AIRPLANE   = 0
+--   HELICOPTER = 1
+--   GROUND     = 2
+--   SHIP       = 3
+--   TRAIN      = 4
 --
--- @param descriptor table|nil  crate descriptor (reads .spawnAs); nil treated as GROUND
--- @param countryId  number     country.id.*
--- @param unitDef    table      DCS group or static definition
--- @return boolean, any        pcall result: (true, group) or (false, errorMsg)
+-- Object.Category (returned by object:getCategory()):
+--   VOID    = 0
+--   UNIT    = 1   — groups spawned via coalition.addGroup
+--   WEAPON  = 2
+--   STATIC  = 3   — objects spawned via coalition.addStaticObject
+--   BASE    = 4
+--   SCENERY = 5
+--   CARGO   = 6
+--
+--- Unified DCS object spawner — SINGLE call-site for coalition.addGroup /
+-- coalition.addStaticObject. All CTLD code must route through ctld.utils.spawnAs;
+-- direct calls to the DCS APIs are forbidden outside this function.
+--
+-- @param spawnAs   string|number
+--   String keys  : "GROUND" | "AIRPLANE" | "HELICOPTER" | "SHIP" | "TRAIN" | "STATIC"
+--   Integer      : Group.Category value directly (0–4) — used by CTLDObjectRegistry
+-- @param countryId number   country.id.* value
+-- @param unitDef   table    DCS group or static descriptor
+-- @return boolean, any      pcall result: (true, obj/group) or (false, errMsg)
 local _SPAWN_CATEGORY_MAP = {
-    GROUND     = Group.Category.GROUND,
-    AIRPLANE   = Group.Category.AIRPLANE,
-    HELICOPTER = Group.Category.HELICOPTER,
-    SHIP       = Group.Category.SHIP,
-    TRAIN      = Group.Category.TRAIN,
+    AIRPLANE   = Group.Category.AIRPLANE,    -- 0
+    HELICOPTER = Group.Category.HELICOPTER,  -- 1
+    GROUND     = Group.Category.GROUND,      -- 2
+    SHIP       = Group.Category.SHIP,        -- 3
+    TRAIN      = Group.Category.TRAIN,       -- 4
 }
-function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
-    local spawnAs = (descriptor and descriptor.spawnAs) or "GROUND"
+function ctld.utils.spawnAs(spawnAs, countryId, unitDef)
     if spawnAs == "STATIC" then
         return pcall(coalition.addStaticObject, countryId, unitDef)
+    elseif type(spawnAs) == "number" then
+        return pcall(coalition.addGroup, countryId, spawnAs, unitDef)
     else
         local cat = _SPAWN_CATEGORY_MAP[spawnAs] or Group.Category.GROUND
         return pcall(coalition.addGroup, countryId, cat, unitDef)
     end
+end
+
+--- Descriptor-based variant: reads spawnAs from descriptor.spawnAs (default "GROUND").
+-- @param descriptor table|nil  CTLD crate/vehicle descriptor
+-- @param countryId  number
+-- @param unitDef    table
+-- @return boolean, any
+function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
+    return ctld.utils.spawnAs(
+        (descriptor and descriptor.spawnAs) or "GROUND",
+        countryId, unitDef)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -4548,7 +4573,7 @@ function ctld.utils.dynAdd(caller, ng)
     end
 
     ctld.utils.log("TRACE", "ctld.utils.dynAdd newGroup=%s", tostring(newGroup.name))
-    coalition.addGroup(country.id[newCountry], Unit.Category[newCat], newGroup)
+    ctld.utils.spawnAs(newCat, country.id[newCountry], newGroup)
 
     return newGroup
 end
@@ -5931,7 +5956,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         -- Caller overrides
         for k, v in pairs(overrides) do groupData[k] = v end
 
-        local ok, result = pcall(coalition.addStaticObject, countryId, groupData)
+        local ok, result = ctld.utils.spawnAs("STATIC", countryId, groupData)
         if not ok then
             ctld.utils.log("ERROR", "spawnObject: coalition.addStaticObject failed for '%s': %s",
                 objectKey, tostring(result))
@@ -6029,7 +6054,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
             if k ~= "units" then groupData[k] = v end
         end
 
-        local ok, result = pcall(coalition.addGroup, countryId, desc.category, groupData)
+        local ok, result = ctld.utils.spawnAs(desc.category, countryId, groupData)
         if not ok then
             ctld.utils.log("ERROR", "spawnObject: coalition.addGroup failed for '%s': %s",
                 objectKey, tostring(result))
@@ -9201,7 +9226,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
 
     timer.scheduleFunction(function()
-        local spawnedGroup = coalition.addGroup(_countryId, Group.Category.GROUND, {
+        local _, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
             name  = _troopGroup.templateName,
             task  = "Ground Nothing",
             units = _unitDefs,
@@ -19559,7 +19584,7 @@ local function _spawnMissionStatic(ctx, name)
         transportable = { randomTransportable = false },
     }
     if shapeName then descriptor.shape_name = shapeName end
-    local ok, obj = pcall(coalition.addStaticObject, ctx.scene._countryId, descriptor)
+    local ok, obj = ctld.utils.spawnAs("STATIC", ctx.scene._countryId, descriptor)
     if ok and obj then
         ctx.scene._namedTempObjs[name] = obj
         ctld.utils.log("INFO",

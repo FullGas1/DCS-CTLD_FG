@@ -142,7 +142,7 @@ local function _spawnMissionStatic(ctx, name)
         transportable = { randomTransportable = false },
     }
     if shapeName then descriptor.shape_name = shapeName end
-    local ok, obj = pcall(coalition.addStaticObject, ctx.scene._countryId, descriptor)
+    local ok, obj = ctld.utils.spawnAs("STATIC", ctx.scene._countryId, descriptor)
     if ok and obj then
         ctx.scene._namedTempObjs[name] = obj
         ctld.utils.log("INFO",

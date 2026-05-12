@@ -328,7 +328,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
         -- Caller overrides
         for k, v in pairs(overrides) do groupData[k] = v end
 
-        local ok, result = pcall(coalition.addStaticObject, countryId, groupData)
+        local ok, result = ctld.utils.spawnAs("STATIC", countryId, groupData)
         if not ok then
             ctld.utils.log("ERROR", "spawnObject: coalition.addStaticObject failed for '%s': %s",
                 objectKey, tostring(result))
@@ -426,7 +426,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
             if k ~= "units" then groupData[k] = v end
         end
 
-        local ok, result = pcall(coalition.addGroup, countryId, desc.category, groupData)
+        local ok, result = ctld.utils.spawnAs(desc.category, countryId, groupData)
         if not ok then
             ctld.utils.log("ERROR", "spawnObject: coalition.addGroup failed for '%s': %s",
                 objectKey, tostring(result))
