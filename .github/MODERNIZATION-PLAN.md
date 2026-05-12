@@ -978,9 +978,11 @@ Minor cleanups identified — low priority, no functional impact.
   `InfantryInGameCount`, `allowRandomAiTeamPickups`, `spawnRPGWithCoalition`, `spawnStinger`,
   `staticBugWorkaround`, `JTAC_smokeOffset_x`, `JTAC_smokeOffset_z`.
   Avant suppression : vérifier `source/` (parité iso-fonctionnelle) + grep résidus lectures dans `src/`.
-- **CL-4** ⚠️ Analyse approfondie requise — Implémenter `JTAC_LIMIT_BLUE` / `JTAC_LIMIT_RED` :
-  lu via `ctld.gs()` mais jamais connecté dans `CTLDJTACManager`. Vérifier spec JTAC + comportement
-  legacy avant implémentation.
+- ~~**CL-4**~~ ✅ Quota `JTAC_LIMIT_RED/BLUE` implémenté. `_consumeJTACSlot(coalition)` sur CTLDJTACManager;
+  consommé avant spawn dans `_spawnUnpacked` (crate) et `spawnJTACFromDescriptor` (menu).
+  Quota définitif (legacy), MM JTACs et soldiers exemptés. `JTAC_unitTypeNames` supprimé —
+  menu "Request JTAC Equipment" reconstruit depuis `getJTACDescriptors()` (crates `isJTAC=true`).
+  Drones supportés via `deployAirJTAC`. i18n+guides mis à jour. [2026-05-12]
 - ~~**CL-5**~~ ✅ Poids soldats connectés à la config. `_ROLE_WEIGHTS` (hardcodée, base=84 figée) remplacée par
   `_ROLE_EQUIP_WEIGHTS` (fallback), `_initWeightConfig()` (lecture `ctld.gs()` à l'init) et
   `_weightForGroup()` (randomisation par soldat dans [SW×0.9, SW×1.2] + kit + équipement).
