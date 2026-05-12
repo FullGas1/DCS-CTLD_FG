@@ -638,9 +638,9 @@ function CTLDJTACManager:requestSmoke(groupName)
     local targetPos = jtac.currentTarget.position
     local margin    = ctld.gs("JTAC_smokeMarginOfError") or 50
     local smokePos  = {
-        x = targetPos.x + math.random(-margin, margin),
+        x = targetPos.x + (ctld.gs("JTAC_smokeOffset_x") or 0) + math.random(-margin, margin),
         y = targetPos.y + (ctld.gs("JTAC_smokeOffset_y") or 2),
-        z = targetPos.z + math.random(-margin, margin),
+        z = targetPos.z + (ctld.gs("JTAC_smokeOffset_z") or 0) + math.random(-margin, margin),
     }
 
     trigger.action.smoke(smokePos, jtac.smokeColor)

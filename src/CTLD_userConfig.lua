@@ -31,9 +31,6 @@ ctld.yamlConfigDatas = [[
 # Leave empty to use the default DCS Saved Games folder.
 # ctld.ctldLogPath:
 
-# Enable the CTLD status entry in the F10 menu.
-# ctld.CTLD_ctldStatusF10: true
-
 # Identify CTLD-capable transports by DCS aircraft type (true) or by unit name (false).
 # When false, only units listed in transportPilotNames will get CTLD menus.
 # ctld.addPlayerAircraftByType: true
@@ -43,10 +40,6 @@ ctld.yamlConfigDatas = [[
 
 # Suppress all smoke at pickup / drop-off zones, regardless of per-zone settings.
 # ctld.disableAllSmoke: false
-
-# Workaround for a DCS crash that occurs when a static object is destroyed.
-# Set to true only if you observe random crashes when crates are unpacked.
-# ctld.staticBugWorkaround: false
 
 
 # ============================================================
@@ -92,7 +85,6 @@ ctld.yamlConfigDatas = [[
 # Enable DCS native slingload weight simulation.
 # WARNING: some DCS versions crash with slingload enabled — if crashes occur set this
 # to false and rely on the virtual hover system instead.
-# When true, also set staticBugWorkaround to false.
 # ctld.slingLoad: false
 
 # Maximum horizontal speed (m/s) allowed while carrying a virtual slingloaded crate.
@@ -156,12 +148,6 @@ ctld.yamlConfigDatas = [[
 
 # Maximum safe AGL height (m) for fast-rope (not rappel) insertion — 60 ft default.
 # ctld.fastRopeMaximumHeight: 18.28
-
-# Spawn a friendly RPG soldier with every deployed coalition infantry group.
-# ctld.spawnRPGWithCoalition: true
-
-# Spawn a Stinger (BLUE) or Igla (RED) MANPAD soldier with groups of 6 or more.
-# ctld.spawnStinger: false
 
 # Allow AI transports to randomly pick up infantry teams at pickup zones.
 # ctld.allowRandomAiTeamPickups: false

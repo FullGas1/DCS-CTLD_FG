@@ -105,9 +105,7 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `numberOfTroops` | `10` | Default / max troop group size per transport |
 | `enableFastRopeInsertion` | `true` | Allow fast-rope deployment |
 | `fastRopeMaximumHeight` | `18.28` | Max height (m) for fast-rope insertion |
-| `spawnRPGWithCoalition` | `true` | Spawn a friendly RPG unit with coalition forces |
-| `spawnStinger` | `false` | Spawn a Stinger/Igla soldier with groups of 6+ |
-| `allowRandomAiTeamPickups` | `false` | Allow AI transports to randomly pick up infantry teams at pickup zones |
+| `allowRandomAiTeamPickups` | `false` | Allow AI transports to randomly pick up infantry teams at pickup zones. When `false`, the AI always picks the first available template for its coalition. |
 | `nbLimitSpawnedTroops` | `{0,0}` | Cumulative troop cap per coalition `{RED, BLUE}` — `0` = unlimited (Lua table) |
 
 #### Infantry weight simulation
@@ -183,7 +181,10 @@ CTLD calculates group weight to check whether a troop group fits inside a transp
 | `JTAC_smokeOn_BLUE` | `false` | Enable smoke marking for BLUE JTACs |
 | `JTAC_smokeColour_RED` | `4` | RED JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue |
 | `JTAC_smokeColour_BLUE` | `1` | BLUE JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue |
-| `JTAC_smokeMarginOfError` | `50` | Max smoke placement error (metres) |
+| `JTAC_smokeMarginOfError` | `50` | Max random placement error radius (metres) for smoke |
+| `JTAC_smokeOffset_x` | `0` | Fixed East/West offset (m) added to smoke position before the random error |
+| `JTAC_smokeOffset_y` | `2` | Fixed vertical offset (m) — keeps smoke visible above terrain |
+| `JTAC_smokeOffset_z` | `0` | Fixed North/South offset (m) added to smoke position before the random error |
 | `jtacDroneRadius` | `1000` | Orbit radius (m) for drone JTAC units |
 | `jtacDroneAltitude` | `7000` | Orbit altitude (m) for drone JTAC units |
 

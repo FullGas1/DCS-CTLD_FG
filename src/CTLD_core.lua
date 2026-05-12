@@ -349,10 +349,10 @@ function CTLDCoreManager:init()
     -- INIT-D: detect ground vehicles placed by the mission maker
     CTLDVehicleSpawner.getInstance():scanMMVehicles()
 
-    -- INIT-A: detect AI transport units (TODO — requires CTLDTransportManager)
-    -- self:_initAITransports()
+    -- INIT-A: AI transport auto-pickup/dropoff loop
+    self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-B + INIT-C + INIT-D)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D)")
 end
 
 -- INIT-B -----------------------------------------------------------
@@ -418,4 +418,102 @@ end
 -- @return boolean
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
+end
+
+-- INIT-A -----------------------------------------------------------
+
+--- Build per-coalition team lists and start the AI transport polling loop.
+-- Legacy parity: ctld.checkAIStatus + redTeams/blueTeams init (source/CTLD.lua:11291-11334).
+-- The loop always runs (AI auto-unload at dropoff zones works regardless of the flag).
+-- allowRandomAiTeamPickups gates random template selection vs first-available.
+function CTLDCoreManager:_initAITransports()
+    local pilotNames = ctld.gs("transportPilotNames")
+    if not pilotNames or #pilotNames == 0 then
+        ctld.utils.log("INFO", "CTLDCoreManager: INIT-A skipped — transportPilotNames is empty")
+        return
+    end
+
+    -- Build coalition-filtered team lists from registered templates.
+    -- side == nil → both coalitions ; side == 1 → RED ; side == 2 → BLUE
+    self._aiTeams = { [1] = {}, [2] = {} }
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if ok and tm then
+        for _, tmpl in ipairs(tm._templates) do
+            if not tmpl.disabled then
+                if tmpl.side == nil or tmpl.side == 1 then
+                    table.insert(self._aiTeams[1], tmpl)
+                end
+                if tmpl.side == nil or tmpl.side == 2 then
+                    table.insert(self._aiTeams[2], tmpl)
+                end
+            end
+        end
+    end
+
+    -- Start polling loop (2 s interval — same as legacy).
+    local selfRef = self
+    local function loop(_, t)
+        selfRef:_checkAIStatus()
+        return t + 2
+    end
+    timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-A complete — AI transport loop started (%d pilot name(s))",
+        #pilotNames)
+end
+
+--- Poll all transportPilotNames entries; auto-load/unload AI units at troop zones.
+-- Called every 2 s by the timer started in _initAITransports.
+-- Load rules  : unit is AI + in pickup zone + no troops onboard.
+-- Unload rules: unit is AI + in dropoff zone + troops onboard.
+-- Template selection (load): if allowRandomAiTeamPickups → random from coalition list;
+--                             else → first available template for the coalition.
+function CTLDCoreManager:_checkAIStatus()
+    local pilotNames = ctld.gs("transportPilotNames") or {}
+    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
+    local zm  = CTLDZoneManager.getInstance()
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if not ok or not tm then return end
+
+    for _, unitName in pairs(pilotNames) do
+        local status, err = pcall(function()
+            local unit = Unit.getByName(unitName)
+            if not unit or not unit:isExist() then return end
+            -- Skip player-controlled units
+            if unit:getPlayerName() ~= nil then return end
+
+            local coa  = unit:getCoalition()
+            local hasTr = tm:hasTroops(unitName)
+
+            -- ---- Pickup ------------------------------------------------
+            local pickZone = zm:getTroopZoneForUnit(unitName)
+            if pickZone and not hasTr then
+                local teams = self._aiTeams[coa] or {}
+                local tmpl  = nil
+                if #teams > 0 then
+                    if randomPickup then
+                        local idx = math.floor(math.random(#teams * 100) / 100) + 1
+                        tmpl = teams[idx]
+                    else
+                        tmpl = teams[1]
+                    end
+                end
+                if tmpl then
+                    tm:embarkFromTroopZone(unit, pickZone, tmpl)
+                end
+                return  -- done for this unit this tick
+            end
+
+            -- ---- Dropoff -----------------------------------------------
+            if hasTr then
+                local dropZone = zm:getDropoffZoneAt(unit:getPoint(), coa)
+                if dropZone then
+                    tm:disembarkAll(unit)
+                end
+            end
+        end)
+        if not status then
+            ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus error for '%s': %s",
+                tostring(unitName), tostring(err))
+        end
+    end
 end

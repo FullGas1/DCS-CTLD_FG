@@ -668,6 +668,27 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ⬜ Scénario multi-group : UH-1H (2 embarquements séquentiels, unload all, check cargo)
           ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
 
+✅  FG  Feature M — JTAC smoke x/z offset [2026-05-12]
+        Objectif : appliquer un décalage horizontal configurable (x et z) sur la fumée JTAC,
+        en plus du margin of error aléatoire et du décalage vertical y déjà présent.
+        Implémentation :
+          ✅ `requestSmoke()` : lit `JTAC_smokeOffset_x` et `JTAC_smokeOffset_z` via ctld.gs()
+          ✅ Clés documentées dans CTLD_userConfig.lua (Section JTAC smoke offsets)
+        Recette : intégrée aux tests JTAC existants (smoke position vérifiée visuellement).
+
+✅  FG  Feature N — AI transport auto-pickup / auto-dropoff (INIT-A) [2026-05-12]
+        Objectif : porter `ctld.checkAIStatus()` legacy — les unités listées dans
+        `transportPilotNames` sans pilote humain chargent automatiquement un template
+        de troupes en zone pickup et les déchargent en zone dropoff.
+        Implémentation :
+          ✅ `CTLDCoreManager:_initAITransports()` — construit `_aiTeams[1/2]` filtrés par side,
+             démarre la boucle timer (2 s, same as legacy). Stub `-- self:_initAITransports()` retiré.
+          ✅ `CTLDCoreManager:_checkAIStatus()` — pickup : `getTroopZoneForUnit` + random template
+             (si `allowRandomAiTeamPickups`) ou first-available ; dropoff : `getDropoffZoneAt` + `disembarkAll`.
+          ✅ `allowRandomAiTeamPickups` gate : random si true, sinon premier template disponible.
+          ✅ pcall par unité, log WARN sur erreur.
+        Recette : `recette/scenarios/scenario_ai_transport.lua` — F-133 (_aiTeams), F-134 (pickup/dropoff).
+
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
         (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
@@ -932,7 +953,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation [SW×0.9,SW×1.2] + config keys actifs [2026-05-12] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
-| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
+| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
 | Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116 6/6 visual PASS [2026-04-28] + F-117/F-118/F-119 19/19 PASS [2026-04-29] — reconEnabled=false message, toggle-OFF immédiat, AA icon fill+apex, layers scenario, reconIconScale |
@@ -973,11 +994,13 @@ Minor cleanups identified — low priority, no functional impact.
 - **CL-1** `src/CTLD_crate.lua` — Remove `descriptor.type` fallback in `findDescriptorByTypeName`.
   Legacy alias for `unit`, never set in any config entry. Replace `unit==t or type==t` → `unit==t`. Update dev-guide.md.
 - ~~**CL-2**~~ ✅ `forceCrateToBeMoved` dropped intentionally. `canUnpack()` has no movement constraint. U-31 updated (7→4 cases, force param removed). recette.md updated.
-- **CL-3** ⚠️ Analyse approfondie requise — Supprimer 10 clés config legacy non portées :
-  `CTLD_ctldStatusF10`, `JTAC_jtacStatusF10`, `enableCrates`, `loadCrateFromMenu`,
-  `InfantryInGameCount`, `allowRandomAiTeamPickups`, `spawnRPGWithCoalition`, `spawnStinger`,
-  `staticBugWorkaround`, `JTAC_smokeOffset_x`, `JTAC_smokeOffset_z`.
-  Avant suppression : vérifier `source/` (parité iso-fonctionnelle) + grep résidus lectures dans `src/`.
+- ~~**CL-3**~~ ✅ Nettoyage clés config obsolètes [2026-05-12] :
+  Supprimées (remplacées par mécanismes POO) : `CTLD_ctldStatusF10` (menu CTLD Status non porté),
+  `staticBugWorkaround` (bug DCS obsolète), `spawnRPGWithCoalition` (remplacé par loadableGroups),
+  `spawnStinger` (remplacé par loadableGroups), `InfantryInGameCount` (remplacé par `_countDroppedTroops()`).
+  Conservées (actives via configKey) : `enableCrates`, `JTAC_jtacStatusF10`.
+  Portées dans la même session : `JTAC_smokeOffset_x` / `_z` (feature JTAC smoke x/z, cf. ci-dessous).
+  `loadCrateFromMenu` : conserver (gate menu "Request Crate").
 - ~~**CL-4**~~ ✅ Quota `JTAC_LIMIT_RED/BLUE` implémenté. `_consumeJTACSlot(coalition)` sur CTLDJTACManager;
   consommé avant spawn dans `_spawnUnpacked` (crate) et `spawnJTACFromDescriptor` (menu).
   Quota définitif (legacy), MM JTACs et soldiers exemptés. `JTAC_unitTypeNames` supprimé —

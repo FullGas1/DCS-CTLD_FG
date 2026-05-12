@@ -33,8 +33,6 @@ function CTLDConfig:load()
     self.settings["ctldLogPath"]                        = ""    -- override log file path (default: DCS Saved Games folder); empty = default
     self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
     self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
-    self.settings["CTLD_ctldStatusF10"]                 = true  -- enables F10 CTLD Status menus
-    self.settings["staticBugWorkaround"]                = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
     self.settings["addPlayerAircraftByType"]            = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
     self.settings["location_DMS"]                       = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
@@ -259,12 +257,9 @@ function CTLDConfig:load()
     -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
-    self.settings["spawnRPGWithCoalition"]              = true     --spawns a friendly RPG unit with Coalition forces
-    self.settings["spawnStinger"]                       = false    -- spawns a stinger / igla soldier with a group of 6 or more soldiers!
     self.settings["allowRandomAiTeamPickups"]           = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
-    self.settings["InfantryInGameCount"]                = { 0, 0 } -- {redCoaInfantryCount, blueCoaInfantryCount}
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
     self.settings["maximumSearchDistance"]              = 4000     -- max distance for troops to search for enemy
     self.settings["maximumMoveDistance"]                = 2000     -- max distance for troops to move from drop point if no enemy is nearby

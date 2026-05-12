@@ -78,8 +78,6 @@ function CTLDConfig:load()
     self.settings["ctldLogPath"]                        = ""    -- override log file path (default: DCS Saved Games folder); empty = default
     self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
     self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
-    self.settings["CTLD_ctldStatusF10"]                 = true  -- enables F10 CTLD Status menus
-    self.settings["staticBugWorkaround"]                = false --    DCS had a bug where destroying statics would cause a crash. If this happens again, set this to TRUE
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
     self.settings["addPlayerAircraftByType"]            = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
     self.settings["location_DMS"]                       = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
@@ -304,12 +302,9 @@ function CTLDConfig:load()
     -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
-    self.settings["spawnRPGWithCoalition"]              = true     --spawns a friendly RPG unit with Coalition forces
-    self.settings["spawnStinger"]                       = false    -- spawns a stinger / igla soldier with a group of 6 or more soldiers!
     self.settings["allowRandomAiTeamPickups"]           = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
-    self.settings["InfantryInGameCount"]                = { 0, 0 } -- {redCoaInfantryCount, blueCoaInfantryCount}
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
     self.settings["maximumSearchDistance"]              = 4000     -- max distance for troops to search for enemy
     self.settings["maximumMoveDistance"]                = 2000     -- max distance for troops to move from drop point if no enemy is nearby
@@ -17576,9 +17571,9 @@ function CTLDJTACManager:requestSmoke(groupName)
     local targetPos = jtac.currentTarget.position
     local margin    = ctld.gs("JTAC_smokeMarginOfError") or 50
     local smokePos  = {
-        x = targetPos.x + math.random(-margin, margin),
+        x = targetPos.x + (ctld.gs("JTAC_smokeOffset_x") or 0) + math.random(-margin, margin),
         y = targetPos.y + (ctld.gs("JTAC_smokeOffset_y") or 2),
-        z = targetPos.z + math.random(-margin, margin),
+        z = targetPos.z + (ctld.gs("JTAC_smokeOffset_z") or 0) + math.random(-margin, margin),
     }
 
     trigger.action.smoke(smokePos, jtac.smokeColor)
@@ -19362,10 +19357,10 @@ function CTLDCoreManager:init()
     -- INIT-D: detect ground vehicles placed by the mission maker
     CTLDVehicleSpawner.getInstance():scanMMVehicles()
 
-    -- INIT-A: detect AI transport units (TODO — requires CTLDTransportManager)
-    -- self:_initAITransports()
+    -- INIT-A: AI transport auto-pickup/dropoff loop
+    self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-B + INIT-C + INIT-D)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D)")
 end
 
 -- INIT-B -----------------------------------------------------------
@@ -19431,6 +19426,104 @@ end
 -- @return boolean
 function CTLDCoreManager:_isJTACGroup(group)
     return group:getName():lower():find("jtac") ~= nil
+end
+
+-- INIT-A -----------------------------------------------------------
+
+--- Build per-coalition team lists and start the AI transport polling loop.
+-- Legacy parity: ctld.checkAIStatus + redTeams/blueTeams init (source/CTLD.lua:11291-11334).
+-- The loop always runs (AI auto-unload at dropoff zones works regardless of the flag).
+-- allowRandomAiTeamPickups gates random template selection vs first-available.
+function CTLDCoreManager:_initAITransports()
+    local pilotNames = ctld.gs("transportPilotNames")
+    if not pilotNames or #pilotNames == 0 then
+        ctld.utils.log("INFO", "CTLDCoreManager: INIT-A skipped — transportPilotNames is empty")
+        return
+    end
+
+    -- Build coalition-filtered team lists from registered templates.
+    -- side == nil → both coalitions ; side == 1 → RED ; side == 2 → BLUE
+    self._aiTeams = { [1] = {}, [2] = {} }
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if ok and tm then
+        for _, tmpl in ipairs(tm._templates) do
+            if not tmpl.disabled then
+                if tmpl.side == nil or tmpl.side == 1 then
+                    table.insert(self._aiTeams[1], tmpl)
+                end
+                if tmpl.side == nil or tmpl.side == 2 then
+                    table.insert(self._aiTeams[2], tmpl)
+                end
+            end
+        end
+    end
+
+    -- Start polling loop (2 s interval — same as legacy).
+    local selfRef = self
+    local function loop(_, t)
+        selfRef:_checkAIStatus()
+        return t + 2
+    end
+    timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-A complete — AI transport loop started (%d pilot name(s))",
+        #pilotNames)
+end
+
+--- Poll all transportPilotNames entries; auto-load/unload AI units at troop zones.
+-- Called every 2 s by the timer started in _initAITransports.
+-- Load rules  : unit is AI + in pickup zone + no troops onboard.
+-- Unload rules: unit is AI + in dropoff zone + troops onboard.
+-- Template selection (load): if allowRandomAiTeamPickups → random from coalition list;
+--                             else → first available template for the coalition.
+function CTLDCoreManager:_checkAIStatus()
+    local pilotNames = ctld.gs("transportPilotNames") or {}
+    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
+    local zm  = CTLDZoneManager.getInstance()
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if not ok or not tm then return end
+
+    for _, unitName in pairs(pilotNames) do
+        local status, err = pcall(function()
+            local unit = Unit.getByName(unitName)
+            if not unit or not unit:isExist() then return end
+            -- Skip player-controlled units
+            if unit:getPlayerName() ~= nil then return end
+
+            local coa  = unit:getCoalition()
+            local hasTr = tm:hasTroops(unitName)
+
+            -- ---- Pickup ------------------------------------------------
+            local pickZone = zm:getTroopZoneForUnit(unitName)
+            if pickZone and not hasTr then
+                local teams = self._aiTeams[coa] or {}
+                local tmpl  = nil
+                if #teams > 0 then
+                    if randomPickup then
+                        local idx = math.floor(math.random(#teams * 100) / 100) + 1
+                        tmpl = teams[idx]
+                    else
+                        tmpl = teams[1]
+                    end
+                end
+                if tmpl then
+                    tm:embarkFromTroopZone(unit, pickZone, tmpl)
+                end
+                return  -- done for this unit this tick
+            end
+
+            -- ---- Dropoff -----------------------------------------------
+            if hasTr then
+                local dropZone = zm:getDropoffZoneAt(unit:getPoint(), coa)
+                if dropZone then
+                    tm:disembarkAll(unit)
+                end
+            end
+        end)
+        if not status then
+            ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus error for '%s': %s",
+                tostring(unitName), tostring(err))
+        end
+    end
 end
 
 -- End : CTLD_core.lua
@@ -20363,9 +20456,6 @@ ctld.yamlConfigDatas = [[
 # Leave empty to use the default DCS Saved Games folder.
 # ctld.ctldLogPath:
 
-# Enable the CTLD status entry in the F10 menu.
-# ctld.CTLD_ctldStatusF10: true
-
 # Identify CTLD-capable transports by DCS aircraft type (true) or by unit name (false).
 # When false, only units listed in transportPilotNames will get CTLD menus.
 # ctld.addPlayerAircraftByType: true
@@ -20375,10 +20465,6 @@ ctld.yamlConfigDatas = [[
 
 # Suppress all smoke at pickup / drop-off zones, regardless of per-zone settings.
 # ctld.disableAllSmoke: false
-
-# Workaround for a DCS crash that occurs when a static object is destroyed.
-# Set to true only if you observe random crashes when crates are unpacked.
-# ctld.staticBugWorkaround: false
 
 
 # ============================================================
@@ -20424,7 +20510,6 @@ ctld.yamlConfigDatas = [[
 # Enable DCS native slingload weight simulation.
 # WARNING: some DCS versions crash with slingload enabled — if crashes occur set this
 # to false and rely on the virtual hover system instead.
-# When true, also set staticBugWorkaround to false.
 # ctld.slingLoad: false
 
 # Maximum horizontal speed (m/s) allowed while carrying a virtual slingloaded crate.
@@ -20488,12 +20573,6 @@ ctld.yamlConfigDatas = [[
 
 # Maximum safe AGL height (m) for fast-rope (not rappel) insertion — 60 ft default.
 # ctld.fastRopeMaximumHeight: 18.28
-
-# Spawn a friendly RPG soldier with every deployed coalition infantry group.
-# ctld.spawnRPGWithCoalition: true
-
-# Spawn a Stinger (BLUE) or Igla (RED) MANPAD soldier with groups of 6 or more.
-# ctld.spawnStinger: false
 
 # Allow AI transports to randomly pick up infantry teams at pickup zones.
 # ctld.allowRandomAiTeamPickups: false
