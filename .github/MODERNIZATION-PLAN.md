@@ -302,20 +302,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
            → si oui, le flag est utile ; si DCS rejette silencieusement le 2e Spot, c'est un
            bug natif hors périmètre. À vérifier sur Hoggit avant implémentation.
 
-⬜  FG  JTAC menu toggles — Toggle Lasing + laseSpotCorrections
-        Deux items de menu non implémentés dans CTLDJTACManager:buildMenuSection :
-          1. "Toggle Lasing" (JTAC_allowStandbyMode) — CTLD_jtac.lua:1331
-             • Callback actuel = stub log("INFO", ...) uniquement
-             • À implémenter : CTLDJTACManager:toggleStandby(groupName, player)
-               → bascule jtac.standbyMode + outText état → rebuild menu JTAC
-             • Label à conformiser : `[activate]` si standbyMode=false / `[deactivate]` si true
-             • _rebuildJTACBranch(unitName) nécessaire (pattern identique RECON)
-          2. laseSpotCorrections (JTAC_laseSpotCorrections) — absent du menu F10
-             • Config existe, logique codée, mais jamais exposé côté pilote
-             • À ajouter : entrée par JTAC dans sous-menu groupName
-               → CTLDJTACManager:toggleSpotCorrections(groupName, player)
-             • Label dynamique : `[activate]` / `[deactivate]` selon jtac.laseSpotCorrections
-        Séquence : implémenter toggleStandby + toggleSpotCorrections → _rebuildJTACBranch → recette
+✅  FG  JTAC menu toggles — Toggle Lasing + laseSpotCorrections [2026-05-13]
+        toggleStandby + toggleSpotCorrections + _rebuildJTACCommandBranch + _buildJTACCommandsForGroup
+        Labels dynamiques [activate]/[deactivate], i18n EN/FR/ES/KO, confirmation outText.
+        Recette : F-TL 12/12 PASS + F-SC 11/11 PASS (scénarios auto Witchcraft)
 
 ⬜  FG  JTAC InTransit — recettes live manquantes (modules requis)
         À revenir quand modules C-130J-30 ou CH-47Fbl1 disponibles :

@@ -258,6 +258,17 @@ ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활
 ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
 ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
 
+--- JTAC toggles
+ctld.i18n["ko"]["Lasing [activate]"]                          = "레이저 [활성화]"
+ctld.i18n["ko"]["Lasing [deactivate]"]                        = "레이저 [비활성화]"
+ctld.i18n["ko"]["Spot Corrections [activate]"]                = "스팟 보정 [활성화]"
+ctld.i18n["ko"]["Spot Corrections [deactivate]"]              = "스팟 보정 [비활성화]"
+ctld.i18n["ko"]["Lasing activated: %s"]                       = "레이저 활성화: %s"
+ctld.i18n["ko"]["Lasing deactivated (standby): %s"]           = "레이저 비활성화 (대기): %s"
+ctld.i18n["ko"]["Spot corrections activated: %s"]             = "스팟 보정 활성화: %s"
+ctld.i18n["ko"]["Spot corrections deactivated: %s"]           = "스팟 보정 비활성화: %s"
+ctld.i18n["ko"]["JTAC not found."]                            = "JTAC를 찾을 수 없습니다."
+
 --- Troop parachute
 ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
 ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"

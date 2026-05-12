@@ -1522,6 +1522,121 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
 end
 
 --- Build the "JTAC" F10 submenu for a player.
+--- Toggle standby mode for a JTAC.
+-- standbyMode=false → true : stop lasing (STANDBY_MODE reason), announce deactivated.
+-- standbyMode=true  → false: resume lasing via startLase, announce activated.
+-- Rebuilds the per-JTAC command branch for all coalition players.
+-- @param groupName string
+-- @param groupId   number  player group id for confirmation message
+function CTLDJTACManager:toggleStandby(groupName, groupId)
+    local jtac = self.jtacs[groupName]
+    if not jtac then
+        trigger.action.outTextForGroup(groupId, ctld.tr("JTAC not found."), 8)
+        return
+    end
+    if jtac.standbyMode then
+        jtac.standbyMode = false
+        self:startLase(groupName)
+        trigger.action.outTextForGroup(groupId,
+            string.format(ctld.tr("Lasing activated: %s"), groupName), 8)
+    else
+        jtac.standbyMode = true
+        if jtac.currentTarget then
+            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
+        end
+        trigger.action.outTextForGroup(groupId,
+            string.format(ctld.tr("Lasing deactivated (standby): %s"), groupName), 8)
+    end
+    self:_rebuildJTACCommandBranch(groupName)
+end
+
+--- Toggle spot corrections for a JTAC.
+-- @param groupName string
+-- @param groupId   number  player group id for confirmation message
+function CTLDJTACManager:toggleSpotCorrections(groupName, groupId)
+    local jtac = self.jtacs[groupName]
+    if not jtac then
+        trigger.action.outTextForGroup(groupId, ctld.tr("JTAC not found."), 8)
+        return
+    end
+    jtac.laseSpotCorrections = not jtac.laseSpotCorrections
+    local msg = jtac.laseSpotCorrections
+        and string.format(ctld.tr("Spot corrections activated: %s"), groupName)
+        or  string.format(ctld.tr("Spot corrections deactivated: %s"), groupName)
+    trigger.action.outTextForGroup(groupId, msg, 8)
+    self:_rebuildJTACCommandBranch(groupName)
+end
+
+--- Rebuild the per-JTAC command submenu for all coalition players of this JTAC.
+-- Called after toggleStandby / toggleSpotCorrections to update dynamic labels.
+-- @param jtacGroupName string
+function CTLDJTACManager:_rebuildJTACCommandBranch(jtacGroupName)
+    local jtac = self.jtacs[jtacGroupName]
+    if not jtac then return end
+    local mm      = ctld.MenuManager:getInstance()
+    local root    = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+    for _, playerObj in pairs(CTLDPlayerManager.getInstance()._players) do
+        if playerObj.coalition == jtac.coalitionId then
+            local menu = mm:getMenuByGroupId(playerObj.groupId)
+            if menu then
+                menu:clearBranch({ root, jtacSub, jtacGroupName })
+                self:_buildJTACCommandsForGroup(jtacGroupName, jtac, menu, playerObj.groupId)
+                menu:refresh()
+            end
+        end
+    end
+end
+
+--- Build (or rebuild) the commands inside a per-JTAC submenu.
+-- Labels for Toggle Lasing and Spot Corrections are dynamic (state-dependent).
+-- @param groupName    string
+-- @param jtac         CTLDJTAC
+-- @param menu         ctld.Menu
+-- @param playerGroupId number
+function CTLDJTACManager:_buildJTACCommandsForGroup(groupName, jtac, menu, playerGroupId)
+    local root    = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+
+    if ctld.gs("JTAC_allowStandbyMode") then
+        local label = jtac.standbyMode
+            and ctld.tr("Lasing [activate]")
+            or  ctld.tr("Lasing [deactivate]")
+        menu:addCommand({ root, jtacSub, groupName }, label,
+            function(arg)
+                CTLDJTACManager.getInstance():toggleStandby(arg.groupName, arg.groupId)
+            end,
+            { groupName = groupName, groupId = playerGroupId })
+    end
+
+    if ctld.gs("JTAC_laseSpotCorrections") ~= nil then
+        local label = jtac.laseSpotCorrections
+            and ctld.tr("Spot Corrections [deactivate]")
+            or  ctld.tr("Spot Corrections [activate]")
+        menu:addCommand({ root, jtacSub, groupName }, label,
+            function(arg)
+                CTLDJTACManager.getInstance():toggleSpotCorrections(arg.groupName, arg.groupId)
+            end,
+            { groupName = groupName, groupId = playerGroupId })
+    end
+
+    if ctld.gs("JTAC_allowSmokeRequest") then
+        menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
+            function(arg)
+                CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
+            end,
+            { groupName = groupName })
+    end
+
+    if ctld.gs("JTAC_allow9Line") then
+        menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request 9-Line"),
+            function(arg)
+                ctld.utils.log("INFO", "9-Line for " .. arg.groupName)
+            end,
+            { groupName = groupName })
+    end
+end
+
 -- Requires JTAC_jtacStatusF10 = true (configKey gate).
 -- Adds "JTAC Status" command + per-active-JTAC submenus for player coalition.
 -- On JTAC state changes (spawn/dead/transit), CTLDPlayerManager:refreshAll()
@@ -1563,30 +1678,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     for groupName, jtac in pairs(self.jtacs) do
         if jtac.coalitionId == playerObj.coalition and jtac.state ~= CTLDJTAC.STATE.DEAD then
             menu:addSubMenu({ root, jtacSub }, groupName)
-
-            if ctld.gs("JTAC_allowStandbyMode") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Toggle Lasing"),
-                    function(arg)
-                        ctld.utils.log("INFO", "Toggle Lasing for " .. arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
-
-            if ctld.gs("JTAC_allowSmokeRequest") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
-                    function(arg)
-                        CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
-
-            if ctld.gs("JTAC_allow9Line") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request 9-Line"),
-                    function(arg)
-                        ctld.utils.log("INFO", "9-Line for " .. arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
+            self:_buildJTACCommandsForGroup(groupName, jtac, menu, playerObj.groupId)
         end
     end
 end

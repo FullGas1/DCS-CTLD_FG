@@ -411,6 +411,17 @@ ctld.i18n["es"]["Smoke Auto-Resume [deactivate]"] = "Humo auto-reanudación [des
 ctld.i18n["es"]["Smoke auto-resume ON (%1s interval)"]  = "Humo auto-reanudación ACTIVO (intervalo %1s)"
 ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudación DESACTIVADO"
 
+--- JTAC toggles
+ctld.i18n["es"]["Lasing [activate]"]                          = "Láser [activar]"
+ctld.i18n["es"]["Lasing [deactivate]"]                        = "Láser [desactivar]"
+ctld.i18n["es"]["Spot Corrections [activate]"]                = "Correcciones de spot [activar]"
+ctld.i18n["es"]["Spot Corrections [deactivate]"]              = "Correcciones de spot [desactivar]"
+ctld.i18n["es"]["Lasing activated: %s"]                       = "Láser activado: %s"
+ctld.i18n["es"]["Lasing deactivated (standby): %s"]           = "Láser desactivado (espera): %s"
+ctld.i18n["es"]["Spot corrections activated: %s"]             = "Correcciones de spot activadas: %s"
+ctld.i18n["es"]["Spot corrections deactivated: %s"]           = "Correcciones de spot desactivadas: %s"
+ctld.i18n["es"]["JTAC not found."]                            = "JTAC no encontrado."
+
 --- Troop parachute
 ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
 ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"

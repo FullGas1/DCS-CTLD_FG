@@ -1838,6 +1838,17 @@ ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactiva
 ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
 ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"
 
+--- JTAC toggles
+ctld.i18n["en"]["Lasing [activate]"]                          = "Lasing [activate]"
+ctld.i18n["en"]["Lasing [deactivate]"]                        = "Lasing [deactivate]"
+ctld.i18n["en"]["Spot Corrections [activate]"]                = "Spot Corrections [activate]"
+ctld.i18n["en"]["Spot Corrections [deactivate]"]              = "Spot Corrections [deactivate]"
+ctld.i18n["en"]["Lasing activated: %s"]                       = "Lasing activated: %s"
+ctld.i18n["en"]["Lasing deactivated (standby): %s"]           = "Lasing deactivated (standby): %s"
+ctld.i18n["en"]["Spot corrections activated: %s"]             = "Spot corrections activated: %s"
+ctld.i18n["en"]["Spot corrections deactivated: %s"]           = "Spot corrections deactivated: %s"
+ctld.i18n["en"]["JTAC not found."]                            = "JTAC not found."
+
 --- Troop parachute
 ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
 ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
@@ -2271,6 +2282,17 @@ ctld.i18n["fr"]["Smoke Auto-Resume [activate]"]   = "Fumée auto-reprise [active
 ctld.i18n["fr"]["Smoke Auto-Resume [deactivate]"] = "Fumée auto-reprise [désactiver]"
 ctld.i18n["fr"]["Smoke auto-resume ON (%1s interval)"]  = "Fumée auto-reprise ACTIVE (intervalle %1s)"
 ctld.i18n["fr"]["Smoke auto-resume OFF"]                = "Fumée auto-reprise DÉSACTIVÉE"
+
+--- JTAC toggles
+ctld.i18n["fr"]["Lasing [activate]"]                          = "Laser [activer]"
+ctld.i18n["fr"]["Lasing [deactivate]"]                        = "Laser [désactiver]"
+ctld.i18n["fr"]["Spot Corrections [activate]"]                = "Corrections spot [activer]"
+ctld.i18n["fr"]["Spot Corrections [deactivate]"]              = "Corrections spot [désactiver]"
+ctld.i18n["fr"]["Lasing activated: %s"]                       = "Laser activé : %s"
+ctld.i18n["fr"]["Lasing deactivated (standby): %s"]           = "Laser désactivé (veille) : %s"
+ctld.i18n["fr"]["Spot corrections activated: %s"]             = "Corrections spot activées : %s"
+ctld.i18n["fr"]["Spot corrections deactivated: %s"]           = "Corrections spot désactivées : %s"
+ctld.i18n["fr"]["JTAC not found."]                            = "JTAC introuvable."
 
 --- Troop parachute
 ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
@@ -2707,6 +2729,17 @@ ctld.i18n["es"]["Smoke Auto-Resume [deactivate]"] = "Humo auto-reanudación [des
 ctld.i18n["es"]["Smoke auto-resume ON (%1s interval)"]  = "Humo auto-reanudación ACTIVO (intervalo %1s)"
 ctld.i18n["es"]["Smoke auto-resume OFF"]                = "Humo auto-reanudación DESACTIVADO"
 
+--- JTAC toggles
+ctld.i18n["es"]["Lasing [activate]"]                          = "Láser [activar]"
+ctld.i18n["es"]["Lasing [deactivate]"]                        = "Láser [desactivar]"
+ctld.i18n["es"]["Spot Corrections [activate]"]                = "Correcciones de spot [activar]"
+ctld.i18n["es"]["Spot Corrections [deactivate]"]              = "Correcciones de spot [desactivar]"
+ctld.i18n["es"]["Lasing activated: %s"]                       = "Láser activado: %s"
+ctld.i18n["es"]["Lasing deactivated (standby): %s"]           = "Láser desactivado (espera): %s"
+ctld.i18n["es"]["Spot corrections activated: %s"]             = "Correcciones de spot activadas: %s"
+ctld.i18n["es"]["Spot corrections deactivated: %s"]           = "Correcciones de spot desactivadas: %s"
+ctld.i18n["es"]["JTAC not found."]                            = "JTAC no encontrado."
+
 --- Troop parachute
 ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
 ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"
@@ -2988,6 +3021,17 @@ ctld.i18n["ko"]["Smoke Auto-Resume [activate]"]   = "연막 자동재개 [활성
 ctld.i18n["ko"]["Smoke Auto-Resume [deactivate]"] = "연막 자동재개 [비활성화]"
 ctld.i18n["ko"]["Smoke auto-resume ON (%1s interval)"]  = "연막 자동재개 ON (%1초 간격)"
 ctld.i18n["ko"]["Smoke auto-resume OFF"]                = "연막 자동재개 OFF"
+
+--- JTAC toggles
+ctld.i18n["ko"]["Lasing [activate]"]                          = "레이저 [활성화]"
+ctld.i18n["ko"]["Lasing [deactivate]"]                        = "레이저 [비활성화]"
+ctld.i18n["ko"]["Spot Corrections [activate]"]                = "스팟 보정 [활성화]"
+ctld.i18n["ko"]["Spot Corrections [deactivate]"]              = "스팟 보정 [비활성화]"
+ctld.i18n["ko"]["Lasing activated: %s"]                       = "레이저 활성화: %s"
+ctld.i18n["ko"]["Lasing deactivated (standby): %s"]           = "레이저 비활성화 (대기): %s"
+ctld.i18n["ko"]["Spot corrections activated: %s"]             = "스팟 보정 활성화: %s"
+ctld.i18n["ko"]["Spot corrections deactivated: %s"]           = "스팟 보정 비활성화: %s"
+ctld.i18n["ko"]["JTAC not found."]                            = "JTAC를 찾을 수 없습니다."
 
 --- Troop parachute
 ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
@@ -18540,6 +18584,121 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
 end
 
 --- Build the "JTAC" F10 submenu for a player.
+--- Toggle standby mode for a JTAC.
+-- standbyMode=false → true : stop lasing (STANDBY_MODE reason), announce deactivated.
+-- standbyMode=true  → false: resume lasing via startLase, announce activated.
+-- Rebuilds the per-JTAC command branch for all coalition players.
+-- @param groupName string
+-- @param groupId   number  player group id for confirmation message
+function CTLDJTACManager:toggleStandby(groupName, groupId)
+    local jtac = self.jtacs[groupName]
+    if not jtac then
+        trigger.action.outTextForGroup(groupId, ctld.tr("JTAC not found."), 8)
+        return
+    end
+    if jtac.standbyMode then
+        jtac.standbyMode = false
+        self:startLase(groupName)
+        trigger.action.outTextForGroup(groupId,
+            string.format(ctld.tr("Lasing activated: %s"), groupName), 8)
+    else
+        jtac.standbyMode = true
+        if jtac.currentTarget then
+            self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
+        end
+        trigger.action.outTextForGroup(groupId,
+            string.format(ctld.tr("Lasing deactivated (standby): %s"), groupName), 8)
+    end
+    self:_rebuildJTACCommandBranch(groupName)
+end
+
+--- Toggle spot corrections for a JTAC.
+-- @param groupName string
+-- @param groupId   number  player group id for confirmation message
+function CTLDJTACManager:toggleSpotCorrections(groupName, groupId)
+    local jtac = self.jtacs[groupName]
+    if not jtac then
+        trigger.action.outTextForGroup(groupId, ctld.tr("JTAC not found."), 8)
+        return
+    end
+    jtac.laseSpotCorrections = not jtac.laseSpotCorrections
+    local msg = jtac.laseSpotCorrections
+        and string.format(ctld.tr("Spot corrections activated: %s"), groupName)
+        or  string.format(ctld.tr("Spot corrections deactivated: %s"), groupName)
+    trigger.action.outTextForGroup(groupId, msg, 8)
+    self:_rebuildJTACCommandBranch(groupName)
+end
+
+--- Rebuild the per-JTAC command submenu for all coalition players of this JTAC.
+-- Called after toggleStandby / toggleSpotCorrections to update dynamic labels.
+-- @param jtacGroupName string
+function CTLDJTACManager:_rebuildJTACCommandBranch(jtacGroupName)
+    local jtac = self.jtacs[jtacGroupName]
+    if not jtac then return end
+    local mm      = ctld.MenuManager:getInstance()
+    local root    = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+    for _, playerObj in pairs(CTLDPlayerManager.getInstance()._players) do
+        if playerObj.coalition == jtac.coalitionId then
+            local menu = mm:getMenuByGroupId(playerObj.groupId)
+            if menu then
+                menu:clearBranch({ root, jtacSub, jtacGroupName })
+                self:_buildJTACCommandsForGroup(jtacGroupName, jtac, menu, playerObj.groupId)
+                menu:refresh()
+            end
+        end
+    end
+end
+
+--- Build (or rebuild) the commands inside a per-JTAC submenu.
+-- Labels for Toggle Lasing and Spot Corrections are dynamic (state-dependent).
+-- @param groupName    string
+-- @param jtac         CTLDJTAC
+-- @param menu         ctld.Menu
+-- @param playerGroupId number
+function CTLDJTACManager:_buildJTACCommandsForGroup(groupName, jtac, menu, playerGroupId)
+    local root    = ctld.tr("CTLD")
+    local jtacSub = ctld.tr("JTAC")
+
+    if ctld.gs("JTAC_allowStandbyMode") then
+        local label = jtac.standbyMode
+            and ctld.tr("Lasing [activate]")
+            or  ctld.tr("Lasing [deactivate]")
+        menu:addCommand({ root, jtacSub, groupName }, label,
+            function(arg)
+                CTLDJTACManager.getInstance():toggleStandby(arg.groupName, arg.groupId)
+            end,
+            { groupName = groupName, groupId = playerGroupId })
+    end
+
+    if ctld.gs("JTAC_laseSpotCorrections") ~= nil then
+        local label = jtac.laseSpotCorrections
+            and ctld.tr("Spot Corrections [deactivate]")
+            or  ctld.tr("Spot Corrections [activate]")
+        menu:addCommand({ root, jtacSub, groupName }, label,
+            function(arg)
+                CTLDJTACManager.getInstance():toggleSpotCorrections(arg.groupName, arg.groupId)
+            end,
+            { groupName = groupName, groupId = playerGroupId })
+    end
+
+    if ctld.gs("JTAC_allowSmokeRequest") then
+        menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
+            function(arg)
+                CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
+            end,
+            { groupName = groupName })
+    end
+
+    if ctld.gs("JTAC_allow9Line") then
+        menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request 9-Line"),
+            function(arg)
+                ctld.utils.log("INFO", "9-Line for " .. arg.groupName)
+            end,
+            { groupName = groupName })
+    end
+end
+
 -- Requires JTAC_jtacStatusF10 = true (configKey gate).
 -- Adds "JTAC Status" command + per-active-JTAC submenus for player coalition.
 -- On JTAC state changes (spawn/dead/transit), CTLDPlayerManager:refreshAll()
@@ -18581,30 +18740,7 @@ function CTLDJTACManager:buildMenuSection(playerObj, menu)
     for groupName, jtac in pairs(self.jtacs) do
         if jtac.coalitionId == playerObj.coalition and jtac.state ~= CTLDJTAC.STATE.DEAD then
             menu:addSubMenu({ root, jtacSub }, groupName)
-
-            if ctld.gs("JTAC_allowStandbyMode") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Toggle Lasing"),
-                    function(arg)
-                        ctld.utils.log("INFO", "Toggle Lasing for " .. arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
-
-            if ctld.gs("JTAC_allowSmokeRequest") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request Smoke on Target"),
-                    function(arg)
-                        CTLDJTACManager.getInstance():requestSmoke(arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
-
-            if ctld.gs("JTAC_allow9Line") then
-                menu:addCommand({ root, jtacSub, groupName }, ctld.tr("Request 9-Line"),
-                    function(arg)
-                        ctld.utils.log("INFO", "9-Line for " .. arg.groupName)
-                    end,
-                    { groupName = groupName })
-            end
+            self:_buildJTACCommandsForGroup(groupName, jtac, menu, playerObj.groupId)
         end
     end
 end

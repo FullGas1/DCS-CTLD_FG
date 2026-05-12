@@ -414,6 +414,17 @@ ctld.i18n["en"]["Smoke Auto-Resume [deactivate]"] = "Smoke Auto-Resume [deactiva
 ctld.i18n["en"]["Smoke auto-resume ON (%1s interval)"]  = "Smoke auto-resume ON (%1s interval)"
 ctld.i18n["en"]["Smoke auto-resume OFF"]                = "Smoke auto-resume OFF"
 
+--- JTAC toggles
+ctld.i18n["en"]["Lasing [activate]"]                          = "Lasing [activate]"
+ctld.i18n["en"]["Lasing [deactivate]"]                        = "Lasing [deactivate]"
+ctld.i18n["en"]["Spot Corrections [activate]"]                = "Spot Corrections [activate]"
+ctld.i18n["en"]["Spot Corrections [deactivate]"]              = "Spot Corrections [deactivate]"
+ctld.i18n["en"]["Lasing activated: %s"]                       = "Lasing activated: %s"
+ctld.i18n["en"]["Lasing deactivated (standby): %s"]           = "Lasing deactivated (standby): %s"
+ctld.i18n["en"]["Spot corrections activated: %s"]             = "Spot corrections activated: %s"
+ctld.i18n["en"]["Spot corrections deactivated: %s"]           = "Spot corrections deactivated: %s"
+ctld.i18n["en"]["JTAC not found."]                            = "JTAC not found."
+
 --- Troop parachute
 ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
 ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
