@@ -456,29 +456,15 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             définitivement tout ID passé à removeMark — réutilisation = mark invisible)
         Recette F-115 : 11/11 PASS [2026-04-27]
 
-⬜  FG  Shutdown propre des boucles timer.scheduleFunction à la réinjection CTLD_Next
-        Contexte : réinjection Witchcraft d'un CTLD_Next.lua dans une mission qui tourne déjà
-        redéclare les singletons mais NE peut PAS annuler les boucles schedulées de l'ancienne instance.
-        Risques identifiés :
-          - Boucles zombies avec référence à l'ancienne instance (closures self capturé)
-          - Double rebuild de menu F10 en parallèle → arborescence corrompue (observé [2026-05-04])
-          - Beacon refresh loop : boucle infinie SANS guard return nil, functionId NON stocké
-            → aucune possibilité d'annulation → risque accumulatif à chaque réinjection
-        Audit des boucles actuelles :
-          - _orbitLoop (CTLD_jtac) : ✅ functionId stocké dans _orbitScheduleId → removeFunction possible
-          - _autoLaseLoop (CTLD_jtac) : ✅ guard return nil si JTAC absent du manager → auto-stop
-          - beacon refresh (CTLD_beacon) : ❌ functionId non stocké + pas de guard → BUGFIX REQUIS
-          - _tryInitFlying (CTLD_jtac) : ✅ one-shot
-          - menu refresh (CTLD_player) : ✅ one-shot
-        API à utiliser : timer.removeFunction(functionId) — annule une fonction schedulée via son ID
-          https://wiki.hoggitworld.com/view/DCS_func_removeFunction
-        Travaux à faire :
-          (A) Stocker le functionId de la boucle beacon refresh → permettre son annulation
-          (B) Ajouter guard return nil dans la beacon refresh loop (défense en profondeur)
-          (C) Évaluer CTLDCoreManager:shutdown() pour arrêt propre de toutes les boucles
-              avant réinjection (appel depuis un script Witchcraft dédié)
-          (D) Bonne pratique recette : ne pas détruire de vrais groupes DCS dans les scénarios
-              Witchcraft (déclenche S_EVENT_DEAD → rebuild menu concurrent)
+✅  FG  Shutdown propre des boucles timer.scheduleFunction à la réinjection CTLD_Next [2026-05-12]
+        Implémentation :
+          ✅ (A+B) `ctld.scheduler` (CTLD_utils.lua) : registre central register/cancel/cancelAll
+          ✅ beacon refresh loop : return-t+interval + guard B (zombie auto-stop) + register "beacon_refresh"
+          ✅ AI transport loop : guard B + register "ai_transport"
+          ✅ recette/shutdown_ctld.lua : script Witchcraft → ctld.scheduler.cancelAll() avant réinjection
+        Vérifié live DCS : cancelAll annule 2 boucles (beacon_refresh + ai_transport) ✅
+        (D) Bonne pratique recette : ne pas détruire de vrais groupes DCS dans les scénarios
+            Witchcraft (déclenche S_EVENT_DEAD → rebuild menu concurrent) — documenté ici
 
 ⬜  FG  Feature F — RECON layer FARP/FOB ennemis persistants
         Objectif : détecter les FARP/FOB ennemis en LOS pendant un vol de reconnaissance et en garder
