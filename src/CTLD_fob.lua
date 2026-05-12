@@ -217,36 +217,26 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
         cm:destroyCrate(crate.crateName)
     end
 
-    -- Pre-compute centroid (100 m / 12 o'clock from transport NOW, not after buildTime)
-    local centroid    = _computeCentroid(transport)
-    local buildTime   = ctld.gs("buildTimeFOB") or 120
-    local countryId   = transport:getCountry()
-    local transName   = transport:getName()
-    local self_ref    = self
+    -- Pre-compute centroid (100 m / 12 o'clock from transport NOW)
+    local centroid  = _computeCentroid(transport)
+    local countryId = transport:getCountry()
+    local transName = transport:getName()
+    local self_ref  = self
 
-    -- Visual feedback
+    -- Visual feedback — scene duration defines the 120 s build time
     trigger.action.outTextForCoalition(coalitionId,
-        ctld.tr("%1 started building a FOB (%2 crate(s)). Ready in %3 seconds.",
-            player, #cratesUsed, buildTime), 10)
+        ctld.tr("%1 started building a FOB (%2 crate(s)). Construction in progress.",
+            player, #cratesUsed), 10)
 
-    -- Schedule scene spawn
-    timer.scheduleFunction(function()
-        local transport2 = Unit.getByName(transName)
-        if not transport2 or not transport2:isExist() then
-            -- Transport left; use a minimal proxy (coalition/country from cache)
-            -- The scene will use params.centroid for positioning.
-            transport2 = transport  -- stale ref — only coalition/country are read by scene engine
+    -- Start scene immediately — no pre-timer needed
+    CTLDSceneManager.getInstance():playScene(
+        transport,
+        "fobScene",
+        { player = player, centroid = centroid },
+        function(scene)
+            self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)
         end
-
-        CTLDSceneManager.getInstance():playScene(
-            transport2,
-            "fobScene",
-            { player = player, centroid = centroid },
-            function(scene)
-                self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)
-            end
-        )
-    end, nil, timer.getTime() + buildTime)
+    )
 end
 
 -- ============================================================
@@ -285,19 +275,14 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
     local logRadius = ctld.gs("fobLogisticZoneRadius") or 150
     CTLDZoneManager.getInstance():registerFOBAsLogistic(fobName, centroid, logRadius, coalitionId)
 
-    -- Drop FOB beacon (infinite battery).
-    -- Beacon is placed in the open space between container and watchtower:
-    -- 20 m at 158° from the scene heading (same direction as watchtower step,
-    -- but short enough to stay clear of both buildings).
+    -- Drop FOB beacon (infinite battery) 5 m toward helicopter from centroid.
     local transport = Unit.getByName(transportName)
     if transport and transport:isExist() and CTLDBeaconManager then
-        local hdg        = scene._refHdgRad or 0
-        local angleRad   = hdg + math.rad(158)
-        local leftRad    = hdg - math.pi / 2   -- perpendicular left from heli heading
+        local hdg = scene._refHdgRad or 0
         local beaconPos  = {
-            x = centroid.x + math.cos(angleRad) * 20 + math.cos(leftRad) * 7,
+            x = centroid.x - math.cos(hdg) * 5,
             y = centroid.y,
-            z = centroid.z + math.sin(angleRad) * 20 + math.sin(leftRad) * 7,
+            z = centroid.z - math.sin(hdg) * 5,
         }
         local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
         fob.beacon = beacon
