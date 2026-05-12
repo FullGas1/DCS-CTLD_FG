@@ -2,6 +2,8 @@
 -- ============================================================
 -- U-31 : CTLDCrate.canUnpack — logique guards
 -- Module  : R1 (src/CTLD_crate.lua)
+-- Note    : forceCrateToBeMoved intentionally not implemented —
+--           crates can be unpacked wherever they land.
 -- ============================================================
 
 do local f = io.open("C:/Users/Moi/Documents/GitHub/DCS-CTLD_FG/recette/CTLD.log","w") if f then f:close() end end
@@ -22,36 +24,28 @@ local function makeCrate()
         spawnMethod="crate_spawn", position=pos, coalition=coalition.side.BLUE })
 end
 
--- SPAWNED + forceCrateToBeMoved=false → canUnpack=true
+-- SPAWNED (on ground) → canUnpack=true (no movement constraint)
 local c1 = makeCrate()
-ctld_test.assert(c1:canUnpack(false), "SPAWNED + force=false → canUnpack true")
+ctld_test.assert(c1:canUnpack(), "SPAWNED on ground → canUnpack true")
 
--- SPAWNED + forceCrateToBeMoved=true + hasMoved=false → false
-ctld_test.assert(not c1:canUnpack(true), "SPAWNED + force=true + hasMoved=false → false")
-
--- SPAWNED + forceCrateToBeMoved=true + hasMoved=true (après load) → true
-c1:load(transport)
-c1:unload(pos)   -- → LANDED, hasMoved=true
-ctld_test.assert(c1:canUnpack(true), "LANDED + force=true + hasMoved=true → true")
-
--- canBeUnpacked=false → toujours false
+-- canBeUnpacked=false → always false regardless of state
 c1.canBeUnpacked = false
-ctld_test.assert(not c1:canUnpack(false), "canBeUnpacked=false → false quelle que soit force")
+ctld_test.assert(not c1:canUnpack(), "canBeUnpacked=false → false")
 
 -- LOADED → isOnGround=false → false
 local c2 = makeCrate()
 c2:load(transport)
-ctld_test.assert(not c2:canUnpack(false), "LOADED → canUnpack false (pas au sol)")
+ctld_test.assert(not c2:canUnpack(), "LOADED → canUnpack false (not on ground)")
 
 -- FALLING → false
 local c3 = makeCrate()
 c3:load(transport)
 c3:drop(pos)
-ctld_test.assert(not c3:canUnpack(false), "FALLING → canUnpack false")
+ctld_test.assert(not c3:canUnpack(), "FALLING → canUnpack false")
 
 -- UNPACKED → false
 local c4 = makeCrate()
 c4:unpack()
-ctld_test.assert(not c4:canUnpack(false), "UNPACKED → canUnpack false")
+ctld_test.assert(not c4:canUnpack(), "UNPACKED → canUnpack false")
 
 ctld_test.finish()

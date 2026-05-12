@@ -966,6 +966,16 @@ Tags: `v2.0-alpha.1`, `v2.0-beta.1`, `v2.0-rc.1`, `v2.0`
 
 ---
 
+## Code cleanup backlog
+
+Minor cleanups identified — low priority, no functional impact.
+
+- **CL-1** `src/CTLD_crate.lua` — Remove `descriptor.type` fallback in `findDescriptorByTypeName`.
+  Legacy alias for `unit`, never set in any config entry. Replace `unit==t or type==t` → `unit==t`. Update dev-guide.md.
+- ~~**CL-2**~~ ✅ `forceCrateToBeMoved` dropped intentionally. `canUnpack()` has no movement constraint. U-31 updated (7→4 cases, force param removed). recette.md updated.
+
+---
+
 ## Risks and mitigations
 
 | Risk | Impact | Mitigation |

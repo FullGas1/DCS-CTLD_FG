@@ -83,7 +83,7 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | U-28 | _detectCapabilities — isTransport + canCarryVehicles | M7 | UH-1H/Hercules/F-16C_50 détectés correctement | ✅ PASS 6/6 | — |
 | U-29 | onPlayerEnterUnit + onPlayerLeaveUnit état _players | M7 | Player créé puis supprimé, propriétés correctes | ✅ PASS 9/9 | — |
 | U-30 | CTLDCrate états + helpers | R1 | SPAWNED→LOADED→LANDED→UNPACKED, isOnGround/isLoaded | ✅ PASS 22/22 | — |
-| U-31 | canUnpack logique | R1 | forceCrateToBeMoved, canBeUnpacked, isOnGround guards | ✅ PASS 7/7 | — |
+| U-31 | canUnpack logique | R1 | canBeUnpacked, isOnGround guards (no movement constraint) | ✅ PASS 4/4 | forceCrateToBeMoved dropped — unpack anywhere |
 | U-32 | CTLDCrateManager singleton + getCrateByName + getCratesInRange | R1 | Singleton, lookup, filtre distance | ✅ PASS 9/9 | — |
 | U-33 | findDescriptorByTypeName | R1 | Match typeName dans spawnableCrates, nil si inconnu | ✅ PASS 9/9 | — |
 | U-34 | checkAssemblyReady | R1 | cratesRequired=1 toujours ready, =2 avec/sans crate manquante | ✅ PASS 9/9 | — |
