@@ -79,10 +79,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
          ✅ BUGFIX: menu "Load from X" — (A) libellé [2026-05-04]
                Affiche désormais "TRZ_" .. zoneName (ex. "TRZ_pz1") : court et sans ambiguïté avec une LGZ.
                Le callback conserve `zoneName` (nom court) pour getTroopZone().
-         🔧 BUGFIX PENDING: menu "Load from X" — (B) filtre LGZ_ absent
-               Le menu peut afficher des zones LGZ_ superposées à une TRZ_ (pas des pickup troops).
-               Filtrer sur `zone:hasPickup() == true` déjà en place (ligne 1399) — à confirmer en test
-               avec mission ayant une LGZ_ superposée à une TRZ_.
+         ✅ BUGFIX RESOLVED: menu "Load from X" — (B) filtre LGZ_ absent
+               Non-issue : getTroopZonesForCoalition() itère uniquement _troopZones (table distincte
+               de _logisticZones). Une LGZ ne peut structurellement pas apparaître dans le menu troops.
+               La note PENDING était préventive — confirmé par lecture code [2026-05-12].
 
 ✅ R3  src/CTLD_jtac.lua  (CTLDJTAC + CTLDJTACManager)
        recette: 8/8  100% [2026-04-07]
@@ -423,7 +423,12 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
               → accordes successives sur chaque freq → confirmer réception bip + comportement
               navigation (ADF pour VHF, homing pour FM). Test post-fix délai 1s.
 
-        À planifier après STEP 2+3 terminés.
+        Statut partiel [2026-05-12] :
+          ✅ TroopsFullCycle v2 (8 steps PASS [2026-05-05]) — couvre JTAC troops lifecycle
+          ✅ Drone JTAC orbit (F-106 visual PASS [2026-04-25])
+          ✅ IN_TRANSIT vehicle (F-125→F-127 PASS [2026-05-06])
+          ⬜ JTAC sol Hummer end-to-end (Request Equipment → unpack → 9-Line)
+          ⬜ Beacon radio 3 émetteurs (VHF/UHF/FM) — recette visuelle manquante
 
 ✅  FG  Refonte système spawnableCrates — singleTypeSets auto + mixedSet [2026-04-26]
         - Suppression ~25 entrées multiple={w,w,...} manuelles dans config
@@ -583,9 +588,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             → "laserCode" : le code laser le plus bas gagne (ordre de spawn/inscription)
             Note : la race est peu probable en pratique (loops décalées), mais doit être gérée.
 
-        Spec + implémentation à planifier.
+        ✅ Implémenté [2026-05-05] — voir entrée Feature J ci-dessus (✅ FG Feature J).
 
-🔄  FG  Feature K — JTAC vehicle in-transit lifecycle (idle/active on load/unload)
+✅  FG  Feature K — JTAC vehicle in-transit lifecycle (idle/active on load/unload)
+        (Sprint 1 + Sprint 2a ✅ — Sprint 2b différé : C-130/Il-76 requis)
         Objectif : garantir que les JTACs de type vehicle (autoLase group-keyed) transitent
         correctement entre états LASING ↔ idle lors des opérations load/unload du transport,
         symétrique au comportement déjà implémenté pour les JTACs infantry (troop unit-keyed).
@@ -614,7 +620,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
              UNLOAD : drift > 1m → unload détecté immédiatement (appareil stationnaire OK)
              Airborne UNLOAD (AGL > 5m) : fromParachute=true → _checkAutoUnpack()
           ✅ _checkAutoUnpack() : autoUnpack crateSet complet au centroïde, sans joueur
-          Recette Sprint 2a : à créer (UH-1H + 1 crate DCS native)
+          Recette Sprint 2a : ✅ F-128→F-131 (19/19 PASS [2026-05-06], mock)
 
         Sprint 2b — bbox vehicles entiers (GAP-K3 Flow 2) :
           CTLDVehicleSpawner._checkNativeLoading stub vide → même logique linkOffsetRef.
@@ -622,7 +628,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
 
         Recette :
           • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1) ✅
-          • Sprint 2a : à créer (UH-1H crate DCS native load/unload sol + airborne)
+          • Sprint 2a : ✅ F-128→F-131 (19/19 PASS [2026-05-06], mock)
           • F-113/F-114 : bbox vehicles entiers — différé Sprint 2b (C-130J-30/CH-47Fbl1 requis)
 
 ✅  FG  JTAC vehicle in-transit — vérification code coverage [2026-05-06]
@@ -658,6 +664,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ F-140→F-146 : 22/22 PASS [2026-05-12] — menu direct/sous-menu disembark, disembarkAll/Index,
              _menuCheckCargo multi-ligne+TOTAL, extract 1/N groupes avec distances
           ✅ MT-01 : test manuel 10 étapes PASS live DCS [2026-05-12] (recette/manual_test_sequences.md)
+          ⬜ MT-02 : test manuel multi-crate — menu pick/unload 1 vs N crates, spawn positions, Check Cargo
+          ⬜ MT-03 : test manuel multi-vehicle entier — load/unload 1 vs N véhicules, menu sélection, positions
+          ⬜ MT-04 : test manuel combinaison crate + troops — embarquement mixte, Check Cargo agrégé, disembark sélectif
+          ⬜ MT-05 : test manuel combinaison crate + vehicle entier — embarquement mixte, Check Cargo agrégé, unload sélectif
           ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
 
 ✅  FG  Feature M — JTAC smoke x/z offset [2026-05-12]
@@ -943,7 +953,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
-| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation [SW×0.9,SW×1.2] + config keys actifs [2026-05-12] |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation [SW×0.9,SW×1.2] + config keys actifs [2026-05-12]. Feature L: multi-group _inTransit, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
