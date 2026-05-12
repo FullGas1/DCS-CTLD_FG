@@ -427,17 +427,11 @@ end
 -- The loop always runs (AI auto-unload at dropoff zones works regardless of the flag).
 -- allowRandomAiTeamPickups gates random template selection vs first-available.
 function CTLDCoreManager:_initAITransports()
-    local pilotNames = ctld.gs("transportPilotNames")
-    if not pilotNames or #pilotNames == 0 then
-        ctld.utils.log("INFO", "CTLDCoreManager: INIT-A skipped — transportPilotNames is empty")
-        return
-    end
-
-    -- Build coalition-filtered team lists from registered templates.
+    -- Always build team lists — populated regardless of transportPilotNames.
     -- side == nil → both coalitions ; side == 1 → RED ; side == 2 → BLUE
     self._aiTeams = { [1] = {}, [2] = {} }
-    local ok, tm = pcall(CTLDTroopManager.getInstance)
-    if ok and tm then
+    local okTM, tm = pcall(CTLDTroopManager.getInstance)
+    if okTM and tm then
         for _, tmpl in ipairs(tm._templates) do
             if not tmpl.disabled then
                 if tmpl.side == nil or tmpl.side == 1 then
@@ -448,6 +442,13 @@ function CTLDCoreManager:_initAITransports()
                 end
             end
         end
+    end
+
+    -- Skip timer if no AI pilots configured.
+    local pilotNames = ctld.gs("transportPilotNames")
+    if not pilotNames or #pilotNames == 0 then
+        ctld.utils.log("INFO", "CTLDCoreManager: INIT-A teams built — timer skipped (transportPilotNames empty)")
+        return
     end
 
     -- Start polling loop (2 s interval — same as legacy).

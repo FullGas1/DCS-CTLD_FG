@@ -278,6 +278,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-130 | Sprint 2a — DCS native UNLOAD en vol : fromParachute=true | CTLDCrateManager:_checkNativeDCSCargo | transport AGL=200m → inFlight=true → fromParachute=true après unload | ✅ PASS 5/5 [2026-05-06] | mock |
 | F-131 | Sprint 2a — autoUnpack crateSet complet après parachutage | CTLDCrateManager:_checkAutoUnpack | 3 crates LANDED+fromParachute=true+même descriptor → _spawnUnpacked au centroïde, toutes 3 dé-enregistrées | ✅ PASS 4/4 [2026-05-06] | mock |
 | F-132 | JTAC vehicle via crate — pack → deregisterJTAC | CTLDVehicleSpawner:packVehicle + CTLDJTACManager:deregisterJTAC | startLase+register → packVehicle → deregCalled + jtacs=nil + laserCode freed | ✅ PASS 7/7 [2026-05-06] | Witchcraft |
+| F-133 | Feature N — `_aiTeams` population après `_initAITransports()` | `CTLDCoreManager:_initAITransports` | `_aiTeams` existe + `_aiTeams[1]` et `[2]` ≥1 entrée + toutes actives et nommées | ✅ PASS 4/4 [2026-05-12] | Witchcraft |
+| F-134 | Feature N — `_checkAIStatus` pickup / dropoff branches | `CTLDCoreManager:_checkAIStatus` | pickup AI→embark appelé (1×, bonne zone+tmpl) ; human ignoré ; dropoff AI+troops→disembarkAll ; dropoff sans troupes→non appelé | ✅ PASS 6/6 [2026-05-12] | Witchcraft mock |
 
 ---
 
@@ -337,7 +339,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Feature K Sprint 1 — JTAC vehicle in-transit (GAP-K1+K2)** : 3 fonctionnels = **3 cas** ✅ PASS (F-125 10/10 + F-126 4/4 + F-127 5/5 [2026-05-06]) — parachuteVehicle setState WAITING + resumeJTAC ; transport destroy → deregisterJTAC + purge vehicle
 - **Sprint 2a — DCS native crate load/unload + autoUnpack parachute** : 4 fonctionnels = **19 cas** ✅ PASS (F-128 5/5 + F-129 5/5 + F-130 5/5 + F-131 4/4 [2026-05-06]) — nativeCrateLink linkOffsetRef 3D, drift>1m UNLOAD sol+vol, fromParachute, checkAutoUnpack centroïde
 - **JTAC vehicle via crate pack** : 1 fonctionnel = **7 cas** ✅ PASS (F-132 7/7 [2026-05-06]) — deregisterJTAC@packVehicle, jtacs=nil, laserCode freed
-- **Total** : **230 cas** — 1053/1053 PASS ✅
+- **Feature N — AI transport INIT-A** : 2 fonctionnels = **10 cas** ✅ PASS (F-133 4/4 + F-134 6/6 [2026-05-12]) — `_aiTeams` population ; pickup/dropoff branch logic (mocks)
+- **Total** : **232 cas** — 1063/1063 PASS ✅
 
 ---
 
