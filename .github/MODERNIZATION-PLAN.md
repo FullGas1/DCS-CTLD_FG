@@ -668,7 +668,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ MT-02 : test manuel véhicule entier PASS live DCS [2026-05-12] — bug fix: message confirmation parachutage manquant (parachuteVehicle)
           ✅ MT-03 : test manuel multi-vehicle entier PASS live DCS [2026-05-12] — bugs fixed: inAir guard load closure + refreshLoadSection absent de onTakeoff/onLand
           ✅ MT-04 : test manuel combinaison crate + troops PASS live DCS [2026-05-13] — bug fix: message confirmation parachutage crates manquant (parachuteCrates)
-          ⬜ MT-05 : test manuel combinaison crate + vehicle entier — embarquement mixte, Check Cargo agrégé, unload sélectif
+          ✅ MT-05 : crate + véhicule entier isolation 12/12 PASS auto [2026-05-13] — scénario Witchcraft (poids UH-1H insuffisant pour test manuel)
           ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
 
 ✅  FG  Feature M — JTAC smoke x/z offset [2026-05-12]
