@@ -171,18 +171,10 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • target lost     → GROUP popTask() + GROUP setTask(initialRoute) → IDLE
         Validated F-106 [2026-04-25] via Witchcraft: full circle restoration confirmed.
 
-⬜  FG  FOB construction scene — animated build sequence (120 s)
-        Animate fobScene over the full buildTimeFOB (120 s) duration instead of
-        playing all steps immediately:
-          - Spawn transition props at scene start: construction crane, worker
-            characters around the site, scattered crates
-          - Spread the permanent structure steps (container, watchtower, sandbags…)
-            across the 120 s timeline
-          - Destroy/remove all transition props (crane, characters, temp crates)
-            at scene completion, leaving only the final FOB structure
-        Implementation: add timed sub-steps in CTLD_fobScene.lua using the
-        CtldScene step engine (timer offsets); transition props registered in
-        scene._transitionObjs for cleanup in the onComplete callback.
+✅  FG  FOB construction scene — animated build sequence (120 s) [2026-04-14]
+        Implemented in CTLD_fobScene.lua: 20 timed steps over 120 s —
+        crane + workers (fh1/fh2/fh3) + progressive structure spawns,
+        transition props cleaned up at T+120. Validated F-90/F-93 live DCS.
 
 ✅  FG  STEP 1 — Factorisation rôle JTAC : isJTAC descriptor + suppression _jtacUnitTypes [2026-04-25]
         Périmètre :
