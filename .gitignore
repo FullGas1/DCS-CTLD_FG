@@ -6,13 +6,6 @@
 # Do NOT add it to .gitignore.
 
 # ── Local-only recette resources (never commit) ───────────────────────────────
-# Diagnostic scripts: one-shot debug injections created during live DCS sessions.
-recette/diag_*.lua
-# Ad-hoc fix / patch / inject / reset scripts from live sessions.
-recette/fix_*.lua
-recette/patch_*.lua
-recette/inject_*.lua
-recette/reregister_*.lua
-recette/reset_*.lua
-# DCS / CTLD log files (runtime output, changes every session).
-recette/*.log
+# All local debug/diagnostic/patch scripts live in recette/local/.
+# New files created there are automatically excluded from git.
+recette/local/
