@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Lua 5.4
-        run: choco install lua --version 5.4.6 -y --no-progress
+        run: choco install lua -y --no-progress
         shell: pwsh
 
       - name: Syntax-check src/
@@ -122,7 +122,7 @@ jobs:
 
       - name: Install Lua + LuaRocks + busted
         run: |
-          choco install lua --version 5.4.6 -y --no-progress
+          choco install lua -y --no-progress
           choco install luarocks -y --no-progress
           luarocks install busted
         shell: pwsh

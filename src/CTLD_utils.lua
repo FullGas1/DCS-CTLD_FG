@@ -731,14 +731,17 @@ end
 -- DCS: once removeMark(id) is called, that id is permanently invalid and must never be reused.
 -- All Draw API callers (RECON, Beacon, drawQuad) share this counter to avoid collisions.
 -- Encoded IDs use markId * 10 + offset (1–3 elements per logical mark).
-ctld.utils.MarkIdCounter = 0
+-- Stored on ctld (persistent table via "ctld = ctld or {}") so it survives
+-- ctld.utils table re-creation on each Witchcraft re-injection.
+-- Start at 10000 to stay far from any IDs burned by previous Witchcraft re-injections.
+if not ctld._markIdCounter then ctld._markIdCounter = 10000 end
 
 --- Allocate the next unique mark ID for DCS Draw API calls.
 -- Never reuse a previously allocated ID after removeMark() has been called on it.
 -- @return number
 function ctld.utils.getNextMarkId()
-    ctld.utils.MarkIdCounter = ctld.utils.MarkIdCounter + 1
-    return ctld.utils.MarkIdCounter
+    ctld._markIdCounter = ctld._markIdCounter + 1
+    return ctld._markIdCounter
 end
 
 --- Converts angle in radians to degrees.

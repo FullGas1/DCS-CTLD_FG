@@ -354,7 +354,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Feature N — AI transport INIT-A** : 2 fonctionnels = **10 cas** ✅ PASS (F-133 4/4 + F-134 6/6 [2026-05-12]) — `_aiTeams` population ; pickup/dropoff branch logic (mocks)
 - **ctld.scheduler — registre central + guard B** : 5 fonctionnels = **22 cas** ✅ PASS (F-135 9/9 + F-136 3/3 + F-137 3/3 + F-138 3/3 + F-139 4/4 [2026-05-12]) — register/cancel/cancelAll ; beacon+AI registration ; zombie guard ; re-registration post-cancelAll
 - **Feature L — Multi-group transport menus + disembark/extract** : 7 fonctionnels = **22 cas** ✅ PASS (F-140 2/2 + F-141 5/5 + F-142 2/2 + F-143 2/2 + F-144 4/4 + F-145 2/2 + F-146 5/5 [2026-05-12]) — menu direct vs sous-menu disembark (1 vs N groupes) ; disembarkAll/Index ; _menuCheckCargo multi-ligne ; extract from field 1 vs N groupes avec distances ; bugfixes : extract visible avec troupes à bord si capacité dispo, spawn center décalé (safeR+spreadR) pour éviter overlap
-- **Total** : **249 cas** — 1124/1124 PASS ✅
+- **Feature F — RECON FARP/FOB layer (mock)** : 9 fonctionnels = **22 cas** ✅ PASS (F-150 3/3 + F-151..152 7/7 + F-153 3/3 + F-154..157 6/6 + F-158 3/3 [2026-05-17]) — CTLDStaticWatcher watch/tick/dead ; coalition rendering fix (-1→playerCoalition) ; drawFarpIcon H cerclé ; farp_fob layer _matchLayer skip ; _syncFarpMarks FARP+FOB detect/dedup/clear ; watcher onDeadFn
+- **MT-06 — RECON FARP/FOB live DCS** : 9 steps ✅ PASS [2026-05-17] — icône T-dans-carré magenta visible en LOS ; persistence hors LOS confirmée ; toggle [deactivate] efface marks immédiatement ; toggle [activate] refait apparaître (MarkIdCounter préservé) ; playerCoalition=2 confirmé ; FARP détruit → mark disparaît <2s (CTLDStaticWatcher) ; FOB détruit → mark disparaît <2s
+- **Total** : **271 cas** — 1146/1146 PASS ✅ + MT-06 9/9 PASS
 
 ---
 

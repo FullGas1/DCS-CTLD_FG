@@ -150,6 +150,98 @@ end
 
 
 -- ============================================================
+-- CTLDStaticWatcher  (singleton)
+-- ============================================================
+-- Compensates for unreliable S_EVENT_DEAD on static/base objects.
+-- Callers register an (id, checkFn, onDeadFn) triplet; a 1 s timer
+-- polls checkFn() and calls onDeadFn() + dispatches "S_EVENT_STATIC_DEAD"
+-- the first time checkFn returns false.
+--
+-- Usage:
+--   CTLDStaticWatcher.getInstance():watch(id, checkFn, onDeadFn)
+--   CTLDStaticWatcher.getInstance():unwatch(id)
+--
+-- S_EVENT_STATIC_DEAD payload: { id, meta }
+--   meta = whatever the caller passed as 4th arg to watch() (optional).
+
+CTLDStaticWatcher = class()
+CTLDStaticWatcher._instance = nil
+
+function CTLDStaticWatcher.getInstance()
+    if not CTLDStaticWatcher._instance then
+        local o = setmetatable({}, CTLDStaticWatcher)
+        o:init()
+        CTLDStaticWatcher._instance = o
+    end
+    return CTLDStaticWatcher._instance
+end
+
+function CTLDStaticWatcher:init()
+    self._watched = {}   -- id -> { checkFn, onDeadFn, meta }
+    self._timer   = nil
+    ctld.utils.log("INFO", "CTLDStaticWatcher: init complete")
+end
+
+--- Register an object to watch.
+-- @param id       string   unique key (e.g. airbase name or fobId)
+-- @param checkFn  function returns true while alive
+-- @param onDeadFn function called once when checkFn() → false
+-- @param meta     any      passed to onDeadFn and S_EVENT_STATIC_DEAD payload (optional)
+function CTLDStaticWatcher:watch(id, checkFn, onDeadFn, meta)
+    self._watched[id] = { checkFn = checkFn, onDeadFn = onDeadFn, meta = meta }
+    self:_ensureTimer()
+    ctld.utils.log("INFO", "CTLDStaticWatcher: watching '%s'", tostring(id))
+end
+
+--- Deregister an object (e.g. on mark cleared by toggle/HideAll).
+function CTLDStaticWatcher:unwatch(id)
+    self._watched[id] = nil
+    ctld.utils.log("INFO", "CTLDStaticWatcher: unwatched '%s'", tostring(id))
+end
+
+--- Start the poll timer if not already running.
+function CTLDStaticWatcher:_ensureTimer()
+    if self._timer then return end
+    local self_ref = self
+    self._timer = timer.scheduleFunction(function(_, t)
+        return self_ref:_tick(t)
+    end, nil, timer.getTime() + 1)
+end
+
+--- Poll all watched objects. Returns next schedule time or nil to stop.
+function CTLDStaticWatcher:_tick(t)
+    local dead = {}
+    for id, entry in pairs(self._watched) do
+        local ok, alive = pcall(entry.checkFn)
+        if not ok or not alive then
+            dead[#dead + 1] = id
+        end
+    end
+
+    for _, id in ipairs(dead) do
+        local entry = self._watched[id]
+        self._watched[id] = nil
+        ctld.utils.log("INFO", "CTLDStaticWatcher: '%s' dead — firing onDeadFn", tostring(id))
+        local ok, err = pcall(entry.onDeadFn, entry.meta)
+        if not ok then
+            ctld.utils.log("ERROR", "CTLDStaticWatcher: onDeadFn error for '%s': %s",
+                tostring(id), tostring(err))
+        end
+        local okD, ed = pcall(EventDispatcher.getInstance)
+        if okD and ed then
+            ed:publish("S_EVENT_STATIC_DEAD", { id = id, meta = entry.meta })
+        end
+    end
+
+    if next(self._watched) then
+        return t + 1   -- reschedule in 1 s
+    else
+        self._timer = nil
+        return nil     -- no more watched objects — stop timer
+    end
+end
+
+-- ============================================================
 -- CTLDPlayerTracker  (singleton — human slot tracking, no MIST)
 -- ============================================================
 -- Maintains a double-index of connected human players:

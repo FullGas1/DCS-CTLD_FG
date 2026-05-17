@@ -572,6 +572,9 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         timestamp    = timer.getAbsTime(),
     })
 
+    -- Rebuild player menus so the new per-JTAC submenu appears immediately.
+    CTLDPlayerManager.getInstance():refreshAll()
+
     return jtac
 end
 
@@ -615,6 +618,8 @@ function CTLDJTACManager:deregisterJTAC(groupName)
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
     ctld.utils.log("INFO", "CTLDJTACManager:deregisterJTAC — '%s' silently deregistered", groupName)
+    -- Rebuild player menus to remove the deregistered JTAC submenu.
+    CTLDPlayerManager.getInstance():refreshAll()
 end
 
 --- Resume auto-lase for a JTAC after vehicle unload.
@@ -680,6 +685,8 @@ function CTLDJTACManager:killJTAC(groupName, killer)
 
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
+    -- Rebuild player menus to remove the dead JTAC submenu.
+    CTLDPlayerManager.getInstance():refreshAll()
 end
 
 -- ============================================================

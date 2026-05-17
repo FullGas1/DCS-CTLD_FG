@@ -1737,7 +1737,8 @@ ctld.i18n["en"]["Toggle %s"] = "Toggle %s"
 ctld.i18n["en"]["Auto-Refresh: [OFF]"] = "Auto-Refresh: [OFF]"
 ctld.i18n["en"]["Auto-Refresh: [ON]"] = "Auto-Refresh: [ON]"
 ctld.i18n["en"]["Altitude too low for recon scan (min %1 m)"] = "Altitude too low for recon scan (min %1 m)"
-ctld.i18n["en"]["No recon layers enabled. Activate layers first."] = "No recon layers enabled. Activate layers first."
+ctld.i18n["en"]["No recon layers enabled. Activate layers first."]    = "No recon layers enabled. Activate layers first."
+ctld.i18n["en"]["RECON started. Activate layers to see targets."]      = "RECON started. Activate layers to see targets."
 ctld.i18n["en"]["Recon stopped. %1 targets hidden."] = "Recon stopped. %1 targets hidden."
 ctld.i18n["en"]["No active recon scan to hide."] = "No active recon scan to hide."
 ctld.i18n["en"]["No active recon scan. Use 'Scan Area' first."] = "No active recon scan. Use 'Scan Area' first."
@@ -2183,6 +2184,7 @@ ctld.i18n["fr"]["Auto-Refresh: [OFF]"] = "Actualisation auto : [OFF]"
 ctld.i18n["fr"]["Auto-Refresh: [ON]"] = "Actualisation auto : [ON]"
 ctld.i18n["fr"]["Altitude too low for recon scan (min %1 m)"] = "Altitude trop basse pour le scan reco (min %1 m)"
 ctld.i18n["fr"]["No recon layers enabled. Activate layers first."] = "Aucune couche reco activée. Activez les couches d'abord."
+ctld.i18n["fr"]["RECON started. Activate layers to see targets."]  = "RECON démarré. Activez les couches pour voir les cibles."
 ctld.i18n["fr"]["Recon stopped. %1 targets hidden."] = "Reconnaissance arrêtée. %1 cible(s) masquée(s)."
 ctld.i18n["fr"]["No active recon scan to hide."] = "Aucun scan de reconnaissance actif à masquer."
 ctld.i18n["fr"]["No active recon scan. Use 'Scan Area' first."] = "Aucun scan actif. Utilisez 'Scanner la zone' d'abord."
@@ -2629,6 +2631,7 @@ ctld.i18n["es"]["Auto-Refresh: [OFF]"] = "Actualización auto: [OFF]"
 ctld.i18n["es"]["Auto-Refresh: [ON]"] = "Actualización auto: [ON]"
 ctld.i18n["es"]["Altitude too low for recon scan (min %1 m)"] = "Altitud demasiado baja para el escaneo de reconocimiento (mín. %1 m)"
 ctld.i18n["es"]["No recon layers enabled. Activate layers first."] = "Ninguna capa de reconocimiento activada. Activa las capas primero."
+ctld.i18n["es"]["RECON started. Activate layers to see targets."]  = "RECON iniciado. Activa las capas para ver objetivos."
 ctld.i18n["es"]["Recon stopped. %1 targets hidden."] = "Reconocimiento detenido. %1 objetivo(s) ocultado(s)."
 ctld.i18n["es"]["No active recon scan to hide."] = "No hay escaneo de reconocimiento activo para ocultar."
 ctld.i18n["es"]["No active recon scan. Use 'Scan Area' first."] = "No hay escaneo activo. Usa 'Escanear zona' primero."
@@ -2892,6 +2895,7 @@ ctld.i18n["ko"]["Auto-Refresh: [OFF]"] = "자동 갱신: [꺼짐]"
 ctld.i18n["ko"]["Auto-Refresh: [ON]"] = "자동 갱신: [켜짐]"
 ctld.i18n["ko"]["Altitude too low for recon scan (min %1 m)"] = "정찰 스캔 고도 부족 (최소 %1 m)"
 ctld.i18n["ko"]["No recon layers enabled. Activate layers first."] = "활성화된 정찰 레이어 없음. 먼저 레이어를 활성화하세요."
+ctld.i18n["ko"]["RECON started. Activate layers to see targets."]  = "정찰 시작됨. 목표물을 보려면 레이어를 활성화하세요."
 ctld.i18n["ko"]["Recon stopped. %1 targets hidden."] = "정찰 중지. %1 목표 숨김."
 ctld.i18n["ko"]["No active recon scan to hide."] = "숨길 활성 정찰 스캔 없음."
 ctld.i18n["ko"]["No active recon scan. Use 'Scan Area' first."] = "활성 정찰 스캔 없음."
@@ -3788,14 +3792,17 @@ end
 -- DCS: once removeMark(id) is called, that id is permanently invalid and must never be reused.
 -- All Draw API callers (RECON, Beacon, drawQuad) share this counter to avoid collisions.
 -- Encoded IDs use markId * 10 + offset (1–3 elements per logical mark).
-ctld.utils.MarkIdCounter = 0
+-- Stored on ctld (persistent table via "ctld = ctld or {}") so it survives
+-- ctld.utils table re-creation on each Witchcraft re-injection.
+-- Start at 10000 to stay far from any IDs burned by previous Witchcraft re-injections.
+if not ctld._markIdCounter then ctld._markIdCounter = 10000 end
 
 --- Allocate the next unique mark ID for DCS Draw API calls.
 -- Never reuse a previously allocated ID after removeMark() has been called on it.
 -- @return number
 function ctld.utils.getNextMarkId()
-    ctld.utils.MarkIdCounter = ctld.utils.MarkIdCounter + 1
-    return ctld.utils.MarkIdCounter
+    ctld._markIdCounter = ctld._markIdCounter + 1
+    return ctld._markIdCounter
 end
 
 --- Converts angle in radians to degrees.
@@ -16234,29 +16241,30 @@ function CTLDReconRenderer.removeIcon(markId)
 end
 
 --- Infantry icon: circle + horizontal + vertical cross (⊕).
-function CTLDReconRenderer.drawInfantryIcon(pos, markId, color)
-    local r    = 30 * (ctld.gs("reconIconScale") or 1.0)
+-- @param coalition number  player coalition (1=RED, 2=BLUE) — marks visible to this coalition only
+function CTLDReconRenderer.drawInfantryIcon(pos, markId, color, coalition)
+    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
     local p    = { x = pos.x, y = 0, z = pos.z }
-    trigger.action.circleToAll(-1, markId * 10 + 1, p, r, color, fill, 1, true, "Infantry")
-    trigger.action.lineToAll(-1, markId * 10 + 2,
+    trigger.action.circleToAll(coalition, markId * 10 + 1, p, r, color, fill, 1, true, "Infantry")
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
         { x = pos.x - r, y = 0, z = pos.z }, { x = pos.x + r, y = 0, z = pos.z },
         color, 1, true, "")
-    trigger.action.lineToAll(-1, markId * 10 + 3,
+    trigger.action.lineToAll(coalition, markId * 10 + 3,
         { x = pos.x, y = 0, z = pos.z - r }, { x = pos.x, y = 0, z = pos.z + r },
         color, 1, true, "")
 end
 
 --- Vehicle icon: rectangle + diagonal (▭╱).
-function CTLDReconRenderer.drawVehicleIcon(pos, markId, color)
-    local s    = 40 * (ctld.gs("reconIconScale") or 1.0)
+function CTLDReconRenderer.drawVehicleIcon(pos, markId, color, coalition)
+    local s    = 150 * (ctld.gs("reconIconScale") or 1.0)
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
-    trigger.action.rectToAll(-1, markId * 10 + 1,
+    trigger.action.rectToAll(coalition, markId * 10 + 1,
         { x = pos.x - hs, y = 0, z = pos.z - hs },
         { x = pos.x + hs, y = 0, z = pos.z + hs },
         color, fill, 1, true, "Vehicle")
-    trigger.action.lineToAll(-1, markId * 10 + 2,
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
         { x = pos.x - hs, y = 0, z = pos.z - hs },
         { x = pos.x + hs, y = 0, z = pos.z + hs },
         color, 1, true, "")
@@ -16265,78 +16273,104 @@ end
 --- AA icon: filled circle (background) + 2 lines forming an apex (△ without base).
 -- 3-slot budget: slot1=filled circle, slot2=left side, slot3=right side.
 -- The apex shape (^) makes it recognisable as a pointed/AA symbol on the fill background.
-function CTLDReconRenderer.drawAAIcon(pos, markId, color)
-    local s    = 35 * (ctld.gs("reconIconScale") or 1.0)
+function CTLDReconRenderer.drawAAIcon(pos, markId, color, coalition)
+    local s    = 150 * (ctld.gs("reconIconScale") or 1.0)
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
     local apex = { x = pos.x,      y = 0, z = pos.z + hs }
     local bl   = { x = pos.x - hs, y = 0, z = pos.z - hs }
     local br   = { x = pos.x + hs, y = 0, z = pos.z - hs }
-    trigger.action.circleToAll(-1, markId * 10 + 1,
+    trigger.action.circleToAll(coalition, markId * 10 + 1,
         { x = pos.x, y = 0, z = pos.z }, hs * 0.9,
         color, fill, 1, true, "AA")
-    trigger.action.lineToAll(-1, markId * 10 + 2, bl, apex, color, 1, true, "")
-    trigger.action.lineToAll(-1, markId * 10 + 3, apex, br, color, 1, true, "")
+    trigger.action.lineToAll(coalition, markId * 10 + 2, bl, apex, color, 1, true, "")
+    trigger.action.lineToAll(coalition, markId * 10 + 3, apex, br, color, 1, true, "")
 end
 
 --- Aircraft icon: perpendicular cross (2 lines) + small center circle.
-function CTLDReconRenderer.drawAircraftIcon(pos, markId, color)
-    local s  = 40 * (ctld.gs("reconIconScale") or 1.0)
+function CTLDReconRenderer.drawAircraftIcon(pos, markId, color, coalition)
+    local s  = 150 * (ctld.gs("reconIconScale") or 1.0)
     local hs = s / 2
-    trigger.action.lineToAll(-1, markId * 10 + 1,
+    trigger.action.lineToAll(coalition, markId * 10 + 1,
         { x = pos.x,      y = 0, z = pos.z + hs },
         { x = pos.x,      y = 0, z = pos.z - hs },
         color, 1, true, "Aircraft")
-    trigger.action.lineToAll(-1, markId * 10 + 2,
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
         { x = pos.x - hs, y = 0, z = pos.z },
         { x = pos.x + hs, y = 0, z = pos.z },
         color, 1, true, "")
-    trigger.action.circleToAll(-1, markId * 10 + 3,
+    trigger.action.circleToAll(coalition, markId * 10 + 3,
         { x = pos.x, y = 0, z = pos.z }, hs * 0.35,
         color, color, 1, true, "")
 end
 
 --- Helicopter icon: circle + H shape (2 vertical bars).
-function CTLDReconRenderer.drawHelicopterIcon(pos, markId, color)
-    local r    = 25 * (ctld.gs("reconIconScale") or 1.0)
+function CTLDReconRenderer.drawHelicopterIcon(pos, markId, color, coalition)
+    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
-    trigger.action.circleToAll(-1, markId * 10 + 1,
+    trigger.action.circleToAll(coalition, markId * 10 + 1,
         { x = pos.x, y = 0, z = pos.z }, r, color, fill, 1, true, "Helicopter")
-    trigger.action.lineToAll(-1, markId * 10 + 2,
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
         { x = pos.x - r * 0.4, y = 0, z = pos.z - r * 0.5 },
         { x = pos.x - r * 0.4, y = 0, z = pos.z + r * 0.5 },
         color, 1, true, "")
-    trigger.action.lineToAll(-1, markId * 10 + 3,
+    trigger.action.lineToAll(coalition, markId * 10 + 3,
         { x = pos.x + r * 0.4, y = 0, z = pos.z - r * 0.5 },
         { x = pos.x + r * 0.4, y = 0, z = pos.z + r * 0.5 },
         color, 1, true, "")
 end
 
 --- Ship icon: elongated rectangle + bow arrow (2 lines converging to point).
-function CTLDReconRenderer.drawShipIcon(pos, markId, color)
-    local sw   = 50 * (ctld.gs("reconIconScale") or 1.0)
-    local sh   = 20 * (ctld.gs("reconIconScale") or 1.0)
+function CTLDReconRenderer.drawShipIcon(pos, markId, color, coalition)
+    local sw   = 250 * (ctld.gs("reconIconScale") or 1.0)
+    local sh   = 100 * (ctld.gs("reconIconScale") or 1.0)
     local fill = { color[1], color[2], color[3], 0.3 }
-    trigger.action.rectToAll(-1, markId * 10 + 1,
+    trigger.action.rectToAll(coalition, markId * 10 + 1,
         { x = pos.x - sw / 2, y = 0, z = pos.z - sh / 2 },
         { x = pos.x + sw / 2, y = 0, z = pos.z + sh / 2 },
         color, fill, 1, true, "Ship")
-    trigger.action.lineToAll(-1, markId * 10 + 2,
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
         { x = pos.x + sw / 2,           y = 0, z = pos.z - sh / 2 },
         { x = pos.x + sw / 2 + sh / 2,  y = 0, z = pos.z },
         color, 1, true, "")
-    trigger.action.lineToAll(-1, markId * 10 + 3,
+    trigger.action.lineToAll(coalition, markId * 10 + 3,
         { x = pos.x + sw / 2,           y = 0, z = pos.z + sh / 2 },
         { x = pos.x + sw / 2 + sh / 2,  y = 0, z = pos.z },
         color, 1, true, "")
 end
 
+--- FARP / FOB icon: T in a square (helipad marker).
+-- DCS axes: x = North/South (x+ = North), z = East/West (z+ = East).
+-- Slot 1: filled square (background).
+-- Slot 2: horizontal bar at NORTH top of T  — constant x+0.25r, z varies E-W.
+-- Slot 3: vertical stem going SOUTH           — constant z=center, x from +0.25r to -0.45r.
+function CTLDReconRenderer.drawFarpIcon(pos, markId, color, coalition)
+    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local fill = { color[1], color[2], color[3], 0.3 }
+    -- Square background
+    trigger.action.rectToAll(coalition, markId * 10 + 1,
+        { x = pos.x - r * 0.7, y = 0, z = pos.z - r * 0.7 },
+        { x = pos.x + r * 0.7, y = 0, z = pos.z + r * 0.7 },
+        color, fill, 1, true, "FARP/FOB")
+    -- Horizontal bar at NORTH (x + 0.25r), running west to east (z varies)
+    trigger.action.lineToAll(coalition, markId * 10 + 2,
+        { x = pos.x + r * 0.25, y = 0, z = pos.z - r * 0.45 },
+        { x = pos.x + r * 0.25, y = 0, z = pos.z + r * 0.45 },
+        color, 1, true, "")
+    -- Vertical stem: from bar (x + 0.25r) south to (x - 0.45r), center z
+    trigger.action.lineToAll(coalition, markId * 10 + 3,
+        { x = pos.x + r * 0.25, y = 0, z = pos.z },
+        { x = pos.x - r * 0.45, y = 0, z = pos.z },
+        color, 1, true, "")
+end
+
 --- Dispatch icon creation to the correct draw function.
--- @param target table  { position, layer }
+-- @param target table  { position, layer, playerCoalition, coalition }
 -- @param markId number
 function CTLDReconRenderer.createIcon(target, markId)
-    local r   = target.layer.iconRenderer
-    local pos = target.position
+    local r          = target.layer.iconRenderer
+    local pos        = target.position
+    local playerCoa  = target.playerCoalition or -1
     -- Color follows detected unit's coalition (RED=1, BLUE=2, NEUTRAL=0).
     -- Shape already distinguishes layer type, so color conveys coalition.
     local COALITION_COLORS = {
@@ -16345,16 +16379,17 @@ function CTLDReconRenderer.createIcon(target, markId)
         [2] = { 0.15, 0.40, 1.00, 1.0 },  -- BLUE     → blue
     }
     local col = COALITION_COLORS[target.coalition] or target.layer.color
-    if     r == "infantry"   then CTLDReconRenderer.drawInfantryIcon(pos, markId, col)
-    elseif r == "vehicle"    then CTLDReconRenderer.drawVehicleIcon(pos, markId, col)
-    elseif r == "aa"         then CTLDReconRenderer.drawAAIcon(pos, markId, col)
-    elseif r == "aircraft"   then CTLDReconRenderer.drawAircraftIcon(pos, markId, col)
-    elseif r == "helicopter" then CTLDReconRenderer.drawHelicopterIcon(pos, markId, col)
-    elseif r == "ship"       then CTLDReconRenderer.drawShipIcon(pos, markId, col)
+    if     r == "infantry"   then CTLDReconRenderer.drawInfantryIcon(pos, markId, col, playerCoa)
+    elseif r == "vehicle"    then CTLDReconRenderer.drawVehicleIcon(pos, markId, col, playerCoa)
+    elseif r == "aa"         then CTLDReconRenderer.drawAAIcon(pos, markId, col, playerCoa)
+    elseif r == "aircraft"   then CTLDReconRenderer.drawAircraftIcon(pos, markId, col, playerCoa)
+    elseif r == "helicopter" then CTLDReconRenderer.drawHelicopterIcon(pos, markId, col, playerCoa)
+    elseif r == "ship"       then CTLDReconRenderer.drawShipIcon(pos, markId, col, playerCoa)
+    elseif r == "farp"       then CTLDReconRenderer.drawFarpIcon(pos, markId, col, playerCoa)
     else
         -- Fallback: plain circle
         local fill = { col[1], col[2], col[3], 0.3 }
-        trigger.action.circleToAll(-1, markId * 10 + 1,
+        trigger.action.circleToAll(playerCoa, markId * 10 + 1,
             { x = pos.x, y = 0, z = pos.z }, 30, col, fill, 1, true, "")
     end
 end
@@ -16379,6 +16414,7 @@ end
 function CTLDReconManager:init()
     self._activeScans  = {}   -- player -> scan state
     self._playerLayers = {}   -- player -> array of layer copies
+    self._farpMarks    = {}   -- player -> { [id] = markId }  (FARP/FOB persistent marks)
     -- Mark IDs are allocated from ctld.utils.getNextMarkId() (app-wide monotonic counter)
 
     CTLDPlayerManager.getInstance():registerMenuSection({
@@ -16448,6 +16484,16 @@ CTLDReconManager._defaultLayers = {
         color        = { 0.20, 0.60, 0.86, 1.0 },
         filterAttrib = "Ships",
         iconRenderer = "ship",
+    },
+    {
+        -- farp_fob uses a dedicated scan pipeline (_scanFarpLOS), not _matchLayer.
+        -- filterAttrib = nil intentionally: _matchLayer skips layers without filterAttrib.
+        layerId      = "farp_fob",
+        name         = "FARP / FOB",
+        enabled      = false,
+        color        = { 0.95, 0.30, 0.60, 1.0 },
+        filterAttrib = nil,
+        iconRenderer = "farp",
     },
 }
 
@@ -16520,9 +16566,11 @@ end
 --- Helicopters layer is OFF; ZU-23 must not show as Vehicle when AA layer is OFF).
 function CTLDReconManager:_matchLayer(unit, allLayers)
     for _, layer in ipairs(allLayers) do
-        local ok, has = pcall(function() return unit:hasAttribute(layer.filterAttrib) end)
-        if ok and has then
-            return layer.enabled and layer or nil
+        if layer.filterAttrib then   -- farp_fob has no filterAttrib: skip in unit matching
+            local ok, has = pcall(function() return unit:hasAttribute(layer.filterAttrib) end)
+            if ok and has then
+                return layer.enabled and layer or nil
+            end
         end
     end
     return nil
@@ -16558,15 +16606,16 @@ function CTLDReconManager:_scanLOS(playerUnit, enabledLayers, searchRadius)
                     if layer then
                         local uPos = unit:getPoint()
                         targets[#targets + 1] = {
-                            unit      = unit,
-                            unitName  = unit:getName(),
-                            unitType  = unit:getTypeName(),
-                            coalition = unit:getCoalition(),
-                            position  = uPos,
-                            distance  = ctld.utils.getDistance(
+                            unit            = unit,
+                            unitName        = unit:getName(),
+                            unitType        = unit:getTypeName(),
+                            coalition       = unit:getCoalition(),
+                            playerCoalition = playerUnit:getCoalition(),
+                            position        = uPos,
+                            distance        = ctld.utils.getDistance(
                                 "CTLDReconManager:_scanLOS", playerPos, uPos),
-                            layer     = layer,
-                            los       = true,
+                            layer           = layer,
+                            los             = true,
                         }
                     end
                 end
@@ -16577,10 +16626,132 @@ function CTLDReconManager:_scanLOS(playerUnit, enabledLayers, searchRadius)
     return targets
 end
 
--- Remove all Draw API icons from a scan's target list.
+-- ============================================================
+-- FARP/FOB scan (Source A: coalition.getAirbases  Source B: CTLDFOBManager)
+-- ============================================================
+
+--- Scan for enemy FARP/FOB objects in LOS and update _farpMarks[player].
+-- New detections: create icon + register CTLDStaticWatcher.
+-- Existing marks: skipped (persistent until destroyed or layer off).
+-- @param playerUnit  DCS Unit
+-- @param player      string
+function CTLDReconManager:_syncFarpMarks(playerUnit, player)
+    local layer = self:_findLayer(player, "farp_fob")
+    if not layer or not layer.enabled then return end
+
+    local playerPos = playerUnit:getPoint()
+    local playerCoa = playerUnit:getCoalition()
+    local enemySide = playerCoa == coalition.side.BLUE
+                      and coalition.side.RED or coalition.side.BLUE
+    local radius    = ctld.gs("reconSearchRadius") or 5000
+
+    if not self._farpMarks[player] then
+        self._farpMarks[player] = {}
+    end
+    local marks = self._farpMarks[player]
+
+    local function _addMark(id, pos, checkFn)
+        if marks[id] then return end   -- already marked
+        local markId = self:_nextMark()
+        local target = {
+            position        = pos,
+            coalition       = enemySide,
+            playerCoalition = playerCoa,
+            layer           = layer,
+        }
+        CTLDReconRenderer.createIcon(target, markId)
+        marks[id] = markId
+
+        -- Register watcher: fires when object dies
+        local self_ref = self
+        CTLDStaticWatcher.getInstance():watch(
+            "recon_farp_" .. player .. "_" .. id,
+            checkFn,
+            function()
+                local mid = self_ref._farpMarks[player] and self_ref._farpMarks[player][id]
+                if mid then
+                    CTLDReconRenderer.removeIcon(mid)
+                    self_ref._farpMarks[player][id] = nil
+                end
+                EventDispatcher.getInstance():publish("ReconFarpLost", {
+                    player = player, id = id,
+                })
+            end
+        )
+
+        EventDispatcher.getInstance():publish("ReconFarpDetected", {
+            player          = player,
+            playerUnit      = playerUnit,
+            coalition       = enemySide,
+            playerCoalition = playerCoa,
+            position        = pos,
+            id              = id,
+        })
+        ctld.utils.log("INFO", "CTLDReconManager: FARP/FOB '%s' marked for player '%s'",
+            tostring(id), tostring(player))
+    end
+
+    -- Source A: coalition.getAirbases (FARPs, helipads)
+    local bases = coalition.getAirbases(enemySide) or {}
+    for _, ab in ipairs(bases) do
+        local okE, exists = pcall(function() return ab:isExist() end)
+        if okE and exists then
+            local okD, desc = pcall(function() return ab:getDesc() end)
+            if okD and desc and desc.attributes and desc.attributes.Helipad then
+                local abPos = ab:getPoint()
+                local dist  = ctld.utils.vec3Mag("RECON_farp",
+                    ctld.utils.subVec3("RECON_farp", playerPos, abPos))
+                if dist <= radius then
+                    local p1 = { x = playerPos.x, y = playerPos.y + 180, z = playerPos.z }
+                    local p2 = { x = abPos.x,     y = abPos.y + 180,     z = abPos.z     }
+                    if land.isVisible(p1, p2) then
+                        local id = ab:getName()
+                        _addMark(id, abPos, function() return ab:isExist() end)
+                    end
+                end
+            end
+        end
+    end
+
+    -- Source B: CTLDFOBManager enemy FOBs
+    local okFM, fobMgr = pcall(CTLDFOBManager.getInstance)
+    if okFM and fobMgr and fobMgr._fobs then
+        for fobId, fob in pairs(fobMgr._fobs) do
+            if fob.coalitionId == enemySide and fob:isAlive() then
+                local fobPos = fob.position
+                local dist   = ctld.utils.vec3Mag("RECON_fob",
+                    ctld.utils.subVec3("RECON_fob", playerPos, fobPos))
+                if dist <= radius then
+                    local p1 = { x = playerPos.x, y = playerPos.y + 180, z = playerPos.z }
+                    local p2 = { x = fobPos.x,    y = fobPos.y + 180,    z = fobPos.z    }
+                    if land.isVisible(p1, p2) then
+                        _addMark(fobId, fobPos, function() return fob:isAlive() end)
+                    end
+                end
+            end
+        end
+    end
+end
+
+--- Remove all FARP/FOB marks for a player and cancel their watchers.
+function CTLDReconManager:_clearFarpMarks(player)
+    local marks = self._farpMarks[player]
+    if not marks then return end
+    local watcher = CTLDStaticWatcher.getInstance()
+    for id, markId in pairs(marks) do
+        CTLDReconRenderer.removeIcon(markId)
+        watcher:unwatch("recon_farp_" .. player .. "_" .. id)
+    end
+    self._farpMarks[player] = {}
+end
+
+-- Remove all Draw API icons from a scan's target list + FARP marks.
 function CTLDReconManager:_removeAllMarks(scan)
     for _, tgt in ipairs(scan.targets) do
         CTLDReconRenderer.removeIcon(tgt.markId)
+    end
+    if scan.player then
+        self:_clearFarpMarks(scan.player)
     end
 end
 
@@ -16593,9 +16764,11 @@ end
 -- @param playerUnit DCS Unit
 -- @param player     string  playerName
 function CTLDReconManager:scan(playerUnit, player)
-    if not ctld.gs("reconEnabled") then
+    -- Gate: same key as the menu section (reconF10Menu).
+    -- If the RECON menu is visible, scan must work without additional config.
+    if not ctld.gs("reconF10Menu") then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("RECON is disabled (set reconEnabled=true in config)."), 10)
+            ctld.tr("RECON is disabled (set reconF10Menu=true in config)."), 10)
         return
     end
 
@@ -16610,10 +16783,9 @@ function CTLDReconManager:scan(playerUnit, player)
         return
     end
 
-    -- Cancel previous auto-refresh timer and remove marks BEFORE any early-return check.
-    -- This ensures that toggling the last active layer OFF immediately clears the map,
-    -- rather than waiting for the next _doRefresh() tick.
-    local prevScan = self._activeScans[player]
+    -- Cancel previous auto-refresh timer and remove marks before rebuilding.
+    local prevScan  = self._activeScans[player]
+    local isRescan  = prevScan ~= nil  -- re-scan from layer toggle vs fresh Start
     if prevScan then
         if prevScan.refreshTimer then timer.removeFunction(prevScan.refreshTimer) end
         self:_removeAllMarks(prevScan)
@@ -16621,11 +16793,12 @@ function CTLDReconManager:scan(playerUnit, player)
     end
 
     local enabledLayers = self:_enabledLayers(player)
-    if #enabledLayers == 0 then
+    -- No early-return when no layers enabled: RECON starts regardless so the player can
+    -- activate layers via menu after Start without needing to restart RECON.
+    -- Info message only on fresh Start (not on layer toggle re-scan).
+    if #enabledLayers == 0 and not isRescan then
         trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-            ctld.tr("No recon layers enabled. Activate layers first."), 10)
-        self:_rebuildReconBranch(player, playerUnit)
-        return
+            ctld.tr("RECON started. Activate layers to see targets."), 10)
     end
 
     local radius  = ctld.gs("reconSearchRadius") or 5000
@@ -16645,11 +16818,15 @@ function CTLDReconManager:scan(playerUnit, player)
     self._activeScans[player] = {
         playerUnit   = playerUnit,
         coalition    = playerUnit:getCoalition(),
+        player       = player,
         targets      = targets,
         layers       = enabledLayers,
         autoRefresh  = false,
         refreshTimer = nil,
     }
+
+    -- FARP/FOB layer: initial sync (adds marks for newly detected objects)
+    self:_syncFarpMarks(playerUnit, player)
 
     -- Build activeLayers payload
     local activeLayersPayload = {}
@@ -16710,6 +16887,7 @@ function CTLDReconManager:stopScan(playerUnit, player)
             wasActive = true,
         }
     end
+    self:_clearFarpMarks(player)
     self._activeScans[player] = nil
 
     trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
@@ -16752,8 +16930,10 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
         self_ref:_doRefresh(pName, uName, t)
     end, nil, timer.getTime() + interval)
 
-    trigger.action.outTextForGroup(playerUnit:getGroup():getID(),
-        ctld.tr("Auto-refresh enabled. Targets update every %1 s.", interval), 10)
+    if ctld.gs("debug") then
+        ctld.utils.log("DEBUG", "CTLDReconManager:enableAutoRefresh — interval %d s, player %s",
+            interval, tostring(player))
+    end
 
     EventDispatcher.getInstance():publish("OnReconAutoRefreshEnabled", {
         player          = player,
@@ -16934,6 +17114,9 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
     scan.targets     = currentTargets
     scan.playerUnit  = playerUnit
 
+    -- FARP/FOB: sync new detections (existing marks kept, dead ones removed by watcher)
+    self:_syncFarpMarks(playerUnit, playerName)
+
     -- Re-schedule next refresh
     local interval = ctld.gs("reconRefreshInterval") or 10
     local self_ref = self
@@ -17012,15 +17195,15 @@ function CTLDReconManager:_addReconCommands(menu, unitName)
         end,
         { unitName = unitName })
 
-    -- Per-layer toggles.
-    -- RECON active  : "Layer [activate]"      / "Layer [deactivate]"
-    -- RECON idle    : "Layer [activate (X)]"  / "Layer [deactivate (X)]"
-    -- (X) signals the toggle prepares for next Start but has no immediate map effect.
+    -- Per-layer toggles — label shows NEXT ACTION (what clicking will do).
+    -- Layer enabled  : "Layer [deactivate]"
+    -- Layer disabled : "Layer [activate]"
+    -- (X) suffix when RECON is idle (no active scan).
     local layers = self:_getPlayerLayers(unitName)
     for _, layer in ipairs(layers) do
-        local actionBase = layer.enabled and ctld.tr("deactivate") or ctld.tr("activate")
-        local action     = isActive and actionBase or (actionBase .. " (X)")
-        local label      = string.format("%s [%s]", layer.name, action)
+        local action = layer.enabled and ctld.tr("[deactivate]") or ctld.tr("[activate]")
+        if not isActive then action = action .. " (X)" end
+        local label = string.format("%s %s", layer.name, action)
         menu:addCommand({ root, reconSub }, label,
             function(arg)
                 local unit = Unit.getByName(arg.unitName)
@@ -17634,6 +17817,9 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         timestamp    = timer.getAbsTime(),
     })
 
+    -- Rebuild player menus so the new per-JTAC submenu appears immediately.
+    CTLDPlayerManager.getInstance():refreshAll()
+
     return jtac
 end
 
@@ -17677,6 +17863,8 @@ function CTLDJTACManager:deregisterJTAC(groupName)
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
     ctld.utils.log("INFO", "CTLDJTACManager:deregisterJTAC — '%s' silently deregistered", groupName)
+    -- Rebuild player menus to remove the deregistered JTAC submenu.
+    CTLDPlayerManager.getInstance():refreshAll()
 end
 
 --- Resume auto-lase for a JTAC after vehicle unload.
@@ -17742,6 +17930,8 @@ function CTLDJTACManager:killJTAC(groupName, killer)
 
     self:_freeLaserCode(jtac.laserCode)
     self.jtacs[groupName] = nil
+    -- Rebuild player menus to remove the dead JTAC submenu.
+    CTLDPlayerManager.getInstance():refreshAll()
 end
 
 -- ============================================================
@@ -19379,6 +19569,98 @@ function CTLDDCSEventBridge:onEvent(event)
     end
 end
 
+
+-- ============================================================
+-- CTLDStaticWatcher  (singleton)
+-- ============================================================
+-- Compensates for unreliable S_EVENT_DEAD on static/base objects.
+-- Callers register an (id, checkFn, onDeadFn) triplet; a 1 s timer
+-- polls checkFn() and calls onDeadFn() + dispatches "S_EVENT_STATIC_DEAD"
+-- the first time checkFn returns false.
+--
+-- Usage:
+--   CTLDStaticWatcher.getInstance():watch(id, checkFn, onDeadFn)
+--   CTLDStaticWatcher.getInstance():unwatch(id)
+--
+-- S_EVENT_STATIC_DEAD payload: { id, meta }
+--   meta = whatever the caller passed as 4th arg to watch() (optional).
+
+CTLDStaticWatcher = class()
+CTLDStaticWatcher._instance = nil
+
+function CTLDStaticWatcher.getInstance()
+    if not CTLDStaticWatcher._instance then
+        local o = setmetatable({}, CTLDStaticWatcher)
+        o:init()
+        CTLDStaticWatcher._instance = o
+    end
+    return CTLDStaticWatcher._instance
+end
+
+function CTLDStaticWatcher:init()
+    self._watched = {}   -- id -> { checkFn, onDeadFn, meta }
+    self._timer   = nil
+    ctld.utils.log("INFO", "CTLDStaticWatcher: init complete")
+end
+
+--- Register an object to watch.
+-- @param id       string   unique key (e.g. airbase name or fobId)
+-- @param checkFn  function returns true while alive
+-- @param onDeadFn function called once when checkFn() → false
+-- @param meta     any      passed to onDeadFn and S_EVENT_STATIC_DEAD payload (optional)
+function CTLDStaticWatcher:watch(id, checkFn, onDeadFn, meta)
+    self._watched[id] = { checkFn = checkFn, onDeadFn = onDeadFn, meta = meta }
+    self:_ensureTimer()
+    ctld.utils.log("INFO", "CTLDStaticWatcher: watching '%s'", tostring(id))
+end
+
+--- Deregister an object (e.g. on mark cleared by toggle/HideAll).
+function CTLDStaticWatcher:unwatch(id)
+    self._watched[id] = nil
+    ctld.utils.log("INFO", "CTLDStaticWatcher: unwatched '%s'", tostring(id))
+end
+
+--- Start the poll timer if not already running.
+function CTLDStaticWatcher:_ensureTimer()
+    if self._timer then return end
+    local self_ref = self
+    self._timer = timer.scheduleFunction(function(_, t)
+        return self_ref:_tick(t)
+    end, nil, timer.getTime() + 1)
+end
+
+--- Poll all watched objects. Returns next schedule time or nil to stop.
+function CTLDStaticWatcher:_tick(t)
+    local dead = {}
+    for id, entry in pairs(self._watched) do
+        local ok, alive = pcall(entry.checkFn)
+        if not ok or not alive then
+            dead[#dead + 1] = id
+        end
+    end
+
+    for _, id in ipairs(dead) do
+        local entry = self._watched[id]
+        self._watched[id] = nil
+        ctld.utils.log("INFO", "CTLDStaticWatcher: '%s' dead — firing onDeadFn", tostring(id))
+        local ok, err = pcall(entry.onDeadFn, entry.meta)
+        if not ok then
+            ctld.utils.log("ERROR", "CTLDStaticWatcher: onDeadFn error for '%s': %s",
+                tostring(id), tostring(err))
+        end
+        local okD, ed = pcall(EventDispatcher.getInstance)
+        if okD and ed then
+            ed:publish("S_EVENT_STATIC_DEAD", { id = id, meta = entry.meta })
+        end
+    end
+
+    if next(self._watched) then
+        return t + 1   -- reschedule in 1 s
+    else
+        self._timer = nil
+        return nil     -- no more watched objects — stop timer
+    end
+end
 
 -- ============================================================
 -- CTLDPlayerTracker  (singleton — human slot tracking, no MIST)

@@ -456,30 +456,95 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         (D) Bonne pratique recette : ne pas détruire de vrais groupes DCS dans les scénarios
             Witchcraft (déclenche S_EVENT_DEAD → rebuild menu concurrent) — documenté ici
 
-⬜  FG  Feature F — RECON layer FARP/FOB ennemis persistants
-        Objectif : détecter les FARP/FOB ennemis en LOS pendant un vol de reconnaissance et en garder
-        la trace sur la F10 map même après que le scout s'est éloigné.
-        Principes :
-          • Nouveau layer RECON "farp_fob" scanné via coalition.getStaticObjects(enemySide)
-          • Identification FARP/FOB par attributs DCS (à vérifier Hoggit : attributes.FARP, Helipad, etc.)
-          • LOS check identique aux layers existants (getUnitsLOS, altoffset=180)
-          • Persistance : les marques détectées sont stockées dans une table séparée de _activeScans
-            → elles ne sont PAS effacées par les refreshs normaux du layer
-          • Destruction : écoute S_EVENT_DEAD / S_EVENT_UNIT_LOST sur les statics → retire le mark
-          • Feasibility : ✅ faisable avec les APIs existantes (getStaticObjects, getUnitsLOS, S_EVENT_DEAD)
-        Spec + implémentation à planifier.
+✅  FG  Feature F — RECON layer FARP/FOB ennemis persistants
+        Objectif : détecter les FARP/FOB ennemis en LOS pendant un vol de reconnaissance et les
+        marquer sur la F10 map jusqu'à leur destruction (pas de re-LOS requis après première détection).
 
-⬜  FG  Feature G — Toggle "Share my RECON to coalition"
-        Objectif : permettre à un pilote de partager son scan RECON avec tous les joueurs BLUE.
-        Contrainte DCS API : lineToAll/circleToAll/rectToAll n'acceptent que coalition (-1/0/1/2),
-        pas de ciblage par joueur ou groupe. Impossible d'appliquer un filtre LOS par spectateur.
-        Version faisable (simplifiée) :
-          • Quand "Share RECON" activé : les icônes du joueur partageur sont dessinées avec
-            coalition=2 (BLUE seulement) au lieu de -1, et restent jusqu'au prochain refresh
-          • Les autres joueurs BLUE voient les icônes du partageur sans re-filtrage LOS
-          • Pas de merge multi-joueur côté rendu (limitation DCS irréconciliable)
-        À distinguer d'un éventuel "kneeboard" (infos coa friendly — scope différent, feature séparée).
-        Spec + implémentation à planifier.
+        Spec validée :
+        ─ Coalition-aware rendering (inclus dans Feature F) :
+          • Changement transversal : toutes les icônes RECON passent de coalition=-1 à
+            coalition=playerUnit:getCoalition() (BLUE scout → marques visibles BLUE seulement)
+          • drawXxxIcon() reçoit un paramètre coalition supplémentaire
+          • target.playerCoalition alimenté dans _scanLOS et _scanStaticLOS
+          ⚠️  Tests existants vérifiant coalition=-1 devront être mis à jour
+
+        ─ Nouveau layer "farp_fob" :
+          • Ajouté à _defaultLayers (fin de liste), enabled=false par défaut
+          • couleur : {0.95, 0.30, 0.60} (magenta)
+          • filterAttrib = nil (pipeline dédié, pas _matchLayer)
+          • Menu toggle F10 : "FARP / FOB [activate]" / "FARP / FOB [deactivate]"
+            → bascule via toggleLayer() existant → scan() appelé si scan actif
+
+        ─ Nouveau renderer CTLDReconRenderer.drawFarpIcon (3 slots) :
+          • slot1 : circleToAll (cercle fond alpha 0.3)
+          • slot2 : lineToAll barre verticale gauche du H
+          • slot3 : lineToAll barre horizontale (crossbar H)
+          → H cerclé (helipad standard), distinct du layer helicopter
+
+        ─ Sources de détection  [empirique 2026-05-17 — inject_red_fob.lua] :
+
+          Source A — FARPs/helipads (a+c) :
+          • coalition.getAirbases(enemySide) → Object.getCategory=4 (BASE), typeName="FARP"
+          • Filtre : desc.attributes.Helipad == true  (confirmé empiriquement)
+          • FARPs natifs DCS ✅  helipads MM ✅
+          • LOS : land.isVisible({x,y=abPos.y+180,z}, {x,y=playerPos.y+180,z})
+
+          Source B — CTLD FOBs ennemis (b) :
+          • Filtre par attrs statics NON fiable : "Fortifications" trop générique (false positives)
+          • Solution propre : interroger CTLDFOBManager._fobs pour coalition ennemie directement
+            → position + coalition déjà disponibles, LOS check sur fob.position
+          • Avantage : pas de scan statics, pas de faux positifs, couplage limité
+
+        ─ _farpMarks[player] = { [id] = { markId, ref } } (id = ab:getName() ou fobId) :
+          • Dédup par id : 1 seule marque par FARP ou FOB (skip si déjà marqué)
+          • Marks ajoutées sur scan/refresh quand objet en LOS pour la 1ère fois
+
+        ─ CTLDStaticWatcher (nouveau singleton, CTLD_core.lua) :
+          Interface générique : watch(id, checkFn, onDeadFn)
+          • checkFn()  : retourne true si l'objet est encore vivant
+          • onDeadFn() : appelé quand checkFn() → false → dispatch S_EVENT_STATIC_DEAD
+          • Timer interne 1s — auto-unwatch après onDeadFn
+          Pour FARP  : checkFn = function() return ab:isExist() end
+          Pour FOB   : checkFn = function() return fob:isAlive() end
+          ⚠️  S_EVENT_DEAD non garanti pour statics/bases → watcher compense fiablement
+
+        ─ CTLDReconManager :
+          • À la création d'une farp mark → CTLDStaticWatcher:watch(id, checkFn, onDeadFn)
+          • onDeadFn → removeIcon(markId) + retirer de _farpMarks + dispatch ReconFarpLost
+          • _removeAllMarks étendu : efface _farpMarks[player] + unwatch chaque id
+            → Toggle OFF layer farp_fob / "Hide All Targets" → marks et watchers supprimés
+
+        ─ Nouveaux events CTLD : S_EVENT_STATIC_DEAD (infra), ReconFarpDetected, ReconFarpLost
+        ─ Nouveaux i18n : aucune clé (nom layer = "FARP / FOB" identique 4 langues)
+        ─ Config : aucun nouveau paramètre (réutilise reconSearchRadius, reconIconScale)
+
+        ─ Pré-requis implémentation : ✅ TOUS VALIDÉS empiriquement (2026-05-17)
+          • diag_farp_statics.lua — attributs FARP confirmés
+          • inject_red_fob.lua   — FOB CTLD spawné + détection validée
+
+        ─ Guide documentation (même réponse que implémentation) :
+          • documentation/missionmaker_guide.md : §RECON — tableau layers + icônes + descriptions
+          • Placeholder screenshots à compléter post-implémentation
+
+        Recette :
+          Recette auto (mock) ✅ [2026-05-17] :
+            F-150 CTLDStaticWatcher watch/unwatch/tick (3 cas) PASS
+            F-151..152 coalition rendering FARP+infantry+vehicle (7 cas) PASS
+            F-153 _matchLayer skip farp_fob (3 cas) PASS
+            F-154..157 _syncFarpMarks FARP+FOB detect/dedup/clear (6 cas) PASS
+            F-158 watcher onDeadFn (3 cas) PASS → 22 cas / 22 PASS
+            ⚠️  F-154.2 marks=0 car player unit hors LOS de la position test (normal en mock)
+          • MT-06 (live DCS) : 9/9 PASS ✅ [2026-05-17]
+            FARP en LOS → marqué ; hors LOS → mark reste (persistence) ;
+            toggle OFF → marks effacés immédiatement ; toggle ON → marks réappraissent ;
+            playerCoalition=2 confirmé ; FARP détruit → mark <2s (CTLDStaticWatcher) ;
+            FOB détruit → mark <2s
+
+🚫  FG  Feature G — Toggle "Share my RECON to coalition" [OBSOLÈTE]
+        Raison : les fonctions DCS Draw API (lineToAll/circleToAll/rectToAll) avec coalition=2
+        rendent les marks visibles à TOUS les joueurs BLUE — pas uniquement au groupe du pilote.
+        Le partage coalition est donc le comportement par défaut de Feature F.
+        Feature G n'apporte aucune valeur ajoutée. Abandonnée [2026-05-17].
 
 ✅  FG  Feature H — Smoke auto-resume (toggle [activate]/[deactivate]) [2026-05-05]
         Objectif : simuler une durée de fumée perpétuelle en relançant automatiquement
@@ -941,7 +1006,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
-| Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116 6/6 visual PASS [2026-04-28] + F-117/F-118/F-119 19/19 PASS [2026-04-29] — reconEnabled=false message, toggle-OFF immédiat, AA icon fill+apex, layers scenario, reconIconScale |
+| Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116→F-119 19/19 PASS [2026-04-29] + F-150→F-158 22/22 PASS [2026-05-17] + MT-06 9/9 PASS [2026-05-17] — Feature F: CTLDStaticWatcher, farp_fob layer, drawFarpIcon, coalition rendering, MarkIdCounter persistence ; bugfixes menu: reconF10Menu guard, labels [activate]/[deactivate], no early-return 0 layers |
 | FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 + F-90/F-93 visual ✅ [2026-04-14] |
 | Vehicles (`CTLD_vehicle.lua`) | ✅ | ✅ | ✅ | 100% | 10/10 PASS [2026-04-07]. CL-4: spawnJTACFromDescriptor (ground+air) [2026-05-12] |
 | AA System (`CTLD_aasystem.lua`) | ✅ | ✅ | ✅ | 100% | 6/6 PASS [2026-04-07] |

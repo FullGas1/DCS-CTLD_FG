@@ -110,6 +110,44 @@ touches that perimeter.
 
 ---
 
+## MT-06 — RECON FARP/FOB layer — détection ennemie persistante
+
+**Perimeter / files:** `src/CTLD_recon.lua` — `_syncFarpMarks`, `_clearFarpMarks`,
+`drawFarpIcon`, `createIcon` (coalition param), `_matchLayer` (farp_fob guard) ;
+`src/CTLD_core.lua` — `CTLDStaticWatcher` (watch/unwatch/tick, `S_EVENT_STATIC_DEAD`)
+
+**Pre-requisites:**
+- Mission with group `red_FARP` containing unit `red_FARP-1` (RED coalition FARP)
+- Player in BLUE coalition transport (UH-1H recommended)
+- Scripts injected **in order**:
+  1. `CTLD_Next.lua` — wait 3-5 s
+  2. `recette/enable_debug.lua` — sets `debug=true` **and** `reconEnabled=true`
+  3. `recette/inject_red_fob.lua` — spawns RED FOB ~300 m north of red_FARP, registers it in CTLDFOBManager
+
+### Sequence
+
+| # | Action | Verify |
+|---|--------|--------|
+| 1 | Open F10 CTLD menu → RECON → Layers. | ✓ Entry **"FARP / FOB \[activate\]"** is visible. ✓ Layer is **disabled by default** (label shows `[activate]`). |
+| 2 | Take off ≥ 50 m AGL. Fly to within ~5 km of the red FARP. Open RECON → Layers → "FARP / FOB \[activate\]". | ✓ Screen message confirms layer activated. ✓ Menu entry becomes **"FARP / FOB \[deactivate\]"**. |
+| 3 | Open RECON → Scan (or Refresh Scan). | ✓ **Magenta H-cerclé** icon (circle + left vertical + crossbar) appears on F10 map at red FARP position. ✓ A **second** magenta H-cerclé appears at the RED FOB position (~300 m north). ✓ Total: exactly 2 icons (assuming no other RED FARP in the mission). |
+| 4 | Fly > 5 km from both targets (leave LOS). Wait ≤ 60 s for auto-refresh cycle. | ✓ Both icons **remain** on F10 map — persistence is independent of LOS. ✓ CTLD.log shows no `removeIcon` call for the FARP/FOB marks during refresh. |
+| 5 | Open RECON → Layers → "FARP / FOB \[deactivate\]". | ✓ Screen message confirms layer deactivated. ✓ Both icons **disappear immediately** from F10 map. ✓ Menu entry reverts to "FARP / FOB \[activate\]". |
+| 6 | Reactivate layer. Fly back within 5 km. Scan again. | ✓ Icons reappear after scan. ✓ **No duplicates** — each FARP/FOB has exactly 1 icon. |
+| 7 | Inject via Witchcraft: check coalition propagation.<br>`local rm=CTLDReconManager.getInstance(); local sc=rm._activeScans["<player>"]; trigger.action.outText(tostring(sc and sc.playerCoalition),10)` | ✓ Output shows **`2`** (BLUE coalition). ✓ Confirms icons are drawn `circleToAll(2, ...)` not `-1`. |
+| 8 | Inject via Witchcraft to destroy red_FARP-1 (coordinates from F10 map — default ~{x=-360432,y=0,z=615168}):<br>`trigger.action.explosion({x=-360432, y=0, z=615168}, 1000)` | ✓ Within **~2 seconds** the FARP icon disappears from F10 map. ✓ CTLD.log shows `S_EVENT_STATIC_DEAD` dispatch for the FARP id. ✓ FOB icon remains (only FARP destroyed). |
+| 9 | Destroy RED FOB statics (two explosions near FOB position, ~300 m north of red_FARP):<br>`trigger.action.explosion({x=-360132, y=0, z=615168}, 500)` | ✓ Within ~2 seconds the FOB icon disappears from F10 map. ✓ CTLD.log shows `S_EVENT_STATIC_DEAD` for the FOB id. ✓ F10 map is **clean** — no orphan mark remaining. |
+
+### Pass criteria
+- Step 3: 2 distinct magenta H-cerclé icons (FARP + FOB), both positioned correctly
+- Step 4: marks persist after leaving LOS (persistent layer logic confirmed)
+- Step 5: toggle OFF clears all farp/fob marks immediately
+- Step 7: `playerCoalition == 2` confirms coalition-aware rendering (fix vs `-1`)
+- Step 8: CTLDStaticWatcher fires within ~2 s of FARP destruction and removes icon
+- Step 9: FOB destruction also triggers mark removal via CTLDStaticWatcher
+
+---
+
 ## Changelog
 
 | Date | Sequence | Notes |

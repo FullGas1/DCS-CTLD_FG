@@ -1,19 +1,31 @@
+---@diagnostic disable
+-- =============================================================================
 -- scenarios/scenario_recon_layers.lua
 -- Interactive RECON layer test — inject once per layer.
 -- Each injection: cleanup previous → spawn target unit → scan → report detection.
 -- Re-inject when ready to move to the next layer.
 --
--- State persisted across injections via DCS Lua global _RECON_LAYER_IDX (integer 1–7).
--- Injection 7 resets the counter and destroys all test units.
---
--- Compatible with helicopter on the ground (getUnitsLOS uses altoffset=180).
+-- State persisted across injections via global _RECON_LAYER_IDX (integer 1–7).
+-- Injection TOTAL+2 resets counter and destroys all test units.
+-- =============================================================================
 
--- ── layer definitions (ordered) ───────────────────────────────────────────────
+-- ── DEBUG ACTIVATION ──────────────────────────────────────────────────────────
+local cfg = CTLDConfig.get()
+local _saved_debug = cfg.settings["debug"]
+cfg.settings["debug"] = true
 
--- Batumi airport absolute coords (Caucasus map).
--- Used as anchor for air/ship spawns that need specific terrain (water, airspace).
+-- ── METADATA ──────────────────────────────────────────────────────────────────
+local TAG = "[RECON]"
+
+-- ── HELPER: restore debug before returning ────────────────────────────────────
+local function _ret(s)
+    cfg.settings["debug"] = _saved_debug
+    return s
+end
+
+-- ── LAYER DEFINITIONS ────────────────────────────────────────────────────────
 local BATUMI = { x = -356437, z = 618211 }
-local NM1    = 1852   -- 1 nautical mile in metres
+local NM1    = 1852
 
 local LAYERS = {
     {
@@ -23,7 +35,7 @@ local LAYERS = {
         grpName = "RECON_TEST_infantry",
         uName   = "RECON_TEST_inf_1",
         uType   = "Soldier AK",
-        dx = -200, dz = -30,  -- relative to player: 200m south
+        dx = -200, dz = -30,
     },
     {
         layerId = "ground_vehicles",
@@ -32,7 +44,7 @@ local LAYERS = {
         grpName = "RECON_TEST_vehicle",
         uName   = "RECON_TEST_veh_1",
         uType   = "BMP-2",
-        dx = -200, dz = 30,   -- relative to player: 200m south, slightly east
+        dx = -200, dz = 30,
     },
     {
         layerId = "air_defense",
@@ -41,7 +53,7 @@ local LAYERS = {
         grpName = "RECON_TEST_aa",
         uName   = "RECON_TEST_aa_1",
         uType   = "ZU-23 Emplacement Closed",
-        dx = -250, dz = 0,    -- relative to player: 250m south
+        dx = -250, dz = 0,
     },
     {
         layerId  = "aircraft",
@@ -50,9 +62,9 @@ local LAYERS = {
         grpName  = "RECON_TEST_ac",
         uName    = "RECON_TEST_ac_1",
         uType    = "Su-25",
-        useOrbit = true,      -- absolute position + square orbit around Batumi
-        spawnAlt = 500,       -- metres AGL
-        color    = { 0.95, 0.77, 0.06, 0.8 },  -- yellow (matches aircraft layer icon)
+        useOrbit = true,
+        spawnAlt = 500,
+        color    = { 0.95, 0.77, 0.06, 0.8 },
     },
     {
         layerId  = "helicopters",
@@ -61,11 +73,11 @@ local LAYERS = {
         grpName    = "RECON_TEST_helo",
         uName      = "RECON_TEST_helo_1",
         uType      = "Mi-8MT",
-        useOrbit   = true,        -- orbit centred on player position
-        usePlayer  = true,        -- orbit centre = pPos (not BATUMI)
-        orbitSide  = 500,         -- small orbit: max side ~1120m, always within 2km
-        spawnAlt   = 300,         -- metres AGL
-        color      = { 0.90, 0.49, 0.13, 0.8 },  -- orange (matches helicopters layer icon)
+        useOrbit   = true,
+        usePlayer  = true,
+        orbitSide  = 500,
+        spawnAlt   = 300,
+        color      = { 0.90, 0.49, 0.13, 0.8 },
     },
     {
         layerId   = "ships",
@@ -74,20 +86,22 @@ local LAYERS = {
         grpName   = "RECON_TEST_ship",
         uName     = "RECON_TEST_ship_1",
         uType     = "Speedboat",
-        useAbs    = true,     -- absolute position in the Black Sea west of Batumi
-        absX      = BATUMI.x + 556,   -- 0.3nm north (avoid trees blocking LOS from Batumi)
-        absZ      = BATUMI.z - 3500,  -- 3.5 km west of Batumi (confirmed sea: surf=WATER at -3km)
+        useAbs    = true,
+        absX      = BATUMI.x + 556,
+        absZ      = BATUMI.z - 3500,
     },
 }
 
-local TOTAL = #LAYERS
+local TOTAL  = #LAYERS
 local RUSSIA = country.id.RUSSIA
 
--- ── helpers ──────────────────────────────────────────────────────────────────
-
+-- ── HELPERS ───────────────────────────────────────────────────────────────────
+local function log(msg)
+    ctld.utils.log("INFO", TAG .. " " .. msg)
+end
 local function report(msg)
-    trigger.action.outText("[RECON] " .. msg, 40)
-    env.info("[scenario_recon_layers] " .. msg)
+    trigger.action.outText(TAG .. " " .. msg, 40)
+    log(msg)
 end
 
 local function destroyGroup(name)
@@ -99,39 +113,29 @@ local function destroyAll()
     for _, lay in ipairs(LAYERS) do destroyGroup(lay.grpName) end
 end
 
-
---- Remove all BLUE ground units from the mission (keep air/helo player).
---- Called once at first injection so no friendly ground unit interferes with spawned RED targets.
 local function destroyBlueGroundUnits()
     local grps = coalition.getGroups(coalition.side.BLUE, Group.Category.GROUND) or {}
     for _, g in ipairs(grps) do
         if g and g:isExist() then
             g:destroy()
-            env.info("[scenario_recon_layers] destroyed BLUE ground group: " .. g:getName())
+            log("destroyed BLUE ground group: " .. g:getName())
         end
     end
 end
 
 local function nextId() return ctld.utils.getNextUniqId() end
 
--- Route mark IDs: 90001-90010 (cleared by clearAllMarks at each injection).
 local _routeMarkId = 90000
 local function nextRouteMarkId()
     _routeMarkId = _routeMarkId + 1
     return _routeMarkId
 end
 
---- Draw the looping triangle route on the F10 map (3 lines WP1→WP2, WP2→WP3, WP3→WP1).
---- @param cx number  centre X (DCS)
---- @param cz number  centre Z (DCS)
---- @param alt number altitude (m)
---- @param side number half-edge length (m)
---- @param color table {r,g,b,a}
 local function drawOrbitRoute(cx, cz, alt, side, color)
     local wps = {
-        { x = cx,        z = cz + side },  -- north
-        { x = cx - side, z = cz - side },  -- south-west
-        { x = cx + side, z = cz - side },  -- south-east
+        { x = cx,        z = cz + side },
+        { x = cx - side, z = cz - side },
+        { x = cx + side, z = cz - side },
     }
     for i = 1, 3 do
         local j = (i % 3) + 1
@@ -142,18 +146,14 @@ local function drawOrbitRoute(cx, cz, alt, side, color)
     end
 end
 
--- Build a 4-WP square orbit centred on (cx,cz) at altitude alt_m.
--- side = half-edge length in metres (default NM10).
--- 3-WP triangle route around (cx,cz) with SwitchWaypoint on WP3 → WP1.
--- Same pattern as JTAC drone orbit (validated in production).
 local function loopingTriangleRoute(cx, cz, alt_m, side, speed)
     side  = side  or NM1
     speed = speed or 100
     local n   = 3
     local wps = {
-        { x = cx,        y = cz + side },   -- north
-        { x = cx - side, y = cz - side },   -- south-west
-        { x = cx + side, y = cz - side },   -- south-east
+        { x = cx,        y = cz + side },
+        { x = cx - side, y = cz - side },
+        { x = cx + side, y = cz - side },
     }
     local pts = {}
     for i = 1, n do
@@ -171,7 +171,6 @@ local function loopingTriangleRoute(cx, cz, alt_m, side, speed)
             task         = { id = "ComboTask", params = { tasks = {} } },
         }
     end
-    -- SwitchWaypoint on last WP → loops back to WP 1 indefinitely.
     pts[n].task = {
         id     = "ComboTask",
         params = { tasks = { [1] = {
@@ -190,9 +189,6 @@ local function spawnUnit(lay, pPos)
     local ok, err
 
     if lay.useOrbit then
-        -- Air unit: looping 3-WP triangle.
-        -- usePlayer=true → centred on player position with orbitSide radius (stays close).
-        -- default     → centred on BATUMI with NM1 side (good for fixed-wing at altitude).
         local spawnX = lay.usePlayer and pPos.x or BATUMI.x
         local spawnZ = lay.usePlayer and pPos.z or BATUMI.z
         local side   = lay.orbitSide or NM1
@@ -210,13 +206,11 @@ local function spawnUnit(lay, pPos)
             })
         end)
         if ok then
-            -- Draw the triangle route on the F10 map (color matches layer icon color).
             local color = lay.color or { 1.0, 0.5, 0.0, 0.8 }
             drawOrbitRoute(spawnX, spawnZ, alt, side, color)
         end
 
     elseif lay.useAbs then
-        -- Ship or unit at absolute position (not relative to player).
         local px, pz = lay.absX, lay.absZ
         ok, err = pcall(function()
             coalition.addGroup(RUSSIA, lay.cat, {
@@ -235,7 +229,6 @@ local function spawnUnit(lay, pPos)
         end)
 
     else
-        -- Ground unit: relative to player position.
         local px = pPos.x + lay.dx
         local pz = pPos.z + lay.dz
         local py = land.getHeight({ x = px, y = pz })
@@ -257,20 +250,18 @@ local function spawnUnit(lay, pPos)
     end
 
     if not ok then return false, err end
-    -- Force WEAPON HOLD so test units never fire
     timer.scheduleFunction(function()
         local g = Group.getByName(lay.grpName)
         if g and g:isExist() then
             local ctrl = g:getController()
-            ctrl:setOption(0, 4)  -- ROE = WEAPON_HOLD (id=0, val=4)
-            ctrl:setOption(9, 0)  -- REACTION_ON_THREAT = NO_REACTION (id=9, val=0)
+            ctrl:setOption(0, 4)
+            ctrl:setOption(9, 0)
         end
     end, nil, timer.getTime() + 0.5)
     return true, nil
 end
 
--- ── resolve player ────────────────────────────────────────────────────────────
-
+-- ── RESOLVE PLAYER ────────────────────────────────────────────────────────────
 local playerUnit = nil
 do
     local units = coalition.getPlayers(coalition.side.BLUE) or {}
@@ -278,32 +269,24 @@ do
 end
 
 if not playerUnit or not playerUnit:isExist() then
-    return "ABORT: no BLUE player — occupy a slot first"
+    return _ret(TAG .. " ABORT: no BLUE player — occupy a slot first")
 end
 
--- Use DCS unit name ("uh1-1" style) as key — matches what CTLDMenuManager and _addReconCommands use.
 local playerName = playerUnit:getName()
 local rmgr       = CTLDReconManager.getInstance()
 local pPos       = playerUnit:getPoint()
 
--- Permanently enable RECON for the test session (no restore):
--- reconEnabled=true  : allows F10 menu scan commands to work
--- reconMinAltitude=0 : allows scanning from the ground / low altitude
+-- Permanently enable RECON for the test session (no restore — intentional).
 do
-    local cfg = CTLDConfig.get().settings
-    cfg["reconEnabled"]    = true
-    cfg["reconMinAltitude"] = 0
+    local cfgS = CTLDConfig.get().settings
+    cfgS["reconEnabled"]    = true
+    cfgS["reconMinAltitude"] = 0
 end
 
--- Remove all BLUE ground units so they cannot kill spawned RED targets during the test.
 destroyBlueGroundUnits()
 
---- Remove all visible marks: route debug marks (90001-90030) + all active RECON scan marks.
---- Called at the start of each injection to prevent mark accumulation.
 local function clearAllMarks()
-    -- Route debug marks (draw_routes.lua range)
     for i = 90001, 90030 do pcall(trigger.action.removeMark, i) end
-    -- RECON scan marks from all active scans
     for _, s in pairs(rmgr._activeScans or {}) do
         if s and s.targets then
             for _, t in ipairs(s.targets) do
@@ -316,7 +299,6 @@ local function clearAllMarks()
     end
 end
 
--- Helper: safely clean up a scan entry (timer + marks may already be gone).
 local function cleanupScan(scan, key)
     if not scan then return end
     if scan.refreshTimer then
@@ -327,11 +309,9 @@ local function cleanupScan(scan, key)
     rmgr._activeScans[key] = nil
 end
 
--- ── state machine ────────────────────────────────────────────────────────────
-
+-- ── STATE MACHINE ─────────────────────────────────────────────────────────────
 _RECON_LAYER_IDX = _RECON_LAYER_IDX or 1
 
--- Clear all visible marks at every injection (prevents accumulation on re-inject).
 clearAllMarks()
 
 -- Full reset (injection TOTAL+2)
@@ -341,20 +321,17 @@ if _RECON_LAYER_IDX > TOTAL + 1 then
     local layers = rmgr:_getPlayerLayers(playerName)
     for _, l in ipairs(layers) do l.enabled = false end
     _RECON_LAYER_IDX = 1
-    return "RECON scenario RESET — all test units destroyed, layers OFF. Re-inject to start from layer 1."
+    return _ret(TAG .. " RESET — all test units destroyed, layers OFF. Re-inject to start from layer 1.")
 end
 
--- Sandbox phase (injection TOTAL+1): all layers ON, all threats spawned, RECON started.
--- Player can then test layer toggle on/off via F10 menu.
+-- Sandbox phase (injection TOTAL+1)
 if _RECON_LAYER_IDX == TOTAL + 1 then
     destroyAll()
     cleanupScan(rmgr._activeScans[playerName], playerName)
 
-    -- Enable all layers
     local allLayers = rmgr:_getPlayerLayers(playerName)
     for _, l in ipairs(allLayers) do l.enabled = true end
 
-    -- Spawn all threat types
     local spawnErrors = {}
     for _, lay in ipairs(LAYERS) do
         local ok, err = spawnUnit(lay, pPos)
@@ -367,17 +344,14 @@ if _RECON_LAYER_IDX == TOTAL + 1 then
     end
     report("  Toggle layers via F10 RECON menu. Re-inject this script to RESET.")
 
-    -- Start RECON scan after 2s (aircraft need time to appear in DCS unit list).
-    -- Patch radius to 40 km so air/ship units 10 nm away are in range.
     timer.scheduleFunction(function()
         local pu = playerUnit:isExist() and playerUnit or nil
         if not pu then return end
-        -- reconEnabled=true and reconMinAltitude=0 already set permanently at injection start.
-        local cfg = CTLDConfig.get().settings
-        local oRad = cfg["reconSearchRadius"]
-        cfg["reconSearchRadius"] = 12000  -- 12 km covers 3 nm orbit
+        local cfgS = CTLDConfig.get().settings
+        local oRad = cfgS["reconSearchRadius"]
+        cfgS["reconSearchRadius"] = 12000
         pcall(function() rmgr:scan(pu, playerName) end)
-        cfg["reconSearchRadius"] = oRad
+        cfgS["reconSearchRadius"] = oRad
         local s = rmgr._activeScans[playerName]
         report(string.format("  RECON started: %d targets detected", s and #s.targets or 0))
         if s then
@@ -388,18 +362,16 @@ if _RECON_LAYER_IDX == TOTAL + 1 then
     end, nil, timer.getTime() + 2)
 
     _RECON_LAYER_IDX = TOTAL + 2
-    return "SANDBOX — all threats spawned, RECON starts in 1s. Toggle layers via F10. Re-inject to RESET."
+    return _ret(TAG .. " SANDBOX — all threats spawned, RECON starts in 2s. Toggle layers via F10. Re-inject to RESET.")
 end
 
 local current = LAYERS[_RECON_LAYER_IDX]
 
--- ── 1. Cleanup all test units + previous scan ─────────────────────────────────
-
+-- 1. Cleanup all test units + previous scan
 destroyAll()
 cleanupScan(rmgr._activeScans[playerName], playerName)
 
--- ── 2. Disable all layers, toggle only the current one ON ────────────────────
-
+-- 2. Disable all layers, toggle only the current one ON
 local allLayers = rmgr:_getPlayerLayers(playerName)
 for _, l in ipairs(allLayers) do
     l.enabled = false
@@ -411,12 +383,11 @@ end
 report(string.format("Layer %d/%d — toggle [%s] %s → ON  (all others OFF)",
     _RECON_LAYER_IDX, TOTAL, current.layerId, current.label))
 
--- ── 3. Spawn the target unit ──────────────────────────────────────────────────
-
+-- 3. Spawn the target unit
 local spawnOk, spawnErr = spawnUnit(current, pPos)
 if not spawnOk then
     report("SPAWN FAIL: " .. tostring(spawnErr))
-    return "ERROR: spawn failed for " .. current.layerId
+    return _ret(TAG .. " ERROR: spawn failed for " .. current.layerId)
 end
 
 if current.useOrbit then
@@ -430,23 +401,18 @@ else
         current.uType, current.grpName, current.dx, current.dz))
 end
 
--- ── 4. Scan after 2s (air units need time to appear; extend radius for air/ship) ─
-
--- Wide radius needed for: fixed-wing orbit (NM1 side, far from player) or ship (abs pos).
--- usePlayer=true helo orbit stays close → no wide radius needed.
+-- 4. Scan after delay (air units need time to appear in DCS unit list)
 local needsWideRadius = (current.useOrbit and not current.usePlayer) or current.useAbs
 
 timer.scheduleFunction(function()
     local pu = playerUnit:isExist() and playerUnit or nil
     if not pu then report("SCAN SKIP: player gone"); return end
 
-    -- reconEnabled=true and reconMinAltitude=0 are already set permanently at injection start.
-    -- Only patch reconSearchRadius for wide-radius scans (air/ship), restored after scan.
-    local cfg = CTLDConfig.get().settings
-    local origRadius = cfg["reconSearchRadius"]
-    if needsWideRadius then cfg["reconSearchRadius"] = 8000 end   -- 8 km covers 1 nm orbit with margin
+    local cfgS = CTLDConfig.get().settings
+    local origRadius = cfgS["reconSearchRadius"]
+    if needsWideRadius then cfgS["reconSearchRadius"] = 8000 end
     local ok2, err2 = pcall(function() rmgr:scan(pu, playerName) end)
-    cfg["reconSearchRadius"] = origRadius
+    cfgS["reconSearchRadius"] = origRadius
     if not ok2 then report("SCAN ERROR: " .. tostring(err2)); return end
 
     local scan = rmgr._activeScans[playerName]
@@ -462,15 +428,14 @@ timer.scheduleFunction(function()
         report(string.format("  Layer [%s] PASS — icon visible on F10 map", current.layerId))
     end
 
-    report(string.format(">>> Re-inject this script when ready for layer %d/%d [%s]",
+    report(string.format(">>> Re-inject when ready for layer %d/%d [%s]",
         _RECON_LAYER_IDX + 1, TOTAL,
         (_RECON_LAYER_IDX < TOTAL) and LAYERS[_RECON_LAYER_IDX + 1].label or "RESET"))
 end, nil, timer.getTime() + (needsWideRadius and 3 or 1))
 
--- ── advance counter ───────────────────────────────────────────────────────────
-
+-- advance counter
 _RECON_LAYER_IDX = _RECON_LAYER_IDX + 1
 
 local scanDelay = needsWideRadius and "3s" or "1s"
-return string.format("Layer %d/%d [%s] — spawning %s — scan in %s",
-    _RECON_LAYER_IDX - 1, TOTAL, current.label, current.uType, scanDelay)
+return _ret(string.format(TAG .. " Layer %d/%d [%s] — spawning %s — scan in %s",
+    _RECON_LAYER_IDX - 1, TOTAL, current.label, current.uType, scanDelay))
