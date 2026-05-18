@@ -279,9 +279,9 @@ function CTLDConfig:load()
     -- [FA] PARACHUTE — Virtual parachute drop (Feature A)
     -- ═══════════════════════════════════════════════════════════
     -- Minimum altitude AGL (m) required to initiate a parachute drop.
-    self.settings["parachuteMinAltitudeCrates"]           = 300  -- m AGL
-    self.settings["parachuteMinAltitudeTroops"]           = 300  -- m AGL
-    self.settings["parachuteMinAltitudeVehicles"]         = 300  -- m AGL
+    self.settings["parachuteMinAltitudeCrates"]           = 152  -- m AGL (≈ 500 ft)
+    self.settings["parachuteMinAltitudeTroops"]           = 152  -- m AGL (≈ 500 ft)
+    self.settings["parachuteMinAltitudeVehicles"]         = 152  -- m AGL (≈ 500 ft)
     -- Vertical descent speed (m/s) — determines time-to-ground.
     self.settings["parachuteDescentRateCrates"]           = 5    -- m/s
     self.settings["parachuteDescentRateTroops"]           = 5    -- m/s

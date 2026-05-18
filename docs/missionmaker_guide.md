@@ -936,9 +936,9 @@ All parameters are set in `CTLD_userConfig.lua`.
 
 | Parameter | Default | Description |
 | --- | --- | --- |
-| `parachuteMinAltitudeCrates` | `300` | Minimum AGL (m) to drop crates |
-| `parachuteMinAltitudeTroops` | `300` | Minimum AGL (m) to drop troops |
-| `parachuteMinAltitudeVehicles` | `300` | Minimum AGL (m) to drop a vehicle |
+| `parachuteMinAltitudeCrates` | `152` | Minimum AGL (m) to drop crates (≈ 500 ft) |
+| `parachuteMinAltitudeTroops` | `152` | Minimum AGL (m) to drop troops (≈ 500 ft) |
+| `parachuteMinAltitudeVehicles` | `152` | Minimum AGL (m) to drop a vehicle (≈ 500 ft) |
 
 Below these thresholds the menu action is rejected and the payload remains loaded.
 
