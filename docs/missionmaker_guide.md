@@ -648,6 +648,20 @@ Defines a logistics base. Players must be inside a logistic zone to spawn crates
 
 > **FOBs** deployed during the mission automatically register as logistic zones — no configuration needed.
 
+#### Deactivating / reactivating a logistic zone at runtime
+
+Use the `CTLDZoneManager` API from a DO SCRIPT trigger to simulate zone capture or temporary loss:
+
+```lua
+-- Deactivate — zone ignored by all players until reactivated
+CTLDZoneManager.getInstance():deactivateLogisticZone("depot1")
+
+-- Reactivate — zone becomes available again
+CTLDZoneManager.getInstance():activateLogisticZone("depot1")
+```
+
+This works for both `LGZ_` trigger zones and `logisticUnits`-based zones. The zone remains registered and can be toggled any number of times. An `OnLogisticZoneUpdated` event is fired on each call.
+
 ---
 
 ### 4.7 Legacy zone configuration (backward compatibility)
@@ -688,10 +702,11 @@ ctld.wpZones = {
 }
 ```
 
-**Logistic units** (`logisticUnits`) — crate services tied to a DCS unit or static:
+**Logistic units** (`logisticUnits`) — crate services tied to a DCS unit or static object:
 
 ```lua
--- { "unit or static name", ... }
+-- List of unit or static names placed in the mission editor.
+-- If the named object is destroyed, its logistic zone is automatically removed.
 ctld.logisticUnits = { "logistic1", "logistic2" }
 ```
 

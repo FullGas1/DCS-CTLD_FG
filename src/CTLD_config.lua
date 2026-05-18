@@ -445,7 +445,6 @@ function CTLDConfig:load()
 
     -- Use any of the predefined names or set your own ones
     -- When a logistic unit is destroyed, you will no longer be able to spawn crates
-    self.settings["dynamicLogisticUnitsIndex"]            = 0 -- This is the unit that will be spawned first and then subsequent units will be from the next in the list
     self.settings["logisticUnits"]                        = {
         "logistic1",
         "logistic2",

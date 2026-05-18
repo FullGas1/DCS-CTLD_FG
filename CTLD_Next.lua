@@ -490,7 +490,6 @@ function CTLDConfig:load()
 
     -- Use any of the predefined names or set your own ones
     -- When a logistic unit is destroyed, you will no longer be able to spawn crates
-    self.settings["dynamicLogisticUnitsIndex"]            = 0 -- This is the unit that will be spawned first and then subsequent units will be from the next in the list
     self.settings["logisticUnits"]                        = {
         "logistic1",
         "logistic2",
@@ -7284,6 +7283,34 @@ function CTLDZoneManager:unregisterLogistic(name)
         ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' unregistered", name)
         self:_publishLogisticZoneUpdated({}, { { unitName = name, coalition = zone.coalition, reason = "removed" } })
     end
+end
+
+--- Deactivate a logistic zone by name (reversible — simulates capture or temporary loss).
+-- Works for both LGZ_ trigger zones and logisticUnits-based zones.
+-- Deactivated zones are ignored by all getters until reactivated.
+-- @param name  string   zone name (as registered in _logisticZones)
+function CTLDZoneManager:deactivateLogisticZone(name)
+    local zone = self._logisticZones[name]
+    if not zone then
+        ctld.utils.log("WARN", "CTLDZoneManager:deactivateLogisticZone — zone '%s' not found", name)
+        return
+    end
+    zone:deactivate()
+    ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' deactivated", name)
+    self:_publishLogisticZoneUpdated({}, { { unitName = name, coalition = zone.coalition, reason = "deactivated" } })
+end
+
+--- Reactivate a previously deactivated logistic zone.
+-- @param name  string
+function CTLDZoneManager:activateLogisticZone(name)
+    local zone = self._logisticZones[name]
+    if not zone then
+        ctld.utils.log("WARN", "CTLDZoneManager:activateLogisticZone — zone '%s' not found", name)
+        return
+    end
+    zone:activate()
+    ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' activated", name)
+    self:_publishLogisticZoneUpdated({ { unitName = name, coalition = zone.coalition } }, {})
 end
 
 -- ============================================================

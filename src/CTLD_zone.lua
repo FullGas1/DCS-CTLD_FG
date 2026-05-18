@@ -750,6 +750,34 @@ function CTLDZoneManager:unregisterLogistic(name)
     end
 end
 
+--- Deactivate a logistic zone by name (reversible — simulates capture or temporary loss).
+-- Works for both LGZ_ trigger zones and logisticUnits-based zones.
+-- Deactivated zones are ignored by all getters until reactivated.
+-- @param name  string   zone name (as registered in _logisticZones)
+function CTLDZoneManager:deactivateLogisticZone(name)
+    local zone = self._logisticZones[name]
+    if not zone then
+        ctld.utils.log("WARN", "CTLDZoneManager:deactivateLogisticZone — zone '%s' not found", name)
+        return
+    end
+    zone:deactivate()
+    ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' deactivated", name)
+    self:_publishLogisticZoneUpdated({}, { { unitName = name, coalition = zone.coalition, reason = "deactivated" } })
+end
+
+--- Reactivate a previously deactivated logistic zone.
+-- @param name  string
+function CTLDZoneManager:activateLogisticZone(name)
+    local zone = self._logisticZones[name]
+    if not zone then
+        ctld.utils.log("WARN", "CTLDZoneManager:activateLogisticZone — zone '%s' not found", name)
+        return
+    end
+    zone:activate()
+    ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' activated", name)
+    self:_publishLogisticZoneUpdated({ { unitName = name, coalition = zone.coalition } }, {})
+end
+
 -- ============================================================
 -- Query API — TroopZones
 -- ============================================================
