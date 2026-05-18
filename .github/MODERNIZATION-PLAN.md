@@ -739,6 +739,56 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ pcall par unité, log WARN sur erreur.
         Recette : `recette/scenarios/scenario_ai_transport.lua` — F-133 (_aiTeams), F-134 (pickup/dropoff).
 
+⬜  FG  Feature O — Extraction zones (extractableGroups)
+        Objectif : porter le legacy `extractableGroups` (liste de noms de zones de type extract1–25).
+        Spec à produire : parsing de la liste, comparaison avec TRZ (qui couvre déjà pickup+extract),
+        déterminer si extractableGroups est complémentaire ou redondant.
+        Estimation : spec + implémentation dans CTLDTroopManager + recette.
+
+✅  FG  Feature P — Unified aircraftCapabilities table [2026-05-18]
+        Table `capabilitiesByType[typeName]` — renommage complet des champs pour clarté maximale :
+          • `crates` → `cratesEnabled`, `troops` → `troopsEnabled`
+          • `unitLoadLimits` → `maxTroopsOnboard`, `internalCargoLimits` → `maxCratesOnboard`
+          • `maxVehicles` → `maxWholeVehiclesOnboard`
+          • `vehicleTransportEnabled` → `canTransportWholeVehicle`
+          • `canParachute` → `canParachuteDrop`
+          • `dynamicCargoUnits` → `useNativeDcsCargoSystem`
+          • `vehiclesRED` → `loadableVehiclesRED`, `vehiclesBLUE` → `loadableVehiclesBLUE`
+          • `vehiclesWeight` → `groundVehicleWeights`
+        Bugfix : CTLD_vehicle.lua:loadVehicle lisait `internalCargoLimits` (limite caisses)
+          au lieu de `maxWholeVehiclesOnboard` pour la capacité véhicules entiers.
+        Bugfix : buildMenuSection (CTLD_crate.lua) référençait `actions` (nil) au lieu de `caps`
+          → Parachute Crates et Release Slingload jamais ajoutés au menu. Corrigé → `caps`.
+        Tous les managers (CTLDCrateManager, CTLDTroopManager, CTLDVehicleSpawner, CTLDPlayerManager)
+          et les fichiers config (CTLD_config.lua, CTLD_userConfig.lua) mis à jour.
+
+✅  FG  Crate Commands menu — sol/vol split (refreshCrateFlightSection) [2026-05-18]
+        Nouveau : CTLDCrateManager:refreshCrateFlightSection(playerObj)
+          • Sol uniquement : Load Crate, Drop Crate(s), Unpack Crate, List Nearby Crates, Pack Vehicle
+          • Vol uniquement : Parachute Crates (canParachuteDrop + crates non-slingloadées à bord),
+                            Release Slingload, Cut Slingload (canSlingload + slingload actif)
+        Appelé depuis buildMenuSection, onTakeoff, onLand.
+        Slingload menu triggers : refreshCrateFlightSection après hover pickup, release, cut.
+        Recette : F-168→F-172 15/15 PASS + F-173→F-175 live DCS ✅
+
+✅  FG  Bugfixes parachute/slingload/poids cargo [2026-05-18]
+        • parachuteCrates : _respawnStatic après land() → crate visible au sol (F-173 PASS live)
+        • parachuteCrates + cutSlingload + parachuteVehicle : updateTransportWeight manquant → ajouté
+        • updateTransportWeight : guard Unit.getByName+isExist → plus de crash si transport détruit
+        • Timers déférés : _transportName capturé avant timer (parachuteCrates + parachuteVehicle)
+          → plus de risque getName() sur objet DCS invalide
+        • Parachute Crates : exclut crates inTransitOnSlingload du comptage onboard
+        • outTextForGroup slingload confirmation : clearview=true → efface décompte hover (F-175 PASS live)
+
+⬜  FG  Feature Q — Vehicle whole-unit air transport (vehiclesForTransportRED/BLUE)
+        Objectif : spécifier et implémenter le transport de véhicules entiers (non décomposés en caisses)
+        à bord d'un transport (C-130, CH-47, Il-76).
+        `vehiclesForTransportRED`/`vehiclesForTransportBLUE` définissent les types autorisés.
+        `maxVehiclesByType` (déjà en config) contrôle la capacité par type d'appareil.
+        Spec à produire : flow détaillé load/unload, état CTLDVehicle pendant transit,
+        interaction avec Feature K (JTAC vehicle in-transit).
+        Recette IA obligatoire.
+
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
         (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
@@ -1061,9 +1111,24 @@ Minor cleanups identified — low priority, no functional impact.
   `_weightForGroup()` (randomisation par soldat dans [SW×0.9, SW×1.2] + kit + équipement).
   Clés `SOLDIER_WEIGHT`, `KIT_WEIGHT`, `RIFLE_WEIGHT`, `MANPAD_WEIGHT`, `MG_WEIGHT`,
   `MORTAR_WEIGHT`, `JTAC_WEIGHT`, `RPG_WEIGHT` désormais actives. [2026-05-12]
-- ~~**CL-6**~~ ✅ 7 clés lues via `ctld.gs()` mais non déclarées dans userConfig ajoutées :
-  `crateSpacing`, `dynamicZoneRadius`, `maxTransportWeight`, `smokeRefreshInterval`,
-  `spawnDistanceInCircle`, `transportLimitByType`, `troopZoneSmokeColor`. [2026-05-12]
+- ~~**CL-6**~~ ✅ 15 clés orphelines (lues via `ctld.gs()` mais sans défaut dans config) ajoutées à `CTLD_config.lua` [2026-05-17] :
+  Crates : `crateSpacing`=5, `spawnDistanceInCircle`=10, `maxDropHeight`=7.5.
+  Troupes : `maxTransportWeight`=0, `transportLimitByType`=nil.
+  Beacons : `beaconLayerEnabled`=false, `beaconAutoRefreshLayer`=false, `beaconRefreshInterval`=60,
+    `beaconIconRadius`=25, `beaconIconColor`={orange}, `beaconTextSize`=12.
+  Zones : `dynamicZoneRadius`=200, `smokeRefreshInterval`=300,
+    `logisticZoneSmokeColor`=nil, `troopZoneSmokeColor`=nil.
+  Note : CL-6 marqué ✅ en [2026-05-12] mais jamais appliqué — corrigé dans cette session.
+- ~~**CL-7**~~ ✅ 5 params obsolètes supprimés de `CTLD_config.lua` + `docs/missionmaker_guide.md` [2026-05-17] :
+  `addPlayerAircraftByType`, `aircraftTypeTable` (arch. v2 utilise typeName natif),
+  `buildTimeFOB` (timing FOB interne), `crateWaitTime` (état manager),
+  `minimumDeployDistance` (garde LGZ-unpack obsolète, FOB a `fobMinDistanceFromZones`).
+- **CL-8** Points config en attente d'analyse/décision (audit 2026-05-17) :
+  • `dynamicLogisticUnitsIndex` — cycling logistic unit après destruction (feature résilience non portée)
+  • `loadCrateFromMenu` — conservé mais hardcodé "both" implicitement ; à connecter via `ctld.gs()` dans CTLDCrateManager pour paramétrer le mode menu/hover/les deux
+  • `maximumMoveDistance`/`maximumSearchDistance` — utiles pour comportements post-unpack (`moveToWPZ`, `attackNearestEnemy`) pas seulement IA troupes ; à connecter quand ces behaviors implémentés
+  • ~~`unitLoadLimits`~~ — absorbé par Feature P ✅ (`maxTroopsOnboard` dans `capabilitiesByType`)
+  • `vehiclesForTransportRED/BLUE` + `maxVehiclesByType` — fusionnés en `vehicleTransportCapabilities` [2026-05-17] (Feature Q)
 
 ---
 

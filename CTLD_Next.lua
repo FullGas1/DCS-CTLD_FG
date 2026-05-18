@@ -79,65 +79,11 @@ function CTLDConfig:load()
     self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
     self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
-    self.settings["addPlayerAircraftByType"]            = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
     self.settings["location_DMS"]                       = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
 
     -- ═══════════════════════════════════════════════════════════
     -- [2] TRANSPORTS — Aircraft types and pilot names
     -- ═══════════════════════════════════════════════════════════
-
-    -- If ctld.addPlayerAircraftByType = True, comment or uncomment lines to allow aircraft's type carry CTLD
-    self.settings["aircraftTypeTable"]                  = {
-        --%%%%% MODS %%%%%
-        --"Bronco-OV-10A",
-        --"Hercules",
-        --"SK-60",
-        --"UH-60L",
-        --"T-45",
-
-        --%%%%% CHOPPERS %%%%%
-        --"Ka-50",
-        --"Ka-50_3",
-        "Mi-8MT",
-        "Mi-24P",
-        --"SA342L",
-        --"SA342M",
-        --"SA342Mistral",
-        --"SA342Minigun",
-        "UH-1H",
-        "CH-47Fbl1",
-
-        --%%%%% AIRCRAFTS %%%%%
-        --"C-101EB",
-        --"C-101CC",
-        --"Christen Eagle II",
-        --"L-39C",
-        --"L-39ZA",
-        --"MB-339A",
-        --"MB-339APAN",
-        --"Mirage-F1B",
-        --"Mirage-F1BD",
-        --"Mirage-F1BE",
-        --"Mirage-F1BQ",
-        --"Mirage-F1DDA",
-        --"Su-25T",
-        --"Yak-52",
-        "C-130J-30",
-
-        --%%%%% WARBIRDS %%%%%
-        --"Bf-109K-4",
-        --"Fw 190A8",
-        --"FW-190D9",
-        --"I-16",
-        --"MosquitoFBMkVI",
-        --"P-47D-30",
-        --"P-47D-40",
-        --"P-51D",
-        --"P-51D-30-NA",
-        --"SpitfireLFMkIX",
-        --"SpitfireLFMkIXCW",
-        --"TF-51D",
-    }
 
     -- Use any of the predefined names or set your own ones
     self.settings["transportPilotNames"]                = {
@@ -276,9 +222,9 @@ function CTLDConfig:load()
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
     self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
-    self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
+    self.settings["crateSpacing"]                       = 5    -- spacing (m) between consecutive crate spawn positions along the drop axis
+    self.settings["spawnDistanceInCircle"]              = 10   -- extra radius (m) added to safe-radius when placing units in circle formation on deploy
 
     -- Simulated Sling load configuration (Feature B)
     self.settings["minimumHoverHeight"]                 = 7.5  -- Lowest allowable height for crate hover
@@ -286,20 +232,15 @@ function CTLDConfig:load()
     self.settings["maxDistanceFromCrate"]               = 5.5  -- Maximum distance from from crate for hover
     self.settings["hoverTime"]                          = 10   -- Time to hold hover above a crate for loading in seconds
     self.settings["maxSlingloadSpeed"]                  = 50   -- Max speed (m/s) while carrying a slingloaded crate — exceed it and the crate is lost
+    self.settings["maxDropHeight"]                      = 7.5  -- max altitude AGL (m) for a safe crate drop; above this the crate is destroyed on impact
     -- end of Simulated Sling load configuration
 
     -- ═══════════════════════════════════════════════════════════
     -- [4] TROOPS — Infantry loading, fast rope, extraction limits
     -- ═══════════════════════════════════════════════════════════
     self.settings["numberOfTroops"]                     = 10       -- default number of troops to load on a transport heli or C-130
+    self.settings["maxTransportWeight"]                 = 0        -- max cargo weight (kg) per transport; 0 = unlimited
     -- multiGroupTransport removed: multiple groups always allowed up to transport capacity.
-    -- Per-aircraft max vehicles in hold (0 = no vehicle transport). Falls back to 1 if entry absent and vehicleTransportEnabled=true.
-    self.settings["maxVehiclesByType"]                  = {
-        ["C-130J-30"] = 2,
-        ["CH-47Fbl1"] = 1,
-        ["Hercules"]  = 2,
-    }
-    -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
     self.settings["allowRandomAiTeamPickups"]           = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
@@ -312,11 +253,9 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [5] VEHICLES — Packable vehicles and transport configuration
     -- ═══════════════════════════════════════════════════════════
-    self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
-    self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search for packable units in meters
-    self.settings["vehiclesForTransportRED"]            = { "BRDM-2", "BTR_D" }                         -- vehicles to load onto Il-76 - Alternatives {"Strela-1 9P31","BMP-1"}
-    self.settings["vehiclesForTransportBLUE"]           = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } -- vehicles to load onto c130 - Alternatives {"M1128 Stryker MGS","M1097 Avenger"}
-    self.settings["vehiclesWeight"]                     = {
+    self.settings["enablePackingVehicles"]              = true  -- if true, vehicles can be packed into crates
+    self.settings["maximumDistancePackableUnitsSearch"] = 200   -- max distance from transportUnit to search for packable units in meters
+    self.settings["groundVehicleWeights"]               = {
         ["BRDM-2"] = 7000,
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
@@ -330,7 +269,6 @@ function CTLDConfig:load()
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
     self.settings["troopPickupAtFOB"]                   = true -- if true, troops can also be picked up at a created FOB
-    self.settings["buildTimeFOB"]                       = 120  -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]            = 500  -- minimum distance (m) from existing logistic zones to deploy a FOB
     self.settings["fobLogisticZoneRadius"]              = 150  -- radius (m) of the logistic zone created around a deployed FOB
     self.settings["fobDestructionThreshold"]            = 0.5  -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
@@ -341,9 +279,9 @@ function CTLDConfig:load()
     -- [FA] PARACHUTE — Virtual parachute drop (Feature A)
     -- ═══════════════════════════════════════════════════════════
     -- Minimum altitude AGL (m) required to initiate a parachute drop.
-    self.settings["parachuteMinAltitudeCrates"]           = 30   -- m AGL
-    self.settings["parachuteMinAltitudeTroops"]           = 50   -- m AGL (safety margin for personnel)
-    self.settings["parachuteMinAltitudeVehicles"]         = 30   -- m AGL
+    self.settings["parachuteMinAltitudeCrates"]           = 300  -- m AGL
+    self.settings["parachuteMinAltitudeTroops"]           = 300  -- m AGL
+    self.settings["parachuteMinAltitudeVehicles"]         = 300  -- m AGL
     -- Vertical descent speed (m/s) — determines time-to-ground.
     self.settings["parachuteDescentRateCrates"]           = 5    -- m/s
     self.settings["parachuteDescentRateTroops"]           = 5    -- m/s
@@ -358,12 +296,19 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [7] BEACONS — Radio beacon drop, sounds and battery life
     -- ═══════════════════════════════════════════════════════════
-    self.settings["enabledRadioBeaconDrop"]               = true -- if its set to false then beacons cannot be dropped by units
+    self.settings["enabledRadioBeaconDrop"]               = true  -- if its set to false then beacons cannot be dropped by units
     self.settings["radioSound"]                           =
-    "beacon.ogg"                                                 -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
+    "beacon.ogg"                                                  -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
     self.settings["radioSoundFC3"]                        =
-    "beaconsilent.ogg"                                           -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
+    "beaconsilent.ogg"                                            -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
     self.settings["deployedBeaconBattery"]                = 30   -- the battery on deployed beacons will last for this number minutes before needing to be re-deployed
+    -- Beacon F10 layer options
+    self.settings["beaconLayerEnabled"]                   = false                -- if true, beacon positions are drawn on the F10 map as icons
+    self.settings["beaconAutoRefreshLayer"]               = false                -- if true, newly-dropped beacons are auto-added to active layer
+    self.settings["beaconRefreshInterval"]                = 60                   -- seconds between beacon layer refreshes
+    self.settings["beaconIconRadius"]                     = 25                   -- radius (m) of beacon icon circles on the F10 map
+    self.settings["beaconIconColor"]                      = { 1.0, 0.5, 0.0, 1.0 } -- RGBA color of beacon icon (default: orange)
+    self.settings["beaconTextSize"]                       = 12                   -- font size of beacon name/coords text on the F10 map
 
     -- ═══════════════════════════════════════════════════════════
     -- [8] AA — Anti-Aircraft system limits and crate stacking
@@ -435,6 +380,10 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [11] ZONES — Pickup, drop-off and waypoint zones
     -- ═══════════════════════════════════════════════════════════
+    self.settings["dynamicZoneRadius"]                    = 200  -- radius (m) of logistic zones created around LGZ_ trigger zones
+    self.settings["smokeRefreshInterval"]                 = 300  -- seconds between smoke signal refreshes at logistic/troop zones
+    self.settings["logisticZoneSmokeColor"]               = nil  -- optional: table [coalition_id] = smokeColor — nil disables zone smoke
+    self.settings["troopZoneSmokeColor"]                  = nil  -- optional: table [coalition_id] = smokeColor — nil disables troop zone smoke
 
     -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
     -- Use any of the predefined names or set your own ones
@@ -555,178 +504,104 @@ function CTLDConfig:load()
         "logistic10",
     }
 
-    -- ************** UNITS ABLE TO TRANSPORT VEHICLES ******************
-    -- Add the model name of the unit that you want to be able to transport and deploy vehicles
-    -- units db has all the names or you can extract a mission.miz file by making it a zip and looking
-    -- in the contained mission file
-    self.settings["vehicleTransportEnabled"]              = {
-        "76MD", -- the il-76 mod doesnt use a normal - sign so il-76md wont match... !!!! GRR
-        "Hercules",
-        "C-130J-30",
-        "UH-1H",
-        "Mi-8",
-        --"CH-47Fbl1",
-    }
-
-    -- ************** Units able to use DCS dynamic cargo system ******************
-    -- DCS (version) added the ability to load and unload cargo from aircraft.
-    -- Units listed here will spawn a cargo static that can be loaded with the standard DCS cargo system
-    -- We will also use this to make modifications to the menu and other checks and messages
-    self.settings["dynamicCargoUnits"]                    = {
-        "CH-47Fbl1",
-        "UH-1H",
-        "Mi-8MT",
-        "Mi-24P",
-        "C-130J-30"
-    }
-
-    -- ************** Maximum Units SETUP for UNITS ******************
-    -- Put the name of the Unit you want to limit group sizes too
-    -- i.e
-    -- ["UH-1H"] = 10,
+    -- ═══════════════════════════════════════════════════════════
+    -- [CAP] CAPABILITIES BY TYPE — unified per-aircraft settings
+    -- ═══════════════════════════════════════════════════════════
+    -- Each entry defines ALL capabilities for one DCS aircraft type.
+    -- Absence of an entry = unit is not a CTLD transport.
     --
-    -- Will limit UH1 to only transport groups with a size 10 or less
-    -- Make sure the unit name is exactly right or it wont work
+    -- Fields:
+    --   cratesEnabled            (bool)  can carry/spawn/unpack crates
+    --   troopsEnabled            (bool)  can carry/deploy/extract troops
+    --   canParachuteDrop         (bool)  enable "Parachute" F10 entries (Feature A)
+    --   canSlingload             (bool)  enable hover-pickup + "Release/Cut Slingload" (Feature B)
+    --   canTransportWholeVehicle (bool)  can load/unload whole vehicles (Feature Q)
+    --   useNativeDcsCargoSystem  (bool)  use DCS native cargo system for crate spawning
+    --   maxTroopsOnboard         (int)   max troops/group; fallback = numberOfTroops
+    --   maxCratesOnboard         (int)   max crates in hold simultaneously; fallback = 1
+    --   maxWholeVehiclesOnboard  (int)   max whole vehicles in hold; 0 = no vehicle transport
+    --   loadableVehiclesRED      (table) DCS unit types loadable as whole vehicles (RED coalition)
+    --   loadableVehiclesBLUE     (table) DCS unit types loadable as whole vehicles (BLUE coalition)
 
-    self.settings["unitLoadLimits"]                       = {
-        -- Remove the -- below to turn on options
-        -- ["SA342Mistral"] = 4,
-        -- ["SA342L"] = 4,
-        -- ["SA342M"] = 4,
+    self.settings["capabilitiesByType"] = {
 
-        --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = 4,
-        ["Hercules"] = 30,
-        --["SK-60"] = 1,
-        ["UH-60L"] = 12,
-        --["T-45"] = 1,
+        -- ── MODS ────────────────────────────────────────────────────────────────
+        -- ["Bronco-OV-10A"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        ["76MD"] = {  -- Il-76 mod (exact DCS type name)
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["Hercules"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 30,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["SK-60"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 4,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        ["UH-60L"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 12,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        -- ["T-45"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 
-        --%%%%% CHOPPERS %%%%%
-        ["Mi-8MT"] = 16,
-        ["Mi-24P"] = 10,
-        --["SA342L"] = 4,
-        --["SA342M"] = 4,
-        --["SA342Mistral"] = 4,
-        --["SA342Minigun"] = 3,
-        ["UH-1H"] = 8,
-        ["CH-47Fbl1"] = 33,
+        -- ── HELICOPTERS ──────────────────────────────────────────────────────────
+        -- ["Ka-50"]   = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        -- ["Ka-50_3"] = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        ["Mi-8MT"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 16,  maxCratesOnboard = 2,   maxWholeVehiclesOnboard = 0,
+        },
+        ["Mi-24P"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 10,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        -- ["SA342L"]      = { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342M"]      = { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342Mistral"]= { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342Minigun"]= { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=3 },
+        ["UH-1H"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true,  canSlingload = true,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 8,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 1,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["CH-47Fbl1"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
 
-        --%%%%% AIRCRAFTS %%%%%
-        --["C-101EB"] = 1,
-        --["C-101CC"] = 1,
-        --["Christen Eagle II"] = 1,
-        --["L-39C"] = 1,
-        --["L-39ZA"] = 1,
-        --["MB-339A"] = 1,
-        --["MB-339APAN"] = 1,
-        --["Mirage-F1B"] = 1,
-        --["Mirage-F1BD"] = 1,
-        --["Mirage-F1BE"] = 1,
-        --["Mirage-F1BQ"] = 1,
-        --["Mirage-F1DDA"] = 1,
-        --["Su-25T"] = 1,
-        --["Yak-52"] = 1,
-        ["C-130J-30"] = 80
+        -- ── FIXED-WING ───────────────────────────────────────────────────────────
+        -- ["C-101EB"]  = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["Su-25T"]   = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=1 },
+        ["C-130J-30"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
 
-        --%%%%% WARBIRDS %%%%%
-        --["Bf-109K-4"] = 1,
-        --["Fw 190A8"] = 1,
-        --["FW-190D9"] = 1,
-        --["I-16"] = 1,
-        --["MosquitoFBMkVI"] = 1,
-        --["P-47D-30"] = 1,
-        --["P-47D-40"] = 1,
-        --["P-51D"] = 1,
-        --["P-51D-30-NA"] = 1,
-        --["SpitfireLFMkIX"] = 1,
-        --["SpitfireLFMkIXCW"] = 1,
-        --["TF-51D"] = 1,
-    }
-
-    -- Put the name of the Unit you want to enable loading multiple crates
-    self.settings["internalCargoLimits"]                  = {
-
-        -- Remove the -- below to turn on options
-        ["Mi-8MT"] = 2,
-        ["CH-47Fbl1"] = 8,
-        ["C-130J-30"] = 20
-    }
-
-
-    -- ************** Allowable actions for UNIT TYPES ******************
-    -- Put the name of the Unit you want to limit actions for
-    -- NOTE - the unit must've been listed in the transportPilotNames list above
-    -- This can be used in conjunction with the options above for group sizes
-    -- By default you can load both crates and troops unless overriden below
-    -- i.e
-    -- ["UH-1H"] = {crates=true, troops=false},
-    --
-    -- Will limit UH1 to only transport CRATES but NOT TROOPS
-    --
-    -- ["SA342Mistral"] = {crates=fales, troops=true},
-    -- Will allow Mistral Gazelle to only transport crates, not troops
-
-    self.settings["unitActions"] = {
-
-        -- Remove the -- below to turn on options
-        -- ["SA342Mistral"] = {crates=true, troops=true},
-        -- ["SA342L"] = {crates=false, troops=true},
-        -- ["SA342M"] = {crates=false, troops=true},
-
-        -- canParachute=true  enables "Parachute Crates/Troops/Vehicle" menu entries (Feature A).
-        -- canSlingload=true  enables "Release Slingload" / "Cut Slingload" menu entries (Feature B)
-        --                    and activates hover-pickup polling for this aircraft type.
-        -- Helicopters support slingload; fixed-wing aircraft do not.
-
-        --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
-        ["Hercules"]  = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        ["SK-60"]     = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        ["UH-60L"]    = { crates = true, troops = true, canParachute = false, canSlingload = true },
-        ["C-130J-30"] = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        --["T-45"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
-
-        --%%%%% CHOPPERS %%%%%
-        --["Ka-50"]   = {crates=true, troops=false, canParachute=false, canSlingload=true},
-        --["Ka-50_3"] = {crates=true, troops=false, canParachute=false, canSlingload=true},
-        ["Mi-8MT"]    = { crates = true, troops = true, canParachute = false, canSlingload = true },
-        ["Mi-24P"]    = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        --["SA342L"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342M"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342Mistral"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342Minigun"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        ["UH-1H"]     = { crates = true, troops = true, canParachute = true, canSlingload = true },
-        ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false, canSlingload = true },
-
-        --%%%%% AIRCRAFTS %%%%%
-        --["C-101EB"] = {crates=true, troops=true},
-        --["C-101CC"] = {crates=true, troops=true},
-        --["Christen Eagle II"] = {crates=true, troops=true},
-        --["L-39C"] = {crates=true, troops=true},
-        --["L-39ZA"] = {crates=true, troops=true},
-        --["MB-339A"] = {crates=true, troops=true},
-        --["MB-339APAN"] = {crates=true, troops=true},
-        --["Mirage-F1B"] = {crates=true, troops=true},
-        --["Mirage-F1BD"] = {crates=true, troops=true},
-        --["Mirage-F1BE"] = {crates=true, troops=true},
-        --["Mirage-F1BQ"] = {crates=true, troops=true},
-        --["Mirage-F1DDA"] = {crates=true, troops=true},
-        --["Su-25T"]= {crates=true, troops=false},
-        --["Yak-52"] = {crates=true, troops=true},
-
-        --%%%%% WARBIRDS %%%%%
-        --["Bf-109K-4"] = {crates=true, troops=false},
-        --["Fw 190A8"] = {crates=true, troops=false},
-        --["FW-190D9"] = {crates=true, troops=false},
-        --["I-16"] = {crates=true, troops=false},
-        --["MosquitoFBMkVI"] = {crates=true, troops=true},
-        --["P-47D-30"] = {crates=true, troops=false},
-        --["P-47D-40"] = {crates=true, troops=false},
-        --["P-51D"] = {crates=true, troops=false},
-        --["P-51D-30-NA"] = {crates=true, troops=false},
-        --["SpitfireLFMkIX"] = {crates=true, troops=false},
-        --["SpitfireLFMkIXCW"] = {crates=true, troops=false},
-        --["TF-51D"] = {crates=true, troops=true},
+        -- ── WARBIRDS (examples, all disabled by default) ─────────────────────────
+        -- ["P-51D"] = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=1 },
     }
 
     -- ************** WEIGHT CALCULATIONS FOR INFANTRY GROUPS ******************
@@ -1759,7 +1634,7 @@ ctld.i18n["en"]["Load Crate"] = "Load Crate"
 ctld.i18n["en"]["Land to load crates"] = "Land to load crates"
 ctld.i18n["en"]["No crates within 50m"] = "No crates within 50m"
 ctld.i18n["en"]["You must land before you can load a crate!"] = "You must land before you can load a crate!"
-ctld.i18n["en"]["Maximum number of crates are on board!"] = "Maximum number of crates are on board!"
+ctld.i18n["en"]["Maximum number of crates are on board!"] = "Crate capacity full! (%1/%2)"
 ctld.i18n["en"]["No crates within 50m to load!"] = "No crates within 50m to load!"
 ctld.i18n["en"]["Loaded %1 crate!"] = "Loaded %1 crate!"
 
@@ -1792,7 +1667,7 @@ ctld.i18n["en"]["No vehicle loaded."] = "No vehicle loaded."
 ctld.i18n["en"]["Vehicle loaded: %1."] = "Vehicle loaded: %1."
 ctld.i18n["en"]["Vehicle unloaded: %1."] = "Vehicle unloaded: %1."
 ctld.i18n["en"]["Vehicle no longer loaded."] = "Vehicle no longer loaded."
-ctld.i18n["en"]["Cannot load more vehicles (max: %d)."] = "Cannot load more vehicles (max: %d)."
+ctld.i18n["en"]["Cannot load more vehicles (%1/%2)."] = "Cannot load more vehicles (%1/%2)."
 
 --- List Nearby Crates
 ctld.i18n["en"]["List Nearby Crates"] = "List Nearby Crates"
@@ -1812,7 +1687,7 @@ ctld.i18n["en"]["Total cargo weight: %1 kg"] = "Total cargo weight: %1 kg"
 ctld.i18n["en"]["Request JTAC Equipment"] = "Request JTAC Equipment"
 ctld.i18n["en"]["You must be landed to request JTAC equipment."] = "You must be landed to request JTAC equipment."
 ctld.i18n["en"]["You are not close enough to friendly logistics."] = "You are not close enough to friendly logistics."
-ctld.i18n["en"]["%s is ready for pickup."] = "%s is ready for pickup."
+ctld.i18n["en"]["%1 is ready for pickup."] = "%1 is ready for pickup."
 ctld.i18n["en"]["JTAC limit reached for your coalition."] = "JTAC limit reached for your coalition."
 
 --- Request Equipment spawn messages
@@ -1844,14 +1719,14 @@ ctld.i18n["en"]["Lasing [activate]"]                          = "Lasing [activat
 ctld.i18n["en"]["Lasing [deactivate]"]                        = "Lasing [deactivate]"
 ctld.i18n["en"]["Spot Corrections [activate]"]                = "Spot Corrections [activate]"
 ctld.i18n["en"]["Spot Corrections [deactivate]"]              = "Spot Corrections [deactivate]"
-ctld.i18n["en"]["Lasing activated: %s"]                       = "Lasing activated: %s"
-ctld.i18n["en"]["Lasing deactivated (standby): %s"]           = "Lasing deactivated (standby): %s"
-ctld.i18n["en"]["Spot corrections activated: %s"]             = "Spot corrections activated: %s"
-ctld.i18n["en"]["Spot corrections deactivated: %s"]           = "Spot corrections deactivated: %s"
+ctld.i18n["en"]["Lasing activated: %1"]                       = "Lasing activated: %1"
+ctld.i18n["en"]["Lasing deactivated (standby): %1"]           = "Lasing deactivated (standby): %1"
+ctld.i18n["en"]["Spot corrections activated: %1"]             = "Spot corrections activated: %1"
+ctld.i18n["en"]["Spot corrections deactivated: %1"]           = "Spot corrections deactivated: %1"
 ctld.i18n["en"]["JTAC not found."]                            = "JTAC not found."
 
 --- Troop parachute
-ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"
+ctld.i18n["en"]["Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"] = "Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"
 ctld.i18n["en"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachuting %1 (%2 troops) — landing in ~%3s"
 ctld.i18n["en"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachuting vehicle %1 — landing in ~%2s"
 ctld.i18n["en"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachuting %1 crate(s) — landing in ~%2s"
@@ -2205,7 +2080,7 @@ ctld.i18n["fr"]["Load Crate"] = "Charger caisse"
 ctld.i18n["fr"]["Land to load crates"] = "Atterrissez pour charger une caisse"
 ctld.i18n["fr"]["No crates within 50m"] = "Aucune caisse dans 50 m"
 ctld.i18n["fr"]["You must land before you can load a crate!"] = "Vous devez atterrir avant de pouvoir charger une caisse !"
-ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses à bord !"
+ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Capacité caisse atteinte ! (%1/%2)"
 ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
 ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
 
@@ -2238,7 +2113,7 @@ ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
 ctld.i18n["fr"]["Vehicle loaded: %1."] = "Véhicule chargé : %1."
 ctld.i18n["fr"]["Vehicle unloaded: %1."] = "Véhicule déchargé : %1."
 ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
-ctld.i18n["fr"]["Cannot load more vehicles (max: %d)."] = "Impossible de charger davantage de véhicules (max : %d)."
+ctld.i18n["fr"]["Cannot load more vehicles (%1/%2)."] = "Impossible de charger davantage de véhicules (%1/%2)."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
@@ -2258,7 +2133,7 @@ ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 k
 ctld.i18n["fr"]["Request JTAC Equipment"] = "Demander équipement JTAC"
 ctld.i18n["fr"]["You must be landed to request JTAC equipment."] = "Vous devez être posé pour demander un équipement JTAC."
 ctld.i18n["fr"]["You are not close enough to friendly logistics."] = "Vous n'êtes pas assez proche de la logistique alliée."
-ctld.i18n["fr"]["%s is ready for pickup."] = "%s est prêt pour embarquement."
+ctld.i18n["fr"]["%1 is ready for pickup."] = "%1 est prêt pour embarquement."
 ctld.i18n["fr"]["JTAC limit reached for your coalition."] = "Limite JTAC atteinte pour votre coalition."
 
 --- Request Equipment spawn messages
@@ -2290,14 +2165,14 @@ ctld.i18n["fr"]["Lasing [activate]"]                          = "Laser [activer]
 ctld.i18n["fr"]["Lasing [deactivate]"]                        = "Laser [désactiver]"
 ctld.i18n["fr"]["Spot Corrections [activate]"]                = "Corrections spot [activer]"
 ctld.i18n["fr"]["Spot Corrections [deactivate]"]              = "Corrections spot [désactiver]"
-ctld.i18n["fr"]["Lasing activated: %s"]                       = "Laser activé : %s"
-ctld.i18n["fr"]["Lasing deactivated (standby): %s"]           = "Laser désactivé (veille) : %s"
-ctld.i18n["fr"]["Spot corrections activated: %s"]             = "Corrections spot activées : %s"
-ctld.i18n["fr"]["Spot corrections deactivated: %s"]           = "Corrections spot désactivées : %s"
+ctld.i18n["fr"]["Lasing activated: %1"]                       = "Laser activé : %1"
+ctld.i18n["fr"]["Lasing deactivated (standby): %1"]           = "Laser désactivé (veille) : %1"
+ctld.i18n["fr"]["Spot corrections activated: %1"]             = "Corrections spot activées : %1"
+ctld.i18n["fr"]["Spot corrections deactivated: %1"]           = "Corrections spot désactivées : %1"
 ctld.i18n["fr"]["JTAC not found."]                            = "JTAC introuvable."
 
 --- Troop parachute
-ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
+ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %1m sol (actuel : %2m sol)"
 ctld.i18n["fr"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachutage de %1 (%2 soldats) — atterrissage dans ~%3s"
 ctld.i18n["fr"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachutage du véhicule %1 — atterrissage dans ~%2s"
 ctld.i18n["fr"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachutage de %1 caisse(s) — atterrissage dans ~%2s"
@@ -2652,7 +2527,7 @@ ctld.i18n["es"]["Load Crate"] = "Cargar caja"
 ctld.i18n["es"]["Land to load crates"] = "Aterriza para cargar una caja"
 ctld.i18n["es"]["No crates within 50m"] = "No hay cajas en 50 m"
 ctld.i18n["es"]["You must land before you can load a crate!"] = "¡Debes aterrizar antes de poder cargar una caja!"
-ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Número máximo de cajas a bordo!"
+ctld.i18n["es"]["Maximum number of crates are on board!"] = "¡Capacidad de cajas al límite! (%1/%2)"
 ctld.i18n["es"]["No crates within 50m to load!"] = "¡No hay cajas para cargar en un radio de 50 m!"
 ctld.i18n["es"]["Loaded %1 crate!"] = "¡Caja %1 cargada!"
 
@@ -2685,7 +2560,7 @@ ctld.i18n["es"]["No vehicle loaded."] = "No hay ningún vehículo cargado."
 ctld.i18n["es"]["Vehicle loaded: %1."] = "Vehículo cargado: %1."
 ctld.i18n["es"]["Vehicle unloaded: %1."] = "Vehículo descargado: %1."
 ctld.i18n["es"]["Vehicle no longer loaded."] = "El vehículo ya no está cargado."
-ctld.i18n["es"]["Cannot load more vehicles (max: %d)."] = "No se pueden cargar más vehículos (máx: %d)."
+ctld.i18n["es"]["Cannot load more vehicles (%1/%2)."] = "No se pueden cargar más vehículos (%1/%2)."
 
 --- List Nearby Crates
 ctld.i18n["es"]["List Nearby Crates"] = "Enumerar cajas cercanas"
@@ -2705,7 +2580,7 @@ ctld.i18n["es"]["Total cargo weight: %1 kg"] = "Peso total de la carga: %1 kg"
 ctld.i18n["es"]["Request JTAC Equipment"] = "Solicitar equipo JTAC"
 ctld.i18n["es"]["You must be landed to request JTAC equipment."] = "Debes estar posado para solicitar equipo JTAC."
 ctld.i18n["es"]["You are not close enough to friendly logistics."] = "No estás suficientemente cerca de la logística aliada."
-ctld.i18n["es"]["%s is ready for pickup."] = "%s listo para embarque."
+ctld.i18n["es"]["%1 is ready for pickup."] = "%1 listo para embarque."
 ctld.i18n["es"]["JTAC limit reached for your coalition."] = "Límite JTAC alcanzado para tu coalición."
 
 --- Request Equipment spawn messages
@@ -2737,14 +2612,14 @@ ctld.i18n["es"]["Lasing [activate]"]                          = "Láser [activar
 ctld.i18n["es"]["Lasing [deactivate]"]                        = "Láser [desactivar]"
 ctld.i18n["es"]["Spot Corrections [activate]"]                = "Correcciones de spot [activar]"
 ctld.i18n["es"]["Spot Corrections [deactivate]"]              = "Correcciones de spot [desactivar]"
-ctld.i18n["es"]["Lasing activated: %s"]                       = "Láser activado: %s"
-ctld.i18n["es"]["Lasing deactivated (standby): %s"]           = "Láser desactivado (espera): %s"
-ctld.i18n["es"]["Spot corrections activated: %s"]             = "Correcciones de spot activadas: %s"
-ctld.i18n["es"]["Spot corrections deactivated: %s"]           = "Correcciones de spot desactivadas: %s"
+ctld.i18n["es"]["Lasing activated: %1"]                       = "Láser activado: %1"
+ctld.i18n["es"]["Lasing deactivated (standby): %1"]           = "Láser desactivado (espera): %1"
+ctld.i18n["es"]["Spot corrections activated: %1"]             = "Correcciones de spot activadas: %1"
+ctld.i18n["es"]["Spot corrections deactivated: %1"]           = "Correcciones de spot desactivadas: %1"
 ctld.i18n["es"]["JTAC not found."]                            = "JTAC no encontrado."
 
 --- Troop parachute
-ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %dm AGL (actual: %dm AGL)"
+ctld.i18n["es"]["Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"] = "Altitud demasiado baja para el lanzamiento en paracaídas. Mínimo: %1m AGL (actual: %2m AGL)"
 ctld.i18n["es"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Lanzamiento en paracaídas de %1 (%2 tropas) — aterrizaje en ~%3s"
 ctld.i18n["es"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Lanzamiento en paracaídas del vehículo %1 — aterrizaje en ~%2s"
 ctld.i18n["es"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Lanzamiento en paracaídas de %1 caja(s) — aterrizaje en ~%2s"
@@ -2955,7 +2830,7 @@ ctld.i18n["ko"]["Load Crate"] = "화물 적재"
 ctld.i18n["ko"]["Land to load crates"] = "착륙 후 화물 적재 가능"
 ctld.i18n["ko"]["No crates within 50m"] = "50m 내 화물 없음"
 ctld.i18n["ko"]["You must land before you can load a crate!"] = "화물을 싣기 전에 먼저 착륙해야 합니다!"
-ctld.i18n["ko"]["Maximum number of crates are on board!"] = "이미 화물을 최대로 실었습니다!"
+ctld.i18n["ko"]["Maximum number of crates are on board!"] = "화물 적재 한도 초과! (%1/%2)"
 ctld.i18n["ko"]["No crates within 50m to load!"] = "50m 내에 실을 화물이 없습니다!"
 ctld.i18n["ko"]["Loaded %1 crate!"] = "%1 화물 적재 완료!"
 
@@ -2988,7 +2863,7 @@ ctld.i18n["ko"]["No vehicle loaded."] = "탑재된 차량이 없습니다."
 ctld.i18n["ko"]["Vehicle loaded: %1."] = "차량 탑재 완료: %1."
 ctld.i18n["ko"]["Vehicle unloaded: %1."] = "차량 하역 완료: %1."
 ctld.i18n["ko"]["Vehicle no longer loaded."] = "차량이 더 이상 탑재되어 있지 않습니다."
-ctld.i18n["ko"]["Cannot load more vehicles (max: %d)."] = "차량을 더 이상 탑재할 수 없습니다 (최대: %d)."
+ctld.i18n["ko"]["Cannot load more vehicles (%1/%2)."] = "차량을 더 이상 탑재할 수 없습니다 (%1/%2)."
 
 --- List Nearby Crates
 ctld.i18n["ko"]["List Nearby Crates"] = "근처 화물 목록"
@@ -3008,7 +2883,7 @@ ctld.i18n["ko"]["Total cargo weight: %1 kg"] = "총 화물 무게: %1 kg"
 ctld.i18n["ko"]["Request JTAC Equipment"] = "JTAC 장비 요청"
 ctld.i18n["ko"]["You must be landed to request JTAC equipment."] = "JTAC 장비를 요청하려면 착륙해야 합니다."
 ctld.i18n["ko"]["You are not close enough to friendly logistics."] = "아군 군수 시설에서 충분히 가깝지 않습니다."
-ctld.i18n["ko"]["%s is ready for pickup."] = "%s 픽업 준비 완료."
+ctld.i18n["ko"]["%1 is ready for pickup."] = "%1 픽업 준비 완료."
 ctld.i18n["ko"]["JTAC limit reached for your coalition."] = "연합 JTAC 한도에 도달했습니다."
 
 --- Request Equipment spawn messages
@@ -3031,14 +2906,14 @@ ctld.i18n["ko"]["Lasing [activate]"]                          = "레이저 [활�
 ctld.i18n["ko"]["Lasing [deactivate]"]                        = "레이저 [비활성화]"
 ctld.i18n["ko"]["Spot Corrections [activate]"]                = "스팟 보정 [활성화]"
 ctld.i18n["ko"]["Spot Corrections [deactivate]"]              = "스팟 보정 [비활성화]"
-ctld.i18n["ko"]["Lasing activated: %s"]                       = "레이저 활성화: %s"
-ctld.i18n["ko"]["Lasing deactivated (standby): %s"]           = "레이저 비활성화 (대기): %s"
-ctld.i18n["ko"]["Spot corrections activated: %s"]             = "스팟 보정 활성화: %s"
-ctld.i18n["ko"]["Spot corrections deactivated: %s"]           = "스팟 보정 비활성화: %s"
+ctld.i18n["ko"]["Lasing activated: %1"]                       = "레이저 활성화: %1"
+ctld.i18n["ko"]["Lasing deactivated (standby): %1"]           = "레이저 비활성화 (대기): %1"
+ctld.i18n["ko"]["Spot corrections activated: %1"]             = "스팟 보정 활성화: %1"
+ctld.i18n["ko"]["Spot corrections deactivated: %1"]           = "스팟 보정 비활성화: %1"
 ctld.i18n["ko"]["JTAC not found."]                            = "JTAC를 찾을 수 없습니다."
 
 --- Troop parachute
-ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "낙하산 투하 고도 부족. 최소: %dm AGL (현재: %dm AGL)"
+ctld.i18n["ko"]["Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"] = "낙하산 투하 고도 부족. 최소: %1m AGL (현재: %2m AGL)"
 ctld.i18n["ko"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "%1 낙하산 강하 (%2명) — 약 %3초 후 착지"
 ctld.i18n["ko"]["Parachuting vehicle %1 — landing in ~%2s"]    = "차량 %1 낙하산 투하 — 약 %2초 후 착지"
 ctld.i18n["ko"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "박스 %1개 낙하산 투하 — 약 %2초 후 착지"
@@ -5132,6 +5007,12 @@ end
 --- DCS-native loaded crates/vehicles are excluded: DCS manages their weight.
 --- @param unitName string  transport unit name
 function ctld.utils.updateTransportWeight(unitName)
+    local unit = Unit.getByName(unitName)
+    if not (unit and unit:isExist()) then
+        ctld.utils.log("INFO",
+            "updateTransportWeight skipped — unit no longer exists: %s", unitName)
+        return
+    end
     local total = 0
     total = total + CTLDTroopManager.getInstance():getWeight(unitName)
     total = total + CTLDCrateManager.getInstance():getLoadedCrateWeight(unitName)
@@ -8916,8 +8797,8 @@ end
 
 -- Returns the maximum number of troops this aircraft type can carry.
 function CTLDTroopManager:_transportLimit(typeName)
-    local byType = ctld.gs("transportLimitByType")
-    if byType and byType[typeName] then return byType[typeName] end
+    local caps = (ctld.gs("capabilitiesByType") or {})[typeName]
+    if caps and caps.maxTroopsOnboard then return caps.maxTroopsOnboard end
     return ctld.gs("numberOfTroops") or 10
 end
 
@@ -8941,7 +8822,7 @@ function CTLDTroopManager:_canEmbark(typeName, unitName, newTotal, newWeight)
     local limit   = self:_transportLimit(typeName)
     local current = self:_currentTroopCount(unitName)
     if current + newTotal > limit then
-        return false, ctld.tr("Group too large for this aircraft (capacity: %1 troops).", limit)
+        return false, ctld.tr("Group too large for this aircraft (%1/%2 troops).", current, limit)
     end
     if newWeight and newWeight > 0 then
         local maxW = ctld.gs("maxTransportWeight") or 0
@@ -9286,7 +9167,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -9459,9 +9340,8 @@ end
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDTroopManager:buildMenuSection(playerObj, menu)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.troops) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.troopsEnabled) then return end
 
     local root     = ctld.tr("CTLD")
     local troopSub = ctld.tr("Troop Commands")
@@ -9475,9 +9355,8 @@ end
 -- state (in air / on ground / zone membership).
 -- @param playerObj CTLDPlayer
 function CTLDTroopManager:refreshMenuSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.troops) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.troopsEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -9547,7 +9426,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             if zone:hasPickup() and zone:isInZone(pt) then
                 hasEmbarkContent = true
                 local zName     = zone.zoneName
-                local zoneSub   = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
+                local zoneSub   = ctld.tr("Load from %1", "TRZ_" .. zName)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub, embarkSub }, zoneSub)
                 for _, tmpl in ipairs(self._templates) do
@@ -9629,8 +9508,8 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
 
     -- "Parachute Troops" — in-flight only, if capable and troops onboard
     if unit and inAir then
-        local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
-        if acts2 and acts2.canParachute and hasTroops then
+        local caps2 = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+        if caps2 and caps2.canParachuteDrop and hasTroops then
             local inTransitList = self._inTransit[playerObj.unitName]
             if inTransitList and #inTransitList > 1 then
                 -- Multi-group: submenu per group + "Parachute All"
@@ -10411,9 +10290,8 @@ end
 -- Called on land, crate spawn, crate cleared, and after each load action.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshLoadCrateSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -10459,8 +10337,8 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                             ctld.tr("You must land before you can load a crate!"), 10)
                         return
                     end
-                    local limits   = ctld.gs("internalCargoLimits") or {}
-                    local capacity = limits[t:getTypeName()] or 1
+                    local caps_t   = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
+                    local capacity = (caps_t and caps_t.maxCratesOnboard) or 1
                     local onboard  = 0
                     local mgr = CTLDCrateManager.getInstance()
                     for _, c in pairs(mgr.crates) do
@@ -10468,7 +10346,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                     end
                     if onboard >= capacity then
                         trigger.action.outTextForGroup(t:getGroup():getID(),
-                            ctld.tr("Maximum number of crates are on board!"), 10)
+                            ctld.tr("Maximum number of crates are on board!", onboard, capacity), 10)
                         return
                     end
                     local candidates = mgr:getCratesInRange(t:getPoint(), 50)
@@ -10508,9 +10386,8 @@ end
 -- Called on land, crate spawn, crate cleared.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshUnpackSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -10695,7 +10572,7 @@ function CTLDCrateManager:_getSlingloadedCrate(transport)
 end
 
 --- Polling tick (1 s). Called by the timer loop started in getInstance().
--- For each active player with canSlingload=true and in-air transport:
+-- For each active player with canSlingload=true in capabilitiesByType and in-air transport:
 --   1. Overspeed check: if speed > maxSlingloadSpeed → crate lost.
 --   2. Hover pickup: find nearest eligible ground crate, count down hoverTime,
 --      then hook it (load + destroy DCS static + publish OnCrateLoaded).
@@ -10726,8 +10603,6 @@ function CTLDCrateManager:checkHoverStatus()
 
     if ctld.gs("enableHoverSlingload") ~= true then return end
 
-    local unitActions = ctld.gs("unitActions")        or {}
-    local cargoLimits = ctld.gs("internalCargoLimits") or {}
     local maxDist     = ctld.gs("maxDistanceFromCrate") or 5.5
     local minH        = ctld.gs("minimumHoverHeight")   or 7.5
     local maxH        = ctld.gs("maximumHoverHeight")   or 12.0
@@ -10737,8 +10612,8 @@ function CTLDCrateManager:checkHoverStatus()
     local players = CTLDPlayerManager.getInstance()._players
 
     for unitName, playerObj in pairs(players) do
-        local acts = unitActions[playerObj.typeName]
-        if acts and acts.canSlingload then
+        local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+        if caps and caps.canSlingload then
             local transport = Unit.getByName(unitName)
             if transport and transport:isExist() and ctld.utils.inAir(transport) then
 
@@ -10760,7 +10635,7 @@ function CTLDCrateManager:checkHoverStatus()
                             timestamp = timer.getAbsTime(),
                         })
                         trigger.action.outTextForGroup(playerObj.groupId,
-                            string.format(ctld.tr("Too fast! Slingloaded crate lost: %s"), lost.descriptor.desc), 10)
+                            ctld.tr("Too fast! Slingloaded crate lost: %1", lost.descriptor.desc), 10)
                         CTLDPlayerManager.getInstance():refreshForUnit(unitName)
                     end
                     self._hoverStatus[unitName] = nil
@@ -10773,7 +10648,8 @@ function CTLDCrateManager:checkHoverStatus()
                             count = count + 1
                         end
                     end
-                    local capacity = cargoLimits[playerObj.typeName] or 1
+                    local _caps_sl = ((ctld.gs("capabilitiesByType") or {})[playerObj.typeName]) or {}
+                    local capacity = _caps_sl.maxCratesOnboard or 1
 
                     if count < capacity then
                         local transportPos  = transport:getPoint()
@@ -10827,7 +10703,7 @@ function CTLDCrateManager:checkHoverStatus()
                                     nearestCrate.dcsStatic = nil
                                 end
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Slingloaded %s crate!"), nearestCrate.descriptor.desc), 10)
+                                    ctld.tr("Slingloaded %1 crate!", nearestCrate.descriptor.desc), 10, true)
                                 ctld.utils.updateTransportWeight(unitName)
                                 self:_publish("OnCrateLoaded", {
                                     crate           = nearestCrate,
@@ -10839,14 +10715,15 @@ function CTLDCrateManager:checkHoverStatus()
                                     timestamp       = timer.getAbsTime(),
                                 })
                                 CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+                                self:refreshCrateFlightSectionForUnit(unitName)
                             end
                         else
                             if warnTooLow then
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Too low to hook crate.\n\nHold hover for %d seconds"), hoverTime), 5, true)
+                                    ctld.tr("Too low to hook crate.\n\nHold hover for %1 seconds", hoverTime), 5, true)
                             elseif warnTooHigh then
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Too high to hook crate.\n\nHold hover for %d seconds"), hoverTime), 5, true)
+                                    ctld.tr("Too high to hook crate.\n\nHold hover for %1 seconds", hoverTime), 5, true)
                             end
                             self._hoverStatus[unitName] = nil
                         end
@@ -10894,8 +10771,6 @@ end
 -- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are
 -- silently skipped here (outer check `dcsStatic and dcsStatic:isExist()`).
 function CTLDCrateManager:_checkNativeDCSCargo()
-    local dynamicUnits = ctld.gs("dynamicCargoUnits") or {}
-    if #dynamicUnits == 0 then return end
 
     -- Build candidate transport list (ALL dynamic transports, ground OR air).
     -- We pre-fetch position and bbox so we don't call getPosition()/getDesc()
@@ -11067,7 +10942,7 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
 
     if agl > maxRelH then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Too high to release slingload. Descend below %dm AGL (current: %dm AGL)."),
+            ctld.tr("Too high to release slingload. Descend below %1m AGL (current: %2m AGL).",
                 math.floor(maxRelH), math.floor(agl)), 8)
         return
     end
@@ -11078,8 +10953,9 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
     -- unloadCrate: transitions state, respawns static, publishes OnCrateUnloaded + OnCrateSpawned
     self:unloadCrate(crate.crateName, spawnPos, "slingload_release")
     trigger.action.outTextForGroup(playerObj.groupId,
-        string.format(ctld.tr("%s crate safely released."), crate.descriptor.desc), 10)
+        ctld.tr("%1 crate safely released.", crate.descriptor.desc), 10)
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
+    self:refreshCrateFlightSectionForUnit(playerObj.unitName)
 end
 
 --- Cut the slingload (emergency drop, any altitude).
@@ -11106,8 +10982,9 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         local lostPos = crate.position
         crate:destroy()
         self:_unregister(crate.crateName)
+        ctld.utils.updateTransportWeight(transport:getName())
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Too high! %s crate destroyed on impact."), crate.descriptor.desc), 10)
+            ctld.tr("Too high! %1 crate destroyed on impact.", crate.descriptor.desc), 10)
         self:_publish("OnCrateLost", {
             crate     = crate,
             crateName = crate.crateName,
@@ -11128,9 +11005,10 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         -- Drop with inertia drift (reuses FA calcDropPosition, descentRate=0 → immediate land)
         local landPos, _ = ctld.utils.calcDropPosition(transport, 0)
         crate:land(landPos)
-        -- TODO: re-spawn DCS static at landPos (requires coalition.addStaticObject — pending Hoggit verification)
+        ctld.utils.updateTransportWeight(transport:getName())
+        self:_respawnStatic(crate, landPos)
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("%s crate dropped below you."), crate.descriptor.desc), 10)
+            ctld.tr("%1 crate dropped below you.", crate.descriptor.desc), 10)
         self:_publish("OnCrateUnloaded", {
             crate           = crate,
             crateName       = crate.crateName,
@@ -11153,6 +11031,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         })
     end
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
+    self:refreshCrateFlightSectionForUnit(playerObj.unitName)
 end
 
 -- ============================================================
@@ -11200,13 +11079,8 @@ end
 -- @param unit DCS Unit
 -- @return bool
 function CTLDCrateManager:_isDynamicCapable(unit)
-    local typeLower = string.lower(unit:getTypeName())
-    for _, name in ipairs(ctld.gs("dynamicCargoUnits") or {}) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            return true
-        end
-    end
-    return false
+    local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()]
+    return caps ~= nil and caps.useNativeDcsCargoSystem == true
 end
 
 --- Resolve the spawnableCratesModels key for a given transport unit.
@@ -11872,7 +11746,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -11927,21 +11801,38 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         })
 
         -- Capture loop variables for the timer closure
-        local _crate    = crate
-        local _landPos  = landPos
-        local _dropData = dropData
+        local _crate         = crate
+        local _landPos       = landPos
+        local _dropData      = dropData
+        local _transportName = transport:getName()
         timer.scheduleFunction(function()
             _crate.fromParachute = true
             _crate:land(_landPos)
+            ctld.utils.updateTransportWeight(_transportName)
+            -- Recreate DCS static so the crate is visible on the ground.
+            -- _respawnStatic re-registers the crate under a new name — capture it.
+            self:_respawnStatic(_crate, _landPos)
+            local newName = _crate.crateName
+            -- Notify nearby players that a new ground crate appeared.
+            self:_publish("OnCrateSpawned", {
+                crate       = _crate,
+                crateName   = newName,
+                position    = _landPos,
+                coalition   = _crate.coalition,
+                descriptor  = _crate.descriptor,
+                spawnedBy   = nil,
+                spawnMethod = "parachute",
+                timestamp   = timer.getAbsTime(),
+            })
             self._parachuteEffect:onLanded(_dropData)
             self:_publish("OnCrateParachuteLanded", {
                 crate           = _crate,
-                crateName       = _crate.crateName,
+                crateName       = newName,
                 descriptor      = _crate.descriptor,
                 position        = _landPos,
                 coalition       = _crate.coalition,
                 startAltitude   = altAGL,
-                carrierUnitName = transport:getName(),
+                carrierUnitName = _transportName,
                 player          = playerObj.unitName,
                 timestamp       = timer.getAbsTime(),
             })
@@ -12052,9 +11943,8 @@ end
 -- Called on build, land, and takeoff.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -12185,10 +12075,74 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     menu:refresh()
 end
 
+--- Refresh Crate Commands visibility based on flight state (ground vs in-air).
+-- Ground-only: Load Crate, Drop Crate(s), Unpack Crate, List Nearby Crates, Pack Vehicle.
+-- Air-only:    Parachute Crates (caps.canParachuteDrop + CTLD crates onboard),
+--              Release Slingload, Cut Slingload (caps.canSlingload + slingloaded crate active).
+-- Called from buildMenuSection, onTakeoff, and onLand.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshCrateFlightSection(playerObj)
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+
+    local transport = Unit.getByName(playerObj.unitName)
+    local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
+
+    -- Ground-only: visible only when landed
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") },         not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
+    if ctld.gs("enablePackingVehicles") == true then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
+    end
+
+    -- Parachute Crates: enabled only in air + CTLD crates loaded
+    if caps.canParachuteDrop then
+        local onboard = 0
+        if transport and transport:isExist() then
+            for _, c in pairs(self.crates) do
+                if c:isLoadedByCTLD() and not c.inTransitOnSlingload
+                        and c.loadedBy
+                        and c.loadedBy:getName() == playerObj.unitName then
+                    onboard = onboard + 1
+                end
+            end
+        end
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Parachute Crates") },
+            inAir and onboard > 0)
+    end
+
+    -- Release / Cut Slingload: enabled only in air + slingloaded crate active
+    if caps.canSlingload then
+        local hasSlingload = false
+        if inAir and transport and transport:isExist() then
+            hasSlingload = self:_getSlingloadedCrate(transport) ~= nil
+        end
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Release Slingload") }, hasSlingload)
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Cut Slingload") },     hasSlingload)
+    end
+
+    menu:refresh()
+end
+
+--- Refresh Crate Commands flight visibility for a player by unit name.
+-- @param unitName string
+function CTLDCrateManager:refreshCrateFlightSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshCrateFlightSection(playerObj) end
+end
+
 function CTLDCrateManager:buildMenuSection(playerObj, menu)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local root     = ctld.tr("CTLD")
     local spawnSub = ctld.tr("Request Equipment")
@@ -12230,14 +12184,8 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             -- Compute aligned drop positions (one per crate)
             local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
             local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
-            local typeLower = string.lower(t:getTypeName())
-            local vList     = (ctld.gs and ctld.gs("vehicleTransportEnabled")) or {}
-            local isDynamic = false
-            for _, name in ipairs(vList) do
-                if string.find(typeLower, string.lower(name), 1, true) then
-                    isDynamic = true; break
-                end
-            end
+            local caps_t    = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
+            local isDynamic = caps_t ~= nil and caps_t.canTransportWholeVehicle == true
             local axis
             if isDynamic then
                 axis = ctld.utils.RandomReal("dropCrates", 135, 225)
@@ -12310,8 +12258,8 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
     end
 
-    -- Parachute Crates: only if canParachute=true for this unit type
-    if actions.canParachute then
+    -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
+    if caps.canParachuteDrop then
         menu:addCommand({ root, cratesSub }, ctld.tr("Parachute Crates"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)
@@ -12321,27 +12269,26 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, groupId = playerObj.groupId })
     end
 
-    -- Release / Cut Slingload: only if canSlingload=true AND transport currently in air
-    if actions.canSlingload then
-        local transport = Unit.getByName(playerObj.unitName)
-        if transport and transport:isExist() and ctld.utils.inAir(transport) then
-            menu:addCommand({ root, cratesSub }, ctld.tr("Release Slingload"),
-                function(arg)
-                    local t = Unit.getByName(arg.unitName)
-                    if not t then return end
-                    CTLDCrateManager.getInstance():releaseSlingload(t, arg)
-                end,
-                { unitName = playerObj.unitName, groupId = playerObj.groupId })
+    -- Release / Cut Slingload: added when cap allows; visibility managed by refreshCrateFlightSection.
+    if caps.canSlingload then
+        menu:addCommand({ root, cratesSub }, ctld.tr("Release Slingload"),
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not t then return end
+                CTLDCrateManager.getInstance():releaseSlingload(t, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId })
 
-            menu:addCommand({ root, cratesSub }, ctld.tr("Cut Slingload"),
-                function(arg)
-                    local t = Unit.getByName(arg.unitName)
-                    if not t then return end
-                    CTLDCrateManager.getInstance():cutSlingload(t, arg)
-                end,
-                { unitName = playerObj.unitName, groupId = playerObj.groupId })
-        end
+        menu:addCommand({ root, cratesSub }, ctld.tr("Cut Slingload"),
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not t then return end
+                CTLDCrateManager.getInstance():cutSlingload(t, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId })
     end
+
+    self:refreshCrateFlightSection(playerObj)
 end
 
 --- Build "Smoke" F10 submenu for a player.
@@ -12719,16 +12666,10 @@ local function _computeSpawnPosition(transport)
     return { x = px, y = py, z = pz }
 end
 
---- True if a unit type name appears in the vehicleTransportEnabled config list.
+--- True if the unit type has canTransportWholeVehicle=true in capabilitiesByType.
 local function _isNativeCargoCapable(unit)
-    local typeLower = string.lower(unit:getTypeName())
-    local list      = ctld.gs("vehicleTransportEnabled") or {}
-    for _, name in ipairs(list) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            return true
-        end
-    end
-    return false
+    local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()]
+    return caps ~= nil and caps.canTransportWholeVehicle == true
 end
 
 -- ============================================================
@@ -12921,14 +12862,14 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- Guard: enforce per-type vehicle capacity limit (menu_ctld only;
     -- dcs_native capacity is managed by DCS itself).
     if method == "menu_ctld" then
-        local limits      = ctld.gs("internalCargoLimits") or {}
-        local maxVehicles = limits[transport:getTypeName()] or 1
+        local caps_t      = (ctld.gs("capabilitiesByType") or {})[transport:getTypeName()]
+        local maxVehicles = (caps_t and caps_t.maxWholeVehiclesOnboard) or 1
         local loaded      = self:findLoadedVehicles(transport)
         if #loaded >= maxVehicles then
             local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
             if pObj then
                 trigger.action.outTextForGroup(pObj.groupId,
-                    string.format(ctld.tr("Cannot load more vehicles (max: %d)."), maxVehicles), 8)
+                    ctld.tr("Cannot load more vehicles (%1/%2).", #loaded, maxVehicles), 8)
             end
             ctld.utils.log("WARNING",
                 "CTLDVehicleSpawner:loadVehicle — transport %s at vehicle capacity (%d)",
@@ -13161,8 +13102,6 @@ end
 --   • WAITING vehicle enters bbox  → loadVehicle (method="dcs_native")
 --   • LOADED  vehicle exits  bbox  → unloadVehicle (method depends on inAir flag)
 function CTLDVehicleSpawner:_checkNativeLoading()
-    local vehicleTransports = ctld.gs("vehicleTransportEnabled") or {}
-    if #vehicleTransports == 0 then return end
 
     -- Collect all active WAITING vehicles with live units
     local waitingVehicles = {}
@@ -13475,7 +13414,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -13512,6 +13451,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     vehicle:setState(CTLDVehicle.STATE.WAITING)
     vehicle.loadTransportName = nil
     vehicle.loadMethod        = nil
+    self:_updateVehicleCargo(transport:getName())
 
     local dropData = {
         type          = "vehicle",
@@ -13536,10 +13476,11 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         timestamp            = timer.getAbsTime(),
     })
 
-    local _vehicle   = vehicle
-    local _landPos   = landPos
-    local _dropData  = dropData
-    local _spawnData = spawnData
+    local _vehicle       = vehicle
+    local _landPos       = landPos
+    local _dropData      = dropData
+    local _spawnData     = spawnData
+    local _transportName = transport:getName()
     timer.scheduleFunction(function()
         -- Spawn vehicle at computed landing position
         local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
@@ -13561,7 +13502,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         EventDispatcher.getInstance():publish("OnVehicleParachuteLanded", {
             vehicle       = _vehicle,
             position      = _landPos,
-            transport     = transport:getName(),
+            transport     = _transportName,
             player        = playerObj.unitName,
             startAltitude = altAGL,
             timestamp     = timer.getAbsTime(),
@@ -13789,7 +13730,7 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
         CTLDCrate.SPAWN_METHOD.VEHICLE_PACK)
 
     trigger.action.outTextForGroup(playerObj.groupId,
-        string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)
+        ctld.tr("%1 packed into %2 crate(s).", descriptor.desc, cratesReq), 10)
 
     EventDispatcher.getInstance():publish("OnVehiclePacked", {
         vehicleType  = packableUnit:getTypeName(),
@@ -13919,7 +13860,7 @@ end
 --- @param transportUnitName string
 --- @return number  kg
 function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
-    local weights = ctld.gs("vehiclesWeight") or {}
+    local weights = ctld.gs("groundVehicleWeights") or {}
     local total   = 0
     for _, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.LOADED
@@ -14075,8 +14016,8 @@ end
 --- Refresh "Parachute Vehicle" visibility: shown only when in air + vehicle loaded.
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
-    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
-    if not (playerObj.canCarryVehicles and acts and acts.canParachute) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.canCarryVehicles and caps and caps.canParachuteDrop) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -14127,10 +14068,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
     self:refreshUnloadSection(playerObj)
 
-    -- Parachute Vehicle: only if canParachute=true for this unit type.
+    -- Parachute Vehicle: only if canParachuteDrop=true for this unit type.
     -- Created disabled; refreshParachuteVehicleSection enables it only when in air + vehicle loaded.
-    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
-    if acts and acts.canParachute then
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if caps and caps.canParachuteDrop then
         menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)
@@ -18762,7 +18703,7 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
                     :spawnJTACFromDescriptor(arg.desc, t, z)
                 if result then
                     trigger.action.outTextForGroup(arg.groupId,
-                        string.format(ctld.tr("%s is ready for pickup."), arg.desc.desc), 10)
+                        ctld.tr("%1 is ready for pickup.", arg.desc.desc), 10)
                 end
             end,
             { unitName  = playerObj.unitName,
@@ -18790,14 +18731,14 @@ function CTLDJTACManager:toggleStandby(groupName, groupId)
         jtac.standbyMode = false
         self:startLase(groupName)
         trigger.action.outTextForGroup(groupId,
-            string.format(ctld.tr("Lasing activated: %s"), groupName), 8)
+            ctld.tr("Lasing activated: %1", groupName), 8)
     else
         jtac.standbyMode = true
         if jtac.currentTarget then
             self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
         end
         trigger.action.outTextForGroup(groupId,
-            string.format(ctld.tr("Lasing deactivated (standby): %s"), groupName), 8)
+            ctld.tr("Lasing deactivated (standby): %1", groupName), 8)
     end
     self:_rebuildJTACCommandBranch(groupName)
 end
@@ -18813,8 +18754,8 @@ function CTLDJTACManager:toggleSpotCorrections(groupName, groupId)
     end
     jtac.laseSpotCorrections = not jtac.laseSpotCorrections
     local msg = jtac.laseSpotCorrections
-        and string.format(ctld.tr("Spot corrections activated: %s"), groupName)
-        or  string.format(ctld.tr("Spot corrections deactivated: %s"), groupName)
+        and ctld.tr("Spot corrections activated: %1", groupName)
+        or  ctld.tr("Spot corrections deactivated: %1", groupName)
     trigger.action.outTextForGroup(groupId, msg, 8)
     self:_rebuildJTACCommandBranch(groupName)
 end
@@ -19199,6 +19140,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
+        CTLDCrateManager.getInstance():refreshCrateFlightSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
@@ -19215,6 +19157,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
@@ -19328,7 +19271,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
                     end
                     vehCount[vt] = vehCount[vt] + 1
                 end
-                local vWeights = ctld.gs("vehiclesWeight") or {}
+                local vWeights = ctld.gs("groundVehicleWeights") or {}
                 for _, vt in ipairs(vehOrder) do
                     local count = vehCount[vt]
                     local w     = (vWeights[vt] or 2500) * count
@@ -19399,19 +19342,10 @@ end
 -- @param unit DCS Unit
 -- @return isTransport bool, canCarryVehicles bool
 function CTLDPlayerManager:_detectCapabilities(unit)
-    local typeName    = unit:getTypeName()
-    local typeLower   = string.lower(typeName)
-    local unitActions = ctld.gs("unitActions") or {}
-    local isTransport = (unitActions[typeName] ~= nil)
-
-    local canCarryVehicles  = false
-    local vehicleTransports = ctld.gs("vehicleTransportEnabled") or {}
-    for _, name in ipairs(vehicleTransports) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            canCarryVehicles = true
-            break
-        end
-    end
+    local typeName = unit:getTypeName()
+    local caps     = (ctld.gs("capabilitiesByType") or {})[typeName]
+    local isTransport      = (caps ~= nil)
+    local canCarryVehicles = (caps ~= nil and caps.canTransportWholeVehicle == true)
 
     return isTransport, canCarryVehicles
 end
@@ -20965,10 +20899,6 @@ ctld.yamlConfigDatas = [[
 # Leave empty to use the default DCS Saved Games folder.
 # ctld.ctldLogPath:
 
-# Identify CTLD-capable transports by DCS aircraft type (true) or by unit name (false).
-# When false, only units listed in transportPilotNames will get CTLD menus.
-# ctld.addPlayerAircraftByType: true
-
 # Show coordinates as Degrees-Minutes-Seconds (DMS) instead of Degrees-Decimal-Minutes.
 # ctld.location_DMS: false
 
@@ -20983,9 +20913,6 @@ ctld.yamlConfigDatas = [[
 # Maximum distance (m) between the transport and a logistic zone to allow crate
 # spawning or loading operations.
 # ctld.maximumDistanceLogistic: 200
-
-# Minimum distance (m) from a friendly pickup zone at which a crate may be deployed.
-# ctld.minimumDeployDistance: 1000
 
 # Radius (m) of the logistic zone created around each LGZ_ trigger zone (dynamic logistic zones).
 # ctld.dynamicZoneRadius: 200
@@ -21025,9 +20952,6 @@ ctld.yamlConfigDatas = [[
 # Exceeding this speed causes the crate to detach and fall.
 # ctld.maxSlingloadSpeed: 50
 
-# Minimum time (s) a player must wait after spawning a crate before spawning another.
-# ctld.crateWaitTime: 40
-
 # Spacing (m) between consecutive crate spawn positions along the spawn axis.
 # ctld.crateSpacing: 5
 
@@ -21059,7 +20983,7 @@ ctld.yamlConfigDatas = [[
 # ============================================================
 
 # Default number of troops loaded per transport (also acts as maximum group size
-# unless overridden per aircraft type in unitLoadLimits).
+# unless overridden per aircraft type in capabilitiesByType[type].maxTroopsOnboard).
 # ctld.numberOfTroops: 10
 
 # Maximum total troop weight (kg) a transport can carry.
@@ -21091,7 +21015,7 @@ ctld.yamlConfigDatas = [[
 # Infantry weight simulation
 # Each soldier's weight is randomised between 90 % and 120 % of SOLDIER_WEIGHT,
 # then the kit and role-specific equipment weights are added on top.
-# These values affect whether a group fits inside a transport (unitLoadLimits).
+# These values affect whether a group fits inside a transport (maxTroopsOnboard).
 # ============================================================
 
 # Base body weight per soldier (kg) before randomisation.
@@ -21125,9 +21049,6 @@ ctld.yamlConfigDatas = [[
 
 # Enable FOB building from crates.
 # ctld.enabledFOBBuilding: true
-
-# Time (s) to build the FOB after the last required crate is unpacked.
-# ctld.buildTimeFOB: 120
 
 # Allow troops to be picked up at a deployed FOB.
 # ctld.troopPickupAtFOB: true
@@ -21354,30 +21275,76 @@ ctld.yamlConfigDatas = [[
 local _cfg = CTLDConfig.get()
 
 -- ============================================================
--- Aircraft types allowed to use CTLD
--- Used when ctld.addPlayerAircraftByType = true.
--- Comment / uncomment entries to suit your mission's aircraft.
+-- Per-aircraft capabilities — the unified type registry (replaces
+-- aircraftTypeTable, unitActions, and all legacy parallel type-indexed tables).
+--
+-- Only aircraft listed here get CTLD F10 menus.
+-- Each entry REPLACES the matching default when the table is uncommented.
+--
+-- Fields:
+--   cratesEnabled            : can spawn, load and unpack crates
+--   troopsEnabled            : can load, deploy and extract infantry groups
+--   canParachuteDrop         : enables "Parachute" F10 entries (Feature A)
+--   canSlingload             : enables hover-pickup and "Slingload" menus
+--   canTransportWholeVehicle : can load/unload whole vehicles (Feature Q)
+--   useNativeDcsCargoSystem  : uses the native DCS cargo system for crate spawning
+--   maxTroopsOnboard         : max soldiers this aircraft can carry (overrides ctld.numberOfTroops)
+--   maxCratesOnboard         : max crates this aircraft can carry at once
+--   maxWholeVehiclesOnboard  : max whole vehicles carried simultaneously
+--   loadableVehiclesRED      : DCS type names of RED vehicles loadable onto this aircraft
+--   loadableVehiclesBLUE     : DCS type names of BLUE vehicles loadable onto this aircraft
 -- ============================================================
--- _cfg.settings["aircraftTypeTable"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     "Mi-8MT",
---     "Mi-24P",
---     "UH-1H",
---     "CH-47Fbl1",
---     -- "Ka-50",
---     -- "Ka-50_3",
---     -- "SA342L",
---     -- "SA342M",
---     -- "SA342Mistral",
---     -- "SA342Minigun",
+-- _cfg.settings["capabilitiesByType"] = {
+--     -- ── Helicopters ────────────────────────────────────────────────────────────
+--     ["Mi-8MT"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=16, maxCratesOnboard=2, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     ["Mi-24P"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--                       canTransportWholeVehicle=false, useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=10, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+--     ["UH-1H"]     = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=true,  canSlingload=true,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=8,  maxCratesOnboard=1, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     ["CH-47Fbl1"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--                       canTransportWholeVehicle=false, useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=33, maxCratesOnboard=8, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["Ka-50"]    = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+--     --                  canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                  maxTroopsOnboard=0, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+--     -- ["SA342L"]   = { cratesEnabled=false, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                  canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                  maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 --
---     -- ── Fixed-wing ─────────────────────────────────────────
---     "C-130J-30",
+--     -- ── Fixed-wing ─────────────────────────────────────────────────────────────
+--     ["C-130J-30"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=80, maxCratesOnboard=20, maxWholeVehiclesOnboard=2,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
 --
---     -- ── Mods ───────────────────────────────────────────────
---     -- "Hercules",
---     -- "UH-60L",
---     -- "Bronco-OV-10A",
+--     -- ── Mods ───────────────────────────────────────────────────────────────────
+--     -- ["Hercules"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=true,  useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=30, maxCratesOnboard=1, maxWholeVehiclesOnboard=2,
+--     --                     loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--     --                     loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["UH-60L"]      = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--     --                     canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=12, maxCratesOnboard=2, maxWholeVehiclesOnboard=0 },
+--     -- ["76MD"]        = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=true,  useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=80, maxCratesOnboard=20, maxWholeVehiclesOnboard=2,
+--     --                     loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--     --                     loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["SK-60"]       = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 -- }
 
 -- ============================================================
@@ -21509,125 +21476,14 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Vehicle transport — aircraft types allowed to carry vehicles
--- (loads vehicles onto the transport, then deploys them at the destination)
--- ============================================================
--- _cfg.settings["vehicleTransportEnabled"] = {
---     "C-130J-30",
---     "76MD",      -- IL-76 (note: the mod spells the dash differently)
---     -- "Hercules",
---     -- "CH-47Fbl1",
--- }
-
--- ============================================================
--- Dynamic cargo units — aircraft types that use the native DCS
--- cargo system (creates a DCS cargo static that can be loaded
--- with the standard DCS slingload / cargo interface)
--- ============================================================
--- _cfg.settings["dynamicCargoUnits"] = {
---     "CH-47Fbl1",
---     "UH-1H",
---     "Mi-8MT",
---     "Mi-24P",
---     "C-130J-30",
--- }
-
--- ============================================================
--- Unit load limits — maximum group size (number of soldiers)
--- that each aircraft type can carry.  Groups larger than the
--- limit will not appear as available for loading.
--- ============================================================
--- _cfg.settings["unitLoadLimits"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     ["Mi-8MT"]    = 16,
---     ["Mi-24P"]    = 10,
---     ["UH-1H"]     = 8,
---     ["CH-47Fbl1"] = 33,
---
---     -- ── Fixed-wing ─────────────────────────────────────────
---     ["C-130J-30"] = 80,
---
---     -- ── Mods ───────────────────────────────────────────────
---     -- ["Hercules"] = 30,
---     -- ["UH-60L"]   = 12,
---
---     -- ── Light aircraft (set to 1 or 2 for recon/observer) ──
---     -- ["SA342L"]      = 4,
---     -- ["SA342M"]      = 4,
---     -- ["SA342Mistral"] = 4,
---     -- ["SA342Minigun"] = 3,
--- }
-
--- ============================================================
--- Internal cargo limits — maximum number of crates a single
--- aircraft can carry at the same time (internal load).
--- ============================================================
--- _cfg.settings["internalCargoLimits"] = {
---     ["Mi-8MT"]    = 2,
---     ["CH-47Fbl1"] = 8,
---     ["C-130J-30"] = 20,
--- }
-
--- ============================================================
--- Unit actions — per-aircraft-type capability flags.
--- Omit an aircraft type to use the default (crates=true, troops=true).
---
---   crates       : can spawn, load and unpack crates
---   troops       : can load and deploy infantry groups
---   canParachute : enables "Parachute Crates/Troops/Vehicle" F10 entries (Feature A)
---   canSlingload : enables hover-pickup polling and "Release/Cut Slingload" menus (Feature B)
---                  — set true for helicopters, false for fixed-wing aircraft
--- ============================================================
--- _cfg.settings["unitActions"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     ["Mi-8MT"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     ["Mi-24P"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---     ["UH-1H"]     = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     ["CH-47Fbl1"] = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     -- ["Ka-50"]       = { crates = true,  troops = false, canParachute = false, canSlingload = true  },
---     -- ["Ka-50_3"]     = { crates = true,  troops = false, canParachute = false, canSlingload = true  },
---     -- ["SA342L"]      = { crates = false, troops = true,  canParachute = false, canSlingload = false },
---     -- ["SA342M"]      = { crates = false, troops = true,  canParachute = false, canSlingload = false },
---     -- ["SA342Mistral"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
---     -- ["SA342Minigun"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
---
---     -- ── Fixed-wing ─────────────────────────────────────────
---     ["C-130J-30"] = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---
---     -- ── Mods ───────────────────────────────────────────────
---     -- ["Hercules"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---     -- ["UH-60L"]      = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
--- }
-
--- ============================================================
--- Vehicles that can be loaded onto RED / BLUE vehicle transports.
--- The "vehicleTransportEnabled" aircraft must be in range.
--- ============================================================
--- _cfg.settings["vehiclesForTransportRED"]  = { "BRDM-2", "BTR_D" }
--- _cfg.settings["vehiclesForTransportBLUE"] = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" }
-
--- ============================================================
 -- Vehicle weights (kg) used to determine if a transport can carry a vehicle.
--- Add any DCS unit type that appears in vehiclesForTransportRED/BLUE.
+-- Add any DCS unit type that appears in loadableVehiclesRED/BLUE.
 -- ============================================================
--- _cfg.settings["vehiclesWeight"] = {
+-- _cfg.settings["groundVehicleWeights"] = {
 --     ["BRDM-2"]               = 7000,
 --     ["BTR_D"]                = 8000,
 --     ["M1045 HMMWV TOW"]      = 3220,
 --     ["M1043 HMMWV Armament"] = 2500,
--- }
-
--- ============================================================
--- Per-aircraft troop capacity override
--- Sets a custom max-troop count for specific aircraft types,
--- overriding the global ctld.numberOfTroops default.
--- Aircraft types not listed here use the global default.
--- ============================================================
--- _cfg.settings["transportLimitByType"] = {
---     ["UH-1H"]     = 8,
---     ["Mi-8MT"]    = 16,
---     ["CH-47Fbl1"] = 33,
---     ["C-130J-30"] = 80,
 -- }
 
 -- ============================================================

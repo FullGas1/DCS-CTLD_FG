@@ -425,9 +425,8 @@ end
 -- Called on land, crate spawn, crate cleared, and after each load action.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshLoadCrateSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -473,8 +472,8 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                             ctld.tr("You must land before you can load a crate!"), 10)
                         return
                     end
-                    local limits   = ctld.gs("internalCargoLimits") or {}
-                    local capacity = limits[t:getTypeName()] or 1
+                    local caps_t   = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
+                    local capacity = (caps_t and caps_t.maxCratesOnboard) or 1
                     local onboard  = 0
                     local mgr = CTLDCrateManager.getInstance()
                     for _, c in pairs(mgr.crates) do
@@ -482,7 +481,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                     end
                     if onboard >= capacity then
                         trigger.action.outTextForGroup(t:getGroup():getID(),
-                            ctld.tr("Maximum number of crates are on board!"), 10)
+                            ctld.tr("Maximum number of crates are on board!", onboard, capacity), 10)
                         return
                     end
                     local candidates = mgr:getCratesInRange(t:getPoint(), 50)
@@ -522,9 +521,8 @@ end
 -- Called on land, crate spawn, crate cleared.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshUnpackSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -709,7 +707,7 @@ function CTLDCrateManager:_getSlingloadedCrate(transport)
 end
 
 --- Polling tick (1 s). Called by the timer loop started in getInstance().
--- For each active player with canSlingload=true and in-air transport:
+-- For each active player with canSlingload=true in capabilitiesByType and in-air transport:
 --   1. Overspeed check: if speed > maxSlingloadSpeed → crate lost.
 --   2. Hover pickup: find nearest eligible ground crate, count down hoverTime,
 --      then hook it (load + destroy DCS static + publish OnCrateLoaded).
@@ -740,8 +738,6 @@ function CTLDCrateManager:checkHoverStatus()
 
     if ctld.gs("enableHoverSlingload") ~= true then return end
 
-    local unitActions = ctld.gs("unitActions")        or {}
-    local cargoLimits = ctld.gs("internalCargoLimits") or {}
     local maxDist     = ctld.gs("maxDistanceFromCrate") or 5.5
     local minH        = ctld.gs("minimumHoverHeight")   or 7.5
     local maxH        = ctld.gs("maximumHoverHeight")   or 12.0
@@ -751,8 +747,8 @@ function CTLDCrateManager:checkHoverStatus()
     local players = CTLDPlayerManager.getInstance()._players
 
     for unitName, playerObj in pairs(players) do
-        local acts = unitActions[playerObj.typeName]
-        if acts and acts.canSlingload then
+        local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+        if caps and caps.canSlingload then
             local transport = Unit.getByName(unitName)
             if transport and transport:isExist() and ctld.utils.inAir(transport) then
 
@@ -774,7 +770,7 @@ function CTLDCrateManager:checkHoverStatus()
                             timestamp = timer.getAbsTime(),
                         })
                         trigger.action.outTextForGroup(playerObj.groupId,
-                            string.format(ctld.tr("Too fast! Slingloaded crate lost: %s"), lost.descriptor.desc), 10)
+                            ctld.tr("Too fast! Slingloaded crate lost: %1", lost.descriptor.desc), 10)
                         CTLDPlayerManager.getInstance():refreshForUnit(unitName)
                     end
                     self._hoverStatus[unitName] = nil
@@ -787,7 +783,8 @@ function CTLDCrateManager:checkHoverStatus()
                             count = count + 1
                         end
                     end
-                    local capacity = cargoLimits[playerObj.typeName] or 1
+                    local _caps_sl = ((ctld.gs("capabilitiesByType") or {})[playerObj.typeName]) or {}
+                    local capacity = _caps_sl.maxCratesOnboard or 1
 
                     if count < capacity then
                         local transportPos  = transport:getPoint()
@@ -841,7 +838,7 @@ function CTLDCrateManager:checkHoverStatus()
                                     nearestCrate.dcsStatic = nil
                                 end
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Slingloaded %s crate!"), nearestCrate.descriptor.desc), 10)
+                                    ctld.tr("Slingloaded %1 crate!", nearestCrate.descriptor.desc), 10, true)
                                 ctld.utils.updateTransportWeight(unitName)
                                 self:_publish("OnCrateLoaded", {
                                     crate           = nearestCrate,
@@ -853,14 +850,15 @@ function CTLDCrateManager:checkHoverStatus()
                                     timestamp       = timer.getAbsTime(),
                                 })
                                 CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+                                self:refreshCrateFlightSectionForUnit(unitName)
                             end
                         else
                             if warnTooLow then
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Too low to hook crate.\n\nHold hover for %d seconds"), hoverTime), 5, true)
+                                    ctld.tr("Too low to hook crate.\n\nHold hover for %1 seconds", hoverTime), 5, true)
                             elseif warnTooHigh then
                                 trigger.action.outTextForGroup(playerObj.groupId,
-                                    string.format(ctld.tr("Too high to hook crate.\n\nHold hover for %d seconds"), hoverTime), 5, true)
+                                    ctld.tr("Too high to hook crate.\n\nHold hover for %1 seconds", hoverTime), 5, true)
                             end
                             self._hoverStatus[unitName] = nil
                         end
@@ -908,8 +906,6 @@ end
 -- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are
 -- silently skipped here (outer check `dcsStatic and dcsStatic:isExist()`).
 function CTLDCrateManager:_checkNativeDCSCargo()
-    local dynamicUnits = ctld.gs("dynamicCargoUnits") or {}
-    if #dynamicUnits == 0 then return end
 
     -- Build candidate transport list (ALL dynamic transports, ground OR air).
     -- We pre-fetch position and bbox so we don't call getPosition()/getDesc()
@@ -1081,7 +1077,7 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
 
     if agl > maxRelH then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Too high to release slingload. Descend below %dm AGL (current: %dm AGL)."),
+            ctld.tr("Too high to release slingload. Descend below %1m AGL (current: %2m AGL).",
                 math.floor(maxRelH), math.floor(agl)), 8)
         return
     end
@@ -1092,8 +1088,9 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
     -- unloadCrate: transitions state, respawns static, publishes OnCrateUnloaded + OnCrateSpawned
     self:unloadCrate(crate.crateName, spawnPos, "slingload_release")
     trigger.action.outTextForGroup(playerObj.groupId,
-        string.format(ctld.tr("%s crate safely released."), crate.descriptor.desc), 10)
+        ctld.tr("%1 crate safely released.", crate.descriptor.desc), 10)
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
+    self:refreshCrateFlightSectionForUnit(playerObj.unitName)
 end
 
 --- Cut the slingload (emergency drop, any altitude).
@@ -1120,8 +1117,9 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         local lostPos = crate.position
         crate:destroy()
         self:_unregister(crate.crateName)
+        ctld.utils.updateTransportWeight(transport:getName())
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Too high! %s crate destroyed on impact."), crate.descriptor.desc), 10)
+            ctld.tr("Too high! %1 crate destroyed on impact.", crate.descriptor.desc), 10)
         self:_publish("OnCrateLost", {
             crate     = crate,
             crateName = crate.crateName,
@@ -1142,9 +1140,10 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         -- Drop with inertia drift (reuses FA calcDropPosition, descentRate=0 → immediate land)
         local landPos, _ = ctld.utils.calcDropPosition(transport, 0)
         crate:land(landPos)
-        -- TODO: re-spawn DCS static at landPos (requires coalition.addStaticObject — pending Hoggit verification)
+        ctld.utils.updateTransportWeight(transport:getName())
+        self:_respawnStatic(crate, landPos)
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("%s crate dropped below you."), crate.descriptor.desc), 10)
+            ctld.tr("%1 crate dropped below you.", crate.descriptor.desc), 10)
         self:_publish("OnCrateUnloaded", {
             crate           = crate,
             crateName       = crate.crateName,
@@ -1167,6 +1166,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         })
     end
     CTLDPlayerManager.getInstance():refreshForUnit(playerObj.unitName)
+    self:refreshCrateFlightSectionForUnit(playerObj.unitName)
 end
 
 -- ============================================================
@@ -1214,13 +1214,8 @@ end
 -- @param unit DCS Unit
 -- @return bool
 function CTLDCrateManager:_isDynamicCapable(unit)
-    local typeLower = string.lower(unit:getTypeName())
-    for _, name in ipairs(ctld.gs("dynamicCargoUnits") or {}) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            return true
-        end
-    end
-    return false
+    local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()]
+    return caps ~= nil and caps.useNativeDcsCargoSystem == true
 end
 
 --- Resolve the spawnableCratesModels key for a given transport unit.
@@ -1886,7 +1881,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -1941,21 +1936,38 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         })
 
         -- Capture loop variables for the timer closure
-        local _crate    = crate
-        local _landPos  = landPos
-        local _dropData = dropData
+        local _crate         = crate
+        local _landPos       = landPos
+        local _dropData      = dropData
+        local _transportName = transport:getName()
         timer.scheduleFunction(function()
             _crate.fromParachute = true
             _crate:land(_landPos)
+            ctld.utils.updateTransportWeight(_transportName)
+            -- Recreate DCS static so the crate is visible on the ground.
+            -- _respawnStatic re-registers the crate under a new name — capture it.
+            self:_respawnStatic(_crate, _landPos)
+            local newName = _crate.crateName
+            -- Notify nearby players that a new ground crate appeared.
+            self:_publish("OnCrateSpawned", {
+                crate       = _crate,
+                crateName   = newName,
+                position    = _landPos,
+                coalition   = _crate.coalition,
+                descriptor  = _crate.descriptor,
+                spawnedBy   = nil,
+                spawnMethod = "parachute",
+                timestamp   = timer.getAbsTime(),
+            })
             self._parachuteEffect:onLanded(_dropData)
             self:_publish("OnCrateParachuteLanded", {
                 crate           = _crate,
-                crateName       = _crate.crateName,
+                crateName       = newName,
                 descriptor      = _crate.descriptor,
                 position        = _landPos,
                 coalition       = _crate.coalition,
                 startAltitude   = altAGL,
-                carrierUnitName = transport:getName(),
+                carrierUnitName = _transportName,
                 player          = playerObj.unitName,
                 timestamp       = timer.getAbsTime(),
             })
@@ -2066,9 +2078,8 @@ end
 -- Called on build, land, and takeoff.
 -- @param playerObj CTLDPlayer
 function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -2199,10 +2210,74 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     menu:refresh()
 end
 
+--- Refresh Crate Commands visibility based on flight state (ground vs in-air).
+-- Ground-only: Load Crate, Drop Crate(s), Unpack Crate, List Nearby Crates, Pack Vehicle.
+-- Air-only:    Parachute Crates (caps.canParachuteDrop + CTLD crates onboard),
+--              Release Slingload, Cut Slingload (caps.canSlingload + slingloaded crate active).
+-- Called from buildMenuSection, onTakeoff, and onLand.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshCrateFlightSection(playerObj)
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+
+    local transport = Unit.getByName(playerObj.unitName)
+    local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
+
+    -- Ground-only: visible only when landed
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") },         not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
+    menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
+    if ctld.gs("enablePackingVehicles") == true then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
+    end
+
+    -- Parachute Crates: enabled only in air + CTLD crates loaded
+    if caps.canParachuteDrop then
+        local onboard = 0
+        if transport and transport:isExist() then
+            for _, c in pairs(self.crates) do
+                if c:isLoadedByCTLD() and not c.inTransitOnSlingload
+                        and c.loadedBy
+                        and c.loadedBy:getName() == playerObj.unitName then
+                    onboard = onboard + 1
+                end
+            end
+        end
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Parachute Crates") },
+            inAir and onboard > 0)
+    end
+
+    -- Release / Cut Slingload: enabled only in air + slingloaded crate active
+    if caps.canSlingload then
+        local hasSlingload = false
+        if inAir and transport and transport:isExist() then
+            hasSlingload = self:_getSlingloadedCrate(transport) ~= nil
+        end
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Release Slingload") }, hasSlingload)
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Cut Slingload") },     hasSlingload)
+    end
+
+    menu:refresh()
+end
+
+--- Refresh Crate Commands flight visibility for a player by unit name.
+-- @param unitName string
+function CTLDCrateManager:refreshCrateFlightSectionForUnit(unitName)
+    local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
+    if playerObj then self:refreshCrateFlightSection(playerObj) end
+end
+
 function CTLDCrateManager:buildMenuSection(playerObj, menu)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.crates) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
     local root     = ctld.tr("CTLD")
     local spawnSub = ctld.tr("Request Equipment")
@@ -2244,14 +2319,8 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             -- Compute aligned drop positions (one per crate)
             local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
             local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
-            local typeLower = string.lower(t:getTypeName())
-            local vList     = (ctld.gs and ctld.gs("vehicleTransportEnabled")) or {}
-            local isDynamic = false
-            for _, name in ipairs(vList) do
-                if string.find(typeLower, string.lower(name), 1, true) then
-                    isDynamic = true; break
-                end
-            end
+            local caps_t    = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
+            local isDynamic = caps_t ~= nil and caps_t.canTransportWholeVehicle == true
             local axis
             if isDynamic then
                 axis = ctld.utils.RandomReal("dropCrates", 135, 225)
@@ -2324,8 +2393,8 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
     end
 
-    -- Parachute Crates: only if canParachute=true for this unit type
-    if actions.canParachute then
+    -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
+    if caps.canParachuteDrop then
         menu:addCommand({ root, cratesSub }, ctld.tr("Parachute Crates"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)
@@ -2335,27 +2404,26 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             { unitName = playerObj.unitName, groupId = playerObj.groupId })
     end
 
-    -- Release / Cut Slingload: only if canSlingload=true AND transport currently in air
-    if actions.canSlingload then
-        local transport = Unit.getByName(playerObj.unitName)
-        if transport and transport:isExist() and ctld.utils.inAir(transport) then
-            menu:addCommand({ root, cratesSub }, ctld.tr("Release Slingload"),
-                function(arg)
-                    local t = Unit.getByName(arg.unitName)
-                    if not t then return end
-                    CTLDCrateManager.getInstance():releaseSlingload(t, arg)
-                end,
-                { unitName = playerObj.unitName, groupId = playerObj.groupId })
+    -- Release / Cut Slingload: added when cap allows; visibility managed by refreshCrateFlightSection.
+    if caps.canSlingload then
+        menu:addCommand({ root, cratesSub }, ctld.tr("Release Slingload"),
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not t then return end
+                CTLDCrateManager.getInstance():releaseSlingload(t, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId })
 
-            menu:addCommand({ root, cratesSub }, ctld.tr("Cut Slingload"),
-                function(arg)
-                    local t = Unit.getByName(arg.unitName)
-                    if not t then return end
-                    CTLDCrateManager.getInstance():cutSlingload(t, arg)
-                end,
-                { unitName = playerObj.unitName, groupId = playerObj.groupId })
-        end
+        menu:addCommand({ root, cratesSub }, ctld.tr("Cut Slingload"),
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not t then return end
+                CTLDCrateManager.getInstance():cutSlingload(t, arg)
+            end,
+            { unitName = playerObj.unitName, groupId = playerObj.groupId })
     end
+
+    self:refreshCrateFlightSection(playerObj)
 end
 
 --- Build "Smoke" F10 submenu for a player.

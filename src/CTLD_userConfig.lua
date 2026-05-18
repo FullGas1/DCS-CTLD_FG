@@ -31,10 +31,6 @@ ctld.yamlConfigDatas = [[
 # Leave empty to use the default DCS Saved Games folder.
 # ctld.ctldLogPath:
 
-# Identify CTLD-capable transports by DCS aircraft type (true) or by unit name (false).
-# When false, only units listed in transportPilotNames will get CTLD menus.
-# ctld.addPlayerAircraftByType: true
-
 # Show coordinates as Degrees-Minutes-Seconds (DMS) instead of Degrees-Decimal-Minutes.
 # ctld.location_DMS: false
 
@@ -49,9 +45,6 @@ ctld.yamlConfigDatas = [[
 # Maximum distance (m) between the transport and a logistic zone to allow crate
 # spawning or loading operations.
 # ctld.maximumDistanceLogistic: 200
-
-# Minimum distance (m) from a friendly pickup zone at which a crate may be deployed.
-# ctld.minimumDeployDistance: 1000
 
 # Radius (m) of the logistic zone created around each LGZ_ trigger zone (dynamic logistic zones).
 # ctld.dynamicZoneRadius: 200
@@ -91,9 +84,6 @@ ctld.yamlConfigDatas = [[
 # Exceeding this speed causes the crate to detach and fall.
 # ctld.maxSlingloadSpeed: 50
 
-# Minimum time (s) a player must wait after spawning a crate before spawning another.
-# ctld.crateWaitTime: 40
-
 # Spacing (m) between consecutive crate spawn positions along the spawn axis.
 # ctld.crateSpacing: 5
 
@@ -125,7 +115,7 @@ ctld.yamlConfigDatas = [[
 # ============================================================
 
 # Default number of troops loaded per transport (also acts as maximum group size
-# unless overridden per aircraft type in unitLoadLimits).
+# unless overridden per aircraft type in capabilitiesByType[type].maxTroopsOnboard).
 # ctld.numberOfTroops: 10
 
 # Maximum total troop weight (kg) a transport can carry.
@@ -157,7 +147,7 @@ ctld.yamlConfigDatas = [[
 # Infantry weight simulation
 # Each soldier's weight is randomised between 90 % and 120 % of SOLDIER_WEIGHT,
 # then the kit and role-specific equipment weights are added on top.
-# These values affect whether a group fits inside a transport (unitLoadLimits).
+# These values affect whether a group fits inside a transport (maxTroopsOnboard).
 # ============================================================
 
 # Base body weight per soldier (kg) before randomisation.
@@ -191,9 +181,6 @@ ctld.yamlConfigDatas = [[
 
 # Enable FOB building from crates.
 # ctld.enabledFOBBuilding: true
-
-# Time (s) to build the FOB after the last required crate is unpacked.
-# ctld.buildTimeFOB: 120
 
 # Allow troops to be picked up at a deployed FOB.
 # ctld.troopPickupAtFOB: true
@@ -420,30 +407,76 @@ ctld.yamlConfigDatas = [[
 local _cfg = CTLDConfig.get()
 
 -- ============================================================
--- Aircraft types allowed to use CTLD
--- Used when ctld.addPlayerAircraftByType = true.
--- Comment / uncomment entries to suit your mission's aircraft.
+-- Per-aircraft capabilities — the unified type registry (replaces
+-- aircraftTypeTable, unitActions, and all legacy parallel type-indexed tables).
+--
+-- Only aircraft listed here get CTLD F10 menus.
+-- Each entry REPLACES the matching default when the table is uncommented.
+--
+-- Fields:
+--   cratesEnabled            : can spawn, load and unpack crates
+--   troopsEnabled            : can load, deploy and extract infantry groups
+--   canParachuteDrop         : enables "Parachute" F10 entries (Feature A)
+--   canSlingload             : enables hover-pickup and "Slingload" menus
+--   canTransportWholeVehicle : can load/unload whole vehicles (Feature Q)
+--   useNativeDcsCargoSystem  : uses the native DCS cargo system for crate spawning
+--   maxTroopsOnboard         : max soldiers this aircraft can carry (overrides ctld.numberOfTroops)
+--   maxCratesOnboard         : max crates this aircraft can carry at once
+--   maxWholeVehiclesOnboard  : max whole vehicles carried simultaneously
+--   loadableVehiclesRED      : DCS type names of RED vehicles loadable onto this aircraft
+--   loadableVehiclesBLUE     : DCS type names of BLUE vehicles loadable onto this aircraft
 -- ============================================================
--- _cfg.settings["aircraftTypeTable"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     "Mi-8MT",
---     "Mi-24P",
---     "UH-1H",
---     "CH-47Fbl1",
---     -- "Ka-50",
---     -- "Ka-50_3",
---     -- "SA342L",
---     -- "SA342M",
---     -- "SA342Mistral",
---     -- "SA342Minigun",
+-- _cfg.settings["capabilitiesByType"] = {
+--     -- ── Helicopters ────────────────────────────────────────────────────────────
+--     ["Mi-8MT"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=16, maxCratesOnboard=2, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     ["Mi-24P"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--                       canTransportWholeVehicle=false, useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=10, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+--     ["UH-1H"]     = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=true,  canSlingload=true,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=8,  maxCratesOnboard=1, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     ["CH-47Fbl1"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--                       canTransportWholeVehicle=false, useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=33, maxCratesOnboard=8, maxWholeVehiclesOnboard=1,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["Ka-50"]    = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+--     --                  canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                  maxTroopsOnboard=0, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+--     -- ["SA342L"]   = { cratesEnabled=false, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                  canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                  maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 --
---     -- ── Fixed-wing ─────────────────────────────────────────
---     "C-130J-30",
+--     -- ── Fixed-wing ─────────────────────────────────────────────────────────────
+--     ["C-130J-30"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--                       canTransportWholeVehicle=true,  useNativeDcsCargoSystem=true,
+--                       maxTroopsOnboard=80, maxCratesOnboard=20, maxWholeVehiclesOnboard=2,
+--                       loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--                       loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
 --
---     -- ── Mods ───────────────────────────────────────────────
---     -- "Hercules",
---     -- "UH-60L",
---     -- "Bronco-OV-10A",
+--     -- ── Mods ───────────────────────────────────────────────────────────────────
+--     -- ["Hercules"]    = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=true,  useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=30, maxCratesOnboard=1, maxWholeVehiclesOnboard=2,
+--     --                     loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--     --                     loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["UH-60L"]      = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=true,
+--     --                     canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=12, maxCratesOnboard=2, maxWholeVehiclesOnboard=0 },
+--     -- ["76MD"]        = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=true,  useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=80, maxCratesOnboard=20, maxWholeVehiclesOnboard=2,
+--     --                     loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+--     --                     loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } },
+--     -- ["SK-60"]       = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false,
+--     --                     canTransportWholeVehicle=false, useNativeDcsCargoSystem=false,
+--     --                     maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 -- }
 
 -- ============================================================
@@ -575,125 +608,14 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Vehicle transport — aircraft types allowed to carry vehicles
--- (loads vehicles onto the transport, then deploys them at the destination)
--- ============================================================
--- _cfg.settings["vehicleTransportEnabled"] = {
---     "C-130J-30",
---     "76MD",      -- IL-76 (note: the mod spells the dash differently)
---     -- "Hercules",
---     -- "CH-47Fbl1",
--- }
-
--- ============================================================
--- Dynamic cargo units — aircraft types that use the native DCS
--- cargo system (creates a DCS cargo static that can be loaded
--- with the standard DCS slingload / cargo interface)
--- ============================================================
--- _cfg.settings["dynamicCargoUnits"] = {
---     "CH-47Fbl1",
---     "UH-1H",
---     "Mi-8MT",
---     "Mi-24P",
---     "C-130J-30",
--- }
-
--- ============================================================
--- Unit load limits — maximum group size (number of soldiers)
--- that each aircraft type can carry.  Groups larger than the
--- limit will not appear as available for loading.
--- ============================================================
--- _cfg.settings["unitLoadLimits"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     ["Mi-8MT"]    = 16,
---     ["Mi-24P"]    = 10,
---     ["UH-1H"]     = 8,
---     ["CH-47Fbl1"] = 33,
---
---     -- ── Fixed-wing ─────────────────────────────────────────
---     ["C-130J-30"] = 80,
---
---     -- ── Mods ───────────────────────────────────────────────
---     -- ["Hercules"] = 30,
---     -- ["UH-60L"]   = 12,
---
---     -- ── Light aircraft (set to 1 or 2 for recon/observer) ──
---     -- ["SA342L"]      = 4,
---     -- ["SA342M"]      = 4,
---     -- ["SA342Mistral"] = 4,
---     -- ["SA342Minigun"] = 3,
--- }
-
--- ============================================================
--- Internal cargo limits — maximum number of crates a single
--- aircraft can carry at the same time (internal load).
--- ============================================================
--- _cfg.settings["internalCargoLimits"] = {
---     ["Mi-8MT"]    = 2,
---     ["CH-47Fbl1"] = 8,
---     ["C-130J-30"] = 20,
--- }
-
--- ============================================================
--- Unit actions — per-aircraft-type capability flags.
--- Omit an aircraft type to use the default (crates=true, troops=true).
---
---   crates       : can spawn, load and unpack crates
---   troops       : can load and deploy infantry groups
---   canParachute : enables "Parachute Crates/Troops/Vehicle" F10 entries (Feature A)
---   canSlingload : enables hover-pickup polling and "Release/Cut Slingload" menus (Feature B)
---                  — set true for helicopters, false for fixed-wing aircraft
--- ============================================================
--- _cfg.settings["unitActions"] = {
---     -- ── Helicopters ────────────────────────────────────────
---     ["Mi-8MT"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     ["Mi-24P"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---     ["UH-1H"]     = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     ["CH-47Fbl1"] = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
---     -- ["Ka-50"]       = { crates = true,  troops = false, canParachute = false, canSlingload = true  },
---     -- ["Ka-50_3"]     = { crates = true,  troops = false, canParachute = false, canSlingload = true  },
---     -- ["SA342L"]      = { crates = false, troops = true,  canParachute = false, canSlingload = false },
---     -- ["SA342M"]      = { crates = false, troops = true,  canParachute = false, canSlingload = false },
---     -- ["SA342Mistral"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
---     -- ["SA342Minigun"] = { crates = false, troops = true, canParachute = false, canSlingload = false },
---
---     -- ── Fixed-wing ─────────────────────────────────────────
---     ["C-130J-30"] = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---
---     -- ── Mods ───────────────────────────────────────────────
---     -- ["Hercules"]    = { crates = true,  troops = true,  canParachute = false, canSlingload = false },
---     -- ["UH-60L"]      = { crates = true,  troops = true,  canParachute = false, canSlingload = true  },
--- }
-
--- ============================================================
--- Vehicles that can be loaded onto RED / BLUE vehicle transports.
--- The "vehicleTransportEnabled" aircraft must be in range.
--- ============================================================
--- _cfg.settings["vehiclesForTransportRED"]  = { "BRDM-2", "BTR_D" }
--- _cfg.settings["vehiclesForTransportBLUE"] = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" }
-
--- ============================================================
 -- Vehicle weights (kg) used to determine if a transport can carry a vehicle.
--- Add any DCS unit type that appears in vehiclesForTransportRED/BLUE.
+-- Add any DCS unit type that appears in loadableVehiclesRED/BLUE.
 -- ============================================================
--- _cfg.settings["vehiclesWeight"] = {
+-- _cfg.settings["groundVehicleWeights"] = {
 --     ["BRDM-2"]               = 7000,
 --     ["BTR_D"]                = 8000,
 --     ["M1045 HMMWV TOW"]      = 3220,
 --     ["M1043 HMMWV Armament"] = 2500,
--- }
-
--- ============================================================
--- Per-aircraft troop capacity override
--- Sets a custom max-troop count for specific aircraft types,
--- overriding the global ctld.numberOfTroops default.
--- Aircraft types not listed here use the global default.
--- ============================================================
--- _cfg.settings["transportLimitByType"] = {
---     ["UH-1H"]     = 8,
---     ["Mi-8MT"]    = 16,
---     ["CH-47Fbl1"] = 33,
---     ["C-130J-30"] = 80,
 -- }
 
 -- ============================================================

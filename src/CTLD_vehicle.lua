@@ -213,16 +213,10 @@ local function _computeSpawnPosition(transport)
     return { x = px, y = py, z = pz }
 end
 
---- True if a unit type name appears in the vehicleTransportEnabled config list.
+--- True if the unit type has canTransportWholeVehicle=true in capabilitiesByType.
 local function _isNativeCargoCapable(unit)
-    local typeLower = string.lower(unit:getTypeName())
-    local list      = ctld.gs("vehicleTransportEnabled") or {}
-    for _, name in ipairs(list) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            return true
-        end
-    end
-    return false
+    local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()]
+    return caps ~= nil and caps.canTransportWholeVehicle == true
 end
 
 -- ============================================================
@@ -415,14 +409,14 @@ function CTLDVehicleSpawner:loadVehicle(vehicle, transport, player, method)
     -- Guard: enforce per-type vehicle capacity limit (menu_ctld only;
     -- dcs_native capacity is managed by DCS itself).
     if method == "menu_ctld" then
-        local limits      = ctld.gs("internalCargoLimits") or {}
-        local maxVehicles = limits[transport:getTypeName()] or 1
+        local caps_t      = (ctld.gs("capabilitiesByType") or {})[transport:getTypeName()]
+        local maxVehicles = (caps_t and caps_t.maxWholeVehiclesOnboard) or 1
         local loaded      = self:findLoadedVehicles(transport)
         if #loaded >= maxVehicles then
             local pObj = CTLDPlayerManager.getInstance()._players[transport:getName()]
             if pObj then
                 trigger.action.outTextForGroup(pObj.groupId,
-                    string.format(ctld.tr("Cannot load more vehicles (max: %d)."), maxVehicles), 8)
+                    ctld.tr("Cannot load more vehicles (%1/%2).", #loaded, maxVehicles), 8)
             end
             ctld.utils.log("WARNING",
                 "CTLDVehicleSpawner:loadVehicle — transport %s at vehicle capacity (%d)",
@@ -655,8 +649,6 @@ end
 --   • WAITING vehicle enters bbox  → loadVehicle (method="dcs_native")
 --   • LOADED  vehicle exits  bbox  → unloadVehicle (method depends on inAir flag)
 function CTLDVehicleSpawner:_checkNativeLoading()
-    local vehicleTransports = ctld.gs("vehicleTransportEnabled") or {}
-    if #vehicleTransports == 0 then return end
 
     -- Collect all active WAITING vehicles with live units
     local waitingVehicles = {}
@@ -969,7 +961,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -1006,6 +998,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     vehicle:setState(CTLDVehicle.STATE.WAITING)
     vehicle.loadTransportName = nil
     vehicle.loadMethod        = nil
+    self:_updateVehicleCargo(transport:getName())
 
     local dropData = {
         type          = "vehicle",
@@ -1030,10 +1023,11 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         timestamp            = timer.getAbsTime(),
     })
 
-    local _vehicle   = vehicle
-    local _landPos   = landPos
-    local _dropData  = dropData
-    local _spawnData = spawnData
+    local _vehicle       = vehicle
+    local _landPos       = landPos
+    local _dropData      = dropData
+    local _spawnData     = spawnData
+    local _transportName = transport:getName()
     timer.scheduleFunction(function()
         -- Spawn vehicle at computed landing position
         local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
@@ -1055,7 +1049,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         EventDispatcher.getInstance():publish("OnVehicleParachuteLanded", {
             vehicle       = _vehicle,
             position      = _landPos,
-            transport     = transport:getName(),
+            transport     = _transportName,
             player        = playerObj.unitName,
             startAltitude = altAGL,
             timestamp     = timer.getAbsTime(),
@@ -1283,7 +1277,7 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
         CTLDCrate.SPAWN_METHOD.VEHICLE_PACK)
 
     trigger.action.outTextForGroup(playerObj.groupId,
-        string.format(ctld.tr("%s packed into %d crate(s)."), descriptor.desc, cratesReq), 10)
+        ctld.tr("%1 packed into %2 crate(s).", descriptor.desc, cratesReq), 10)
 
     EventDispatcher.getInstance():publish("OnVehiclePacked", {
         vehicleType  = packableUnit:getTypeName(),
@@ -1413,7 +1407,7 @@ end
 --- @param transportUnitName string
 --- @return number  kg
 function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
-    local weights = ctld.gs("vehiclesWeight") or {}
+    local weights = ctld.gs("groundVehicleWeights") or {}
     local total   = 0
     for _, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.LOADED
@@ -1569,8 +1563,8 @@ end
 --- Refresh "Parachute Vehicle" visibility: shown only when in air + vehicle loaded.
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
-    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
-    if not (playerObj.canCarryVehicles and acts and acts.canParachute) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.canCarryVehicles and caps and caps.canParachuteDrop) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -1621,10 +1615,10 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     menu:addSubMenu({ root, vehSub }, ctld.tr("Unload Vehicles"))
     self:refreshUnloadSection(playerObj)
 
-    -- Parachute Vehicle: only if canParachute=true for this unit type.
+    -- Parachute Vehicle: only if canParachuteDrop=true for this unit type.
     -- Created disabled; refreshParachuteVehicleSection enables it only when in air + vehicle loaded.
-    local acts = (ctld.gs("unitActions") or {})[playerObj.typeName]
-    if acts and acts.canParachute then
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if caps and caps.canParachuteDrop then
         menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)

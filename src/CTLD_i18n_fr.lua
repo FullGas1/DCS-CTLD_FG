@@ -331,7 +331,7 @@ ctld.i18n["fr"]["Load Crate"] = "Charger caisse"
 ctld.i18n["fr"]["Land to load crates"] = "Atterrissez pour charger une caisse"
 ctld.i18n["fr"]["No crates within 50m"] = "Aucune caisse dans 50 m"
 ctld.i18n["fr"]["You must land before you can load a crate!"] = "Vous devez atterrir avant de pouvoir charger une caisse !"
-ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Nombre maximal de caisses à bord !"
+ctld.i18n["fr"]["Maximum number of crates are on board!"] = "Capacité caisse atteinte ! (%1/%2)"
 ctld.i18n["fr"]["No crates within 50m to load!"] = "Aucune caisse à moins de 50 m pour charger !"
 ctld.i18n["fr"]["Loaded %1 crate!"] = "Caisse %1 chargée !"
 
@@ -364,7 +364,7 @@ ctld.i18n["fr"]["No vehicle loaded."] = "Aucun véhicule chargé."
 ctld.i18n["fr"]["Vehicle loaded: %1."] = "Véhicule chargé : %1."
 ctld.i18n["fr"]["Vehicle unloaded: %1."] = "Véhicule déchargé : %1."
 ctld.i18n["fr"]["Vehicle no longer loaded."] = "Le véhicule n'est plus chargé."
-ctld.i18n["fr"]["Cannot load more vehicles (max: %d)."] = "Impossible de charger davantage de véhicules (max : %d)."
+ctld.i18n["fr"]["Cannot load more vehicles (%1/%2)."] = "Impossible de charger davantage de véhicules (%1/%2)."
 
 --- List Nearby Crates
 ctld.i18n["fr"]["List Nearby Crates"] = "Liste caisses proches"
@@ -384,7 +384,7 @@ ctld.i18n["fr"]["Total cargo weight: %1 kg"] = "Poids total du chargement : %1 k
 ctld.i18n["fr"]["Request JTAC Equipment"] = "Demander équipement JTAC"
 ctld.i18n["fr"]["You must be landed to request JTAC equipment."] = "Vous devez être posé pour demander un équipement JTAC."
 ctld.i18n["fr"]["You are not close enough to friendly logistics."] = "Vous n'êtes pas assez proche de la logistique alliée."
-ctld.i18n["fr"]["%s is ready for pickup."] = "%s est prêt pour embarquement."
+ctld.i18n["fr"]["%1 is ready for pickup."] = "%1 est prêt pour embarquement."
 ctld.i18n["fr"]["JTAC limit reached for your coalition."] = "Limite JTAC atteinte pour votre coalition."
 
 --- Request Equipment spawn messages
@@ -416,14 +416,14 @@ ctld.i18n["fr"]["Lasing [activate]"]                          = "Laser [activer]
 ctld.i18n["fr"]["Lasing [deactivate]"]                        = "Laser [désactiver]"
 ctld.i18n["fr"]["Spot Corrections [activate]"]                = "Corrections spot [activer]"
 ctld.i18n["fr"]["Spot Corrections [deactivate]"]              = "Corrections spot [désactiver]"
-ctld.i18n["fr"]["Lasing activated: %s"]                       = "Laser activé : %s"
-ctld.i18n["fr"]["Lasing deactivated (standby): %s"]           = "Laser désactivé (veille) : %s"
-ctld.i18n["fr"]["Spot corrections activated: %s"]             = "Corrections spot activées : %s"
-ctld.i18n["fr"]["Spot corrections deactivated: %s"]           = "Corrections spot désactivées : %s"
+ctld.i18n["fr"]["Lasing activated: %1"]                       = "Laser activé : %1"
+ctld.i18n["fr"]["Lasing deactivated (standby): %1"]           = "Laser désactivé (veille) : %1"
+ctld.i18n["fr"]["Spot corrections activated: %1"]             = "Corrections spot activées : %1"
+ctld.i18n["fr"]["Spot corrections deactivated: %1"]           = "Corrections spot désactivées : %1"
 ctld.i18n["fr"]["JTAC not found."]                            = "JTAC introuvable."
 
 --- Troop parachute
-ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %dm sol (actuel : %dm sol)"
+ctld.i18n["fr"]["Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)"] = "Altitude trop basse pour le largage en parachute. Minimum : %1m sol (actuel : %2m sol)"
 ctld.i18n["fr"]["Parachuting %1 (%2 troops) — landing in ~%3s"] = "Parachutage de %1 (%2 soldats) — atterrissage dans ~%3s"
 ctld.i18n["fr"]["Parachuting vehicle %1 — landing in ~%2s"]    = "Parachutage du véhicule %1 — atterrissage dans ~%2s"
 ctld.i18n["fr"]["Parachuting %1 crate(s) — landing in ~%2s"]  = "Parachutage de %1 caisse(s) — atterrissage dans ~%2s"

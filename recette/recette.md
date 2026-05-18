@@ -140,6 +140,15 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | U-94 | CTLDi18n — audit() détecte clé non traduite | i18n | mock: FR[key]=EN[key] → untranslated contient la clé, missing ne la contient pas | ✅ PASS 4/4 | — |
 | U-95 | CTLDi18n — audit() détecte version mismatch | i18n | mock: FR version="0.0" → version_match=false ; restore → version_match=true | ✅ PASS 5/5 | — |
 | U-96 | CTLDi18n — auditAll() | i18n | fr+es+ko présents, "en" absent, chaque entrée a la structure attendue | ✅ PASS 14/14 | — |
+| U-97 | capabilitiesByType["UH-1H"] — champs renommés | Config | tous nouveaux noms présents + valeurs correctes ; tous anciens noms absents (nil/false) | ✅ PASS 18/18 | — |
+| U-98 | capabilitiesByType["Mi-24P"] — champs renommés | Config | nouveaux noms présents, canParachuteDrop/canSlingload/canTransportWholeVehicle = false | ✅ PASS 10/10 | — |
+| U-99  | groundVehicleWeights — valeurs + ancien nom absent | Config | 4 poids vérifiés (BRDM-2 / BTR_D / HMMWV) ; "vehiclesWeight" retourne nil | ✅ PASS 5/5 | — |
+| U-100 | ctld.tr crate capacity (%1/%2) | i18n | ctld.tr("Maximum...", 1, 1) → contient "(1/1)" | ✅ PASS 1/1 | — |
+| U-101 | ctld.tr lasing key (%1) | i18n | activated + deactivated : "JTAC-Alpha" substitué | ✅ PASS 2/2 | — |
+| U-102 | ctld.tr altitude key (%1/%2) | i18n | min=30 / cur=15 → "30m" et "15m" substitués | ✅ PASS 2/2 | — |
+| U-103 | ctld.tr vehicle capacity key (%1/%2) | i18n | loaded=1/max=1 → contient "(1/1)" | ✅ PASS 1/1 | — |
+| U-104 | ctld.tr packed-into key (%1/%2) | i18n | nom véhicule + nb caisses substitués | ✅ PASS 2/2 | — |
+| U-105 | ctld.tr troop capacity key (%1/%2) | i18n | current=6/limit=8 → contient "(6/8" | ✅ PASS 1/1 | — |
 
 ---
 
@@ -292,6 +301,23 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | F-144 | Feature L — _menuCheckCargo multi-groupe | `CTLDTroopManager:_menuCheckCargo` | 2 groupes → message multi-lignes avec [1] [2] + ligne TOTAL | ✅ PASS 4/4 [2026-05-12] | Witchcraft mock |
 | F-145 | Feature L — extract menu 1 groupe nearby = commande directe | `CTLDTroopManager:refreshMenuSection` | 1 groupe dropped nearby → commande "Extract:" directe, pas de sous-menu | ✅ PASS 2/2 [2026-05-12] | Witchcraft mock |
 | F-146 | Feature L — extract menu 2 groupes nearby = sous-menu avec distances | `CTLDTroopManager:refreshMenuSection` | 2 groupes dropped nearby → sous-menu "Extract from field" avec 2 entrées annotées distance (m) | ✅ PASS 5/5 [2026-05-12] | Witchcraft mock |
+| F-159 | _transportLimit UH-1H → 8 | `CTLDTroopManager` | _transportLimit("UH-1H") retourne maxTroopsOnboard=8 | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-160 | _transportLimit Mi-24P → 10 | `CTLDTroopManager` | _transportLimit("Mi-24P") retourne maxTroopsOnboard=10 | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-161 | _transportLimit fallback → numberOfTroops | `CTLDTroopManager` | _transportLimit("unknown_type_xyz") retourne cfg.numberOfTroops | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-162 | _isDynamicCapable UH-1H → true | `CTLDCrateManager` | mock.getTypeName()="UH-1H" → useNativeDcsCargoSystem=true | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-163 | _isDynamicCapable SK-60 → false | `CTLDCrateManager` | mock.getTypeName()="SK-60" → absent de capabilitiesByType → false | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-164 | _detectCapabilities UH-1H | `CTLDPlayerManager` | isTransport=true, canCarryVehicles=true | ✅ PASS 2/2 [2026-05-18] | Witchcraft mock |
+| F-165 | _detectCapabilities Mi-24P | `CTLDPlayerManager` | isTransport=true, canCarryVehicles=false | ✅ PASS 2/2 [2026-05-18] | Witchcraft mock |
+| F-166 | loadVehicle bloqué par maxWholeVehiclesOnboard=1 | `CTLDVehicleSpawner` | 1 véhicule déjà LOADED → 2ème chargement refusé (WARNING + veh1 reste WAITING) | ✅ PASS 2/2 [2026-05-18] | Witchcraft mock |
+| F-167 | Guard caisses à bord — message avec compteur | `CTLDCrateManager` | trigger.action intercepté → message contient "(1/1)" | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-168 | refreshCrateFlightSection ground — items sol activés | `CTLDCrateManager` | inAir=false → Load/Drop/Unpack/List enabled=true | ✅ PASS 4/4 [2026-05-18] | Witchcraft mock |
+| F-169 | refreshCrateFlightSection ground — items vol désactivés | `CTLDCrateManager` | inAir=false → Parachute/Release/Cut enabled=false | ✅ PASS 3/3 [2026-05-18] | Witchcraft mock |
+| F-170 | refreshCrateFlightSection air — items sol désactivés | `CTLDCrateManager` | inAir=true → Load/Drop/Unpack/List enabled=false | ✅ PASS 4/4 [2026-05-18] | Witchcraft mock |
+| F-171 | refreshCrateFlightSection air + crate → Parachute activé | `CTLDCrateManager` | inAir=true + 1 crate CTLD chargée → Parachute Crates enabled=true | ✅ PASS 1/1 [2026-05-18] | Witchcraft mock |
+| F-172 | refreshCrateFlightSection air sans crate → Parachute désactivé | `CTLDCrateManager` | inAir=true + 0 crate → Parachute Crates enabled=false, Release/Cut disabled | ✅ PASS 3/3 [2026-05-18] | Witchcraft mock |
+| F-173 | Crate visible au sol après parachutage | `CTLDCrateManager` | 1 crate parachutée (2 requises) → static DCS visible + interactable au sol | ✅ PASS 1/1 [2026-05-18] | Witchcraft live |
+| F-174 | Release/Cut Slingload menu après hover pickup | `CTLDCrateManager` | hover pickup → Release/Cut activés en vol ; release → désactivés | ✅ PASS 1/1 [2026-05-18] | Witchcraft live |
+| F-175 | Msg confirmation slingload efface décompte | `CTLDCrateManager` | outTextForGroup clearview=true → décompte remplacé par confirmation | ✅ PASS 1/1 [2026-05-18] | Witchcraft live |
 
 ---
 
@@ -356,7 +382,11 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Feature L — Multi-group transport menus + disembark/extract** : 7 fonctionnels = **22 cas** ✅ PASS (F-140 2/2 + F-141 5/5 + F-142 2/2 + F-143 2/2 + F-144 4/4 + F-145 2/2 + F-146 5/5 [2026-05-12]) — menu direct vs sous-menu disembark (1 vs N groupes) ; disembarkAll/Index ; _menuCheckCargo multi-ligne ; extract from field 1 vs N groupes avec distances ; bugfixes : extract visible avec troupes à bord si capacité dispo, spawn center décalé (safeR+spreadR) pour éviter overlap
 - **Feature F — RECON FARP/FOB layer (mock)** : 9 fonctionnels = **22 cas** ✅ PASS (F-150 3/3 + F-151..152 7/7 + F-153 3/3 + F-154..157 6/6 + F-158 3/3 [2026-05-17]) — CTLDStaticWatcher watch/tick/dead ; coalition rendering fix (-1→playerCoalition) ; drawFarpIcon H cerclé ; farp_fob layer _matchLayer skip ; _syncFarpMarks FARP+FOB detect/dedup/clear ; watcher onDeadFn
 - **MT-06 — RECON FARP/FOB live DCS** : 9 steps ✅ PASS [2026-05-17] — icône T-dans-carré magenta visible en LOS ; persistence hors LOS confirmée ; toggle [deactivate] efface marks immédiatement ; toggle [activate] refait apparaître (MarkIdCounter préservé) ; playerCoalition=2 confirmé ; FARP détruit → mark disparaît <2s (CTLDStaticWatcher) ; FOB détruit → mark disparaît <2s
-- **Total** : **271 cas** — 1146/1146 PASS ✅ + MT-06 9/9 PASS
+- **Feature P — capabilitiesByType rename + groundVehicleWeights** : 3 unitaires + 8 fonctionnels = **11 cas** ✅ PASS (U-97 18/18 + U-98 10/10 + U-99 5/5 + F-159→F-166 11/11 [2026-05-18]) — champs renommés (cratesEnabled/troopsEnabled/canParachuteDrop/canSlingload/canTransportWholeVehicle/useNativeDcsCargoSystem/maxTroopsOnboard/maxCratesOnboard/maxWholeVehiclesOnboard) ; anciens noms absents ; bugfix actions→caps (menu Parachute/Slingload) ; bugfix internalCargoLimits→maxWholeVehiclesOnboard (capacity guard)
+- **i18n string.format migration + capacity counters** : 6 unitaires + 1 fonctionnel = **7 cas** ✅ PASS (U-100→U-105 8/8 + F-167 1/1 [2026-05-18]) — substitution %1/%2 vérifiée (crate capacity / lasing / altitude / vehicle capacity / packed-into / troop capacity) ; guard messages affichent (x/y)
+- **Feature — Crate Commands sol/vol split** : 5 fonctionnels = **15 cas** ✅ PASS (F-168 4/4 + F-169 3/3 + F-170 4/4 + F-171 1/1 + F-172 3/3 [2026-05-18]) — refreshCrateFlightSection ground/air visibility ; setBranchEnabled mocked ; Parachute Crates exclut slingloaded ; Release/Cut conditionnés slingload actif
+- **Bugfixes session 2026-05-18 — parachute/slingload/poids** : 3 fonctionnels = **3 cas** ✅ PASS live DCS (F-173→F-175 [2026-05-18]) — crate visible au sol après parachutage (_respawnStatic) ; Release/Cut Slingload apparaissent après hover pickup et disparaissent après release/cut ; décompte slingload effacé par msg confirmation (clearview=true)
+- **Total** : **303 cas** — 1230/1230 PASS ✅ + MT-06 9/9 PASS
 
 ---
 

@@ -95,7 +95,6 @@ Each line follows the pattern `ctld.parameterName: value`.
 | `maxExtractDistance` | `125` | Max distance from vehicle to troops for extraction |
 | `maximumSearchDistance` | `4000` | Max distance for AI troops to search for enemies |
 | `maximumMoveDistance` | `2000` | Max distance for AI troops to move from drop point |
-| `minimumDeployDistance` | `1000` | Min distance from a friendly pickup zone to deploy a crate |
 | `maximumDistancePackableUnitsSearch` | `200` | Max distance to search for packable vehicles |
 
 #### Troops
@@ -110,7 +109,7 @@ Each line follows the pattern `ctld.parameterName: value`.
 
 #### Infantry weight simulation
 
-CTLD calculates group weight to check whether a troop group fits inside a transport (see `unitLoadLimits`). Each soldier's weight is randomised ±10–20 % around `SOLDIER_WEIGHT`, then role-specific kit is added.
+CTLD calculates group weight to check whether a troop group fits inside a transport (see `capabilitiesByType[type].unitLoadLimits`). Each soldier's weight is randomised ±10–20 % around `SOLDIER_WEIGHT`, then role-specific kit is added.
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -130,21 +129,66 @@ CTLD calculates group weight to check whether a troop group fits inside a transp
 | `enabledFOBBuilding` | `true` | Allow FOB construction from crates |
 | `cratesRequiredForFOB` | `3` | Number of large crates to build a FOB (small crates count as ⅓ each) |
 | `troopPickupAtFOB` | `true` | Allow troop pickup at built FOBs |
-| `buildTimeFOB` | `120` | FOB construction time (seconds) |
 | `fobMinDistanceFromZones` | `500` | Minimum distance (m) from any logistic zone at which a FOB may be deployed |
 | `fobLogisticZoneRadius` | `150` | Radius (m) of the logistic zone created around a deployed FOB |
 | `fobDestructionThreshold` | `0.5` | Fraction of scene objects destroyed before FOB is considered lost (0.0–1.0) |
 | `fobTroopPickupRadius` | `150` | Radius (m) within which troops can board at a FOB |
-| `crateWaitTime` | `40` | Cooldown between crate spawns (seconds) |
 
 #### Vehicles & packing
 
 | Parameter | Default | Description |
 |---|---|---|
 | `enablePackingVehicles` | `true` | Allow vehicles to be packed back into crates |
-| `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports (Lua table) |
-| `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports (Lua table) |
+| `capabilitiesByType` | `{...}` | Unified per-aircraft capabilities table — see [capabilitiesByType](#capabilitiesbytype) below |
 | `vehiclesWeight` | `{...}` | Weight (kg) per vehicle DCS type, used for transport capacity checks (Lua table) |
+
+### capabilitiesByType
+
+The single table that defines every per-aircraft capability. Only aircraft listed here get CTLD F10 menus. Each key is the **exact DCS type name** of the aircraft.
+
+```lua
+_cfg.settings["capabilitiesByType"] = {
+    ["UH-1H"] = {
+        crates                  = true,   -- can load/unpack crates
+        troops                  = true,   -- can load/deploy infantry
+        canParachute            = true,   -- enables Parachute F10 entries
+        canSlingload            = true,   -- enables hover-pickup + Slingload menus
+        vehicleTransportEnabled = true,   -- can load/unload whole vehicles (Feature Q)
+        dynamicCargoUnits       = true,   -- uses DCS native cargo system for crates
+        unitLoadLimits          = 8,      -- max soldiers (overrides ctld.numberOfTroops)
+        internalCargoLimits     = 1,      -- max crates carried simultaneously
+        maxVehicles             = 1,      -- max whole vehicles carried simultaneously
+        vehiclesRED  = { "BRDM-2", "BTR_D" },
+        vehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+    },
+    ["C-130J-30"] = {
+        crates=true, troops=true, canParachute=false, canSlingload=false,
+        vehicleTransportEnabled=true, dynamicCargoUnits=true,
+        unitLoadLimits=80, internalCargoLimits=20, maxVehicles=2,
+        vehiclesRED  = { "BRDM-2", "BTR_D" },
+        vehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+    },
+    -- ... one entry per aircraft type
+}
+```
+
+**Field reference:**
+
+| Field | Type | Description |
+|---|---|---|
+| `crates` | bool | Can load/spawn/unpack crates |
+| `troops` | bool | Can load/deploy infantry groups |
+| `canParachute` | bool | Enables "Parachute" F10 entries |
+| `canSlingload` | bool | Enables hover-pickup and "Release/Cut Slingload" menus |
+| `vehicleTransportEnabled` | bool | Can load and re-deploy whole vehicles |
+| `dynamicCargoUnits` | bool | Uses DCS native cargo physics for crates |
+| `unitLoadLimits` | number | Max soldiers this aircraft can carry (overrides `numberOfTroops`) |
+| `internalCargoLimits` | number | Max crates loaded simultaneously (default: 1 for unlisted types) |
+| `maxVehicles` | number | Max whole vehicles carried simultaneously |
+| `vehiclesRED` | string[] | DCS type names of RED-coalition vehicles this aircraft can transport |
+| `vehiclesBLUE` | string[] | DCS type names of BLUE-coalition vehicles this aircraft can transport |
+
+> Aircraft not listed in `capabilitiesByType` do not receive CTLD menus. Mod aircraft use their exact DCS type name as the key (e.g. `"Hercules"`, `"76MD"`, `"UH-60L"`).
 
 #### AA systems
 
@@ -702,7 +746,7 @@ per alive JTAC unit, managed through the `_jtacUnits` map in `CTLDTroopGroup`.
 
 ### F10 menu — "Troop Commands"
 
-The menu appears automatically for all transport-capable aircraft (types listed in `unitActions` config).
+The menu appears automatically for all transport-capable aircraft (types listed in `capabilitiesByType` config).
 
 ```
 CTLD
@@ -814,29 +858,7 @@ ctld.loadableGroups = {
 | `maxExtractDistance` | `125` | Max radius (m) to search for extractable friendly groups |
 | `nbLimitSpawnedTroops` | `{0, 0}` | `{red, blue}` — max simultaneous troops in the field per coalition. `0` = unlimited |
 
-**Per-aircraft type capacity override** (optional):
-
-```lua
-ctld.transportLimitByType = {
-    ["UH-1H"]       = 8,
-    ["CH-47D"]      = 30,
-    ["Mi-8MT"]      = 12,
-}
-```
-
-If a type is not listed, `numberOfTroops` applies.
-
-**Per-aircraft max vehicle override** (optional):
-
-```lua
-ctld.settings["maxVehiclesByType"] = {
-    ["C-130J-30"]  = 2,
-    ["CH-47Fbl1"]  = 1,
-    ["Hercules"]   = 2,
-}
-```
-
-Maximum number of vehicles loadable simultaneously per aircraft type. Types not listed use the default slingload rules.
+All per-aircraft capacities (troop limit, crate limit, vehicle transport, parachute, slingload) are now configured through the unified `capabilitiesByType` table — see [§1 capabilitiesByType](#capabilitiesbytype) for the full reference.
 
 ---
 
@@ -878,22 +900,22 @@ CTLD can simulate parachute drops for crates, troops, and vehicles without relyi
 
 ### 6.1 Enabling parachute drops per aircraft
 
-Parachute menus are **hidden by default**. Enable them individually for each aircraft type via `canParachute` in `ctld.unitActions`:
+Parachute menus are **hidden by default**. Enable them individually for each aircraft type via `canParachute = true` in `capabilitiesByType`:
 
 ```lua
-ctld.unitActions = {
-    ["UH-1H"]    = { crates = true, troops = true, canParachute = true  },
-    ["CH-47Fbl1"]= { crates = true, troops = true, canParachute = true  },
-    ["Mi-8MT"]   = { crates = true, troops = true, canParachute = false },
+_cfg.settings["capabilitiesByType"] = {
+    ["UH-1H"]     = { ..., canParachute = true  },
+    ["CH-47Fbl1"] = { ..., canParachute = true  },
+    ["Mi-8MT"]    = { ..., canParachute = false },
     -- ...
 }
 ```
 
-When `canParachute = true`, three new F10 menu entries appear for that aircraft type:
+When `canParachute = true`, up to three F10 menu entries become available. Each appears **only in flight** and only when the relevant cargo is onboard:
 
-- **Parachute Crates** — drops all loaded crates
+- **Parachute Crates** — drops all CTLD-loaded crates (excludes crates in active virtual slingload)
 - **Parachute Troops** — drops all embarked troops
-- **Parachute Vehicle** — drops the loaded vehicle
+- **Parachute Vehicle** — drops the loaded whole vehicle
 
 All three share the same altitude gate: the action is refused (with an on-screen message) if the aircraft is below the configured minimum AGL for that payload type.
 
@@ -914,9 +936,9 @@ All parameters are set in `CTLD_userConfig.lua`.
 
 | Parameter | Default | Description |
 | --- | --- | --- |
-| `parachuteMinAltitudeCrates` | `30` | Minimum AGL (m) to drop crates |
-| `parachuteMinAltitudeTroops` | `50` | Minimum AGL (m) to drop troops |
-| `parachuteMinAltitudeVehicles` | `30` | Minimum AGL (m) to drop a vehicle |
+| `parachuteMinAltitudeCrates` | `300` | Minimum AGL (m) to drop crates |
+| `parachuteMinAltitudeTroops` | `300` | Minimum AGL (m) to drop troops |
+| `parachuteMinAltitudeVehicles` | `300` | Minimum AGL (m) to drop a vehicle |
 
 Below these thresholds the menu action is rejected and the payload remains loaded.
 
@@ -959,15 +981,14 @@ Virtual slingload is an alternative to DCS native sling-load physics (`slingLoad
 
 ### 7.1 Enabling slingload per aircraft
 
-Add `canSlingload = true` to the relevant entries in `ctld.unitActions`:
+Set `canSlingload = true` in the `capabilitiesByType` entry for each aircraft that supports hover pickup:
 
 ```lua
-ctld.unitActions = {
-    ["UH-1H"]    = { crates = true, troops = true, canSlingload = true  },
-    ["Mi-8MT"]   = { crates = true, troops = true, canSlingload = true  },
-    ["CH-47Fbl1"]= { crates = true, troops = true, canSlingload = true  },
-    ["C-130J-30"]= { crates = true, troops = true, canSlingload = false },
-    -- fixed-wing aircraft cannot hover, so slingload=false
+_cfg.settings["capabilitiesByType"] = {
+    ["UH-1H"]     = { ..., canSlingload = true  },
+    ["Mi-8MT"]    = { ..., canSlingload = true  },
+    ["CH-47Fbl1"] = { ..., canSlingload = true  },
+    ["C-130J-30"] = { ..., canSlingload = false },  -- fixed-wing cannot hover
 }
 ```
 
@@ -987,7 +1008,7 @@ If the helicopter drifts out of range the countdown resets. Once the timer reach
 
 ### 7.3 Carrying and dropping
 
-Once a crate is slingloaded, two F10 menu entries appear under **Crate Commands** (visible only while airborne):
+Once a crate is slingloaded, two F10 menu entries appear under **Crate Commands** — **visible only while airborne and a virtual slingload is active**:
 
 **Release Slingload** — controlled release:
 
@@ -1215,6 +1236,14 @@ LGZ (spawn) → load (hover or menu) → fly → unload → unpack → vehicle /
 
 ### 10.2 Actions
 
+> **F10 menu visibility — ground vs in-flight**
+> The **Crate Commands** submenu is context-sensitive. Items are shown or hidden automatically based on whether the aircraft is on the ground or airborne:
+>
+> | State | Visible entries |
+> | --- | --- |
+> | **Ground** | Load Crate · Drop Crate(s) · Unpack Crate · List Nearby Crates · Pack Vehicle |
+> | **In flight** | Parachute Crates (if CTLD crates loaded, non-slingloaded) · Release Slingload · Cut Slingload (if virtual slingload active) |
+
 #### Spawn crate
 **Utility:** Creates a DCS static cargo object near the logistics zone. The crate represents a specific vehicle or kit.
 **How it works:** Player selects "Get Crate" from the F10 menu while inside a LGZ. A crate static is spawned at a fixed offset from the helicopter (forward sector). One crate per 40 s cooldown per player.
@@ -1247,7 +1276,7 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 **Utility:** Consumes the crate(s) and deploys the vehicle, AA system, or triggers FOB construction.
 **How it works:** CTLD checks that the required number of matching crates (`cratesRequired`) are within 300 m. If met, crates are destroyed and the object is spawned via the unified spawn pipeline (`ctld.utils.buildGroupUnitDef` + `ctld.utils.spawnFromDescriptor`). The DCS API used depends on `spawnAs`: ground vehicles use `coalition.addGroup(GROUND)`, air units use `coalition.addGroup(AIRPLANE/HELICOPTER)`, static objects use `coalition.addStaticObject`.
 **Activation:** F10 → Crate Commands → Unpack Crate(s)
-**Conditions:** Must be on the ground, not inside a LGZ, crates within 300 m, not too close to friendly pickup zone (`minimumDeployDistance`).
+**Conditions:** Must be on the ground, not inside a LGZ, crates within 300 m.
 
 ### 10.3 Key configuration parameters
 
@@ -1255,8 +1284,6 @@ CTLDCrateManager.getInstance():unloadCrate(crateName, position, "menu")
 |---|---|---|
 | `enableCrates` | `true` | Enable the crate system |
 | `enableAllCrates` | `true` | Add "Get All Crates" shortcut entries |
-| `crateWaitTime` | `40` | Cooldown (s) between crate spawns per player |
-| `minimumDeployDistance` | `1000` | Min distance (m) from a friendly pickup zone to unpack |
 | `maximumDistanceLogistic` | `200` | Max distance (m) from logistics unit to interact |
 
 ### 10.4 Events
@@ -1317,8 +1344,7 @@ CTLDVehicleSpawner.getInstance():packVehicle(transportUnitName, vehicleUnitName,
 |---|---|---|
 | `enablePackingVehicles` | `true` | Enable pack vehicle menu |
 | `maximumDistancePackableUnitsSearch` | `200` | Max distance (m) from transport to search for packable vehicles |
-| `vehiclesForTransportBLUE` | `{...}` | Vehicle types loadable onto BLUE fixed-wing transports |
-| `vehiclesForTransportRED` | `{...}` | Vehicle types loadable onto RED fixed-wing transports |
+| `vehicleTransportCapabilities` | `{...}` | Per-aircraft whole-unit vehicle transport: `maxVehicles`, `vehiclesRED`, `vehiclesBLUE` (Feature Q) |
 | `internalCargoLimits` | `{ ["Mi-8MT"]=2, ["CH-47Fbl1"]=8, ... }` | Max number of vehicles (menu load) per transport DCS type name. Default: 1 for unlisted types. Also caps slingload crates count. |
 | `vehiclesWeight` | `{ ["M1045 HMMWV TOW"]=3220, ... }` | Weight (kg) per vehicle type used for `setUnitInternalCargo` after menu load/unload. Default: 2500 kg for unlisted types. |
 
@@ -1343,7 +1369,7 @@ A FOB is a deployable forward base built from crates. Once built, it automatical
 **How it works:**
 1. Player loads `cratesRequiredForFOB` FOB crates (weight 1001–1003 by default) and flies to the desired location.
 2. Unpack is triggered from the F10 menu. CTLD checks that all required crates are within 750 m of each other and that the position is ≥ `fobMinDistanceFromZones` from existing zones.
-3. The FOB scene plays (structures spawn sequentially over `buildTimeFOB` seconds).
+3. The FOB scene plays (structures spawn sequentially; timing is managed internally by the FOB scene engine).
 4. When complete: a radio beacon is automatically placed at the FOB centroid, the area registers as a LGZ, and (if `troopPickupAtFOB=true`) as a troop pickup zone.
 **Activation:** F10 → Crate Commands → Unpack Crate(s) (when FOB crates are nearby)
 
@@ -1357,7 +1383,6 @@ If enemy forces destroy ≥ `fobDestructionThreshold` (50% by default) of the FO
 |---|---|---|
 | `enabledFOBBuilding` | `true` | Enable FOB construction |
 | `cratesRequiredForFOB` | `3` | Number of FOB crates required |
-| `buildTimeFOB` | `120` | Construction time (s) |
 | `troopPickupAtFOB` | `true` | Register FOB as a troop pickup zone after build |
 | `fobMinDistanceFromZones` | `500` | Min distance (m) from existing zones |
 | `fobDestructionThreshold` | `0.5` | Fraction of structures destroyed to trigger FOB loss |

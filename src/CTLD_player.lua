@@ -259,6 +259,7 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
+        CTLDCrateManager.getInstance():refreshCrateFlightSection(captured)
         CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
@@ -275,6 +276,7 @@ function CTLDPlayerManager:onTakeoff(event)
     if not playerObj then return end
     CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+    CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
@@ -388,7 +390,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
                     end
                     vehCount[vt] = vehCount[vt] + 1
                 end
-                local vWeights = ctld.gs("vehiclesWeight") or {}
+                local vWeights = ctld.gs("groundVehicleWeights") or {}
                 for _, vt in ipairs(vehOrder) do
                     local count = vehCount[vt]
                     local w     = (vWeights[vt] or 2500) * count
@@ -459,19 +461,10 @@ end
 -- @param unit DCS Unit
 -- @return isTransport bool, canCarryVehicles bool
 function CTLDPlayerManager:_detectCapabilities(unit)
-    local typeName    = unit:getTypeName()
-    local typeLower   = string.lower(typeName)
-    local unitActions = ctld.gs("unitActions") or {}
-    local isTransport = (unitActions[typeName] ~= nil)
-
-    local canCarryVehicles  = false
-    local vehicleTransports = ctld.gs("vehicleTransportEnabled") or {}
-    for _, name in ipairs(vehicleTransports) do
-        if string.find(typeLower, string.lower(name), 1, true) then
-            canCarryVehicles = true
-            break
-        end
-    end
+    local typeName = unit:getTypeName()
+    local caps     = (ctld.gs("capabilitiesByType") or {})[typeName]
+    local isTransport      = (caps ~= nil)
+    local canCarryVehicles = (caps ~= nil and caps.canTransportWholeVehicle == true)
 
     return isTransport, canCarryVehicles
 end

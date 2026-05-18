@@ -1517,7 +1517,7 @@ function CTLDJTACManager:refreshJtacEquipmentSection(playerObj)
                     :spawnJTACFromDescriptor(arg.desc, t, z)
                 if result then
                     trigger.action.outTextForGroup(arg.groupId,
-                        string.format(ctld.tr("%s is ready for pickup."), arg.desc.desc), 10)
+                        ctld.tr("%1 is ready for pickup.", arg.desc.desc), 10)
                 end
             end,
             { unitName  = playerObj.unitName,
@@ -1545,14 +1545,14 @@ function CTLDJTACManager:toggleStandby(groupName, groupId)
         jtac.standbyMode = false
         self:startLase(groupName)
         trigger.action.outTextForGroup(groupId,
-            string.format(ctld.tr("Lasing activated: %s"), groupName), 8)
+            ctld.tr("Lasing activated: %1", groupName), 8)
     else
         jtac.standbyMode = true
         if jtac.currentTarget then
             self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.STANDBY_MODE)
         end
         trigger.action.outTextForGroup(groupId,
-            string.format(ctld.tr("Lasing deactivated (standby): %s"), groupName), 8)
+            ctld.tr("Lasing deactivated (standby): %1", groupName), 8)
     end
     self:_rebuildJTACCommandBranch(groupName)
 end
@@ -1568,8 +1568,8 @@ function CTLDJTACManager:toggleSpotCorrections(groupName, groupId)
     end
     jtac.laseSpotCorrections = not jtac.laseSpotCorrections
     local msg = jtac.laseSpotCorrections
-        and string.format(ctld.tr("Spot corrections activated: %s"), groupName)
-        or  string.format(ctld.tr("Spot corrections deactivated: %s"), groupName)
+        and ctld.tr("Spot corrections activated: %1", groupName)
+        or  ctld.tr("Spot corrections deactivated: %1", groupName)
     trigger.action.outTextForGroup(groupId, msg, 8)
     self:_rebuildJTACCommandBranch(groupName)
 end

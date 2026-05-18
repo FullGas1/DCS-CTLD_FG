@@ -2071,6 +2071,12 @@ end
 --- DCS-native loaded crates/vehicles are excluded: DCS manages their weight.
 --- @param unitName string  transport unit name
 function ctld.utils.updateTransportWeight(unitName)
+    local unit = Unit.getByName(unitName)
+    if not (unit and unit:isExist()) then
+        ctld.utils.log("INFO",
+            "updateTransportWeight skipped — unit no longer exists: %s", unitName)
+        return
+    end
     local total = 0
     total = total + CTLDTroopManager.getInstance():getWeight(unitName)
     total = total + CTLDCrateManager.getInstance():getLoadedCrateWeight(unitName)

@@ -34,65 +34,11 @@ function CTLDConfig:load()
     self.settings["debugScreenLog"]                     = false -- if true, ctld.utils.log() also echoes to DCS screen via outText
     self.settings["debugScreenLogDuration"]             = 10    -- seconds each screen log message is displayed (requires debugScreenLog=true)
     self.settings["disableAllSmoke"]                    = false -- if true, all smoke is diabled at pickup and drop off zones regardless of settings below. Leave false to respect settings below
-    self.settings["addPlayerAircraftByType"]            = true  -- Allow units to CTLD by aircraft type and not by pilot name - this is done everytime a player enters a new units
     self.settings["location_DMS"]                       = false -- shows coordinates as Degrees Minutes Seconds instead of Degrees Decimal minutes
 
     -- ═══════════════════════════════════════════════════════════
     -- [2] TRANSPORTS — Aircraft types and pilot names
     -- ═══════════════════════════════════════════════════════════
-
-    -- If ctld.addPlayerAircraftByType = True, comment or uncomment lines to allow aircraft's type carry CTLD
-    self.settings["aircraftTypeTable"]                  = {
-        --%%%%% MODS %%%%%
-        --"Bronco-OV-10A",
-        --"Hercules",
-        --"SK-60",
-        --"UH-60L",
-        --"T-45",
-
-        --%%%%% CHOPPERS %%%%%
-        --"Ka-50",
-        --"Ka-50_3",
-        "Mi-8MT",
-        "Mi-24P",
-        --"SA342L",
-        --"SA342M",
-        --"SA342Mistral",
-        --"SA342Minigun",
-        "UH-1H",
-        "CH-47Fbl1",
-
-        --%%%%% AIRCRAFTS %%%%%
-        --"C-101EB",
-        --"C-101CC",
-        --"Christen Eagle II",
-        --"L-39C",
-        --"L-39ZA",
-        --"MB-339A",
-        --"MB-339APAN",
-        --"Mirage-F1B",
-        --"Mirage-F1BD",
-        --"Mirage-F1BE",
-        --"Mirage-F1BQ",
-        --"Mirage-F1DDA",
-        --"Su-25T",
-        --"Yak-52",
-        "C-130J-30",
-
-        --%%%%% WARBIRDS %%%%%
-        --"Bf-109K-4",
-        --"Fw 190A8",
-        --"FW-190D9",
-        --"I-16",
-        --"MosquitoFBMkVI",
-        --"P-47D-30",
-        --"P-47D-40",
-        --"P-51D",
-        --"P-51D-30-NA",
-        --"SpitfireLFMkIX",
-        --"SpitfireLFMkIXCW",
-        --"TF-51D",
-    }
 
     -- Use any of the predefined names or set your own ones
     self.settings["transportPilotNames"]                = {
@@ -231,9 +177,9 @@ function CTLDConfig:load()
     self.settings["enableSmokeDrop"]                    = true -- if false, helis and c-130 will not be able to drop smoke
     self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
     self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
-    self.settings["crateWaitTime"]                      = 40   -- time in seconds to wait before you can spawn another crate
-    self.settings["minimumDeployDistance"]              = 1000 -- minimum distance from a friendly pickup zone where you can deploy a crate
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
+    self.settings["crateSpacing"]                       = 5    -- spacing (m) between consecutive crate spawn positions along the drop axis
+    self.settings["spawnDistanceInCircle"]              = 10   -- extra radius (m) added to safe-radius when placing units in circle formation on deploy
 
     -- Simulated Sling load configuration (Feature B)
     self.settings["minimumHoverHeight"]                 = 7.5  -- Lowest allowable height for crate hover
@@ -241,20 +187,15 @@ function CTLDConfig:load()
     self.settings["maxDistanceFromCrate"]               = 5.5  -- Maximum distance from from crate for hover
     self.settings["hoverTime"]                          = 10   -- Time to hold hover above a crate for loading in seconds
     self.settings["maxSlingloadSpeed"]                  = 50   -- Max speed (m/s) while carrying a slingloaded crate — exceed it and the crate is lost
+    self.settings["maxDropHeight"]                      = 7.5  -- max altitude AGL (m) for a safe crate drop; above this the crate is destroyed on impact
     -- end of Simulated Sling load configuration
 
     -- ═══════════════════════════════════════════════════════════
     -- [4] TROOPS — Infantry loading, fast rope, extraction limits
     -- ═══════════════════════════════════════════════════════════
     self.settings["numberOfTroops"]                     = 10       -- default number of troops to load on a transport heli or C-130
+    self.settings["maxTransportWeight"]                 = 0        -- max cargo weight (kg) per transport; 0 = unlimited
     -- multiGroupTransport removed: multiple groups always allowed up to transport capacity.
-    -- Per-aircraft max vehicles in hold (0 = no vehicle transport). Falls back to 1 if entry absent and vehicleTransportEnabled=true.
-    self.settings["maxVehiclesByType"]                  = {
-        ["C-130J-30"] = 2,
-        ["CH-47Fbl1"] = 1,
-        ["Hercules"]  = 2,
-    }
-    -- also works as maximum size of group that'll fit into a helicopter unless overridden
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
     self.settings["allowRandomAiTeamPickups"]           = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
@@ -267,11 +208,9 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [5] VEHICLES — Packable vehicles and transport configuration
     -- ═══════════════════════════════════════════════════════════
-    self.settings["enablePackingVehicles"]              = true                                          -- if true, vehicles can be packed into crates
-    self.settings["maximumDistancePackableUnitsSearch"] = 200                                           -- max distance from transportUnit to search for packable units in meters
-    self.settings["vehiclesForTransportRED"]            = { "BRDM-2", "BTR_D" }                         -- vehicles to load onto Il-76 - Alternatives {"Strela-1 9P31","BMP-1"}
-    self.settings["vehiclesForTransportBLUE"]           = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" } -- vehicles to load onto c130 - Alternatives {"M1128 Stryker MGS","M1097 Avenger"}
-    self.settings["vehiclesWeight"]                     = {
+    self.settings["enablePackingVehicles"]              = true  -- if true, vehicles can be packed into crates
+    self.settings["maximumDistancePackableUnitsSearch"] = 200   -- max distance from transportUnit to search for packable units in meters
+    self.settings["groundVehicleWeights"]               = {
         ["BRDM-2"] = 7000,
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
@@ -285,7 +224,6 @@ function CTLDConfig:load()
     -- In future i'd like it to be a FARP but so far that seems impossible...
     -- You can also enable troop Pickup at FOBS
     self.settings["troopPickupAtFOB"]                   = true -- if true, troops can also be picked up at a created FOB
-    self.settings["buildTimeFOB"]                       = 120  -- time in seconds for the FOB to be built
     self.settings["fobMinDistanceFromZones"]            = 500  -- minimum distance (m) from existing logistic zones to deploy a FOB
     self.settings["fobLogisticZoneRadius"]              = 150  -- radius (m) of the logistic zone created around a deployed FOB
     self.settings["fobDestructionThreshold"]            = 0.5  -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
@@ -296,9 +234,9 @@ function CTLDConfig:load()
     -- [FA] PARACHUTE — Virtual parachute drop (Feature A)
     -- ═══════════════════════════════════════════════════════════
     -- Minimum altitude AGL (m) required to initiate a parachute drop.
-    self.settings["parachuteMinAltitudeCrates"]           = 30   -- m AGL
-    self.settings["parachuteMinAltitudeTroops"]           = 50   -- m AGL (safety margin for personnel)
-    self.settings["parachuteMinAltitudeVehicles"]         = 30   -- m AGL
+    self.settings["parachuteMinAltitudeCrates"]           = 300  -- m AGL
+    self.settings["parachuteMinAltitudeTroops"]           = 300  -- m AGL
+    self.settings["parachuteMinAltitudeVehicles"]         = 300  -- m AGL
     -- Vertical descent speed (m/s) — determines time-to-ground.
     self.settings["parachuteDescentRateCrates"]           = 5    -- m/s
     self.settings["parachuteDescentRateTroops"]           = 5    -- m/s
@@ -313,12 +251,19 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [7] BEACONS — Radio beacon drop, sounds and battery life
     -- ═══════════════════════════════════════════════════════════
-    self.settings["enabledRadioBeaconDrop"]               = true -- if its set to false then beacons cannot be dropped by units
+    self.settings["enabledRadioBeaconDrop"]               = true  -- if its set to false then beacons cannot be dropped by units
     self.settings["radioSound"]                           =
-    "beacon.ogg"                                                 -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
+    "beacon.ogg"                                                  -- the name of the sound file to use for the FOB radio beacons. If this isnt added to the mission BEACONS WONT WORK!
     self.settings["radioSoundFC3"]                        =
-    "beaconsilent.ogg"                                           -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
+    "beaconsilent.ogg"                                            -- name of the second silent radio file, used so FC3 aircraft dont hear ALL the beacon noises... :)
     self.settings["deployedBeaconBattery"]                = 30   -- the battery on deployed beacons will last for this number minutes before needing to be re-deployed
+    -- Beacon F10 layer options
+    self.settings["beaconLayerEnabled"]                   = false                -- if true, beacon positions are drawn on the F10 map as icons
+    self.settings["beaconAutoRefreshLayer"]               = false                -- if true, newly-dropped beacons are auto-added to active layer
+    self.settings["beaconRefreshInterval"]                = 60                   -- seconds between beacon layer refreshes
+    self.settings["beaconIconRadius"]                     = 25                   -- radius (m) of beacon icon circles on the F10 map
+    self.settings["beaconIconColor"]                      = { 1.0, 0.5, 0.0, 1.0 } -- RGBA color of beacon icon (default: orange)
+    self.settings["beaconTextSize"]                       = 12                   -- font size of beacon name/coords text on the F10 map
 
     -- ═══════════════════════════════════════════════════════════
     -- [8] AA — Anti-Aircraft system limits and crate stacking
@@ -390,6 +335,10 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [11] ZONES — Pickup, drop-off and waypoint zones
     -- ═══════════════════════════════════════════════════════════
+    self.settings["dynamicZoneRadius"]                    = 200  -- radius (m) of logistic zones created around LGZ_ trigger zones
+    self.settings["smokeRefreshInterval"]                 = 300  -- seconds between smoke signal refreshes at logistic/troop zones
+    self.settings["logisticZoneSmokeColor"]               = nil  -- optional: table [coalition_id] = smokeColor — nil disables zone smoke
+    self.settings["troopZoneSmokeColor"]                  = nil  -- optional: table [coalition_id] = smokeColor — nil disables troop zone smoke
 
     -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
     -- Use any of the predefined names or set your own ones
@@ -510,178 +459,104 @@ function CTLDConfig:load()
         "logistic10",
     }
 
-    -- ************** UNITS ABLE TO TRANSPORT VEHICLES ******************
-    -- Add the model name of the unit that you want to be able to transport and deploy vehicles
-    -- units db has all the names or you can extract a mission.miz file by making it a zip and looking
-    -- in the contained mission file
-    self.settings["vehicleTransportEnabled"]              = {
-        "76MD", -- the il-76 mod doesnt use a normal - sign so il-76md wont match... !!!! GRR
-        "Hercules",
-        "C-130J-30",
-        "UH-1H",
-        "Mi-8",
-        --"CH-47Fbl1",
-    }
-
-    -- ************** Units able to use DCS dynamic cargo system ******************
-    -- DCS (version) added the ability to load and unload cargo from aircraft.
-    -- Units listed here will spawn a cargo static that can be loaded with the standard DCS cargo system
-    -- We will also use this to make modifications to the menu and other checks and messages
-    self.settings["dynamicCargoUnits"]                    = {
-        "CH-47Fbl1",
-        "UH-1H",
-        "Mi-8MT",
-        "Mi-24P",
-        "C-130J-30"
-    }
-
-    -- ************** Maximum Units SETUP for UNITS ******************
-    -- Put the name of the Unit you want to limit group sizes too
-    -- i.e
-    -- ["UH-1H"] = 10,
+    -- ═══════════════════════════════════════════════════════════
+    -- [CAP] CAPABILITIES BY TYPE — unified per-aircraft settings
+    -- ═══════════════════════════════════════════════════════════
+    -- Each entry defines ALL capabilities for one DCS aircraft type.
+    -- Absence of an entry = unit is not a CTLD transport.
     --
-    -- Will limit UH1 to only transport groups with a size 10 or less
-    -- Make sure the unit name is exactly right or it wont work
+    -- Fields:
+    --   cratesEnabled            (bool)  can carry/spawn/unpack crates
+    --   troopsEnabled            (bool)  can carry/deploy/extract troops
+    --   canParachuteDrop         (bool)  enable "Parachute" F10 entries (Feature A)
+    --   canSlingload             (bool)  enable hover-pickup + "Release/Cut Slingload" (Feature B)
+    --   canTransportWholeVehicle (bool)  can load/unload whole vehicles (Feature Q)
+    --   useNativeDcsCargoSystem  (bool)  use DCS native cargo system for crate spawning
+    --   maxTroopsOnboard         (int)   max troops/group; fallback = numberOfTroops
+    --   maxCratesOnboard         (int)   max crates in hold simultaneously; fallback = 1
+    --   maxWholeVehiclesOnboard  (int)   max whole vehicles in hold; 0 = no vehicle transport
+    --   loadableVehiclesRED      (table) DCS unit types loadable as whole vehicles (RED coalition)
+    --   loadableVehiclesBLUE     (table) DCS unit types loadable as whole vehicles (BLUE coalition)
 
-    self.settings["unitLoadLimits"]                       = {
-        -- Remove the -- below to turn on options
-        -- ["SA342Mistral"] = 4,
-        -- ["SA342L"] = 4,
-        -- ["SA342M"] = 4,
+    self.settings["capabilitiesByType"] = {
 
-        --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = 4,
-        ["Hercules"] = 30,
-        --["SK-60"] = 1,
-        ["UH-60L"] = 12,
-        --["T-45"] = 1,
+        -- ── MODS ────────────────────────────────────────────────────────────────
+        -- ["Bronco-OV-10A"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        ["76MD"] = {  -- Il-76 mod (exact DCS type name)
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["Hercules"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 30,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["SK-60"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 4,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        ["UH-60L"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = false,
+            maxTroopsOnboard = 12,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        -- ["T-45"] = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
 
-        --%%%%% CHOPPERS %%%%%
-        ["Mi-8MT"] = 16,
-        ["Mi-24P"] = 10,
-        --["SA342L"] = 4,
-        --["SA342M"] = 4,
-        --["SA342Mistral"] = 4,
-        --["SA342Minigun"] = 3,
-        ["UH-1H"] = 8,
-        ["CH-47Fbl1"] = 33,
+        -- ── HELICOPTERS ──────────────────────────────────────────────────────────
+        -- ["Ka-50"]   = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        -- ["Ka-50_3"] = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=true,
+        --    canTransportWholeVehicle=false, useNativeDcsCargoSystem=false, maxTroopsOnboard=4, maxCratesOnboard=1, maxWholeVehiclesOnboard=0 },
+        ["Mi-8MT"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 16,  maxCratesOnboard = 2,   maxWholeVehiclesOnboard = 0,
+        },
+        ["Mi-24P"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 10,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 0,
+        },
+        -- ["SA342L"]      = { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342M"]      = { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342Mistral"]= { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["SA342Minigun"]= { cratesEnabled=false, troopsEnabled=true,  canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=3 },
+        ["UH-1H"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true,  canSlingload = true,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 8,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 1,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
+        ["CH-47Fbl1"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
 
-        --%%%%% AIRCRAFTS %%%%%
-        --["C-101EB"] = 1,
-        --["C-101CC"] = 1,
-        --["Christen Eagle II"] = 1,
-        --["L-39C"] = 1,
-        --["L-39ZA"] = 1,
-        --["MB-339A"] = 1,
-        --["MB-339APAN"] = 1,
-        --["Mirage-F1B"] = 1,
-        --["Mirage-F1BD"] = 1,
-        --["Mirage-F1BE"] = 1,
-        --["Mirage-F1BQ"] = 1,
-        --["Mirage-F1DDA"] = 1,
-        --["Su-25T"] = 1,
-        --["Yak-52"] = 1,
-        ["C-130J-30"] = 80
+        -- ── FIXED-WING ───────────────────────────────────────────────────────────
+        -- ["C-101EB"]  = { cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=4 },
+        -- ["Su-25T"]   = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=1 },
+        ["C-130J-30"] = {
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
+            canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
+            maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        },
 
-        --%%%%% WARBIRDS %%%%%
-        --["Bf-109K-4"] = 1,
-        --["Fw 190A8"] = 1,
-        --["FW-190D9"] = 1,
-        --["I-16"] = 1,
-        --["MosquitoFBMkVI"] = 1,
-        --["P-47D-30"] = 1,
-        --["P-47D-40"] = 1,
-        --["P-51D"] = 1,
-        --["P-51D-30-NA"] = 1,
-        --["SpitfireLFMkIX"] = 1,
-        --["SpitfireLFMkIXCW"] = 1,
-        --["TF-51D"] = 1,
-    }
-
-    -- Put the name of the Unit you want to enable loading multiple crates
-    self.settings["internalCargoLimits"]                  = {
-
-        -- Remove the -- below to turn on options
-        ["Mi-8MT"] = 2,
-        ["CH-47Fbl1"] = 8,
-        ["C-130J-30"] = 20
-    }
-
-
-    -- ************** Allowable actions for UNIT TYPES ******************
-    -- Put the name of the Unit you want to limit actions for
-    -- NOTE - the unit must've been listed in the transportPilotNames list above
-    -- This can be used in conjunction with the options above for group sizes
-    -- By default you can load both crates and troops unless overriden below
-    -- i.e
-    -- ["UH-1H"] = {crates=true, troops=false},
-    --
-    -- Will limit UH1 to only transport CRATES but NOT TROOPS
-    --
-    -- ["SA342Mistral"] = {crates=fales, troops=true},
-    -- Will allow Mistral Gazelle to only transport crates, not troops
-
-    self.settings["unitActions"] = {
-
-        -- Remove the -- below to turn on options
-        -- ["SA342Mistral"] = {crates=true, troops=true},
-        -- ["SA342L"] = {crates=false, troops=true},
-        -- ["SA342M"] = {crates=false, troops=true},
-
-        -- canParachute=true  enables "Parachute Crates/Troops/Vehicle" menu entries (Feature A).
-        -- canSlingload=true  enables "Release Slingload" / "Cut Slingload" menu entries (Feature B)
-        --                    and activates hover-pickup polling for this aircraft type.
-        -- Helicopters support slingload; fixed-wing aircraft do not.
-
-        --%%%%% MODS %%%%%
-        --["Bronco-OV-10A"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
-        ["Hercules"]  = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        ["SK-60"]     = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        ["UH-60L"]    = { crates = true, troops = true, canParachute = false, canSlingload = true },
-        ["C-130J-30"] = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        --["T-45"] = {crates=true, troops=true, canParachute=false, canSlingload=false},
-
-        --%%%%% CHOPPERS %%%%%
-        --["Ka-50"]   = {crates=true, troops=false, canParachute=false, canSlingload=true},
-        --["Ka-50_3"] = {crates=true, troops=false, canParachute=false, canSlingload=true},
-        ["Mi-8MT"]    = { crates = true, troops = true, canParachute = false, canSlingload = true },
-        ["Mi-24P"]    = { crates = true, troops = true, canParachute = false, canSlingload = false },
-        --["SA342L"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342M"]      = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342Mistral"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        --["SA342Minigun"] = {crates=false, troops=true, canParachute=false, canSlingload=false},
-        ["UH-1H"]     = { crates = true, troops = true, canParachute = true, canSlingload = true },
-        ["CH-47Fbl1"] = { crates = true, troops = true, canParachute = false, canSlingload = true },
-
-        --%%%%% AIRCRAFTS %%%%%
-        --["C-101EB"] = {crates=true, troops=true},
-        --["C-101CC"] = {crates=true, troops=true},
-        --["Christen Eagle II"] = {crates=true, troops=true},
-        --["L-39C"] = {crates=true, troops=true},
-        --["L-39ZA"] = {crates=true, troops=true},
-        --["MB-339A"] = {crates=true, troops=true},
-        --["MB-339APAN"] = {crates=true, troops=true},
-        --["Mirage-F1B"] = {crates=true, troops=true},
-        --["Mirage-F1BD"] = {crates=true, troops=true},
-        --["Mirage-F1BE"] = {crates=true, troops=true},
-        --["Mirage-F1BQ"] = {crates=true, troops=true},
-        --["Mirage-F1DDA"] = {crates=true, troops=true},
-        --["Su-25T"]= {crates=true, troops=false},
-        --["Yak-52"] = {crates=true, troops=true},
-
-        --%%%%% WARBIRDS %%%%%
-        --["Bf-109K-4"] = {crates=true, troops=false},
-        --["Fw 190A8"] = {crates=true, troops=false},
-        --["FW-190D9"] = {crates=true, troops=false},
-        --["I-16"] = {crates=true, troops=false},
-        --["MosquitoFBMkVI"] = {crates=true, troops=true},
-        --["P-47D-30"] = {crates=true, troops=false},
-        --["P-47D-40"] = {crates=true, troops=false},
-        --["P-51D"] = {crates=true, troops=false},
-        --["P-51D-30-NA"] = {crates=true, troops=false},
-        --["SpitfireLFMkIX"] = {crates=true, troops=false},
-        --["SpitfireLFMkIXCW"] = {crates=true, troops=false},
-        --["TF-51D"] = {crates=true, troops=true},
+        -- ── WARBIRDS (examples, all disabled by default) ─────────────────────────
+        -- ["P-51D"] = { cratesEnabled=true, troopsEnabled=false, canParachuteDrop=false, canSlingload=false, maxTroopsOnboard=1 },
     }
 
     -- ************** WEIGHT CALCULATIONS FOR INFANTRY GROUPS ******************

@@ -1186,8 +1186,8 @@ end
 
 -- Returns the maximum number of troops this aircraft type can carry.
 function CTLDTroopManager:_transportLimit(typeName)
-    local byType = ctld.gs("transportLimitByType")
-    if byType and byType[typeName] then return byType[typeName] end
+    local caps = (ctld.gs("capabilitiesByType") or {})[typeName]
+    if caps and caps.maxTroopsOnboard then return caps.maxTroopsOnboard end
     return ctld.gs("numberOfTroops") or 10
 end
 
@@ -1211,7 +1211,7 @@ function CTLDTroopManager:_canEmbark(typeName, unitName, newTotal, newWeight)
     local limit   = self:_transportLimit(typeName)
     local current = self:_currentTroopCount(unitName)
     if current + newTotal > limit then
-        return false, ctld.tr("Group too large for this aircraft (capacity: %1 troops).", limit)
+        return false, ctld.tr("Group too large for this aircraft (%1/%2 troops).", current, limit)
     end
     if newWeight and newWeight > 0 then
         local maxW = ctld.gs("maxTransportWeight") or 0
@@ -1556,7 +1556,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
-            string.format(ctld.tr("Altitude too low for parachute drop. Minimum: %dm AGL (current: %dm AGL)"),
+            ctld.tr("Altitude too low for parachute drop. Minimum: %1m AGL (current: %2m AGL)",
                 math.floor(minAlt), math.floor(altAGL)), 10)
         return
     end
@@ -1729,9 +1729,8 @@ end
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDTroopManager:buildMenuSection(playerObj, menu)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.troops) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.troopsEnabled) then return end
 
     local root     = ctld.tr("CTLD")
     local troopSub = ctld.tr("Troop Commands")
@@ -1745,9 +1744,8 @@ end
 -- state (in air / on ground / zone membership).
 -- @param playerObj CTLDPlayer
 function CTLDTroopManager:refreshMenuSection(playerObj)
-    local unitActions = ctld.gs("unitActions") or {}
-    local actions     = unitActions[playerObj.typeName]
-    if not (playerObj.isTransport and actions and actions.troops) then return end
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.troopsEnabled) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -1817,7 +1815,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
             if zone:hasPickup() and zone:isInZone(pt) then
                 hasEmbarkContent = true
                 local zName     = zone.zoneName
-                local zoneSub   = string.format(ctld.tr("Load from %s"), "TRZ_" .. zName)
+                local zoneSub   = ctld.tr("Load from %1", "TRZ_" .. zName)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub, embarkSub }, zoneSub)
                 for _, tmpl in ipairs(self._templates) do
@@ -1899,8 +1897,8 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
 
     -- "Parachute Troops" — in-flight only, if capable and troops onboard
     if unit and inAir then
-        local acts2 = (ctld.gs("unitActions") or {})[playerObj.typeName]
-        if acts2 and acts2.canParachute and hasTroops then
+        local caps2 = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+        if caps2 and caps2.canParachuteDrop and hasTroops then
             local inTransitList = self._inTransit[playerObj.unitName]
             if inTransitList and #inTransitList > 1 then
                 -- Multi-group: submenu per group + "Parachute All"
