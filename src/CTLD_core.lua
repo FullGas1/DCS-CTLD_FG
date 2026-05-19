@@ -425,10 +425,15 @@ function CTLDCoreManager:init()
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
 
+    -- Register land event for AI troop pickup/dropoff (exact touchdown)
+    bridge:register(self, world.event.S_EVENT_LAND, "onAILand")
+
     -- Troop unit death: keep _aliveUnits / _jtacUnits in sync with DCS reality
+    -- Also triggers cleanupDeadTransports to remove orphaned transit entries
     local okTM, tm = pcall(CTLDTroopManager.getInstance)
     if okTM then
         bridge:register(tm, world.event.S_EVENT_DEAD, "onUnitDead")
+        bridge:register(tm, world.event.S_EVENT_DEAD, "onTransportDead")
         ctld.utils.log("INFO", "CTLDCoreManager: CTLDTroopManager S_EVENT_DEAD bridge registered")
     end
 
@@ -588,59 +593,127 @@ function CTLDCoreManager:_initAITransports()
         #pilotNames)
 end
 
---- Poll all transportPilotNames entries; auto-load/unload AI units at troop zones.
--- Called every 2 s by the timer started in _initAITransports.
--- Load rules  : unit is AI + in pickup zone + no troops onboard.
--- Unload rules: unit is AI + in dropoff zone + troops onboard.
--- Template selection (load): if allowRandomAiTeamPickups → random from coalition list;
---                             else → first available template for the coalition.
+--- Periodic AI transport maintenance (every 2 s).
+-- Vehicle and troop pickup/dropoff are handled by onAILand (S_EVENT_LAND).
+-- This loop handles only cleanup of orphaned transport entries.
 function CTLDCoreManager:_checkAIStatus()
-    local pilotNames = ctld.gs("transportPilotNames") or {}
-    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
-    local zm  = CTLDZoneManager.getInstance()
     local ok, tm = pcall(CTLDTroopManager.getInstance)
     if not ok or not tm then return end
+    local okClean, errClean = pcall(tm.cleanupDeadTransports, tm)
+    if not okClean then
+        ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus cleanupDeadTransports error: %s", tostring(errClean))
+    end
+end
 
-    for _, unitName in pairs(pilotNames) do
-        local status, err = pcall(function()
-            local unit = Unit.getByName(unitName)
-            if not unit or not unit:isExist() then return end
-            -- Skip player-controlled units
-            if unit:getPlayerName() ~= nil then return end
+--- Called on S_EVENT_LAND for AI transports.
+-- Handles vehicle and troop pickup/dropoff at the exact moment of landing.
+-- Dropoff zone is checked first; pickup is skipped on the same landing.
+-- Parachute vehicle dropoff (in-flight) is not handled here.
+function CTLDCoreManager:onAILand(event)
+    local u = event and event.initiator
+    if not u or not u:isExist() then return end
 
-            local coa  = unit:getCoalition()
-            local hasTr = tm:hasTroops(unitName)
+    local unitName = u:getName()
+    local pilotNames = ctld.gs("transportPilotNames") or {}
+    if not pilotNames[unitName] then return end
+    if u:getPlayerName() ~= nil then return end  -- skip player-controlled
 
-            -- ---- Pickup ------------------------------------------------
-            local pickZone = zm:getTroopZoneForUnit(unitName)
-            if pickZone and not hasTr then
-                local teams = self._aiTeams[coa] or {}
-                local tmpl  = nil
-                if #teams > 0 then
-                    if randomPickup then
-                        local idx = math.floor(math.random(#teams * 100) / 100) + 1
-                        tmpl = teams[idx]
-                    else
-                        tmpl = teams[1]
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if not ok or not tm then return end
+    local okVS, vs = pcall(CTLDVehicleSpawner.getInstance)
+
+    local coa       = u:getCoalition()
+    local pt        = u:getPoint()
+    local zm        = CTLDZoneManager.getInstance()
+    local typeName  = u:getTypeName()
+    local hasTr     = tm:hasTroops(unitName)
+    local caps      = (ctld.gs("capabilitiesByType") or {})[typeName] or {}
+    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
+
+    -- ---- Dropoff zone (vehicle + troops, ground only) -------------------
+    local dropZone = zm:getAIDropoffZoneAt(pt, coa)
+    if dropZone then
+        local dm = dropZone.aiDropMode or "GP"
+        -- Vehicle dropoff
+        if okVS and (dm == "G" or dm == "GP") then
+            local loaded = vs:findLoadedVehicles(u)
+            if #loaded > 0 then
+                local veh = loaded[1]
+                vs:unloadVehicle(veh, u, nil, "menu_ctld")
+                ctld.utils.notifyCoalition(
+                    ctld.tr("AI %1 unloaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                    10, coa)
+            end
+        end
+        -- Troop dropoff
+        if hasTr and (dm == "G" or dm == "GP") then
+            local transitList = tm:getInTransit(unitName) or {}
+            local troopNames  = {}
+            local troopTotal  = 0
+            for _, grp in ipairs(transitList) do
+                if grp.templateName then troopNames[#troopNames + 1] = grp.templateName end
+                troopTotal = troopTotal + (grp.unitTotal or 0)
+            end
+            tm:disembarkAll(u)
+            ctld.utils.notifyCoalition(
+                ctld.tr("AI %1 dropped troops: %2 (%3)", unitName, table.concat(troopNames, ", "), troopTotal),
+                10, coa)
+        end
+        return  -- dropoff zone: no pickup on same landing
+    end
+
+    -- ---- Pickup zone (vehicle + troops, gated by aiCargoType) ----------
+    local pickZone = zm:getAIPickupZoneAt(pt, coa)
+    if pickZone then
+        local cargoType = pickZone.aiCargoType or "T"
+        local doVeh     = (cargoType == "V" or cargoType == "TV")
+        local doTroops  = (cargoType == "T" or cargoType == "TV")
+
+        -- Vehicle pickup
+        if doVeh and okVS and caps.canTransportWholeVehicle then
+            local vehStockOk = (not pickZone.pickMaxVehicleStock or pickZone.pickMaxVehicleStock == 0)
+                            or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
+            if vehStockOk then
+                local loadables = vs:findLoadableVehicles(u)
+                if #loadables > 0 then
+                    local loaded = vs:findLoadedVehicles(u)
+                    if #loaded < (caps.maxWholeVehiclesOnboard or 1) then
+                        local veh = loadables[1]
+                        vs:loadVehicle(veh, u, nil, "menu_ctld")
+                        -- decrement vehicle stock
+                        if pickZone.pickMaxVehicleStock and pickZone.pickMaxVehicleStock > 0 then
+                            pickZone.pickCurrentVehicleStock = (pickZone.pickCurrentVehicleStock or 0) - 1
+                        end
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            10, coa)
                     end
                 end
-                if tmpl then
-                    tm:embarkFromTroopZone(unit, pickZone, tmpl)
-                end
-                return  -- done for this unit this tick
             end
+        end
 
-            -- ---- Dropoff -----------------------------------------------
-            if hasTr then
-                local dropZone = zm:getDropoffZoneAt(unit:getPoint(), coa)
-                if dropZone then
-                    tm:disembarkAll(unit)
+        -- Troop pickup (re-check hasTroops after potential vehicle load)
+        if doTroops and not tm:hasTroops(unitName) then
+            local teams = self._aiTeams[coa] or {}
+            local tmpl  = nil
+            if #teams > 0 then
+                local startIdx = randomPickup and math.random(#teams) or 1
+                local n = #teams
+                for i = 0, n - 1 do
+                    local candidate = teams[((startIdx - 1 + i) % n) + 1]
+                    local w  = tm:_weightForGroup(candidate)
+                    local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
+                    if canEmb then tmpl = candidate; break end
                 end
             end
-        end)
-        if not status then
-            ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus error for '%s': %s",
-                tostring(unitName), tostring(err))
+            if tmpl then
+                local loaded = tm:embarkFromTroopZone(u, pickZone, tmpl)
+                if loaded then
+                    ctld.utils.notifyCoalition(
+                        ctld.tr("AI %1 picked up troops: %2 (%3)", unitName, tmpl.name, tmpl.total),
+                        10, coa)
+                end
+            end
         end
     end
 end

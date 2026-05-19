@@ -263,7 +263,8 @@ function CTLDConfig:load()
         ["BRDM-2"] = 7000,
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
-        ["M1043 HMMWV Armament"] = 2500
+        ["M1043 HMMWV Armament"] = 2500,
+        ["Hummer"] = 2500,
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -390,16 +391,15 @@ function CTLDConfig:load()
     self.settings["troopZoneSmokeColor"]                  = nil  -- optional: table [coalition_id] = smokeColor — nil disables troop zone smoke
 
     -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
-    -- Use any of the predefined names or set your own ones
-    -- You can add number as a third option to limit the number of soldier or vehicle groups that can be loaded from a zone.
-    -- Dropping back a group at a limited zone will add one more to the limit
-    -- If a zone isn't ACTIVE then you can't pickup from that zone until the zone is activated by ctld.activatePickupZone
-    -- using the Mission editor
-    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name
-    -- Side - Controls which side can load/unload troops at the zone
-    -- Flag Number - Optional last field. If set the current number of groups remaining can be obtained from the flag value
-    --pickupZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", flag number (optional) }
-    self.settings["pickupZones"]                          = {
+    -- Player troop pickup zones (players only — AI transports use AIZones instead).
+    -- You can add number as a third option to limit the number of soldier groups that can be loaded.
+    -- Dropping back a group at a limited zone will restore one to the limit.
+    -- If a zone isn't ACTIVE then you can't pickup from that zone until activated via ctld.activatePickupZone.
+    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name.
+    -- Side - Controls which coalition can load/unload troops at the zone.
+    -- Flag Number - Optional last field: mirrors the current stock count to a DCS flag.
+    --troopZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0=Both / 1=Red / 2=Blue)", flag number (optional) }
+    self.settings["troopZones"]                           = {
         { "pickzone1",   "blue", -1, "yes", 0 },
         { "pickzone2",   "red",  -1, "yes", 0 },
         { "pickzone3",   "none", -1, "yes", 0 },
@@ -408,11 +408,11 @@ function CTLDConfig:load()
         { "pickzone6",   "none", -1, "yes", 0 },
         { "pickzone7",   "none", -1, "yes", 0 },
         { "pickzone8",   "none", -1, "yes", 0 },
-        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups of soldiers or vehicles, only red can pick up
-        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups of soldiers or vehicles, only blue can pick up
+        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups, RED only
+        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups, BLUE only
 
-        { "pickzone11",  "blue", 20, "no",  2 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
-        { "pickzone12",  "red",  20, "no",  1 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
+        { "pickzone11",  "blue", 20, "no",  2 }, -- starts inactive, BLUE only
+        { "pickzone12",  "red",  20, "no",  1 }, -- starts inactive, RED only
         { "pickzone13",  "none", -1, "yes", 0 },
         { "pickzone14",  "none", -1, "yes", 0 },
         { "pickzone15",  "none", -1, "yes", 0 },
@@ -420,23 +420,21 @@ function CTLDConfig:load()
         { "pickzone17",  "none", -1, "yes", 0 },
         { "pickzone18",  "none", -1, "yes", 0 },
         { "pickzone19",  "none", 5,  "yes", 0 },
-        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- optional extra flag number to store the current number of groups available in
+        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- remaining count mirrored to flag 1000
 
-        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- instead of a Zone Name you can also use the UNIT NAME of a ship
+        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- ship: use DCS unit name
     }
 
-    -- dropOffZones = {"name","smoke colour",0,side 1 = Red or 2 = Blue or 0 = Both sides}
-    self.settings["dropOffZones"]                         = {
-        { "dropzone1",  "green",  2 },
-        { "dropzone2",  "blue",   2 },
-        { "dropzone3",  "orange", 2 },
-        { "dropzone4",  "none",   2 },
-        { "dropzone5",  "none",   1 },
-        { "dropzone6",  "none",   1 },
-        { "dropzone7",  "none",   1 },
-        { "dropzone8",  "none",   1 },
-        { "dropzone9",  "none",   1 },
-        { "dropzone10", "none",   1 },
+    -- AI-only zones (not visible to player menus).
+    -- role "P" = AI pickup ; role "D" = AI dropoff
+    -- stock     : integer or -1=unlimited (required for "P", ignored for "D")
+    -- drop mode : "G"=ground only, "P"=parachute only, "GP"=both (optional, "D" only, default "GP")
+    -- AIZones = { "zone_name", "smoke_color", side, role, stock_or_dropmode }
+    self.settings["AIZones"]                              = {
+        { "aizone1",  "none", 2, "P", -1    }, -- AI pickup BLUE, unlimited stock
+        { "aizone2",  "none", 2, "D"        }, -- AI dropoff BLUE, ground+para (default)
+        { "aizone3",  "none", 1, "P", -1    }, -- AI pickup RED, unlimited stock
+        { "aizone4",  "none", 1, "D", "G"  }, -- AI dropoff RED, ground only
     }
 
     --wpZones = { "Zone name", "smoke color",    "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", }
@@ -536,14 +534,14 @@ function CTLDConfig:load()
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["Hercules"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 30,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 2,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["SK-60"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
@@ -582,14 +580,14 @@ function CTLDConfig:load()
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 8,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 1,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["CH-47Fbl1"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
             canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
 
         -- ── FIXED-WING ───────────────────────────────────────────────────────────
@@ -600,7 +598,7 @@ function CTLDConfig:load()
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
 
         -- ── WARBIRDS (examples, all disabled by default) ─────────────────────────
@@ -1747,6 +1745,10 @@ ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
 ctld.i18n["en"]["No troops onboard."]                         = "No troops onboard."
 ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport weight limit exceeded (%1 kg max)."
 ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."
+ctld.i18n["en"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1 picked up troops: %2 (%3 soldiers)"
+ctld.i18n["en"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1 dropped troops: %2 (%3 soldiers)"
+ctld.i18n["en"]["AI %1 loaded vehicle: %2"]                    = "AI %1 loaded vehicle: %2"
+ctld.i18n["en"]["AI %1 unloaded vehicle: %2"]                  = "AI %1 unloaded vehicle: %2"
 
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
@@ -2194,6 +2196,10 @@ ctld.i18n["fr"]["Extract: %1"]                                = "Extraire : %1"
 ctld.i18n["fr"]["No troops onboard."]                         = "Aucune troupe à bord."
 ctld.i18n["fr"]["Transport weight limit exceeded (%1 kg max)."] = "Limite de poids dépassée (%1 kg max)."
 ctld.i18n["fr"]["Vehicle ready for loading"]                    = "Un %1 est prêt à être chargé."
+ctld.i18n["fr"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 a embarqué des troupes : %2 (%3 soldats)"
+ctld.i18n["fr"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 a déposé des troupes : %2 (%3 soldats)"
+ctld.i18n["fr"]["AI %1 loaded vehicle: %2"]                    = "IA %1 a chargé le véhicule : %2"
+ctld.i18n["fr"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 a déposé le véhicule : %2"
 
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
@@ -2642,6 +2648,10 @@ ctld.i18n["es"]["Extract: %1"]                                = "Extraer: %1"
 ctld.i18n["es"]["No troops onboard."]                         = "No hay tropas a bordo."
 ctld.i18n["es"]["Transport weight limit exceeded (%1 kg max)."] = "Límite de peso superado (%1 kg máx)."
 ctld.i18n["es"]["Vehicle ready for loading"]                    = "Un %1 está listo para cargar."
+ctld.i18n["es"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 embarcó tropas: %2 (%3 soldados)"
+ctld.i18n["es"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 dejó tropas: %2 (%3 soldados)"
+ctld.i18n["es"]["AI %1 loaded vehicle: %2"]                    = "IA %1 cargó el vehículo: %2"
+ctld.i18n["es"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 descargó el vehículo: %2"
 
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
@@ -2937,6 +2947,10 @@ ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
 ctld.i18n["ko"]["No troops onboard."]                         = "탑승 병력 없음."
 ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량 한계 초과 (최대 %1 kg)."
 ctld.i18n["ko"]["Vehicle ready for loading"]                    = "%1이(가) 적재 준비되었습니다."
+ctld.i18n["ko"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1이(가) 병력을 탑승시켰습니다: %2 (%3명)"
+ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 병력을 하차시켰습니다: %2 (%3명)"
+ctld.i18n["ko"]["AI %1 loaded vehicle: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
+ctld.i18n["ko"]["AI %1 unloaded vehicle: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -5029,6 +5043,20 @@ function ctld.utils.updateTransportWeight(unitName)
         "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
 end
 
+--- LUA PREDICATE helper: returns true after `duration` seconds from first call.
+-- `key` must be unique per waypoint (e.g. "heliai_troops_wp2").
+-- Usage in ME LUA PREDICATE field:
+--   return ctld.utils.waitFor("heliai_troops_wp2", 15)
+function ctld.utils.waitFor(key, duration)
+    local gkey = "_waitFor_" .. key
+    if not _G[gkey] then _G[gkey] = timer.getTime() end
+    if timer.getTime() - _G[gkey] >= duration then
+        _G[gkey] = nil
+        return true
+    end
+    return false
+end
+
 -- ============================================================
 -- ctld.scheduler  — central registry for long-running timer loops
 -- ============================================================
@@ -6587,7 +6615,8 @@ CTLDTroopZone = class()
 --   Required : dcsName, zoneName, coalition, center (vec3), radius
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
 --              smoke (trigger.smokeColor.* or -1), active,
---              isWaypoint (bool), isDropoff (bool)
+--              isWaypoint (bool), isDropoff (bool),
+--              isAIPickup (bool), isAIDropoff (bool)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
@@ -6596,12 +6625,12 @@ function CTLDTroopZone:init(data)
     self.radius           = data.radius     or 0
     self.verticies        = data.verticies  or nil
 
-    -- Pickup stock (nil = this zone has no pickup function)
+    -- Pickup stock (nil = this zone has no pickup function for players)
     self.pickMaxStock     = data.pickMaxStock    -- nil | number  (0 = unlimited)
     self.pickCurrentStock = (data.pickMaxStock ~= nil and data.pickMaxStock ~= 0)
                             and data.pickMaxStock or 0
     -- Optional DCS flag name: mirrors pickCurrentStock to a mission flag when set.
-    -- Legacy pickupZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
+    -- Legacy troopZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
     self.stockFlagName    = data.stockFlagName or nil
 
     -- Extract objective (nil = this zone has no extract function)
@@ -6609,9 +6638,20 @@ function CTLDTroopZone:init(data)
     self.objectiveTarget  = data.objectiveTarget -- nil | number
 
     -- WPZ: troops deployed inside march to zone center
-    self.isWaypoint = data.isWaypoint or false
-    -- IAZ: AI transport landing here auto-deploys its troops
-    self.isDropoff  = data.isDropoff  or false
+    self.isWaypoint  = data.isWaypoint  or false
+    -- IAZ legacy: AI transport landing here auto-deploys its troops (isDropoff → hasDropoff)
+    self.isDropoff   = data.isDropoff   or false
+    -- IAZ v2: AI-only pickup / dropoff (not visible to player menus)
+    self.isAIPickup  = data.isAIPickup  or false
+    self.isAIDropoff = data.isAIDropoff or false
+    -- Drop mode for AIZ_D zones: "G"=ground only, "P"=parachute only, "GP"=both (default)
+    self.aiDropMode  = data.aiDropMode  or "GP"
+    -- AIZ_P cargo type: "T"=troops only, "V"=vehicles only, "TV"=both (default "T")
+    self.aiCargoType         = data.aiCargoType          or "T"
+    self.pickMaxTroopStock   = data.pickMaxTroopStock    -- nil | number (0=unlimited)
+    self.pickMaxVehicleStock = data.pickMaxVehicleStock  -- nil | number (0=unlimited)
+    self.pickCurrentVehicleStock = (data.pickMaxVehicleStock and data.pickMaxVehicleStock > 0)
+                                   and data.pickMaxVehicleStock or nil
 
     self.smoke  = (data.smoke ~= nil) and data.smoke or -1
     self.active = (data.active ~= nil) and data.active or true
@@ -6632,9 +6672,19 @@ function CTLDTroopZone:hasWaypoint()
     return self.isWaypoint == true
 end
 
---- True if this zone is an AI auto-drop point (IAZ).
+--- True if this zone is an AI auto-drop point (IAZ legacy).
 function CTLDTroopZone:hasDropoff()
     return self.isDropoff == true
+end
+
+--- True if this zone is an AI-exclusive pickup point (IAZ v2 P role).
+function CTLDTroopZone:hasAIPickup()
+    return self.isAIPickup == true
+end
+
+--- True if this zone is an AI-exclusive dropoff point (IAZ v2 D role).
+function CTLDTroopZone:hasAIDropoff()
+    return self.isAIDropoff == true
 end
 
 --- True if point is inside the zone (circular or polygonal).
@@ -6806,7 +6856,7 @@ function CTLDZoneManager:init()
 
     self:_validateZoneNames()
     self:_discoverTRZ()
-    self:_discoverIAZ()
+    self:_discoverAIZ()
     self:_discoverWPZ()
     self:_discoverLGZ()
     self:_loadLegacyZones()
@@ -6927,7 +6977,7 @@ function CTLDZoneManager:_parseLGZ(name)
     return { name = lgzName, coalition = coalitionId }
 end
 
--- Parse IAZ_name_[R|B|N]  (AI auto-drop zone)
+-- Parse AIZ_name_[R|B|N]  (AI auto-drop zone)
 -- Parse WPZ_name_[R|B|N]  (waypoint zone — troops march to center)
 -- Shared logic: prefix must match, second field = zoneName, optional third = coalition.
 local function _parseSimpleZone(prefix, name)
@@ -6942,7 +6992,114 @@ local function _parseSimpleZone(prefix, name)
     return { zoneName = zoneName, coalition = coalitionId }
 end
 
-function CTLDZoneManager:_parseIAZ(name) return _parseSimpleZone("IAZ", name) end
+-- Parse AIZ_<name>_<R|B|N|A>_<P|D>_[stock|999]
+-- role  : P = AI pickup, D = AI dropoff
+-- stock : integer 1-999 (required if P; 999 = unlimited) — ignored for D
+-- Backward compat: 3-field format AIZ_name_[R|B|N] treated as D with WARN.
+function CTLDZoneManager:_parseAIZ(name)
+    local parts = _split(name, "_")
+    if parts[1] ~= "AIZ" then return nil, "not an AIZ" end
+    local zoneName = parts[2]
+    if not zoneName or zoneName == "" then return nil, "missing zoneName" end
+    -- coalition (field 3)
+    local coalStr = parts[3]
+    if not coalStr then return nil, "missing coalition (A|R|B|N)" end
+    local coalitionId
+    if     coalStr == "A" then coalitionId = 0
+    elseif coalStr == "R" then coalitionId = coalition.side.RED
+    elseif coalStr == "B" then coalitionId = coalition.side.BLUE
+    elseif coalStr == "N" then coalitionId = coalition.side.NEUTRAL
+    else return nil, "invalid coalition '" .. coalStr .. "' — expected A, R, B or N" end
+    -- role (field 4) — backward compat: absent → D
+    local roleStr = parts[4]
+    local isAIPickup, isAIDropoff = false, false
+    local isLegacy = false
+    if not roleStr then
+        isAIDropoff = true
+        isLegacy    = true
+    elseif roleStr == "P" then
+        isAIPickup  = true
+    elseif roleStr == "D" then
+        isAIDropoff = true
+    else
+        return nil, "invalid role '" .. roleStr .. "' — expected P or D"
+    end
+    -- cargo type + stocks (P zones) / drop mode (D zones)
+    local pickMaxTroopStock   = nil
+    local pickMaxVehicleStock = nil
+    local aiCargoType         = "T"   -- default: troops only
+    local aiDropMode          = "GP"
+
+    local function parseStock(str, fieldName)
+        local n = tonumber(str)
+        if not n or math.floor(n) ~= n or n < 1 or n > 999 then
+            return nil, fieldName .. " must be integer 1-999 (999=unlimited)"
+        end
+        return (n == 999) and 0 or n
+    end
+
+    if isAIPickup then
+        local f5 = parts[5]
+        if not f5 then
+            return nil, "P role requires cargo type (T|V|TV) or legacy stock (integer)"
+        end
+        local f5num = tonumber(f5)
+        if f5num then
+            -- backward compat: parts[5] is a number → T, troopStock = f5num
+            local s, err = parseStock(f5, "stock(legacy)")
+            if not s then return nil, err end
+            pickMaxTroopStock = s
+            aiCargoType = "T"
+        elseif f5 == "T" then
+            aiCargoType = "T"
+            local s, err = parseStock(parts[6], "troopStock")
+            if not s then return nil, err end
+            pickMaxTroopStock = s
+        elseif f5 == "V" then
+            aiCargoType = "V"
+            local s, err = parseStock(parts[6], "vehStock")
+            if not s then return nil, err end
+            pickMaxVehicleStock = s
+        elseif f5 == "TV" or f5 == "VT" then
+            aiCargoType = "TV"
+            -- stocks in order of letters
+            local first  = string.sub(f5, 1, 1)  -- "T" or "V"
+            local s1, e1 = parseStock(parts[6], "stock1")
+            if not s1 then return nil, e1 end
+            local s2, e2 = parseStock(parts[7], "stock2")
+            if not s2 then return nil, e2 end
+            if first == "T" then
+                pickMaxTroopStock   = s1
+                pickMaxVehicleStock = s2
+            else
+                pickMaxVehicleStock = s1
+                pickMaxTroopStock   = s2
+            end
+        else
+            return nil, "invalid cargo type '" .. f5 .. "' — expected T, V, TV or VT"
+        end
+    elseif isAIDropoff then
+        local modeStr = parts[5]
+        if modeStr then
+            if modeStr == "G" or modeStr == "P" or modeStr == "GP" then
+                aiDropMode = modeStr
+            else
+                return nil, "invalid drop mode '" .. modeStr .. "' — expected G, P or GP"
+            end
+        end
+    end
+    return {
+        zoneName           = zoneName,
+        coalition          = coalitionId,
+        isAIPickup         = isAIPickup,
+        isAIDropoff        = isAIDropoff,
+        aiCargoType        = aiCargoType,
+        pickMaxTroopStock  = pickMaxTroopStock,
+        pickMaxVehicleStock= pickMaxVehicleStock,
+        aiDropMode         = aiDropMode,
+        isLegacy           = isLegacy,
+    }
+end
 function CTLDZoneManager:_parseWPZ(name) return _parseSimpleZone("WPZ", name) end
 
 -- ============================================================
@@ -7011,28 +7168,47 @@ function CTLDZoneManager:_discoverLGZ()
     end
 end
 
-function CTLDZoneManager:_discoverIAZ()
+function CTLDZoneManager:_discoverAIZ()
     if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
     for _, zd in pairs(env.mission.triggers.zones) do
         local name = zd.name or ""
-        if string.sub(name, 1, 4) == "IAZ_" then
-            local parsed, err = self:_parseIAZ(name)
+        if string.sub(name, 1, 4) == "AIZ_" then
+            local parsed, err = self:_parseAIZ(name)
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse IAZ '%s': %s", name, tostring(err))
-            elseif not self._troopZones[parsed.zoneName] then
+            elseif not self._troopZones[name] then
+                if parsed.isLegacy then
+                    ctld.utils.log("WARN",
+                        "CTLDZoneManager: AIZ '%s' uses legacy 3-field format — treated as D. Update to AIZ_name_[A|R|B|N]_D",
+                        name)
+                end
                 local zone = CTLDTroopZone:new({
-                    dcsName   = name,
-                    zoneName  = parsed.zoneName,
-                    coalition = parsed.coalition,
-                    center    = _buildCenter(zd),
-                    radius    = zd.radius or 500,
-                    verticies = zd.verticies or nil,
-                    isDropoff = true,
-                    active    = true,
+                    dcsName             = name,
+                    zoneName            = name,
+                    coalition           = parsed.coalition,
+                    center              = _buildCenter(zd),
+                    radius              = zd.radius or 500,
+                    verticies           = zd.verticies or nil,
+                    isAIPickup          = parsed.isAIPickup,
+                    isAIDropoff         = parsed.isAIDropoff,
+                    aiCargoType         = parsed.aiCargoType,
+                    pickMaxTroopStock   = parsed.pickMaxTroopStock,
+                    pickMaxVehicleStock = parsed.pickMaxVehicleStock,
+                    -- keep pickMaxStock alias for troop stock (legacy TRZ/embarkFromTroopZone compat)
+                    pickMaxStock        = parsed.pickMaxTroopStock,
+                    aiDropMode          = parsed.aiDropMode,
+                    -- legacy compat: isDropoff kept so getDropoffZoneAt still works on legacy AIZ_
+                    isDropoff           = parsed.isLegacy and true or false,
+                    active              = true,
                 })
-                self._troopZones[parsed.zoneName] = zone
-                ctld.utils.log("INFO", "CTLDZoneManager: IAZ '%s' coalition=%d",
-                    parsed.zoneName, parsed.coalition)
+                self._troopZones[name] = zone
+                ctld.utils.log("INFO",
+                    "CTLDZoneManager: AIZ '%s' coalition=%d role=%s cargo=%s troopStock=%s vehStock=%s",
+                    name, parsed.coalition,
+                    parsed.isAIPickup and "P" or "D",
+                    tostring(parsed.aiCargoType),
+                    tostring(parsed.pickMaxTroopStock),
+                    tostring(parsed.pickMaxVehicleStock))
             end
         end
     end
@@ -7071,9 +7247,9 @@ end
 
 function CTLDZoneManager:_loadLegacyZones()
 
-    -- pickupZones → CTLDTroopZone (pickup only)
+    -- troopZones → CTLDTroopZone (player pickup only — not visible to AI)
     -- Supports both DCS trigger zones and ship unit names (mobile pickup point).
-    for _, zd in pairs(ctld.gs("pickupZones") or {}) do
+    for _, zd in pairs(ctld.gs("troopZones") or {}) do
         if not self._troopZones[zd[1]] then
             local smoke = -1
             if zd[2] then
@@ -7117,23 +7293,52 @@ function CTLDZoneManager:_loadLegacyZones()
         end
     end
 
-    -- dropOffZones → CTLDTroopZone (AI auto-drop marker)
-    for _, zd in pairs(ctld.gs("dropOffZones") or {}) do
-        local trig = trigger.misc.getZone(zd[1])
-        if trig and not self._troopZones[zd[1]] then
+    -- AIZones → CTLDTroopZone (AI-only pickup and/or dropoff)
+    -- { zoneName, smokeColor, coalition, role, stock }
+    -- role: "P"=AI pickup, "D"=AI dropoff ; stock: integer or -1=unlimited (P only)
+    for _, zd in pairs(ctld.gs("AIZones") or {}) do
+        local zoneName = zd[1]
+        local trig = trigger.misc.getZone(zoneName)
+        if trig and not self._troopZones[zoneName] then
             local smoke = -1
             if zd[2] then
                 local n = tonumber(_LEGACY_SMOKE_STR[zd[2]] or zd[2])
                 smoke = _TROOP_SMOKE_COLOR[n] or -1
             end
-            self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName   = zd[1], zoneName = zd[1],
-                coalition = tonumber(zd[3]) or 0,
-                center    = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
-                radius    = trig.radius,
-                isDropoff = true,
-                smoke     = smoke, active = true,
-            })
+            local coa  = tonumber(zd[3]) or 0
+            local role = zd[4]
+            local isAIPickup, isAIDropoff = false, false
+            local pickMaxStock = nil
+            local aiDropMode   = "GP"
+            if role == "P" then
+                isAIPickup = true
+                local s = zd[5]
+                pickMaxStock = (s == -1 or s == nil) and 0 or tonumber(s)
+            elseif role == "D" then
+                isAIDropoff = true
+                local m = zd[5]  -- optional drop mode: "G"|"P"|"GP"
+                if m == "G" or m == "P" or m == "GP" then aiDropMode = m end
+            else
+                ctld.utils.log("WARN",
+                    "CTLDZoneManager: AIZones '%s' invalid role '%s' (expected P or D) — skipped",
+                    zoneName, tostring(role))
+            end
+            if isAIPickup or isAIDropoff then
+                self._troopZones[zoneName] = CTLDTroopZone:new({
+                    dcsName      = zoneName, zoneName = zoneName,
+                    coalition    = coa,
+                    center       = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
+                    radius       = trig.radius,
+                    isAIPickup   = isAIPickup,
+                    isAIDropoff  = isAIDropoff,
+                    pickMaxStock = pickMaxStock,
+                    aiDropMode   = aiDropMode,
+                    smoke        = smoke, active = true,
+                })
+                ctld.utils.log("INFO",
+                    "CTLDZoneManager: AIZones '%s' coalition=%d role=%s",
+                    zoneName, coa, role)
+            end
         end
     end
 
@@ -7380,12 +7585,14 @@ function CTLDZoneManager:getTroopZonesForCoalition(coalition)
 end
 
 --- Return the troop zone containing point, or nil.
+-- AI-only pickup zones (isAIPickup) are excluded — use getAIPickupZoneAt for AI logic.
 -- @param point     vec3
 -- @param coalition number  (0 = accept all)
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getTroopZoneAtPoint(point, coalition)
     for _, zone in pairs(self._troopZones) do
-        if zone.active and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
+        if zone.active and not zone.isAIPickup
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
             if zone:isInZone(point) then return zone end
         end
     end
@@ -7452,6 +7659,42 @@ function CTLDZoneManager:getDropoffZoneAt(point, coalition)
         end
     end
     return nil
+end
+
+--- Return the active AIZ_P zone containing point for the given coalition, or nil.
+-- Used by AI transport auto-pickup logic (_checkAIStatus).
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getAIPickupZoneAt(point, coalition)
+    local best, bestR = nil, math.huge
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasAIPickup()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            local r = zone.radius or math.huge
+            if r < bestR then best = zone; bestR = r end
+        end
+    end
+    return best
+end
+
+--- Return the active AIZ_D zone containing point for the given coalition, or nil.
+-- Used by AI transport auto-dropoff logic (_checkAIStatus).
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getAIDropoffZoneAt(point, coalition)
+    local best, bestR = nil, math.huge
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasAIDropoff()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            local r = zone.radius or math.huge
+            if r < bestR then best = zone; bestR = r end
+        end
+    end
+    return best
 end
 
 -- ============================================================
@@ -7642,7 +7885,12 @@ end
 
 function CTLDZoneManager:_validateZoneNames()
     if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
-    local errors = {}
+    local errors  = {}   -- parse errors
+    local warns   = {}   -- semantic warnings
+    -- Track IAZ P/D zones for overlap check
+    local iazPickup  = {}
+    local iazDropoff = {}
+
     for _, zd in pairs(env.mission.triggers.zones) do
         local name = zd.name or ""
         if string.sub(name, 1, 4) == "TRZ_" then
@@ -7650,10 +7898,22 @@ function CTLDZoneManager:_validateZoneNames()
             if not parsed then
                 errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
             end
-        elseif string.sub(name, 1, 4) == "IAZ_" then
-            local parsed, err = self:_parseIAZ(name)
+        elseif string.sub(name, 1, 4) == "AIZ_" then
+            local parsed, err = self:_parseAIZ(name)
             if not parsed then
                 errors[#errors + 1] = "  IAZ ERROR '" .. name .. "': " .. tostring(err)
+            else
+                if parsed.isLegacy then
+                    warns[#warns + 1] = "  IAZ WARN '" .. name .. "': legacy 3-field format — update to AIZ_name_[A|R|B|N]_D"
+                end
+                local ctr = _buildCenter(zd)
+                local r   = zd.radius or 500
+                if parsed.isAIPickup then
+                    iazPickup[#iazPickup + 1]   = { name=name, center=ctr, radius=r, coa=parsed.coalition }
+                end
+                if parsed.isAIDropoff then
+                    iazDropoff[#iazDropoff + 1] = { name=name, center=ctr, radius=r, coa=parsed.coalition }
+                end
             end
         elseif string.sub(name, 1, 4) == "WPZ_" then
             local parsed, err = self:_parseWPZ(name)
@@ -7667,11 +7927,34 @@ function CTLDZoneManager:_validateZoneNames()
             end
         end
     end
-    if #errors > 0 then
-        local report = "[CTLD] Zone validation — " .. #errors .. " issue(s):\n"
-                    .. table.concat(errors, "\n")
+
+    -- IAZ P+D overlap check: same coalition zones that overlap risk an instant pickup+dropoff loop
+    for _, p in ipairs(iazPickup) do
+        for _, d in ipairs(iazDropoff) do
+            local sameCoal = (p.coa == 0 or d.coa == 0 or p.coa == d.coa)
+            if sameCoal then
+                local dx   = p.center.x - d.center.x
+                local dz   = p.center.z - d.center.z
+                local dist = math.sqrt(dx*dx + dz*dz)
+                if dist < (p.radius + d.radius) then
+                    warns[#warns + 1] = "  IAZ WARN: '" .. p.name .. "' (P) overlaps '"
+                        .. d.name .. "' (D) same coalition — risk of instant pickup+dropoff loop"
+                end
+            end
+        end
+    end
+
+    -- Build and emit report
+    local all = {}
+    for _, e in ipairs(errors) do all[#all + 1] = e end
+    for _, w in ipairs(warns)  do all[#all + 1] = w end
+
+    if #all > 0 then
+        local report = "[CTLD] Zone validation — " .. #errors .. " error(s), "
+                    .. #warns .. " warning(s):\n" .. table.concat(all, "\n")
         trigger.action.outText(report, 30)
         ctld.utils.log("WARN", report)
+        env.warning(report)   -- additional entry in DCS standard log at WARNING level
     else
         ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
     end
@@ -8860,6 +9143,17 @@ function CTLDTroopManager:cleanupDeadTransports()
             ctld.utils.log("INFO", "cleanupDeadTransports: removed stale entry for '%s'", unitName)
         end
     end
+end
+
+--- Called from CTLDDCSEventBridge on S_EVENT_DEAD (transport aircraft).
+-- Triggers immediate cleanup of any orphaned transit entries for the dead unit.
+-- @param event DCS event object
+function CTLDTroopManager:onTransportDead(event)
+    local u = event and event.initiator
+    if not u then return end
+    local ok, alive = pcall(u.isExist, u)
+    if ok and alive then return end  -- unit still alive (group death event), skip
+    self:cleanupDeadTransports()
 end
 
 -- ============================================================
@@ -19929,10 +20223,15 @@ function CTLDCoreManager:init()
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_LAND,    "onLand")
     bridge:register(CTLDPlayerManager.getInstance(), world.event.S_EVENT_TAKEOFF, "onTakeoff")
 
+    -- Register land event for AI troop pickup/dropoff (exact touchdown)
+    bridge:register(self, world.event.S_EVENT_LAND, "onAILand")
+
     -- Troop unit death: keep _aliveUnits / _jtacUnits in sync with DCS reality
+    -- Also triggers cleanupDeadTransports to remove orphaned transit entries
     local okTM, tm = pcall(CTLDTroopManager.getInstance)
     if okTM then
         bridge:register(tm, world.event.S_EVENT_DEAD, "onUnitDead")
+        bridge:register(tm, world.event.S_EVENT_DEAD, "onTransportDead")
         ctld.utils.log("INFO", "CTLDCoreManager: CTLDTroopManager S_EVENT_DEAD bridge registered")
     end
 
@@ -20092,59 +20391,127 @@ function CTLDCoreManager:_initAITransports()
         #pilotNames)
 end
 
---- Poll all transportPilotNames entries; auto-load/unload AI units at troop zones.
--- Called every 2 s by the timer started in _initAITransports.
--- Load rules  : unit is AI + in pickup zone + no troops onboard.
--- Unload rules: unit is AI + in dropoff zone + troops onboard.
--- Template selection (load): if allowRandomAiTeamPickups → random from coalition list;
---                             else → first available template for the coalition.
+--- Periodic AI transport maintenance (every 2 s).
+-- Vehicle and troop pickup/dropoff are handled by onAILand (S_EVENT_LAND).
+-- This loop handles only cleanup of orphaned transport entries.
 function CTLDCoreManager:_checkAIStatus()
-    local pilotNames = ctld.gs("transportPilotNames") or {}
-    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
-    local zm  = CTLDZoneManager.getInstance()
     local ok, tm = pcall(CTLDTroopManager.getInstance)
     if not ok or not tm then return end
+    local okClean, errClean = pcall(tm.cleanupDeadTransports, tm)
+    if not okClean then
+        ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus cleanupDeadTransports error: %s", tostring(errClean))
+    end
+end
 
-    for _, unitName in pairs(pilotNames) do
-        local status, err = pcall(function()
-            local unit = Unit.getByName(unitName)
-            if not unit or not unit:isExist() then return end
-            -- Skip player-controlled units
-            if unit:getPlayerName() ~= nil then return end
+--- Called on S_EVENT_LAND for AI transports.
+-- Handles vehicle and troop pickup/dropoff at the exact moment of landing.
+-- Dropoff zone is checked first; pickup is skipped on the same landing.
+-- Parachute vehicle dropoff (in-flight) is not handled here.
+function CTLDCoreManager:onAILand(event)
+    local u = event and event.initiator
+    if not u or not u:isExist() then return end
 
-            local coa  = unit:getCoalition()
-            local hasTr = tm:hasTroops(unitName)
+    local unitName = u:getName()
+    local pilotNames = ctld.gs("transportPilotNames") or {}
+    if not pilotNames[unitName] then return end
+    if u:getPlayerName() ~= nil then return end  -- skip player-controlled
 
-            -- ---- Pickup ------------------------------------------------
-            local pickZone = zm:getTroopZoneForUnit(unitName)
-            if pickZone and not hasTr then
-                local teams = self._aiTeams[coa] or {}
-                local tmpl  = nil
-                if #teams > 0 then
-                    if randomPickup then
-                        local idx = math.floor(math.random(#teams * 100) / 100) + 1
-                        tmpl = teams[idx]
-                    else
-                        tmpl = teams[1]
+    local ok, tm = pcall(CTLDTroopManager.getInstance)
+    if not ok or not tm then return end
+    local okVS, vs = pcall(CTLDVehicleSpawner.getInstance)
+
+    local coa       = u:getCoalition()
+    local pt        = u:getPoint()
+    local zm        = CTLDZoneManager.getInstance()
+    local typeName  = u:getTypeName()
+    local hasTr     = tm:hasTroops(unitName)
+    local caps      = (ctld.gs("capabilitiesByType") or {})[typeName] or {}
+    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
+
+    -- ---- Dropoff zone (vehicle + troops, ground only) -------------------
+    local dropZone = zm:getAIDropoffZoneAt(pt, coa)
+    if dropZone then
+        local dm = dropZone.aiDropMode or "GP"
+        -- Vehicle dropoff
+        if okVS and (dm == "G" or dm == "GP") then
+            local loaded = vs:findLoadedVehicles(u)
+            if #loaded > 0 then
+                local veh = loaded[1]
+                vs:unloadVehicle(veh, u, nil, "menu_ctld")
+                ctld.utils.notifyCoalition(
+                    ctld.tr("AI %1 unloaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                    10, coa)
+            end
+        end
+        -- Troop dropoff
+        if hasTr and (dm == "G" or dm == "GP") then
+            local transitList = tm:getInTransit(unitName) or {}
+            local troopNames  = {}
+            local troopTotal  = 0
+            for _, grp in ipairs(transitList) do
+                if grp.templateName then troopNames[#troopNames + 1] = grp.templateName end
+                troopTotal = troopTotal + (grp.unitTotal or 0)
+            end
+            tm:disembarkAll(u)
+            ctld.utils.notifyCoalition(
+                ctld.tr("AI %1 dropped troops: %2 (%3)", unitName, table.concat(troopNames, ", "), troopTotal),
+                10, coa)
+        end
+        return  -- dropoff zone: no pickup on same landing
+    end
+
+    -- ---- Pickup zone (vehicle + troops, gated by aiCargoType) ----------
+    local pickZone = zm:getAIPickupZoneAt(pt, coa)
+    if pickZone then
+        local cargoType = pickZone.aiCargoType or "T"
+        local doVeh     = (cargoType == "V" or cargoType == "TV")
+        local doTroops  = (cargoType == "T" or cargoType == "TV")
+
+        -- Vehicle pickup
+        if doVeh and okVS and caps.canTransportWholeVehicle then
+            local vehStockOk = (not pickZone.pickMaxVehicleStock or pickZone.pickMaxVehicleStock == 0)
+                            or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
+            if vehStockOk then
+                local loadables = vs:findLoadableVehicles(u)
+                if #loadables > 0 then
+                    local loaded = vs:findLoadedVehicles(u)
+                    if #loaded < (caps.maxWholeVehiclesOnboard or 1) then
+                        local veh = loadables[1]
+                        vs:loadVehicle(veh, u, nil, "menu_ctld")
+                        -- decrement vehicle stock
+                        if pickZone.pickMaxVehicleStock and pickZone.pickMaxVehicleStock > 0 then
+                            pickZone.pickCurrentVehicleStock = (pickZone.pickCurrentVehicleStock or 0) - 1
+                        end
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            10, coa)
                     end
                 end
-                if tmpl then
-                    tm:embarkFromTroopZone(unit, pickZone, tmpl)
-                end
-                return  -- done for this unit this tick
             end
+        end
 
-            -- ---- Dropoff -----------------------------------------------
-            if hasTr then
-                local dropZone = zm:getDropoffZoneAt(unit:getPoint(), coa)
-                if dropZone then
-                    tm:disembarkAll(unit)
+        -- Troop pickup (re-check hasTroops after potential vehicle load)
+        if doTroops and not tm:hasTroops(unitName) then
+            local teams = self._aiTeams[coa] or {}
+            local tmpl  = nil
+            if #teams > 0 then
+                local startIdx = randomPickup and math.random(#teams) or 1
+                local n = #teams
+                for i = 0, n - 1 do
+                    local candidate = teams[((startIdx - 1 + i) % n) + 1]
+                    local w  = tm:_weightForGroup(candidate)
+                    local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
+                    if canEmb then tmpl = candidate; break end
                 end
             end
-        end)
-        if not status then
-            ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus error for '%s': %s",
-                tostring(unitName), tostring(err))
+            if tmpl then
+                local loaded = tm:embarkFromTroopZone(u, pickZone, tmpl)
+                if loaded then
+                    ctld.utils.notifyCoalition(
+                        ctld.tr("AI %1 picked up troops: %2 (%3)", unitName, tmpl.name, tmpl.total),
+                        10, coa)
+                end
+            end
         end
     end
 end
@@ -21569,7 +21936,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Pickup zones
+-- Troop pickup zones (players only — AI transports use AIZones)
 -- Each entry: { "zone_or_ship_name", "smoke_color", limit, "active", side [, flag] }
 --
 --   "zone_or_ship_name" : ME trigger zone name, or DCS unit name of a ship
@@ -21581,7 +21948,7 @@ local _cfg = CTLDConfig.get()
 --   side                : 0 = both coalitions ; 1 = RED only ; 2 = BLUE only
 --   flag (optional)     : DCS flag number where remaining group count is stored
 -- ============================================================
--- _cfg.settings["pickupZones"] = {
+-- _cfg.settings["troopZones"] = {
 --     { "pickzone1",   "blue",   -1, "yes", 0 },
 --     { "pickzone2",   "red",    -1, "yes", 0 },
 --     { "pickzone3",   "none",   -1, "yes", 0 },
@@ -21606,21 +21973,19 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Drop-off zones (AI transports auto-unload when inside the zone)
--- Each entry: { "zone_name", "smoke_color", side }
---   side : 0 = both ; 1 = RED ; 2 = BLUE
+-- AI-only zones (not visible in player F10 menu)
+-- Each entry: { "zone_name", "smoke_color", side, role, stock }
+--   side  : 0 = both ; 1 = RED ; 2 = BLUE
+--   role  : "P" = AI pickup ; "D" = AI dropoff
+--   stock : -1 = unlimited or integer ≥ 1 (required for "P", omit for "D")
+-- Alternative: name DCS trigger zones AIZ_name_[A|R|B|N]_[P|D]_[stock|999] directly in ME.
 -- ============================================================
--- _cfg.settings["dropOffZones"] = {
---     { "dropzone1",  "green",  2 },
---     { "dropzone2",  "blue",   2 },
---     { "dropzone3",  "orange", 2 },
---     { "dropzone4",  "none",   2 },
---     { "dropzone5",  "none",   1 },
---     { "dropzone6",  "none",   1 },
---     { "dropzone7",  "none",   1 },
---     { "dropzone8",  "none",   1 },
---     { "dropzone9",  "none",   1 },
---     { "dropzone10", "none",   1 },
+-- _cfg.settings["AIZones"] = {
+--     { "aizone_farp",  "none", 2, "P", -1    }, -- AI pickup BLUE, unlimited
+--     { "aizone_lz",    "none", 2, "D"        }, -- AI dropoff BLUE, ground+para (default "GP")
+--     { "aizone_base",  "none", 1, "P",  5    }, -- AI pickup RED, 5 groups max
+--     { "aizone_dz",    "none", 1, "D", "P"  }, -- AI dropoff RED, parachute only
+--     { "aizone_lz2",   "none", 0, "D", "G"  }, -- AI dropoff both sides, ground only
 -- }
 
 -- ============================================================
