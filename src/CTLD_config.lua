@@ -218,7 +218,8 @@ function CTLDConfig:load()
         ["BRDM-2"] = 7000,
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
-        ["M1043 HMMWV Armament"] = 2500
+        ["M1043 HMMWV Armament"] = 2500,
+        ["Hummer"] = 2500,
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -345,16 +346,15 @@ function CTLDConfig:load()
     self.settings["troopZoneSmokeColor"]                  = nil  -- optional: table [coalition_id] = smokeColor — nil disables troop zone smoke
 
     -- Available colors (anything else like "none" disables smoke): "green", "red", "white", "orange", "blue", "none",
-    -- Use any of the predefined names or set your own ones
-    -- You can add number as a third option to limit the number of soldier or vehicle groups that can be loaded from a zone.
-    -- Dropping back a group at a limited zone will add one more to the limit
-    -- If a zone isn't ACTIVE then you can't pickup from that zone until the zone is activated by ctld.activatePickupZone
-    -- using the Mission editor
-    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name
-    -- Side - Controls which side can load/unload troops at the zone
-    -- Flag Number - Optional last field. If set the current number of groups remaining can be obtained from the flag value
-    --pickupZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", flag number (optional) }
-    self.settings["pickupZones"]                          = {
+    -- Player troop pickup zones (players only — AI transports use AIZones instead).
+    -- You can add number as a third option to limit the number of soldier groups that can be loaded.
+    -- Dropping back a group at a limited zone will restore one to the limit.
+    -- If a zone isn't ACTIVE then you can't pickup from that zone until activated via ctld.activatePickupZone.
+    -- You can pickup from a SHIP by adding the SHIP UNIT NAME instead of a zone name.
+    -- Side - Controls which coalition can load/unload troops at the zone.
+    -- Flag Number - Optional last field: mirrors the current stock count to a DCS flag.
+    --troopZones = { "Zone name or Ship Unit Name", "smoke color", "limit (-1 unlimited)", "ACTIVE (yes/no)", "side (0=Both / 1=Red / 2=Blue)", flag number (optional) }
+    self.settings["troopZones"]                           = {
         { "pickzone1",   "blue", -1, "yes", 0 },
         { "pickzone2",   "red",  -1, "yes", 0 },
         { "pickzone3",   "none", -1, "yes", 0 },
@@ -363,11 +363,11 @@ function CTLDConfig:load()
         { "pickzone6",   "none", -1, "yes", 0 },
         { "pickzone7",   "none", -1, "yes", 0 },
         { "pickzone8",   "none", -1, "yes", 0 },
-        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups of soldiers or vehicles, only red can pick up
-        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups of soldiers or vehicles, only blue can pick up
+        { "pickzone9",   "none", 5,  "yes", 1 }, -- limits pickup zone 9 to 5 groups, RED only
+        { "pickzone10",  "none", 10, "yes", 2 }, -- limits pickup zone 10 to 10 groups, BLUE only
 
-        { "pickzone11",  "blue", 20, "no",  2 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
-        { "pickzone12",  "red",  20, "no",  1 }, -- limits pickup zone 11 to 20 groups of soldiers or vehicles, only blue can pick up. Zone starts inactive!
+        { "pickzone11",  "blue", 20, "no",  2 }, -- starts inactive, BLUE only
+        { "pickzone12",  "red",  20, "no",  1 }, -- starts inactive, RED only
         { "pickzone13",  "none", -1, "yes", 0 },
         { "pickzone14",  "none", -1, "yes", 0 },
         { "pickzone15",  "none", -1, "yes", 0 },
@@ -375,23 +375,21 @@ function CTLDConfig:load()
         { "pickzone17",  "none", -1, "yes", 0 },
         { "pickzone18",  "none", -1, "yes", 0 },
         { "pickzone19",  "none", 5,  "yes", 0 },
-        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- optional extra flag number to store the current number of groups available in
+        { "pickzone20",  "none", 10, "yes", 0, 1000 }, -- remaining count mirrored to flag 1000
 
-        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- instead of a Zone Name you can also use the UNIT NAME of a ship
+        { "USA Carrier", "blue", 10, "yes", 0, 1001 }, -- ship: use DCS unit name
     }
 
-    -- dropOffZones = {"name","smoke colour",0,side 1 = Red or 2 = Blue or 0 = Both sides}
-    self.settings["dropOffZones"]                         = {
-        { "dropzone1",  "green",  2 },
-        { "dropzone2",  "blue",   2 },
-        { "dropzone3",  "orange", 2 },
-        { "dropzone4",  "none",   2 },
-        { "dropzone5",  "none",   1 },
-        { "dropzone6",  "none",   1 },
-        { "dropzone7",  "none",   1 },
-        { "dropzone8",  "none",   1 },
-        { "dropzone9",  "none",   1 },
-        { "dropzone10", "none",   1 },
+    -- AI-only zones (not visible to player menus).
+    -- role "P" = AI pickup ; role "D" = AI dropoff
+    -- stock     : integer or -1=unlimited (required for "P", ignored for "D")
+    -- drop mode : "G"=ground only, "P"=parachute only, "GP"=both (optional, "D" only, default "GP")
+    -- AIZones = { "zone_name", "smoke_color", side, role, stock_or_dropmode }
+    self.settings["AIZones"]                              = {
+        { "aizone1",  "none", 2, "P", -1    }, -- AI pickup BLUE, unlimited stock
+        { "aizone2",  "none", 2, "D"        }, -- AI dropoff BLUE, ground+para (default)
+        { "aizone3",  "none", 1, "P", -1    }, -- AI pickup RED, unlimited stock
+        { "aizone4",  "none", 1, "D", "G"  }, -- AI dropoff RED, ground only
     }
 
     --wpZones = { "Zone name", "smoke color",    "ACTIVE (yes/no)", "side (0 = Both sides / 1 = Red / 2 = Blue )", }
@@ -490,15 +488,17 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["Hercules"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 30,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["SK-60"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
@@ -536,15 +536,17 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true,  canSlingload = true,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 8,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 1,
+            maxVehicleWeight = 1360,  -- ~3000 lbs internal cargo capacity
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["CH-47Fbl1"] = {
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
             canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
+            maxVehicleWeight = 11000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
 
         -- ── FIXED-WING ───────────────────────────────────────────────────────────
@@ -554,8 +556,9 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+            loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
 
         -- ── WARBIRDS (examples, all disabled by default) ─────────────────────────

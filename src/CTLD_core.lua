@@ -675,10 +675,25 @@ function CTLDCoreManager:onAILand(event)
                             or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
             if vehStockOk then
                 local loadables = vs:findLoadableVehicles(u)
-                if #loadables > 0 then
+                -- Weight filter: skip vehicles heavier than transport capacity
+                local maxW   = caps.maxVehicleWeight  -- nil = unlimited
+                local weights = ctld.gs("groundVehicleWeights") or {}
+                local compatible = {}
+                for _, v in ipairs(loadables) do
+                    local w = weights[v.vehicleType] or 0
+                    if not maxW or w <= maxW then
+                        compatible[#compatible + 1] = v
+                    end
+                end
+                if #loadables > 0 and #compatible == 0 then
+                    ctld.utils.log("WARN",
+                        "CTLDCoreManager:onAILand [%s] landed on AIZ_P but no vehicle is within weight limit (%s kg). Vehicles found: %d",
+                        unitName, tostring(maxW), #loadables)
+                end
+                if #compatible > 0 then
                     local loaded = vs:findLoadedVehicles(u)
                     if #loaded < (caps.maxWholeVehiclesOnboard or 1) then
-                        local veh = loadables[1]
+                        local veh = compatible[1]
                         vs:loadVehicle(veh, u, nil, "menu_ctld")
                         -- decrement vehicle stock
                         if pickZone.pickMaxVehicleStock and pickZone.pickMaxVehicleStock > 0 then

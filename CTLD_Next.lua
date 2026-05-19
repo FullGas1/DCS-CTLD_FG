@@ -533,6 +533,7 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
@@ -540,6 +541,7 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = false,
             maxTroopsOnboard = 30,  maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
@@ -579,6 +581,7 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true,  canSlingload = true,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 8,   maxCratesOnboard = 1,   maxWholeVehiclesOnboard = 1,
+            maxVehicleWeight = 1360,  -- ~3000 lbs internal cargo capacity
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
@@ -586,6 +589,7 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
             canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
+            maxVehicleWeight = 11000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
@@ -597,6 +601,7 @@ function CTLDConfig:load()
             cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = false,
             canTransportWholeVehicle = true,  useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 80,  maxCratesOnboard = 20,  maxWholeVehiclesOnboard = 2,
+            maxVehicleWeight = 20000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
@@ -20473,10 +20478,25 @@ function CTLDCoreManager:onAILand(event)
                             or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
             if vehStockOk then
                 local loadables = vs:findLoadableVehicles(u)
-                if #loadables > 0 then
+                -- Weight filter: skip vehicles heavier than transport capacity
+                local maxW   = caps.maxVehicleWeight  -- nil = unlimited
+                local weights = ctld.gs("groundVehicleWeights") or {}
+                local compatible = {}
+                for _, v in ipairs(loadables) do
+                    local w = weights[v.vehicleType] or 0
+                    if not maxW or w <= maxW then
+                        compatible[#compatible + 1] = v
+                    end
+                end
+                if #loadables > 0 and #compatible == 0 then
+                    ctld.utils.log("WARN",
+                        "CTLDCoreManager:onAILand [%s] landed on AIZ_P but no vehicle is within weight limit (%s kg). Vehicles found: %d",
+                        unitName, tostring(maxW), #loadables)
+                end
+                if #compatible > 0 then
                     local loaded = vs:findLoadedVehicles(u)
                     if #loaded < (caps.maxWholeVehiclesOnboard or 1) then
-                        local veh = loadables[1]
+                        local veh = compatible[1]
                         vs:loadVehicle(veh, u, nil, "menu_ctld")
                         -- decrement vehicle stock
                         if pickZone.pickMaxVehicleStock and pickZone.pickMaxVehicleStock > 0 then
