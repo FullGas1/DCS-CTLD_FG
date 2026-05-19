@@ -386,7 +386,13 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **i18n string.format migration + capacity counters** : 6 unitaires + 1 fonctionnel = **7 cas** ✅ PASS (U-100→U-105 8/8 + F-167 1/1 [2026-05-18]) — substitution %1/%2 vérifiée (crate capacity / lasing / altitude / vehicle capacity / packed-into / troop capacity) ; guard messages affichent (x/y)
 - **Feature — Crate Commands sol/vol split** : 5 fonctionnels = **15 cas** ✅ PASS (F-168 4/4 + F-169 3/3 + F-170 4/4 + F-171 1/1 + F-172 3/3 [2026-05-18]) — refreshCrateFlightSection ground/air visibility ; setBranchEnabled mocked ; Parachute Crates exclut slingloaded ; Release/Cut conditionnés slingload actif
 - **Bugfixes session 2026-05-18 — parachute/slingload/poids** : 3 fonctionnels = **3 cas** ✅ PASS live DCS (F-173→F-175 [2026-05-18]) — crate visible au sol après parachutage (_respawnStatic) ; Release/Cut Slingload apparaissent après hover pickup et disparaissent après release/cut ; décompte slingload effacé par msg confirmation (clearview=true)
-- **Total** : **303 cas** — 1230/1230 PASS ✅ + MT-06 9/9 PASS
+- **B3 — loadCrateFromMenu config guard** : 5 fonctionnels = **5 cas** ✅ PASS (F-B3-1→F-B3-5 5/5 [2026-05-19]) — refreshLoadCrateSection early-return false ; buildMenuSection skip addSubMenu "Load Crate" false ; refreshCrateFlightSection skip setBranchEnabled false ; comportements symétriques quand true
+- **B4 — maximumSearchDistance câblé dans gotoAttackNearestEnemyOnLos** : 3 fonctionnels = **3 cas** ✅ PASS (F-B4-1→F-B4-3 3/3 [2026-05-19]) — radius=4000 (défaut) ; radius=1500 (custom) ; fallback 10000 quand config=nil
+- **CL-9 — pickupZones legacy → CTLDTroopZone** : 4 fonctionnels = **18 cas** ✅ PASS (F-CL9-1→F-CL9-4 18/18 [2026-05-19]) — trigger zone stock/smoke/active/coalition ; limit=-1→unlimited ; stockFlagName auto "zoneName_count" + setUserFlag sur consume/restore ; ship unit fallback position+radius
+- **CL-10 — addPlayerAircraftByType gate** : 3 fonctionnels = **3 cas** ✅ PASS (F-CL10-1→F-CL10-3 3/3 [2026-05-19]) — byType=true→menu construit ; byType=false+whitelist→menu construit ; byType=false+absent→early return pas de menu
+- **Feature O — extractableGroups INIT-E** : 3 fonctionnels = **7 cas** ✅ PASS (F-O-1→F-O-3 7/7 [2026-05-19]) — groupe existant blue→_droppedGroups[2] ; groupe inexistant→skip WARN ; deux groupes red→_droppedGroups[1] les deux présents
+- **Feature Q — Vehicle whole-unit transport** : 6 fonctionnels = **9 cas** ✅ PASS (F-Q-1→F-Q-6 9/9 [2026-05-19]) — UH-1H→{} ; C-130+HMMWV BLUE→retourné ; C-130+BRDM RED→exclu coalition ; C-130+type inconnu→exclu type ; C-130 spawnAsVehicle=true ; UH-1H spawnAsVehicle=false
+- **Total** : **331 cas** — 1275/1275 PASS ✅ + MT-06 9/9 PASS
 
 ---
 

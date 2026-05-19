@@ -1360,26 +1360,60 @@ end
 -- was fully available (coalition.addGroup has a 1-frame delay before Group.getByName works).
 -- @param transport DCS Unit
 -- @return table  array of CTLDVehicle
+--- Returns true if vehicleType is in the loadable list for transportTypeName + coalition.
+-- @param vehicleType       string   DCS unit type name
+-- @param transportTypeName string   transport unit type
+-- @param coalition         number   1=RED 2=BLUE
+-- @return bool
+function CTLDVehicleSpawner:_isTypeLoadable(vehicleType, transportTypeName, coalition)
+    local caps = (ctld.gs("capabilitiesByType") or {})[transportTypeName]
+    if not (caps and caps.canTransportWholeVehicle) then return false end
+    local list = (coalition == 1) and caps.loadableVehiclesRED or caps.loadableVehiclesBLUE
+    if not list then return false end
+    for _, t in ipairs(list) do
+        if t == vehicleType then return true end
+    end
+    return false
+end
+
+--- Return WAITING vehicles that this transport can load (whole-vehicle method).
+-- Filters: distance <= maximumDistancePackableUnitsSearch
+--          + same coalition as transport (GAP-Q1)
+--          + vehicleType in loadableVehiclesRED/BLUE for this transport (GAP-Q2)
+-- Returns {} immediately if canTransportWholeVehicle is not set for this transport.
 function CTLDVehicleSpawner:findLoadableVehicles(transport)
+    local tTypeName = transport:getTypeName()
+    local tCoa      = transport:getCoalition()
+    local caps      = (ctld.gs("capabilitiesByType") or {})[tTypeName]
+    if not (caps and caps.canTransportWholeVehicle) then return {} end
+
     local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
     local tPos    = transport:getPoint()
     local result  = {}
     for id, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.WAITING then
-            -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
-            if not veh.unit and veh.spawnData and veh.spawnData.groupName then
-                local g = Group.getByName(veh.spawnData.groupName)
-                local u = g and g:getUnit(1) or nil
-                if u and u:isExist() then
-                    veh.unit = u
-                    self._unitToVehicle[u:getName()] = id
+            -- Coalition filter (GAP-Q1)
+            if veh.spawnData and veh.spawnData.coalitionId ~= tCoa then
+                -- skip: wrong coalition
+            else
+                -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
+                if not veh.unit and veh.spawnData and veh.spawnData.groupName then
+                    local g = Group.getByName(veh.spawnData.groupName)
+                    local u = g and g:getUnit(1) or nil
+                    if u and u:isExist() then
+                        veh.unit = u
+                        self._unitToVehicle[u:getName()] = id
+                    end
                 end
-            end
-            if veh.unit and veh.unit:isExist() then
-                local dist = ctld.utils.getDistance(
-                    "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
-                if dist <= maxDist then
-                    table.insert(result, veh)
+                if veh.unit and veh.unit:isExist() then
+                    -- Type filter (GAP-Q2)
+                    if self:_isTypeLoadable(veh.vehicleType, tTypeName, tCoa) then
+                        local dist = ctld.utils.getDistance(
+                            "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
+                        if dist <= maxDist then
+                            table.insert(result, veh)
+                        end
+                    end
                 end
             end
         end

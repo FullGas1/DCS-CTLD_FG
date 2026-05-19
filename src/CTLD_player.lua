@@ -194,7 +194,23 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
     if not unit:getPlayerName() then return end   -- skip AI
 
     local unitName = unit:getName()
-    local group    = unit:getGroup()
+
+    -- Pilot name gate: when addPlayerAircraftByType=false, only unit names explicitly
+    -- listed in transportPilotNames receive CTLD menus.
+    if ctld.gs("addPlayerAircraftByType") == false then
+        local allowed = false
+        for _, name in ipairs(ctld.gs("transportPilotNames") or {}) do
+            if name == unitName then allowed = true; break end
+        end
+        if not allowed then
+            ctld.utils.log("INFO",
+                "CTLDPlayerManager: %s not in transportPilotNames — no CTLD menu (addPlayerAircraftByType=false)",
+                unitName)
+            return
+        end
+    end
+
+    local group = unit:getGroup()
     if not group then
         ctld.utils.log("WARNING", "CTLDPlayerManager:onPlayerEnterUnit — no group for " .. unitName)
         return

@@ -149,24 +149,22 @@ The single table that defines every per-aircraft capability. Only aircraft liste
 ```lua
 _cfg.settings["capabilitiesByType"] = {
     ["UH-1H"] = {
-        crates                  = true,   -- can load/unpack crates
-        troops                  = true,   -- can load/deploy infantry
-        canParachute            = true,   -- enables Parachute F10 entries
-        canSlingload            = true,   -- enables hover-pickup + Slingload menus
-        vehicleTransportEnabled = true,   -- can load/unload whole vehicles (Feature Q)
-        dynamicCargoUnits       = true,   -- uses DCS native cargo system for crates
-        unitLoadLimits          = 8,      -- max soldiers (overrides ctld.numberOfTroops)
-        internalCargoLimits     = 1,      -- max crates carried simultaneously
-        maxVehicles             = 1,      -- max whole vehicles carried simultaneously
-        vehiclesRED  = { "BRDM-2", "BTR_D" },
-        vehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        cratesEnabled            = true,   -- can load/unpack crates
+        troopsEnabled            = true,   -- can load/deploy infantry
+        canParachuteDrop         = true,   -- enables Parachute F10 entries
+        canSlingload             = true,   -- enables hover-pickup + Slingload menus
+        canTransportWholeVehicle = false,  -- whole-vehicle transport (Feature Q)
+        useNativeDcsCargoSystem  = true,   -- uses DCS native cargo system for crates
+        maxTroopsOnboard         = 8,      -- max soldiers (overrides ctld.numberOfTroops)
+        maxCratesOnboard         = 1,      -- max crates carried simultaneously
+        maxWholeVehiclesOnboard  = 0,      -- max whole vehicles carried simultaneously
     },
     ["C-130J-30"] = {
-        crates=true, troops=true, canParachute=false, canSlingload=false,
-        vehicleTransportEnabled=true, dynamicCargoUnits=true,
-        unitLoadLimits=80, internalCargoLimits=20, maxVehicles=2,
-        vehiclesRED  = { "BRDM-2", "BTR_D" },
-        vehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
+        cratesEnabled=true, troopsEnabled=true, canParachuteDrop=false, canSlingload=false,
+        canTransportWholeVehicle=true, useNativeDcsCargoSystem=false,
+        maxTroopsOnboard=80, maxCratesOnboard=20, maxWholeVehiclesOnboard=2,
+        loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
+        loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament" },
     },
     -- ... one entry per aircraft type
 }
@@ -175,20 +173,47 @@ _cfg.settings["capabilitiesByType"] = {
 **Field reference:**
 
 | Field | Type | Description |
-|---|---|---|
-| `crates` | bool | Can load/spawn/unpack crates |
-| `troops` | bool | Can load/deploy infantry groups |
-| `canParachute` | bool | Enables "Parachute" F10 entries |
+| --- | --- | --- |
+| `cratesEnabled` | bool | Can load/spawn/unpack crates |
+| `troopsEnabled` | bool | Can load/deploy infantry groups |
+| `canParachuteDrop` | bool | Enables "Parachute" F10 entries |
 | `canSlingload` | bool | Enables hover-pickup and "Release/Cut Slingload" menus |
-| `vehicleTransportEnabled` | bool | Can load and re-deploy whole vehicles |
-| `dynamicCargoUnits` | bool | Uses DCS native cargo physics for crates |
-| `unitLoadLimits` | number | Max soldiers this aircraft can carry (overrides `numberOfTroops`) |
-| `internalCargoLimits` | number | Max crates loaded simultaneously (default: 1 for unlisted types) |
-| `maxVehicles` | number | Max whole vehicles carried simultaneously |
-| `vehiclesRED` | string[] | DCS type names of RED-coalition vehicles this aircraft can transport |
-| `vehiclesBLUE` | string[] | DCS type names of BLUE-coalition vehicles this aircraft can transport |
+| `canTransportWholeVehicle` | bool | Can load and re-deploy whole vehicles (Feature Q) |
+| `useNativeDcsCargoSystem` | bool | Uses DCS native cargo physics for crates |
+| `maxTroopsOnboard` | number | Max soldiers this aircraft can carry (overrides `numberOfTroops`) |
+| `maxCratesOnboard` | number | Max crates loaded simultaneously (default: 1 for unlisted types) |
+| `maxWholeVehiclesOnboard` | number | Max whole vehicles carried simultaneously (0 = disabled) |
+| `loadableVehiclesRED` | string[] | DCS type names of RED-coalition vehicles this aircraft can transport whole |
+| `loadableVehiclesBLUE` | string[] | DCS type names of BLUE-coalition vehicles this aircraft can transport whole |
 
+> When `canTransportWholeVehicle = true` and `loadableVehiclesRED/BLUE` list a vehicle type, that type appears in the **Request Equipment** F10 menu. Selecting it spawns the vehicle as a WAITING unit near the transport (instead of spawning a crate). The pilot then uses **Vehicle Commands > Load Vehicle** to embark it.
+>
 > Aircraft not listed in `capabilitiesByType` do not receive CTLD menus. Mod aircraft use their exact DCS type name as the key (e.g. `"Hercules"`, `"76MD"`, `"UH-60L"`).
+
+#### Access control — addPlayerAircraftByType
+
+| Parameter | Default | Description |
+|---|---|---|
+| `addPlayerAircraftByType` | `true` | Controls how CTLD decides which player units receive F10 menus |
+| `transportPilotNames` | `{...}` | Whitelist of DCS unit names — active when `addPlayerAircraftByType = false`, and always used for AI transports |
+
+**`addPlayerAircraftByType = true` (default)**
+Any player whose aircraft type is listed in `capabilitiesByType` automatically receives CTLD F10 menus when they enter a slot. This is the recommended setting for open multiplayer servers.
+
+**`addPlayerAircraftByType = false`**
+Only unit names explicitly listed in `transportPilotNames` receive CTLD menus. Use this to restrict CTLD access to a fixed set of named slots — for example, a dedicated transport squadron in a controlled campaign. Players in CTLD-capable aircraft that are **not** in `transportPilotNames` join the mission normally but have no CTLD access.
+
+> **AI transports** always use `transportPilotNames` regardless of `addPlayerAircraftByType`. Add AI unit names there to enable auto-pickup/drop-off behavior (see §5 — AI Transport).
+
+```lua
+-- Restrict CTLD to named slots only
+_cfg.settings["addPlayerAircraftByType"] = false
+_cfg.settings["transportPilotNames"] = {
+    "transport_slot_1",
+    "transport_slot_2",
+    "transport_slot_3",
+}
+```
 
 #### AA systems
 
@@ -906,6 +931,34 @@ If conditions are not met while airborne, CTLD refuses deployment and shows an e
 When troops are deployed inside a TRZ that has a `flag` defined, **no DCS group is spawned**. Instead, the troop count is added to the zone's DCS flag. Use this to score evacuations or trigger mission phases.
 
 See [§4.3 TRZ](#43-trz--troop-zone) for zone naming and flag conventions.
+
+---
+
+### Pre-placed extractable groups (`extractableGroups`)
+
+CTLD can make **existing DCS mission editor groups** available for field extraction, without using a TRZ pickup zone.
+
+**Use case:** a squad of troops is placed directly on the map in a hostile area. Players must fly in, land, and extract them via the F10 "Embark / Extract Troops" menu — exactly as if those troops had been deployed by CTLD.
+
+**Configuration** — in `CTLD_userConfig.lua`, list the DCS group names to register:
+
+```lua
+_cfg.settings["extractableGroups"] = {
+    "rescue_team_alpha",
+    "rescue_team_bravo",
+    "downed_pilot_1",
+}
+```
+
+At mission start, CTLD scans each name via `Group.getByName()`. Groups that exist are immediately added to the extractable pool for the matching coalition. Groups that cannot be found are skipped with a warning in `CTLD.log`.
+
+**Behaviour:**
+
+- No TRZ zone required — extraction works anywhere within `maxExtractDistance` of the transport
+- Weight defaults to 130 kg per alive unit (no template on record)
+- No late-activation: groups that are not yet active at CTLD init are not registered
+
+**Default value:** 25 preset names `extract1` … `extract25` (matching the legacy convention).
 
 ---
 

@@ -444,3 +444,4 @@ ctld.i18n["en"]["Extract from field"]                         = "Extract from fi
 ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
 ctld.i18n["en"]["No troops onboard."]                         = "No troops onboard."
 ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport weight limit exceeded (%1 kg max)."
+ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."

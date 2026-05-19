@@ -51,6 +51,20 @@ Configuration is read-only via `ctld.gs("paramName")` — never call
 > **Troop + JTAC lifecycle state machine** — complete diagram with all states, transitions, and JTAC instance management:
 > [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
 
+### CTLDCoreManager init sequence
+
+`CTLDCoreManager:init()` runs once at mission start and executes these phases in order:
+
+| Phase | Method | Description |
+| --- | --- | --- |
+| INIT-B | `_initMMCrates()` | Scan coalition statics for MM-placed cargo objects |
+| INIT-C | `_initMMJTACs()` | Scan coalition groups for MM-placed JTAC groups |
+| INIT-D | `CTLDVehicleSpawner:scanMMVehicles()` | Scan coalition ground groups for MM-placed vehicles |
+| INIT-E | `_initExtractableGroups()` | Register `extractableGroups` names into `CTLDTroopManager._droppedGroups` |
+| INIT-A | `_initAITransports()` | Build AI team lists and start the auto-pickup/dropoff loop |
+
+**INIT-E detail:** reads `ctld.gs("extractableGroups")`, calls `Group.getByName()` for each entry, inserts the group name into `CTLDTroopManager._droppedGroups[coalition]`. Groups not found are logged as WARN and skipped. No late-activation (iso-legacy). No `_droppedTemplates` entry — `embarkFromField` uses 130 kg/unit fallback.
+
 ---
 
 ## 3. Adding a new module

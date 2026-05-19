@@ -441,10 +441,13 @@ function CTLDCoreManager:init()
     -- INIT-D: detect ground vehicles placed by the mission maker
     CTLDVehicleSpawner.getInstance():scanMMVehicles()
 
+    -- INIT-E: register MM pre-placed groups as extractable
+    self:_initExtractableGroups()
+
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E)")
 end
 
 -- INIT-B -----------------------------------------------------------
@@ -499,6 +502,34 @@ function CTLDCoreManager:_initMMJTACs()
         end
     end
     ctld.utils.log("INFO", "CTLDCoreManager: INIT-C complete — %d MM JTAC group(s) detected", count)
+end
+
+-- INIT-E -----------------------------------------------------------
+
+--- Register pre-placed MM groups as extractable (embarkFromField-eligible).
+-- Legacy parity: source/CTLD.lua:11276-11287 — reads extractableGroups at init and
+-- inserts matching DCS groups into droppedTroopsRED/BLUE.
+-- In v2: inserts groupName into CTLDTroopManager._droppedGroups[coalition].
+-- No late-activation support (iso-legacy: groups that don't exist at init are skipped).
+-- No _droppedTemplates entry — embarkFromField falls back to 130 kg per alive unit (iso-legacy).
+function CTLDCoreManager:_initExtractableGroups()
+    local names = ctld.gs("extractableGroups") or {}
+    local count = 0
+    local tm = CTLDTroopManager.getInstance()
+    for _, groupName in ipairs(names) do
+        local group = Group.getByName(groupName)
+        if group == nil or not group:isExist() then
+            ctld.utils.log("WARN", "CTLDCoreManager: INIT-E — extractableGroup '%s' not found, skipped", groupName)
+        else
+            local coa = group:getCoalition()
+            if not tm._droppedGroups[coa] then tm._droppedGroups[coa] = {} end
+            table.insert(tm._droppedGroups[coa], groupName)
+            count = count + 1
+            ctld.utils.log("INFO", "CTLDCoreManager: INIT-E — registered extractable group '%s' (coalition %d)",
+                groupName, coa)
+        end
+    end
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-E complete — %d extractable group(s) registered", count)
 end
 
 --- Return true if group should be managed as a JTAC by CTLD.

@@ -427,6 +427,7 @@ end
 function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+    if not ctld.gs("loadCrateFromMenu") then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -2081,6 +2082,14 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
+    -- Feature Q: pre-compute loadable whole-vehicle types for this transport
+    local loadableList = nil
+    if caps.canTransportWholeVehicle then
+        loadableList = (playerObj.coalition == 1)
+            and caps.loadableVehiclesRED
+            or  caps.loadableVehiclesBLUE
+    end
+
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
     if not menu then return end
@@ -2143,6 +2152,12 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                     ctld.tr("%1 crates have been brought out at your %2 o'clock",
                         spawned, spawnInfo.clock), 20)
             end
+        elseif arg.spawnAsVehicle then
+            -- Feature Q: spawn a whole vehicle WAITING (no crate)
+            local vs = CTLDVehicleSpawner.getInstance()
+            vs:spawnVehicleForTransport(arg.unit, t, selZone)
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("Vehicle ready for loading", arg.desc), 20)
         else
             local mKey      = mgr:_crateModelKey(t)
             local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
@@ -2172,11 +2187,19 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 local sc     = entry.singleCrate
                 local sideOk = (sc.side == nil) or (sc.side == playerObj.coalition)
                 if sideOk and (not _crateIsJTAC(sc) or jtacOk) then
+                    -- Feature Q: detect if this item should spawn a whole vehicle WAITING
+                    local spawnAsVehicle = false
+                    if loadableList then
+                        for _, ltype in ipairs(loadableList) do
+                            if ltype == sc.unit then spawnAsVehicle = true; break end
+                        end
+                    end
                     crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
                         spawnFn,
-                        { unit = sc.unit, zoneName = lgzName, unitName = playerObj.unitName,
-                          coalition = playerObj.coalition },
+                        { unit = sc.unit, desc = sc.desc, zoneName = lgzName,
+                          unitName = playerObj.unitName, coalition = playerObj.coalition,
+                          spawnAsVehicle = spawnAsVehicle },
                         { order = crateOrder })
 
                     local sts = entry.singleTypeSet
@@ -2231,7 +2254,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
 
     -- Ground-only: visible only when landed
-    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") },         not inAir)
+    if ctld.gs("loadCrateFromMenu") then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") }, not inAir)
+    end
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
@@ -2281,16 +2306,19 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 
     local root     = ctld.tr("CTLD")
     local spawnSub = ctld.tr("Request Equipment")
-    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    -- order=25: after Troop Commands (20), before Vehicle Commands (30)
+    menu:addSubMenu({ root }, spawnSub, { order = 25 })
     self:refreshRequestEquipmentSection(playerObj)
 
     -- Crate Commands
     local cratesSub = ctld.tr("Crate Commands")
-    menu:addSubMenu({ root }, cratesSub, { order = 50 })
+    menu:addSubMenu({ root }, cratesSub, { order = 40 })
 
-    local loadSub = ctld.tr("Load Crate")
-    menu:addSubMenu({ root, cratesSub }, loadSub, { order = 10 })
-    self:refreshLoadCrateSection(playerObj)
+    if ctld.gs("loadCrateFromMenu") then
+        local loadSub = ctld.tr("Load Crate")
+        menu:addSubMenu({ root, cratesSub }, loadSub, { order = 10 })
+        self:refreshLoadCrateSection(playerObj)
+    end
 
     menu:addCommand({ root, cratesSub }, ctld.tr("Drop Crate(s)"),
         function(arg)

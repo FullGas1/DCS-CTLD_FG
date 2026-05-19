@@ -739,11 +739,13 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ pcall par unité, log WARN sur erreur.
         Recette : `recette/scenarios/scenario_ai_transport.lua` — F-133 (_aiTeams), F-134 (pickup/dropoff).
 
-⬜  FG  Feature O — Extraction zones (extractableGroups)
-        Objectif : porter le legacy `extractableGroups` (liste de noms de zones de type extract1–25).
-        Spec à produire : parsing de la liste, comparaison avec TRZ (qui couvre déjà pickup+extract),
-        déterminer si extractableGroups est complémentaire ou redondant.
-        Estimation : spec + implémentation dans CTLDTroopManager + recette.
+✅  FG  Feature O — Extractable groups (INIT-E) [2026-05-19]
+        Objectif : porter le legacy `extractableGroups` — groupes DCS placés par le MM extractibles via F10.
+        Décision : complémentaire aux TRZ (pas de zone, pas de stock — évacuation de groupes existants).
+        Implémentation : CTLDCoreManager:_initExtractableGroups() — Group.getByName() → _droppedGroups[coa].
+        Pas de late-activation (iso-legacy). Poids fallback 130 kg/unité (iso-legacy, pas de template).
+        Doc : MM guide §5 (Pre-placed extractable groups) + dev-guide §2 (init sequence table) + README §Troops.
+        Recette F-O-1→F-O-3 7/7 PASS ✅
 
 ✅  FG  Feature P — Unified aircraftCapabilities table [2026-05-18]
         Table `capabilitiesByType[typeName]` — renommage complet des champs pour clarté maximale :
@@ -780,14 +782,14 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         • Parachute Crates : exclut crates inTransitOnSlingload du comptage onboard
         • outTextForGroup slingload confirmation : clearview=true → efface décompte hover (F-175 PASS live)
 
-⬜  FG  Feature Q — Vehicle whole-unit air transport (vehiclesForTransportRED/BLUE)
-        Objectif : spécifier et implémenter le transport de véhicules entiers (non décomposés en caisses)
-        à bord d'un transport (C-130, CH-47, Il-76).
-        `vehiclesForTransportRED`/`vehiclesForTransportBLUE` définissent les types autorisés.
-        `maxVehiclesByType` (déjà en config) contrôle la capacité par type d'appareil.
-        Spec à produire : flow détaillé load/unload, état CTLDVehicle pendant transit,
-        interaction avec Feature K (JTAC vehicle in-transit).
-        Recette IA obligatoire.
+✅  FG  Feature Q — Vehicle whole-unit air transport [2026-05-19]
+        GAP-Q1: findLoadableVehicles coalition filter (BLUE transport cannot see RED vehicles).
+        GAP-Q2: findLoadableVehicles type filter via loadableVehiclesRED/BLUE + _isTypeLoadable helper.
+        GAP-Q3: Request Equipment unified — spawnAsVehicle=true for loadable types → spawnVehicleForTransport.
+        Menu order updated: Request Equipment order=25 (after Troops 20, before Vehicle Commands 30).
+        i18n: "Vehicle ready for loading" added (EN/FR/ES/KO).
+        Spec: docs/specs/feature_q_spec.md
+        Recette: 9/9 PASS (F-Q-1→F-Q-6, scenarios/auto/scenario_fq_vehicle_whole_transport.lua)
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
@@ -1125,10 +1127,33 @@ Minor cleanups identified — low priority, no functional impact.
   `minimumDeployDistance` (garde LGZ-unpack obsolète, FOB a `fobMinDistanceFromZones`).
 - **CL-8** Points config en attente d'analyse/décision (audit 2026-05-17) :
   • `dynamicLogisticUnitsIndex` — cycling logistic unit après destruction (feature résilience non portée)
-  • `loadCrateFromMenu` — conservé mais hardcodé "both" implicitement ; à connecter via `ctld.gs()` dans CTLDCrateManager pour paramétrer le mode menu/hover/les deux
-  • `maximumMoveDistance`/`maximumSearchDistance` — utiles pour comportements post-unpack (`moveToWPZ`, `attackNearestEnemy`) pas seulement IA troupes ; à connecter quand ces behaviors implémentés
+  • ~~`loadCrateFromMenu`~~ ✅ — gate `refreshLoadCrateSection` + `buildMenuSection` + `refreshCrateFlightSection` (3 sites câblés) ; recette F-B3-1→F-B3-5 5/5 PASS [2026-05-19]
+  • ~~`maximumSearchDistance`~~ ✅ — câblé dans `_assignPostSpawnTask` `gotoAttackNearestEnemyOnLos` (remplace hardcode 10000) ; recette F-B4-1→F-B4-3 3/3 PASS [2026-05-19]
+  • `maximumMoveDistance` — non connecté (v2 ne génère pas d'errance aléatoire, choix de conception documenté)
   • ~~`unitLoadLimits`~~ — absorbé par Feature P ✅ (`maxTroopsOnboard` dans `capabilitiesByType`)
   • `vehiclesForTransportRED/BLUE` + `maxVehiclesByType` — fusionnés en `vehicleTransportCapabilities` [2026-05-17] (Feature Q)
+
+- ~~**CL-9**~~ ✅ `ctld.pickupZones` → instanciation en CTLDTroopZone [2026-05-19]
+  Analyse : instanciation correcte pour trigger zones. Deux gaps identifiés et corrigés :
+  • GAP-1 — Ship unit name fallback : `Unit.getByName` si `trigger.misc.getZone` retourne nil → snapshot position ship + rayon `maximumDistancePackableUnitsSearch`
+  • GAP-2 — `stockFlagName` auto-dérivé : `zoneName.."_count"` (ex. "pickzone1_count") ; `_syncStockFlag()` appelé dans `consumeStock` + `restoreStock`
+  Note : `zd[6]` (flag numérique legacy) ignoré — remplacé par dérivation automatique du nom de flag.
+  Recette F-CL9-1→F-CL9-4 18/18 PASS.
+
+- ✅ **CL-10** Algo ouverture accès CTLD aux pilotes — `addPlayerAircraftByType` / `transportPilotNames`
+  Réimplémenté dans CTLDPlayerManager.onPlayerEnterUnit + config default=true + userConfig doc + MM guide §Access control.
+  Recette F-CL10-1→F-CL10-3 3/3 PASS.
+
+- ✅ **CL-11** Renommage `dynamic` → `NativeDcsCargoSystem` — **décision : Option A, statu quo**
+  Analyse : clé `"dynamic"` rarement surchargée par les MMs, breaking change non nul pour gain de lisibilité marginal. Cohérence avec `CTLD_zone.lua:isDynamic()` (contexte différent). Pas de modification de code.
+
+- **POST-PROJECT** Mise à jour specs techniques (`docs/specs/`)
+  Une fois le projet finalisé : relire tous les fichiers de `docs/specs/` et les mettre à jour pour refléter le code implémenté (Feature Q, Feature O, CL-9/10, capabilitiesByType, menu order, etc.). Objectif : faciliter la maintenance future en ayant des specs conformes au code livré.
+
+- **CL-12** Refonte README
+  • Vérifier que tous les exemples de fonctions/méthodes présents dans le README actuel sont bien implémentés dans `CTLD_Next.lua`
+  • Réécrire le README pour qu'il corresponde à la dernière version du code (v2) ; chaque exemple doit décrire l'ensemble des paramètres attendus lors des appels de méthodes
+  • Documenter la possibilité de définir des zones via des conventions de nommage DCS (préfixes TRZ_, LGZ_, WPZ_, EXZ_, etc.) et en détailler la structure exacte (la notion d'extractZone n'est pas encore documentée dans le README)
 
 ---
 

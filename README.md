@@ -362,6 +362,17 @@ ctld.spawnGroupAtTrigger("blue", { mg=1, at=2, aa=1, inf=4, mortar=1 }, "spawnTr
 ctld.spawnGroupAtPoint("red", 10, { x=1, y=2, z=3 }, 1000)
 ```
 
+**Register pre-placed groups as extractable (CTLD_userConfig.lua):**
+```lua
+-- Groups placed in the Mission Editor that players can extract via F10 menu
+_cfg.settings["extractableGroups"] = {
+    "rescue_team_alpha",
+    "downed_pilot_1",
+}
+```
+
+These groups are registered at CTLD init. Any group not found at that time is skipped.
+
 **Force load / unload an AI unit:**
 ```lua
 ctld.loadTransport("helicargo1")

@@ -85,6 +85,11 @@ function CTLDConfig:load()
     -- [2] TRANSPORTS — Aircraft types and pilot names
     -- ═══════════════════════════════════════════════════════════
 
+    -- If true (default): any player in a type listed in capabilitiesByType gets CTLD menus.
+    -- If false: only unit names explicitly listed in transportPilotNames get CTLD menus.
+    --           Use this to restrict CTLD to a fixed set of named slots in a controlled mission.
+    self.settings["addPlayerAircraftByType"]            = true
+
     -- Use any of the predefined names or set your own ones
     self.settings["transportPilotNames"]                = {
         "helicargo1",
@@ -1742,6 +1747,7 @@ ctld.i18n["en"]["Extract from field"]                         = "Extract from fi
 ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
 ctld.i18n["en"]["No troops onboard."]                         = "No troops onboard."
 ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport weight limit exceeded (%1 kg max)."
+ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."
 
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
@@ -2188,6 +2194,7 @@ ctld.i18n["fr"]["Extract from field"]                         = "Extraire du ter
 ctld.i18n["fr"]["Extract: %1"]                                = "Extraire : %1"
 ctld.i18n["fr"]["No troops onboard."]                         = "Aucune troupe à bord."
 ctld.i18n["fr"]["Transport weight limit exceeded (%1 kg max)."] = "Limite de poids dépassée (%1 kg max)."
+ctld.i18n["fr"]["Vehicle ready for loading"]                    = "Un %1 est prêt à être chargé."
 
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
@@ -2635,6 +2642,7 @@ ctld.i18n["es"]["Extract from field"]                         = "Extraer del cam
 ctld.i18n["es"]["Extract: %1"]                                = "Extraer: %1"
 ctld.i18n["es"]["No troops onboard."]                         = "No hay tropas a bordo."
 ctld.i18n["es"]["Transport weight limit exceeded (%1 kg max)."] = "Límite de peso superado (%1 kg máx)."
+ctld.i18n["es"]["Vehicle ready for loading"]                    = "Un %1 está listo para cargar."
 
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
@@ -2929,6 +2937,7 @@ ctld.i18n["ko"]["Extract from field"]                         = "현장에서 �
 ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
 ctld.i18n["ko"]["No troops onboard."]                         = "탑승 병력 없음."
 ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량 한계 초과 (최대 %1 kg)."
+ctld.i18n["ko"]["Vehicle ready for loading"]                    = "%1이(가) 적재 준비되었습니다."
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -6592,6 +6601,9 @@ function CTLDTroopZone:init(data)
     self.pickMaxStock     = data.pickMaxStock    -- nil | number  (0 = unlimited)
     self.pickCurrentStock = (data.pickMaxStock ~= nil and data.pickMaxStock ~= 0)
                             and data.pickMaxStock or 0
+    -- Optional DCS flag name: mirrors pickCurrentStock to a mission flag when set.
+    -- Legacy pickupZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
+    self.stockFlagName    = data.stockFlagName or nil
 
     -- Extract objective (nil = this zone has no extract function)
     self.objectiveFlag    = data.objectiveFlag   -- nil | string
@@ -6653,6 +6665,13 @@ function CTLDTroopZone._raycast(point, verts)
     return inside
 end
 
+--- Sync pickCurrentStock to the DCS flag (stockFlagName), if set.
+function CTLDTroopZone:_syncStockFlag()
+    if self.stockFlagName then
+        trigger.action.setUserFlag(self.stockFlagName, self.pickCurrentStock)
+    end
+end
+
 --- Consume n troops from pickup stock. Returns true on success.
 -- Unlimited stock (pickMaxStock == 0) always succeeds.
 -- @param n number   troops to consume
@@ -6662,6 +6681,7 @@ function CTLDTroopZone:consumeStock(n)
     if self.pickMaxStock == 0 then return true end  -- unlimited
     if self.pickCurrentStock < n then return false end
     self.pickCurrentStock = self.pickCurrentStock - n
+    self:_syncStockFlag()
     return true
 end
 
@@ -6671,6 +6691,7 @@ end
 function CTLDTroopZone:restoreStock(n)
     if not self:hasPickup() or self.pickMaxStock == 0 then return end
     self.pickCurrentStock = math.min(self.pickMaxStock, self.pickCurrentStock + n)
+    self:_syncStockFlag()
 end
 
 --- Increment the objective flag by soldierCount and check win condition.
@@ -7052,24 +7073,48 @@ end
 function CTLDZoneManager:_loadLegacyZones()
 
     -- pickupZones → CTLDTroopZone (pickup only)
+    -- Supports both DCS trigger zones and ship unit names (mobile pickup point).
     for _, zd in pairs(ctld.gs("pickupZones") or {}) do
-        local trig = trigger.misc.getZone(zd[1])
-        if trig and not self._troopZones[zd[1]] then
+        if not self._troopZones[zd[1]] then
             local smoke = -1
             if zd[2] then
                 local n = tonumber(_LEGACY_SMOKE_STR[zd[2]] or zd[2])
                 smoke = _TROOP_SMOKE_COLOR[n] or -1
             end
-            local stock = (zd[3] == -1 or zd[3] == nil) and 0 or tonumber(zd[3])
-            self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName      = zd[1], zoneName = zd[1],
-                coalition    = tonumber(zd[5]) or 0,
-                center       = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
-                radius       = trig.radius,
-                pickMaxStock = stock,
-                smoke        = smoke,
-                active       = (zd[4] == "yes" or zd[4] == 1),
-            })
+            local stock  = (zd[3] == -1 or zd[3] == nil) and 0 or tonumber(zd[3])
+            local active = (zd[4] == "yes" or zd[4] == 1)
+            local coal   = tonumber(zd[5]) or 0
+
+            local trig = trigger.misc.getZone(zd[1])
+            if trig then
+                self._troopZones[zd[1]] = CTLDTroopZone:new({
+                    dcsName       = zd[1], zoneName = zd[1],
+                    coalition     = coal,
+                    center        = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
+                    radius        = trig.radius,
+                    pickMaxStock  = stock,
+                    smoke         = smoke,
+                    active        = active,
+                    stockFlagName = zd[1] .. "_count",
+                })
+            else
+                -- Fallback: ship unit name — snapshot position at init
+                local ship = Unit.getByName(zd[1])
+                if ship and ship:isExist() then
+                    local pt = ship:getPoint()
+                    local r  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+                    self._troopZones[zd[1]] = CTLDTroopZone:new({
+                        dcsName       = zd[1], zoneName = zd[1],
+                        coalition     = coal,
+                        center        = { x=pt.x, y=pt.y, z=pt.z },
+                        radius        = r,
+                        pickMaxStock  = stock,
+                        smoke         = smoke,
+                        active        = active,
+                        stockFlagName = zd[1] .. "_count",
+                    })
+                end
+            end
         end
     end
 
@@ -9134,7 +9179,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             world.searchObjects(
                 Object.Category.UNIT,
                 { id = world.VolumeType.SPHERE,
-                  params = { point = arg.spawnPt, radius = 10000 } },
+                  params = { point = arg.spawnPt, radius = ctld.gs("maximumSearchDistance") or 10000 } },
                 function(unit, _)
                     if not unit:isExist() or unit:getLife() <= 1 then return true end
                     if unit:getCoalition() ~= enemyCoa then return true end
@@ -10319,6 +10364,7 @@ end
 function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+    if not ctld.gs("loadCrateFromMenu") then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -11973,6 +12019,14 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
+    -- Feature Q: pre-compute loadable whole-vehicle types for this transport
+    local loadableList = nil
+    if caps.canTransportWholeVehicle then
+        loadableList = (playerObj.coalition == 1)
+            and caps.loadableVehiclesRED
+            or  caps.loadableVehiclesBLUE
+    end
+
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
     if not menu then return end
@@ -12035,6 +12089,12 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                     ctld.tr("%1 crates have been brought out at your %2 o'clock",
                         spawned, spawnInfo.clock), 20)
             end
+        elseif arg.spawnAsVehicle then
+            -- Feature Q: spawn a whole vehicle WAITING (no crate)
+            local vs = CTLDVehicleSpawner.getInstance()
+            vs:spawnVehicleForTransport(arg.unit, t, selZone)
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("Vehicle ready for loading", arg.desc), 20)
         else
             local mKey      = mgr:_crateModelKey(t)
             local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
@@ -12064,11 +12124,19 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 local sc     = entry.singleCrate
                 local sideOk = (sc.side == nil) or (sc.side == playerObj.coalition)
                 if sideOk and (not _crateIsJTAC(sc) or jtacOk) then
+                    -- Feature Q: detect if this item should spawn a whole vehicle WAITING
+                    local spawnAsVehicle = false
+                    if loadableList then
+                        for _, ltype in ipairs(loadableList) do
+                            if ltype == sc.unit then spawnAsVehicle = true; break end
+                        end
+                    end
                     crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
                         spawnFn,
-                        { unit = sc.unit, zoneName = lgzName, unitName = playerObj.unitName,
-                          coalition = playerObj.coalition },
+                        { unit = sc.unit, desc = sc.desc, zoneName = lgzName,
+                          unitName = playerObj.unitName, coalition = playerObj.coalition,
+                          spawnAsVehicle = spawnAsVehicle },
                         { order = crateOrder })
 
                     local sts = entry.singleTypeSet
@@ -12123,7 +12191,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
 
     -- Ground-only: visible only when landed
-    menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") },         not inAir)
+    if ctld.gs("loadCrateFromMenu") then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Load Crate") }, not inAir)
+    end
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
@@ -12173,16 +12243,19 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 
     local root     = ctld.tr("CTLD")
     local spawnSub = ctld.tr("Request Equipment")
-    menu:addSubMenu({ root }, spawnSub, { order = 40 })
+    -- order=25: after Troop Commands (20), before Vehicle Commands (30)
+    menu:addSubMenu({ root }, spawnSub, { order = 25 })
     self:refreshRequestEquipmentSection(playerObj)
 
     -- Crate Commands
     local cratesSub = ctld.tr("Crate Commands")
-    menu:addSubMenu({ root }, cratesSub, { order = 50 })
+    menu:addSubMenu({ root }, cratesSub, { order = 40 })
 
-    local loadSub = ctld.tr("Load Crate")
-    menu:addSubMenu({ root, cratesSub }, loadSub, { order = 10 })
-    self:refreshLoadCrateSection(playerObj)
+    if ctld.gs("loadCrateFromMenu") then
+        local loadSub = ctld.tr("Load Crate")
+        menu:addSubMenu({ root, cratesSub }, loadSub, { order = 10 })
+        self:refreshLoadCrateSection(playerObj)
+    end
 
     menu:addCommand({ root, cratesSub }, ctld.tr("Drop Crate(s)"),
         function(arg)
@@ -13840,26 +13913,60 @@ end
 -- was fully available (coalition.addGroup has a 1-frame delay before Group.getByName works).
 -- @param transport DCS Unit
 -- @return table  array of CTLDVehicle
+--- Returns true if vehicleType is in the loadable list for transportTypeName + coalition.
+-- @param vehicleType       string   DCS unit type name
+-- @param transportTypeName string   transport unit type
+-- @param coalition         number   1=RED 2=BLUE
+-- @return bool
+function CTLDVehicleSpawner:_isTypeLoadable(vehicleType, transportTypeName, coalition)
+    local caps = (ctld.gs("capabilitiesByType") or {})[transportTypeName]
+    if not (caps and caps.canTransportWholeVehicle) then return false end
+    local list = (coalition == 1) and caps.loadableVehiclesRED or caps.loadableVehiclesBLUE
+    if not list then return false end
+    for _, t in ipairs(list) do
+        if t == vehicleType then return true end
+    end
+    return false
+end
+
+--- Return WAITING vehicles that this transport can load (whole-vehicle method).
+-- Filters: distance <= maximumDistancePackableUnitsSearch
+--          + same coalition as transport (GAP-Q1)
+--          + vehicleType in loadableVehiclesRED/BLUE for this transport (GAP-Q2)
+-- Returns {} immediately if canTransportWholeVehicle is not set for this transport.
 function CTLDVehicleSpawner:findLoadableVehicles(transport)
+    local tTypeName = transport:getTypeName()
+    local tCoa      = transport:getCoalition()
+    local caps      = (ctld.gs("capabilitiesByType") or {})[tTypeName]
+    if not (caps and caps.canTransportWholeVehicle) then return {} end
+
     local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
     local tPos    = transport:getPoint()
     local result  = {}
     for id, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.WAITING then
-            -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
-            if not veh.unit and veh.spawnData and veh.spawnData.groupName then
-                local g = Group.getByName(veh.spawnData.groupName)
-                local u = g and g:getUnit(1) or nil
-                if u and u:isExist() then
-                    veh.unit = u
-                    self._unitToVehicle[u:getName()] = id
+            -- Coalition filter (GAP-Q1)
+            if veh.spawnData and veh.spawnData.coalitionId ~= tCoa then
+                -- skip: wrong coalition
+            else
+                -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
+                if not veh.unit and veh.spawnData and veh.spawnData.groupName then
+                    local g = Group.getByName(veh.spawnData.groupName)
+                    local u = g and g:getUnit(1) or nil
+                    if u and u:isExist() then
+                        veh.unit = u
+                        self._unitToVehicle[u:getName()] = id
+                    end
                 end
-            end
-            if veh.unit and veh.unit:isExist() then
-                local dist = ctld.utils.getDistance(
-                    "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
-                if dist <= maxDist then
-                    table.insert(result, veh)
+                if veh.unit and veh.unit:isExist() then
+                    -- Type filter (GAP-Q2)
+                    if self:_isTypeLoadable(veh.vehicleType, tTypeName, tCoa) then
+                        local dist = ctld.utils.getDistance(
+                            "CTLDVehicleSpawner:findLoadableVehicles", tPos, veh.unit:getPoint())
+                        if dist <= maxDist then
+                            table.insert(result, veh)
+                        end
+                    end
                 end
             end
         end
@@ -19102,7 +19209,23 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
     if not unit:getPlayerName() then return end   -- skip AI
 
     local unitName = unit:getName()
-    local group    = unit:getGroup()
+
+    -- Pilot name gate: when addPlayerAircraftByType=false, only unit names explicitly
+    -- listed in transportPilotNames receive CTLD menus.
+    if ctld.gs("addPlayerAircraftByType") == false then
+        local allowed = false
+        for _, name in ipairs(ctld.gs("transportPilotNames") or {}) do
+            if name == unitName then allowed = true; break end
+        end
+        if not allowed then
+            ctld.utils.log("INFO",
+                "CTLDPlayerManager: %s not in transportPilotNames — no CTLD menu (addPlayerAircraftByType=false)",
+                unitName)
+            return
+        end
+    end
+
+    local group = unit:getGroup()
     if not group then
         ctld.utils.log("WARNING", "CTLDPlayerManager:onPlayerEnterUnit — no group for " .. unitName)
         return
@@ -19823,10 +19946,13 @@ function CTLDCoreManager:init()
     -- INIT-D: detect ground vehicles placed by the mission maker
     CTLDVehicleSpawner.getInstance():scanMMVehicles()
 
+    -- INIT-E: register MM pre-placed groups as extractable
+    self:_initExtractableGroups()
+
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E)")
 end
 
 -- INIT-B -----------------------------------------------------------
@@ -19881,6 +20007,34 @@ function CTLDCoreManager:_initMMJTACs()
         end
     end
     ctld.utils.log("INFO", "CTLDCoreManager: INIT-C complete — %d MM JTAC group(s) detected", count)
+end
+
+-- INIT-E -----------------------------------------------------------
+
+--- Register pre-placed MM groups as extractable (embarkFromField-eligible).
+-- Legacy parity: source/CTLD.lua:11276-11287 — reads extractableGroups at init and
+-- inserts matching DCS groups into droppedTroopsRED/BLUE.
+-- In v2: inserts groupName into CTLDTroopManager._droppedGroups[coalition].
+-- No late-activation support (iso-legacy: groups that don't exist at init are skipped).
+-- No _droppedTemplates entry — embarkFromField falls back to 130 kg per alive unit (iso-legacy).
+function CTLDCoreManager:_initExtractableGroups()
+    local names = ctld.gs("extractableGroups") or {}
+    local count = 0
+    local tm = CTLDTroopManager.getInstance()
+    for _, groupName in ipairs(names) do
+        local group = Group.getByName(groupName)
+        if group == nil or not group:isExist() then
+            ctld.utils.log("WARN", "CTLDCoreManager: INIT-E — extractableGroup '%s' not found, skipped", groupName)
+        else
+            local coa = group:getCoalition()
+            if not tm._droppedGroups[coa] then tm._droppedGroups[coa] = {} end
+            table.insert(tm._droppedGroups[coa], groupName)
+            count = count + 1
+            ctld.utils.log("INFO", "CTLDCoreManager: INIT-E — registered extractable group '%s' (coalition %d)",
+                groupName, coa)
+        end
+    end
+    ctld.utils.log("INFO", "CTLDCoreManager: INIT-E complete — %d extractable group(s) registered", count)
 end
 
 --- Return true if group should be managed as a JTAC by CTLD.
@@ -21375,8 +21529,20 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
+-- Access control — addPlayerAircraftByType
+-- ============================================================
+-- true  (default) : any player whose aircraft type is listed in capabilitiesByType
+--                   automatically receives CTLD F10 menus.
+-- false           : only unit names explicitly listed in transportPilotNames below
+--                   receive CTLD menus. Use this to restrict CTLD access to a
+--                   fixed set of named slots (e.g. dedicated transport squadron).
+--                   AI transports always use transportPilotNames regardless.
+-- ============================================================
+-- _cfg.settings["addPlayerAircraftByType"] = false
+
+-- ============================================================
 -- Transport pilot / unit names authorised to carry CTLD
--- Used when ctld.addPlayerAircraftByType = false, or for AI.
+-- Used when addPlayerAircraftByType = false, or for AI transports.
 -- Add any DCS unit name from the Mission Editor here.
 -- ============================================================
 -- _cfg.settings["transportPilotNames"] = {

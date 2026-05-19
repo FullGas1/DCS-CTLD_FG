@@ -57,6 +57,9 @@ function CTLDTroopZone:init(data)
     self.pickMaxStock     = data.pickMaxStock    -- nil | number  (0 = unlimited)
     self.pickCurrentStock = (data.pickMaxStock ~= nil and data.pickMaxStock ~= 0)
                             and data.pickMaxStock or 0
+    -- Optional DCS flag name: mirrors pickCurrentStock to a mission flag when set.
+    -- Legacy pickupZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
+    self.stockFlagName    = data.stockFlagName or nil
 
     -- Extract objective (nil = this zone has no extract function)
     self.objectiveFlag    = data.objectiveFlag   -- nil | string
@@ -118,6 +121,13 @@ function CTLDTroopZone._raycast(point, verts)
     return inside
 end
 
+--- Sync pickCurrentStock to the DCS flag (stockFlagName), if set.
+function CTLDTroopZone:_syncStockFlag()
+    if self.stockFlagName then
+        trigger.action.setUserFlag(self.stockFlagName, self.pickCurrentStock)
+    end
+end
+
 --- Consume n troops from pickup stock. Returns true on success.
 -- Unlimited stock (pickMaxStock == 0) always succeeds.
 -- @param n number   troops to consume
@@ -127,6 +137,7 @@ function CTLDTroopZone:consumeStock(n)
     if self.pickMaxStock == 0 then return true end  -- unlimited
     if self.pickCurrentStock < n then return false end
     self.pickCurrentStock = self.pickCurrentStock - n
+    self:_syncStockFlag()
     return true
 end
 
@@ -136,6 +147,7 @@ end
 function CTLDTroopZone:restoreStock(n)
     if not self:hasPickup() or self.pickMaxStock == 0 then return end
     self.pickCurrentStock = math.min(self.pickMaxStock, self.pickCurrentStock + n)
+    self:_syncStockFlag()
 end
 
 --- Increment the objective flag by soldierCount and check win condition.
@@ -517,24 +529,48 @@ end
 function CTLDZoneManager:_loadLegacyZones()
 
     -- pickupZones → CTLDTroopZone (pickup only)
+    -- Supports both DCS trigger zones and ship unit names (mobile pickup point).
     for _, zd in pairs(ctld.gs("pickupZones") or {}) do
-        local trig = trigger.misc.getZone(zd[1])
-        if trig and not self._troopZones[zd[1]] then
+        if not self._troopZones[zd[1]] then
             local smoke = -1
             if zd[2] then
                 local n = tonumber(_LEGACY_SMOKE_STR[zd[2]] or zd[2])
                 smoke = _TROOP_SMOKE_COLOR[n] or -1
             end
-            local stock = (zd[3] == -1 or zd[3] == nil) and 0 or tonumber(zd[3])
-            self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName      = zd[1], zoneName = zd[1],
-                coalition    = tonumber(zd[5]) or 0,
-                center       = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
-                radius       = trig.radius,
-                pickMaxStock = stock,
-                smoke        = smoke,
-                active       = (zd[4] == "yes" or zd[4] == 1),
-            })
+            local stock  = (zd[3] == -1 or zd[3] == nil) and 0 or tonumber(zd[3])
+            local active = (zd[4] == "yes" or zd[4] == 1)
+            local coal   = tonumber(zd[5]) or 0
+
+            local trig = trigger.misc.getZone(zd[1])
+            if trig then
+                self._troopZones[zd[1]] = CTLDTroopZone:new({
+                    dcsName       = zd[1], zoneName = zd[1],
+                    coalition     = coal,
+                    center        = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
+                    radius        = trig.radius,
+                    pickMaxStock  = stock,
+                    smoke         = smoke,
+                    active        = active,
+                    stockFlagName = zd[1] .. "_count",
+                })
+            else
+                -- Fallback: ship unit name — snapshot position at init
+                local ship = Unit.getByName(zd[1])
+                if ship and ship:isExist() then
+                    local pt = ship:getPoint()
+                    local r  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+                    self._troopZones[zd[1]] = CTLDTroopZone:new({
+                        dcsName       = zd[1], zoneName = zd[1],
+                        coalition     = coal,
+                        center        = { x=pt.x, y=pt.y, z=pt.z },
+                        radius        = r,
+                        pickMaxStock  = stock,
+                        smoke         = smoke,
+                        active        = active,
+                        stockFlagName = zd[1] .. "_count",
+                    })
+                end
+            end
         end
     end
 

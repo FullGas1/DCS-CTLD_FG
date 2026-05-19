@@ -40,6 +40,11 @@ function CTLDConfig:load()
     -- [2] TRANSPORTS — Aircraft types and pilot names
     -- ═══════════════════════════════════════════════════════════
 
+    -- If true (default): any player in a type listed in capabilitiesByType gets CTLD menus.
+    -- If false: only unit names explicitly listed in transportPilotNames get CTLD menus.
+    --           Use this to restrict CTLD to a fixed set of named slots in a controlled mission.
+    self.settings["addPlayerAircraftByType"]            = true
+
     -- Use any of the predefined names or set your own ones
     self.settings["transportPilotNames"]                = {
         "helicargo1",

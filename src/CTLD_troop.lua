@@ -1496,7 +1496,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             world.searchObjects(
                 Object.Category.UNIT,
                 { id = world.VolumeType.SPHERE,
-                  params = { point = arg.spawnPt, radius = 10000 } },
+                  params = { point = arg.spawnPt, radius = ctld.gs("maximumSearchDistance") or 10000 } },
                 function(unit, _)
                     if not unit:isExist() or unit:getLife() <= 1 then return true end
                     if unit:getCoalition() ~= enemyCoa then return true end

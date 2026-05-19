@@ -480,8 +480,20 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
+-- Access control — addPlayerAircraftByType
+-- ============================================================
+-- true  (default) : any player whose aircraft type is listed in capabilitiesByType
+--                   automatically receives CTLD F10 menus.
+-- false           : only unit names explicitly listed in transportPilotNames below
+--                   receive CTLD menus. Use this to restrict CTLD access to a
+--                   fixed set of named slots (e.g. dedicated transport squadron).
+--                   AI transports always use transportPilotNames regardless.
+-- ============================================================
+-- _cfg.settings["addPlayerAircraftByType"] = false
+
+-- ============================================================
 -- Transport pilot / unit names authorised to carry CTLD
--- Used when ctld.addPlayerAircraftByType = false, or for AI.
+-- Used when addPlayerAircraftByType = false, or for AI transports.
 -- Add any DCS unit name from the Mission Editor here.
 -- ============================================================
 -- _cfg.settings["transportPilotNames"] = {

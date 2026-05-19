@@ -288,3 +288,4 @@ ctld.i18n["ko"]["Extract from field"]                         = "현장에서 �
 ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
 ctld.i18n["ko"]["No troops onboard."]                         = "탑승 병력 없음."
 ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량 한계 초과 (최대 %1 kg)."
+ctld.i18n["ko"]["Vehicle ready for loading"]                    = "%1이(가) 적재 준비되었습니다."
