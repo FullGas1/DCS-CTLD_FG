@@ -208,7 +208,6 @@ function CTLDConfig:load()
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
     self.settings["maximumSearchDistance"]              = 4000     -- max distance for troops to search for enemy
-    self.settings["maximumMoveDistance"]                = 2000     -- max distance for troops to move from drop point if no enemy is nearby
 
     -- ═══════════════════════════════════════════════════════════
     -- [5] VEHICLES — Packable vehicles and transport configuration

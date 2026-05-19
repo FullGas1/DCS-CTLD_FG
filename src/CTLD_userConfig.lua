@@ -129,9 +129,6 @@ ctld.yamlConfigDatas = [[
 # Maximum distance (m) deployed troops will search for an enemy unit.
 # ctld.maximumSearchDistance: 4000
 
-# Maximum distance (m) deployed troops will move from their drop point if no enemy
-# is in range.
-# ctld.maximumMoveDistance: 2000
 
 # Allow pilots to insert troops via fast-rope.
 # ctld.enableFastRopeInsertion: true

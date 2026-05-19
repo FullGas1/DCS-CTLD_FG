@@ -671,7 +671,9 @@ Defines a logistics base. Players must be inside a logistic zone to spawn crates
 
 > **Rule:** `_` is forbidden inside `name`. Use `farmmain` not `farp_main`.
 
-> **FOBs** deployed during the mission automatically register as logistic zones — no configuration needed.
+> **Creating a logistic zone at runtime:** the only way to add a new LGZ during a live mission is to deploy a FOB. When the FOB build sequence completes, CTLD automatically registers a circular logistic zone centered on the FOB site (radius = `fobLogisticZoneRadius`, default 150 m, under the FOB's name). No `LGZ_` trigger zone or config entry is required.
+>
+> **FOB LGZ destruction:** when enemy forces destroy more than `fobDestructionThreshold` (default 50 %) of the FOB scene objects, the FOB is considered lost — its logistic zone is immediately removed and the `OnFOBDestroyed` event fires. The threshold is a fraction (0.0–1.0): at 0.5, losing 3 of 5 structures removes the zone; the FOB does not need to be fully wiped out. See §12 for full details.
 
 #### Deactivating / reactivating a logistic zone at runtime
 
@@ -1429,7 +1431,11 @@ CTLDVehicleSpawner.getInstance():packVehicle(transportUnitName, vehicleUnitName,
 
 ### 12.1 Overview
 
-A FOB is a deployable forward base built from crates. Once built, it automatically registers as a logistics zone (players can spawn crates from it) and optionally as a troop pickup zone.
+A FOB is a deployable forward base built from crates. Once built, it automatically registers as a logistic zone (players can spawn crates and vehicles from it) and optionally as a troop pickup zone.
+
+The FOB logistic zone is a standard circular LGZ centered on the FOB site. It is identified by the FOB name (not an `LGZ_` trigger zone). Its radius is controlled by `fobLogisticZoneRadius` (default 150 m). It can be deactivated / reactivated at runtime like any other LGZ via `CTLDZoneManager.getInstance():deactivateLogisticZone(fobName)`.
+
+> **FOBs are the only way to create a new logistic zone at runtime.** If your mission design requires logistics at a position determined during play, deploy a FOB rather than pre-placing an `LGZ_` trigger zone.
 
 ### 12.2 Build action
 
@@ -1443,7 +1449,17 @@ A FOB is a deployable forward base built from crates. Once built, it automatical
 
 ### 12.3 FOB destruction
 
-If enemy forces destroy ≥ `fobDestructionThreshold` (50% by default) of the FOB structures, the FOB is considered destroyed: its logistic zone and beacon are removed, and the `OnFOBDestroyed` event is fired.
+If enemy forces destroy enough FOB structures to drop the integrity below `(1 - fobDestructionThreshold)`, the FOB is considered destroyed: its logistic zone is immediately unregistered, its beacon is removed, and the `OnFOBDestroyed` event is fired.
+
+With the default `fobDestructionThreshold = 0.5`, the FOB is lost as soon as **more than 50 % of its scene objects are destroyed** — the FOB does not need to be completely wiped out.
+
+| `fobDestructionThreshold` | Structures that must survive | FOB lost when |
+| --- | --- | --- |
+| `0.5` (default) | > 50 % | ≥ 50 % destroyed |
+| `0.75` | > 25 % | ≥ 75 % destroyed |
+| `1.0` | > 0 % (any survivor) | all structures destroyed |
+
+> Once destroyed, the FOB logistic zone is permanently removed for the mission. There is no automatic rebuild — players must deploy new FOB crates at a different location to restore logistics in that area.
 
 ### 12.4 Key configuration parameters
 

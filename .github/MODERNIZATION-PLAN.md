@@ -1053,7 +1053,7 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
-| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation [SW×0.9,SW×1.2] + config keys actifs [2026-05-12]. Feature L: multi-group _inTransit, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12] |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation `[SW×0.9,SW×1.2]` + config keys actifs [2026-05-12]. Feature L: multi-group `_inTransit`, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
 | Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
@@ -1093,8 +1093,8 @@ Tags: `v2.0-alpha.1`, `v2.0-beta.1`, `v2.0-rc.1`, `v2.0`
 
 Minor cleanups identified — low priority, no functional impact.
 
-- **CL-1** `src/CTLD_crate.lua` — Remove `descriptor.type` fallback in `findDescriptorByTypeName`.
-  Legacy alias for `unit`, never set in any config entry. Replace `unit==t or type==t` → `unit==t`. Update dev-guide.md.
+- ~~**CL-1**~~ ✅ `findDescriptorByTypeName` — fallback `descriptor.type` déjà absent du code [vérifié 2026-05-19].
+  `_weightIndex` path et fallback config scan testent uniquement `descriptor.unit`. Rien à modifier.
 - ~~**CL-2**~~ ✅ `forceCrateToBeMoved` dropped intentionally. `canUnpack()` has no movement constraint. U-31 updated (7→4 cases, force param removed). recette.md updated.
 - ~~**CL-3**~~ ✅ Nettoyage clés config obsolètes [2026-05-12] :
   Supprimées (remplacées par mécanismes POO) : `CTLD_ctldStatusF10` (menu CTLD Status non porté),
@@ -1126,10 +1126,10 @@ Minor cleanups identified — low priority, no functional impact.
   `buildTimeFOB` (timing FOB interne), `crateWaitTime` (état manager),
   `minimumDeployDistance` (garde LGZ-unpack obsolète, FOB a `fobMinDistanceFromZones`).
 - **CL-8** Points config en attente d'analyse/décision (audit 2026-05-17) :
-  • `dynamicLogisticUnitsIndex` — cycling logistic unit après destruction (feature résilience non portée)
+  • ~~`dynamicLogisticUnitsIndex`~~ ✅ — feature résilience portée via `CTLDLogisticZone:isAlive()` + `CTLDFOBManager:_destroyFOB()` → `unregisterLogistic()`. FOB = seul moyen de créer une LGZ dynamique. MM guide §4 + §12 mis à jour [2026-05-19].
   • ~~`loadCrateFromMenu`~~ ✅ — gate `refreshLoadCrateSection` + `buildMenuSection` + `refreshCrateFlightSection` (3 sites câblés) ; recette F-B3-1→F-B3-5 5/5 PASS [2026-05-19]
   • ~~`maximumSearchDistance`~~ ✅ — câblé dans `_assignPostSpawnTask` `gotoAttackNearestEnemyOnLos` (remplace hardcode 10000) ; recette F-B4-1→F-B4-3 3/3 PASS [2026-05-19]
-  • `maximumMoveDistance` — non connecté (v2 ne génère pas d'errance aléatoire, choix de conception documenté)
+  • ~~`maximumMoveDistance`~~ ✅ — supprimé de `CTLD_config.lua` + `CTLD_userConfig.lua` [2026-05-19]. V2 n'a pas d'errance aléatoire : `_assignPostSpawnTask` utilise des tâches explicites (`gotoNearestWPZ` / `gotoAttackNearestEnemyOnLos`), pas de fallback random.
   • ~~`unitLoadLimits`~~ — absorbé par Feature P ✅ (`maxTroopsOnboard` dans `capabilitiesByType`)
   • `vehiclesForTransportRED/BLUE` + `maxVehiclesByType` — fusionnés en `vehicleTransportCapabilities` [2026-05-17] (Feature Q)
 
