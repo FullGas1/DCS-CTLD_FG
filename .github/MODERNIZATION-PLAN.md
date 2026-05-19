@@ -791,6 +791,34 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Spec: docs/specs/feature_q_spec.md
         Recette: 9/9 PASS (F-Q-1→F-Q-6, scenarios/auto/scenario_fq_vehicle_whole_transport.lua)
 
+✅  FG  Feature R — AI transport extended (AIZ_ zones + vehicle whole-unit) [2026-05-19]
+        GAP-R1 : `_checkAIStatus` ne gère pas les véhicules entiers (troops only).
+        GAP-R2 : `cleanupDeadTransports()` existe mais n'est jamais appelé.
+        Implémentation :
+          ✅ AIZ_ étendu : `AIZ_name_[R|B|N]_[P|D]_[cargoType|mode][_stock1[_stock2]]`
+            P zones : cargoType T / V / TV / VT ; TV/VT = order defines stock1/stock2
+            D zones : mode G / P / GP (défaut GP)
+          ✅ `aiCargoType` sur CTLDTroopZone : copié dans init() (T/V/TV), stocks séparés troop/vehicle
+          ✅ `getAIPickupZoneAt()` / `getAIDropoffZoneAt()` : plus petit rayon en cas de zones superposées
+          ✅ Pickup/dropoff basculé sur `S_EVENT_LAND` (`onAILand`) — remplacement du timer loop
+            ordre : dropoff (véhicule + troupes) → early return | ou pickup (véhicule + troupes)
+          ✅ `_checkAIStatus` réduit au seul `cleanupDeadTransports()` (maintenance orphelins)
+          ✅ `aiDropMode` : "G"=sol uniquement, "P"=parachute uniquement, "GP"=les deux (défaut)
+          ✅ `cleanupDeadTransports()` câblé sur `S_EVENT_DEAD` dans CTLDDCSEventBridge
+          ✅ `_validateZoneNames` : AIZ_ parsing étendu + WARN chevauchement P+D même coalition
+          ✅ `allowRandomAiTeamPickups` conservé tel quel
+          ✅ Fix critique : `onAILand` utilisait `ipairs` sur `transportPilotNames` (hash table)
+            → `isAI` toujours false → aucun pickup/dropoff AI. Corrigé par lookup direct.
+          ✅ Weight gate : `maxVehicleWeight` par type dans `capabilitiesByType`
+            UH-1H=1360 kg, CH-47Fbl1=11000 kg, C-130J-30/76MD/Hercules=20000 kg
+            Si aucun véhicule compatible poids → WARN CTLD.log, heli non bloqué
+        Recette auto : 71/71 PASS (F-R-1→F-R-26, scenarios/auto/scenario_fr_ai_zones.lua [2026-05-19])
+          F-R-21→F-R-26 : fallback scan templates — premier compatible, circulaire random, guards
+        Recette live DCS :
+          MT-07 4/4 PASS [2026-05-19] — pickup troupes AIZ_P_T, dropoff AIZ_D, msgs coalition + count
+          MT-08 4/4 PASS [2026-05-19] — pickup véhicule AIZ_P_V (stock=10), dropoff AIZ_D
+          MT-09 4/4 PASS [2026-05-19] — pickup troupes+véhicule AIZ_P_TV, dropoff AIZ_D
+
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
         (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
@@ -1055,8 +1083,8 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation `[SW×0.9,SW×1.2]` + config keys actifs [2026-05-12]. Feature L: multi-group `_inTransit`, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
-| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12] |
-| Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02] |
+| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12]. Feature R: onAILand (S_EVENT_LAND) pickup+dropoff véhicule+troupes, ipairs fix, maxVehicleWeight gate, MT-07→MT-09 PASS [2026-05-19] |
+| Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature R: AIZ_ parsing étendu P/D/aiDropMode, AIZones config, getAIPickupZoneAt/getAIDropoffZoneAt, _validateZoneNames P+D overlap WARN, F-R-1→F-R-20 63/63 PASS [2026-05-19] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
 | Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116→F-119 19/19 PASS [2026-04-29] + F-150→F-158 22/22 PASS [2026-05-17] + MT-06 9/9 PASS [2026-05-17] — Feature F: CTLDStaticWatcher, farp_fob layer, drawFarpIcon, coalition rendering, MarkIdCounter persistence ; bugfixes menu: reconF10Menu guard, labels [activate]/[deactivate], no early-return 0 layers |
 | FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 + F-90/F-93 visual ✅ [2026-04-14] |
@@ -1156,6 +1184,10 @@ Minor cleanups identified — low priority, no functional impact.
   • Documenter la possibilité de définir des zones via des conventions de nommage DCS (préfixes TRZ_, LGZ_, WPZ_, EXZ_, etc.) et en détailler la structure exacte (la notion d'extractZone n'est pas encore documentée dans le README)
 
 ---
+
+## Backlog ideas
+
+- **AIZ_P vehicle stock** : réfléchir à la possibilité de définir et gérer un stock de véhicules loadables sur une zone AIZ_P (analogue au stock de troupes), pour éviter que le pickup véhicule nécessite un groupe DCS physiquement présent dans la zone.
 
 ## Risks and mitigations
 

@@ -183,6 +183,7 @@ _cfg.settings["capabilitiesByType"] = {
 | `maxTroopsOnboard` | number | Max soldiers this aircraft can carry (overrides `numberOfTroops`) |
 | `maxCratesOnboard` | number | Max crates loaded simultaneously (default: 1 for unlisted types) |
 | `maxWholeVehiclesOnboard` | number | Max whole vehicles carried simultaneously (0 = disabled) |
+| `maxVehicleWeight` | number | Max vehicle weight (kg) this aircraft can load whole; vehicles heavier than this are skipped by AI auto-pickup (WARN logged). Omit or set `nil` for unlimited. |
 | `loadableVehiclesRED` | string[] | DCS type names of RED-coalition vehicles this aircraft can transport whole |
 | `loadableVehiclesBLUE` | string[] | DCS type names of BLUE-coalition vehicles this aircraft can transport whole |
 
@@ -514,7 +515,7 @@ Four zone prefixes are recognised by CTLD and auto-discovered from DCS trigger z
 | Prefix | Zone type | Schema |
 |---|---|---|
 | `TRZ` | Troop zone — pickup and/or extract objective | `TRZ_name_A/R/B/N_stock_flag_target` — **all 5 fields required** |
-| `IAZ` | AI drop-off zone — AI transport auto-deploys troops here | `IAZ_name_[R/B/N]` |
+| `IAZ` | AI drop-off zone — AI transport auto-deploys troops here | `AIZ_name_[R/B/N]` |
 | `WPZ` | Waypoint zone — troops deployed inside march to zone centre | `WPZ_name_[R/B/N]` |
 | `LGZ` | Logistic zone — crate and vehicle services | `LGZ_name_[R/B/N]` |
 
@@ -627,18 +628,85 @@ TRZ  _  lz  _  R    _  0         _  secure  _  100
 
 ---
 
-### 4.4 IAZ — AI drop-off zone
+### 4.4 AIZ — AI transport zone (pickup + drop-off)
 
-When a CTLD-managed AI transport lands inside a IAZ, it automatically deploys its troops as a combat group. Human players are not affected.
+AIZ zones control the automatic behaviour of AI transports (units listed in `transportPilotNames`). Human players are never affected by AIZ zones.
 
-**Schema:** `IAZ_name_[R/B/N]`
+There are two roles:
 
-| Example name | Meaning |
+| Role | Trigger | Behaviour |
+|---|---|---|
+| **P** (pickup) | AI transport lands inside zone | Loads troops and/or a whole vehicle onto the AI transport |
+| **D** (drop-off) | AI transport lands inside zone | Deploys troops and/or unloads a whole vehicle |
+
+#### Pickup zone schema
+
+```
+AIZ_<name>_<coalition>_P_<cargoType>[_<stock1>[_<stock2>]]
+```
+
+| Field | Values | Meaning |
+| --- | --- | --- |
+| `cargoType` | `T` | Troops only |
+| | `V` | Whole vehicle only |
+| | `TV` or `VT` | Troops **and** vehicle — stock order follows letter order |
+| `stock1` | integer ≥ 0 | Max pickups for the first cargo type; `0` = unlimited |
+| `stock2` | integer ≥ 0 | Max pickups for the second cargo type (TV/VT only); `0` = unlimited |
+
+> Stock is **required** for P zones. A P zone without stock is rejected and logged as a warning.
+
+**Pickup zone examples:**
+
+| Zone name | Cargo | Stock |
+| --- | --- | --- |
+| `AIZ_base_B_P_T_5` | Troops only | 5 troop pickups max |
+| `AIZ_depot_B_P_V_10` | Vehicles only | 10 vehicle pickups max |
+| `AIZ_hub_B_P_TV_5_10` | Troops (5 max) + Vehicles (10 max) | troops first in TV order |
+| `AIZ_hub_B_P_VT_10_5` | Vehicles (10 max) + Troops (5 max) | vehicles first in VT order |
+| `AIZ_base_B_P_T_0` | Troops only | Unlimited |
+
+#### Drop-off zone schema
+
+```
+AIZ_<name>_<coalition>_D[_<mode>]
+```
+
+| Field | Values | Meaning |
+| --- | --- | --- |
+| `mode` | `G` | Ground drop only |
+| | `P` | Parachute drop only |
+| | `GP` (default) | Both ground and parachute |
+
+**Drop-off zone examples:**
+
+| Zone name | Mode |
 |---|---|
-| `IAZ_obj1_B` | BLUE AI drop-off point "obj1" |
-| `IAZ_frontline` | All-coalition AI drop-off point |
+| `AIZ_front_B_D` | Ground + parachute (default GP) |
+| `AIZ_lz_B_D_G` | Ground only |
+| `AIZ_halo_B_D_P` | Parachute only |
 
-> **Note:** IAZ zones are reserved for future AI transport support. They are discovered and registered at startup but have no effect on human players.
+#### Weight compatibility
+
+A whole vehicle is only loaded if its weight (from `groundVehicleWeights`) does not exceed `maxVehicleWeight` for the transport aircraft. If no vehicle in the zone passes the weight check, a `WARN` is written to `CTLD.log` — the AI transport is **not blocked**.
+
+#### AI transport setup
+
+1. Place the AI helicopter/aircraft in the mission editor.
+
+2. Add its **exact DCS unit name** to `transportPilotNames`:
+
+```lua
+_cfg.settings["transportPilotNames"] = {
+    ["heliai_supply"] = true,
+    ["heliai_medevac"] = true,
+}
+```
+
+3. Create AIZ_ trigger zones in the DCS ME matching the schema above.
+
+4. Route the AI unit so it lands inside the AIZ zones (waypoints with "Landing" task or orbit near the zone).
+
+> Both pickup and drop-off use `S_EVENT_LAND` — the trigger fires at the **exact moment of touchdown**. The AI unit must physically land inside the zone radius.
 
 ---
 
