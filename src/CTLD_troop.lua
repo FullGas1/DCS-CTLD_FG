@@ -753,8 +753,13 @@ function CTLDTroopManager:disembark(unit)
             end
         end
 
-        -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
-        local wpzZone = CTLDZoneManager.getInstance():getWaypointZoneAt(pt, group.coalitionId)
+        local grpName = dcsGroup:getName()
+
+        -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center.
+        -- Skip when specificParams.task overrides routing (Feature I takes priority).
+        local _hasPostTask = group.specificParams and group.specificParams.task
+        local wpzZone = (not _hasPostTask) and
+            CTLDZoneManager.getInstance():getWaypointZoneAt(pt, group.coalitionId)
         if wpzZone then
             local dest    = wpzZone:getCenter()
             local wpFrom  = ctld.utils.buildWP("TroopManager.deploy.WPZ", pt,   'Off Road', 50)
@@ -764,7 +769,6 @@ function CTLDTroopManager:disembark(unit)
                     id = 'Mission',
                     params = { route = { points = { wpFrom, wpDest } } },
                 }
-                local grpName = dcsGroup:getName()
                 -- Delay 2 s: DCS group controller may be empty immediately after spawn
                 timer.scheduleFunction(function(arg)
                     local grp = Group.getByName(arg.grpName)
@@ -1180,6 +1184,17 @@ function CTLDTroopManager:cleanupDeadTransports()
     end
 end
 
+--- Called from CTLDDCSEventBridge on S_EVENT_DEAD (transport aircraft).
+-- Triggers immediate cleanup of any orphaned transit entries for the dead unit.
+-- @param event DCS event object
+function CTLDTroopManager:onTransportDead(event)
+    local u = event and event.initiator
+    if not u then return end
+    local ok, alive = pcall(u.isExist, u)
+    if ok and alive then return end  -- unit still alive (group death event), skip
+    self:cleanupDeadTransports()
+end
+
 -- ============================================================
 -- Private helpers
 -- ============================================================
@@ -1518,6 +1533,10 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
                 ctld.utils.log("INFO",
                     "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → (%.1f, %.1f)",
                     arg.grpName, bestPos.x, bestPos.z)
+            else
+                ctld.utils.log("WARN",
+                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
+                    arg.grpName, ctld.gs("maximumSearchDistance") or 10000)
             end
         end
 

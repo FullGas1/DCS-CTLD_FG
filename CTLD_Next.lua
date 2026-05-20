@@ -252,7 +252,7 @@ function CTLDConfig:load()
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
-    self.settings["maximumSearchDistance"]              = 4000     -- max distance for troops to search for enemy
+    self.settings["maximumSearchDistance"]              = 3000     -- max distance for troops to search for enemy
 
     -- ═══════════════════════════════════════════════════════════
     -- [5] VEHICLES — Packable vehicles and transport configuration
@@ -8723,8 +8723,13 @@ function CTLDTroopManager:disembark(unit)
             end
         end
 
-        -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center
-        local wpzZone = CTLDZoneManager.getInstance():getWaypointZoneAt(pt, group.coalitionId)
+        local grpName = dcsGroup:getName()
+
+        -- WPZ check: if deploy point is inside a waypoint zone, march troops to zone center.
+        -- Skip when specificParams.task overrides routing (Feature I takes priority).
+        local _hasPostTask = group.specificParams and group.specificParams.task
+        local wpzZone = (not _hasPostTask) and
+            CTLDZoneManager.getInstance():getWaypointZoneAt(pt, group.coalitionId)
         if wpzZone then
             local dest    = wpzZone:getCenter()
             local wpFrom  = ctld.utils.buildWP("TroopManager.deploy.WPZ", pt,   'Off Road', 50)
@@ -8734,7 +8739,6 @@ function CTLDTroopManager:disembark(unit)
                     id = 'Mission',
                     params = { route = { points = { wpFrom, wpDest } } },
                 }
-                local grpName = dcsGroup:getName()
                 -- Delay 2 s: DCS group controller may be empty immediately after spawn
                 timer.scheduleFunction(function(arg)
                     local grp = Group.getByName(arg.grpName)
@@ -9499,6 +9503,10 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
                 ctld.utils.log("INFO",
                     "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → (%.1f, %.1f)",
                     arg.grpName, bestPos.x, bestPos.z)
+            else
+                ctld.utils.log("WARN",
+                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
+                    arg.grpName, ctld.gs("maximumSearchDistance") or 10000)
             end
         end
 
@@ -21562,7 +21570,7 @@ ctld.yamlConfigDatas = [[
 # ctld.maxExtractDistance: 125
 
 # Maximum distance (m) deployed troops will search for an enemy unit.
-# ctld.maximumSearchDistance: 4000
+# ctld.maximumSearchDistance: 3000
 
 
 # Allow pilots to insert troops via fast-rope.

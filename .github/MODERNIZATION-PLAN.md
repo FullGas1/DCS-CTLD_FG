@@ -818,6 +818,11 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           MT-07 4/4 PASS [2026-05-19] — pickup troupes AIZ_P_T, dropoff AIZ_D, msgs coalition + count
           MT-08 4/4 PASS [2026-05-19] — pickup véhicule AIZ_P_V (stock=10), dropoff AIZ_D
           MT-09 4/4 PASS [2026-05-19] — pickup troupes+véhicule AIZ_P_TV, dropoff AIZ_D
+          MT-10a PASS [2026-05-20] — gotoNearestWPZ : troupes IA → WPZ_mt10_B confirmée log+DCS
+            bugfix : grpName nil hors WPZ inline (var déclarée dans if wpzZone)
+            ⚠️ à re-recetter après Feature S (AIZ naming → config)
+          MT-10b ✅ PASS [2026-05-20] — gotoAttackNearestEnemyOnLos : troupes IA avancent vers ennemi RED en LOS
+            ⚠️ à re-recetter après Feature S (AIZ naming → config)
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
@@ -1081,9 +1086,9 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | Menu (`CTLD_menu.lua`) | ✅ | ✅ | ✅ | 100% | M8: U-57→U-66 + F-72→F-77 + F-81→F-82 visual ✅ [2026-04-09] |
 | SceneManager (`CTLD_sceneManager.lua`) | ✅ | ✅ | ✅ | 100% | R4: U-43→U-44 + F-42→F-44, 2026-04-07 |
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
-| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation `[SW×0.9,SW×1.2]` + config keys actifs [2026-05-12]. Feature L: multi-group `_inTransit`, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12] |
+| **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation `[SW×0.9,SW×1.2]` + config keys actifs [2026-05-12]. Feature L: multi-group `_inTransit`, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12]. Feature I bugfix: grpName nil hors WPZ block dans disembark, MT-10 5/5 PASS [2026-05-20] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
-| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12]. Feature R: onAILand (S_EVENT_LAND) pickup+dropoff véhicule+troupes, ipairs fix, maxVehicleWeight gate, MT-07→MT-09 PASS [2026-05-19] |
+| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12]. Feature R: onAILand (S_EVENT_LAND) pickup+dropoff véhicule+troupes, ipairs fix, maxVehicleWeight gate, MT-07→MT-10 PASS [2026-05-20] |
 | Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature R: AIZ_ parsing étendu P/D/aiDropMode, AIZones config, getAIPickupZoneAt/getAIDropoffZoneAt, _validateZoneNames P+D overlap WARN, F-R-1→F-R-20 63/63 PASS [2026-05-19] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
 | Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116→F-119 19/19 PASS [2026-04-29] + F-150→F-158 22/22 PASS [2026-05-17] + MT-06 9/9 PASS [2026-05-17] — Feature F: CTLDStaticWatcher, farp_fob layer, drawFarpIcon, coalition rendering, MarkIdCounter persistence ; bugfixes menu: reconF10Menu guard, labels [activate]/[deactivate], no early-return 0 layers |
@@ -1188,6 +1193,20 @@ Minor cleanups identified — low priority, no functional impact.
 ## Backlog ideas
 
 - **AIZ_P vehicle stock** : réfléchir à la possibilité de définir et gérer un stock de véhicules loadables sur une zone AIZ_P (analogue au stock de troupes), pour éviter que le pickup véhicule nécessite un groupe DCS physiquement présent dans la zone.
+
+- **Feature S — AIZ config-only** ⬜ SPEC VALIDÉE [2026-05-20]
+  Remplacement complet de la convention de nommage `AIZ_name_[R|B|N]_[P|D]_...` par une table `cfg.settings["aiZones"]` dans userConfig. Coupure franche — aucune rétrocompatibilité naming.
+  Paramètres par zone : `dcsZoneName`, `coalition`, `isPickup`, `isDropoff`, `cargoType`,
+    `troopStock` (0=désactivé, -1=illimité), `troopTemplates` (nil/{}=tous, 1=garanti, N=random parmi listés ET compatibles), `vehicleTypes` (whitelist DCS typeNames, nil=tous présents dans zone), `aiDropMode` (dropoff only).
+  Véhicules = présents physiquement dans la zone DCS (pas de stock CTLD).
+  Contrôle cohérence : intégré dans `CTLDZoneManager:_validateZoneNames()` (pattern existant : accumulation errors[]+warns[] → rapport unique écran+log). Checks AIZ config ajoutés en section dédiée, exécutés au plus tôt dans `init()` avant tout `_discover*`. Cas : zone absente ME → ERROR+ignore ; doublon dcsZoneName → ERROR+ignore seconde entrée ; coalition manquante → ERROR+ignore ; nom dans `troopTemplates` absent de `_templates` → WARN.
+  Migration : coupure franche — pas de détection des zones AIZ_ legacy dans le ME.
+  Impact : supprimer `_parseAIZ` + `_validateZoneNames` AIZ dans `CTLD_zone.lua` ; ajouter `_loadAIZonesFromConfig()` ; adapter `onAILand` (filtre troopTemplates + vehicleTypes) ; MAJ config/userConfig/guide.
+  **TODO : revoir scenarios MT-07→MT-10 (utilisent AIZ_ naming → migrer vers config).**
+  **TODO : créer dans `CTLD_userConfig.lua` les entrées `aiZones` correspondant aux zones MT-07→MT-10 (depot, base, livraison…) — servent de recette ET d'exemples MM. Une fois recettes validées : basculer en commentaires ou wrapper `if false then...end`.**
+  **TODO : re-recetter MT-07→MT-10 après implémentation Feature S (naming supprimé → config obligatoire).**
+
+- **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
 
 ## Risks and mitigations
 

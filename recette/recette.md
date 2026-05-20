@@ -396,7 +396,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **MT-07 — AI troupes cycle complet** : 4 steps ✅ PASS live DCS [2026-05-19] — onAILand (S_EVENT_LAND) pickup sur AIZ_base_B_P_5, vol, disembark sur AIZ_front_B_D ; msgs coalition avec count (pickup + dropoff) validés ; transportPilotNames requis (auto-patch step 1)
 - **MT-08 — AI véhicule entier cycle complet** : 4 steps ✅ PASS live DCS [2026-05-19] — onAILand pickup Hummer sur AIZ_depot_B_P_V_10 (cargoType=V, stock=10), vol, unload sur AIZ_livraison_B_D_G ; msg coalition load/unload validés ; aiCargoType V = vehicles only (pas de troupes)
 - **MT-09 — AI cycle complet troupes + véhicule entier (zone TV)** : 4 steps ✅ PASS live DCS [2026-05-19] — onAILand pickup troupes + Hummer en un seul posé sur AIZ_depot_B_P_TV_5_10 (cargoType=TV) ; dropoff troupes + véhicule sur AIZ_livraison_B_D_G ; ipairs bug fix (pilotNames hash) + weight gate (Hummer 1250 kg < UH-1H 1360 kg)
-- **Total** : **402 cas** — 1346/1346 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS
+- **MT-10a — AI _assignPostSpawnTask gotoNearestWPZ** : 2 steps ✅ PASS live DCS [2026-05-20] — troupes IA déposées → marche vers WPZ_mt10_B confirmée (CTLD.log + mouvement DCS) ; bugfix grpName nil hors WPZ inline ; ⚠️ à re-recetter après Feature S
+- **MT-10b — AI _assignPostSpawnTask gotoAttackNearestEnemyOnLos** : ✅ PASS live DCS [2026-05-20] — log confirme coords ennemi RED en LOS (727m, LOS=true) + mouvement troupes vers ennemi observé DCS ; ⚠️ à re-recetter après Feature S (AIZ naming → config)
+- **Total** : **402 cas** — 1346/1346 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS
 
 ---
 
