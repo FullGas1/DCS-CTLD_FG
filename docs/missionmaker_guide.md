@@ -628,72 +628,99 @@ TRZ  _  lz  _  R    _  0         _  secure  _  100
 
 ---
 
-### 4.4 AIZ — AI transport zone (pickup + drop-off)
+### 4.4 AIZ — AI transport zones (pickup + drop-off)
 
 AIZ zones control the automatic behaviour of AI transports (units listed in `transportPilotNames`). Human players are never affected by AIZ zones.
 
-There are two roles:
+> **All AIZ zones are declared by config** — there is no naming convention. Any DCS trigger zone can be used as an AIZ zone; just reference its name in `cfg.settings["aiZones"]`.
+
+#### Zone roles
 
 | Role | Trigger | Behaviour |
 |---|---|---|
-| **P** (pickup) | AI transport lands inside zone | Loads troops and/or a whole vehicle onto the AI transport |
-| **D** (drop-off) | AI transport lands inside zone | Deploys troops and/or unloads a whole vehicle |
+| **Pickup** | AI transport lands inside zone | Loads troops and/or a whole vehicle onto the AI transport |
+| **Drop-off** | AI transport lands inside zone | Deploys troops and/or unloads a whole vehicle |
 
-#### Pickup zone schema
+A zone may be declared as pickup only, drop-off only, or both simultaneously.
 
-```
-AIZ_<name>_<coalition>_P_<cargoType>[_<stock1>[_<stock2>]]
-```
+#### Config declaration
 
-| Field | Values | Meaning |
-| --- | --- | --- |
-| `cargoType` | `T` | Troops only |
-| | `V` | Whole vehicle only |
-| | `TV` or `VT` | Troops **and** vehicle — stock order follows letter order |
-| `stock1` | integer ≥ 0 | Max pickups for the first cargo type; `0` = unlimited |
-| `stock2` | integer ≥ 0 | Max pickups for the second cargo type (TV/VT only); `0` = unlimited |
+Zones are declared in `cfg.settings["aiZones"]`, an array of entries:
 
-> Stock is **required** for P zones. A P zone without stock is rejected and logged as a warning.
+```lua
+_cfg.settings["aiZones"] = {
+    -- Troops-only pickup, max 5 sorties
+    { dcsZoneName = "my_base",     coalition = "BLUE",
+      isPickup = true, cargoType = "T", troopStock = 5 },
 
-**Pickup zone examples:**
+    -- Vehicle-only pickup (vehicles must be physically in zone)
+    { dcsZoneName = "depot_alpha", coalition = "BLUE",
+      isPickup = true, cargoType = "V" },
 
-| Zone name | Cargo | Stock |
-| --- | --- | --- |
-| `AIZ_base_B_P_T_5` | Troops only | 5 troop pickups max |
-| `AIZ_depot_B_P_V_10` | Vehicles only | 10 vehicle pickups max |
-| `AIZ_hub_B_P_TV_5_10` | Troops (5 max) + Vehicles (10 max) | troops first in TV order |
-| `AIZ_hub_B_P_VT_10_5` | Vehicles (10 max) + Troops (5 max) | vehicles first in VT order |
-| `AIZ_base_B_P_T_0` | Troops only | Unlimited |
+    -- Troops + vehicle pickup (T stock=5, vehicles unlimited)
+    { dcsZoneName = "hub_tv",      coalition = "BLUE",
+      isPickup = true, cargoType = "TV", troopStock = 5 },
 
-#### Drop-off zone schema
+    -- Ground drop-off only
+    { dcsZoneName = "lz_front",    coalition = "BLUE",
+      isDropoff = true, aiDropMode = "G" },
 
-```
-AIZ_<name>_<coalition>_D[_<mode>]
+    -- Ground + parachute drop-off (default)
+    { dcsZoneName = "lz_rear",     coalition = "BLUE",
+      isDropoff = true },
+}
 ```
 
-| Field | Values | Meaning |
-| --- | --- | --- |
-| `mode` | `G` | Ground drop only |
-| | `P` | Parachute drop only |
-| | `GP` (default) | Both ground and parachute |
+#### All pickup parameters
 
-**Drop-off zone examples:**
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `dcsZoneName` | string | ✅ | Exact name of the DCS trigger zone in the ME |
+| `coalition` | `"RED"` / `"BLUE"` / `"NEUTRAL"` | ✅ | Controls which AI transports use this zone |
+| `isPickup` | `true` | at least one | Designates zone as a pickup zone |
+| `isDropoff` | `true` | at least one | Designates zone as a drop-off zone |
+| `cargoType` | `"T"` / `"V"` / `"TV"` | pickup only | What the AI loads: troops, whole vehicle, or both. Default: `"T"` |
+| `troopStock` | integer | pickup+T | `N` = max N sorties; `-1` = unlimited; `0` or absent = no stock check (unlimited) |
+| `vehicleStock` | integer | pickup+V | Max vehicle pickups; absent = unlimited |
+| `aiDropMode` | `"G"` / `"P"` / `"GP"` | drop-off | How troops are deployed. `G` = ground; `P` = parachute; `GP` = either. Default: `"GP"` |
+| `troopTemplates` | `{"Name1", ...}` | optional | Whitelist of troop template names. Only listed templates are eligible at this zone. If absent, any compatible template may be picked. |
+| `vehicleTypes` | `{"TypeName", ...}` | optional | Whitelist of DCS vehicle type names present in the zone. Only listed types are eligible for loading. If absent, any loadable vehicle qualifies. |
 
-| Zone name | Mode |
-|---|---|
-| `AIZ_front_B_D` | Ground + parachute (default GP) |
-| `AIZ_lz_B_D_G` | Ground only |
-| `AIZ_halo_B_D_P` | Parachute only |
+#### Controlling which troop template is loaded
+
+By default, the AI transport selects the first compatible template (or a random one if `allowRandomAiTeamPickups = true`). Use `troopTemplates` to restrict which templates are eligible at a given zone:
+
+```lua
+{ dcsZoneName = "spec_ops_base", coalition = "BLUE",
+  isPickup = true, cargoType = "T", troopStock = 5,
+  troopTemplates = { "Spec Ops Group", "Anti Tank" } },
+```
+
+If the whitelist does not match any template currently in `_aiTeams`, the pickup is skipped and a `WARN` is logged.
+
+#### Controlling which vehicle is loaded
+
+Use `vehicleTypes` to restrict which vehicle types the AI may pick up at a given zone:
+
+```lua
+{ dcsZoneName = "armor_depot", coalition = "BLUE",
+  isPickup = true, cargoType = "V",
+  vehicleTypes = { "Hummer", "M1025 HMMWV Armament" } },
+```
+
+Only vehicles of the listed DCS type names (physically present in the zone and registered with CTLD) are eligible for loading.
 
 #### Weight compatibility
 
-A whole vehicle is only loaded if its weight (from `groundVehicleWeights`) does not exceed `maxVehicleWeight` for the transport aircraft. If no vehicle in the zone passes the weight check, a `WARN` is written to `CTLD.log` — the AI transport is **not blocked**.
+A whole vehicle is only loaded if its weight (from `groundVehicleWeights`) does not exceed `maxVehicleWeight` for the transport aircraft. If no vehicle passes the weight check, a `WARN` is written to `CTLD.log` — the AI transport is **not blocked**.
 
 #### AI transport setup
 
-1. Place the AI helicopter/aircraft in the mission editor.
+1. Create trigger zones in the DCS ME (any name, any radius suitable for landing).
 
-2. Add its **exact DCS unit name** to `transportPilotNames`:
+2. Declare zones in `cfg.settings["aiZones"]` (see above).
+
+3. Add the AI unit's **exact DCS unit name** to `transportPilotNames`:
 
 ```lua
 _cfg.settings["transportPilotNames"] = {
@@ -702,9 +729,7 @@ _cfg.settings["transportPilotNames"] = {
 }
 ```
 
-3. Create AIZ_ trigger zones in the DCS ME matching the schema above.
-
-4. Route the AI unit so it lands inside the AIZ zones (waypoints with "Landing" task or orbit near the zone).
+1. Route the AI unit so it lands inside the zones (waypoints with "Landing" task).
 
 > Both pickup and drop-off use `S_EVENT_LAND` — the trigger fires at the **exact moment of touchdown**. The AI unit must physically land inside the zone radius.
 

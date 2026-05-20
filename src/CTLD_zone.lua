@@ -549,7 +549,7 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
                     troopTemplates      = troopTemplates,
                     vehicleTypes        = (entry.vehicleTypes and #entry.vehicleTypes > 0)
                                          and entry.vehicleTypes or nil,
-                    aiDropMode          = entry.aiDropMode or "GP",
+                    aiDropMode          = (entry.aiDropMode == "G" or entry.aiDropMode == "P" or entry.aiDropMode == "GP") and entry.aiDropMode or "GP",
                     active              = true,
                 })
                 self._troopZones[dzn] = zone
@@ -1234,6 +1234,35 @@ function CTLDZoneManager:_validateZoneNames()
         return knownTemplates
     end
 
+    -- Pre-build known loadable vehicle typeNames (lazy) — for G4 vehicleTypes whitelist check
+    local knownVehicleTypes = nil
+    local function getKnownVehicleTypes()
+        if knownVehicleTypes then return knownVehicleTypes end
+        knownVehicleTypes = {}
+        local caps = ctld.gs("capabilitiesByType") or {}
+        for _, c in pairs(caps) do
+            if c.loadableVehiclesRED then
+                for _, t in ipairs(c.loadableVehiclesRED) do knownVehicleTypes[t] = true end
+            end
+            if c.loadableVehiclesBLUE then
+                for _, t in ipairs(c.loadableVehiclesBLUE) do knownVehicleTypes[t] = true end
+            end
+        end
+        return knownVehicleTypes
+    end
+
+    -- Check if any transport has canTransportWholeVehicle (lazy) — for G5
+    local _hasVehicleTransport = nil
+    local function hasVehicleTransport()
+        if _hasVehicleTransport ~= nil then return _hasVehicleTransport end
+        local caps = ctld.gs("capabilitiesByType") or {}
+        for _, c in pairs(caps) do
+            if c.canTransportWholeVehicle then _hasVehicleTransport = true; return true end
+        end
+        _hasVehicleTransport = false
+        return false
+    end
+
     local VALID_COALITION = { RED = true, BLUE = true, NEUTRAL = true }
     local VALID_CARGO     = { T = true, V = true, TV = true }
     local VALID_DROP_MODE = { G = true, P = true, GP = true }
@@ -1264,21 +1293,53 @@ function CTLDZoneManager:_validateZoneNames()
                 errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"
                 hasErr = true
             end
-            -- cargoType
-            if entry.cargoType and not VALID_CARGO[entry.cargoType] then
-                errors[#errors + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid cargoType '" .. tostring(entry.cargoType) .. "' — defaulting to T"
+            -- G1: neither isPickup nor isDropoff — zone would do nothing
+            if not entry.isPickup and not entry.isDropoff then
+                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': neither isPickup nor isDropoff — zone does nothing, entry ignored"
+                hasErr = true
             end
-            -- aiDropMode
+            -- cargoType (Fix 5: WARN, not error — zone created with default "T")
+            if entry.cargoType and not VALID_CARGO[entry.cargoType] then
+                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid cargoType '" .. tostring(entry.cargoType) .. "' — defaulting to T"
+            end
+            -- G5: cargoType V/TV on a pickup zone but no transport has canTransportWholeVehicle
+            local effCargoIsVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
+            if not hasErr and entry.isPickup and effCargoIsVehicle and not hasVehicleTransport() then
+                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': cargoType '" .. tostring(entry.cargoType) .. "' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
+                hasErr = true
+            end
+            -- aiDropMode (Fix 6 applied in _loadAIZonesFromConfig — WARN only here)
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
                 warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid aiDropMode '" .. tostring(entry.aiDropMode) .. "' — defaulting to GP"
             end
-            -- troopTemplates: warn on unknown names
+            -- G3: isPickup + troop cargo + troopStock=0 → no troops will ever be loaded
+            local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
+            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == 0 then
+                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"
+            end
+            -- troopTemplates: warn on unknown names; G2: all unknown → extra WARN
             if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then
                 local kt = getKnownTemplates()
+                local unknownCount = 0
                 for _, tName in ipairs(entry.troopTemplates) do
                     if not kt[tName] then
                         warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': troopTemplates['" .. tName .. "'] not found in loadableGroups"
+                        unknownCount = unknownCount + 1
                     end
+                end
+                if unknownCount == #entry.troopTemplates then
+                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all troopTemplates are unknown — troop pickup will always be skipped"
+                end
+            end
+            -- G4: vehicleTypes whitelist — all types unknown in configured loadable vehicle lists
+            if not hasErr and entry.vehicleTypes and #entry.vehicleTypes > 0 then
+                local kvt = getKnownVehicleTypes()
+                local unknownCount = 0
+                for _, vt in ipairs(entry.vehicleTypes) do
+                    if not kvt[vt] then unknownCount = unknownCount + 1 end
+                end
+                if unknownCount == #entry.vehicleTypes then
+                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"
                 end
             end
             -- Collect pickup/dropoff for overlap check
