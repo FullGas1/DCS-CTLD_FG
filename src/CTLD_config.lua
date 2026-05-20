@@ -204,10 +204,18 @@ function CTLDConfig:load()
     self.settings["enableFastRopeInsertion"]            = true     -- allows you to drop troops by fast rope
     self.settings["fastRopeMaximumHeight"]              = 18.28    -- in meters which is 60 ft max fast rope (not rappell) safe height
     self.settings["allowRandomAiTeamPickups"]           = false    -- Allows the AI to randomize the loading of infantry teams (specified below) at pickup zones
+    -- Feature S: AI zones declared by config (no naming convention).
+    -- Each entry: { dcsZoneName, coalition, isPickup, isDropoff, cargoType,
+    --              troopStock, troopTemplates, vehicleTypes, aiDropMode }
+    -- troopStock: 0=disabled, -1=unlimited, N=limited stock
+    -- troopTemplates: nil/{}=all templates ; {"Name1","Name2"}=strict whitelist
+    -- vehicleTypes: nil=all DCS vehicles in zone ; {"typeName1",...}=whitelist
+    -- aiDropMode: "G"|"P"|"GP" (default "GP") — dropoff only
+    self.settings["aiZones"]                           = {}
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
-    self.settings["maximumSearchDistance"]              = 4000     -- max distance for troops to search for enemy
+    self.settings["maximumSearchDistance"]              = 3000     -- max distance for troops to search for enemy
 
     -- ═══════════════════════════════════════════════════════════
     -- [5] VEHICLES — Packable vehicles and transport configuration

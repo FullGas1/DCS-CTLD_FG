@@ -44,7 +44,8 @@ CTLDTroopZone = class()
 --   Required : dcsName, zoneName, coalition, center (vec3), radius
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
 --              smoke (trigger.smokeColor.* or -1), active,
---              isWaypoint (bool), isDropoff (bool)
+--              isWaypoint (bool), isDropoff (bool),
+--              isAIPickup (bool), isAIDropoff (bool)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
@@ -53,12 +54,12 @@ function CTLDTroopZone:init(data)
     self.radius           = data.radius     or 0
     self.verticies        = data.verticies  or nil
 
-    -- Pickup stock (nil = this zone has no pickup function)
+    -- Pickup stock (nil = this zone has no pickup function for players)
     self.pickMaxStock     = data.pickMaxStock    -- nil | number  (0 = unlimited)
     self.pickCurrentStock = (data.pickMaxStock ~= nil and data.pickMaxStock ~= 0)
                             and data.pickMaxStock or 0
     -- Optional DCS flag name: mirrors pickCurrentStock to a mission flag when set.
-    -- Legacy pickupZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
+    -- Legacy troopZones auto-derive it as zoneName.."_count" (e.g. "pickzone1_count").
     self.stockFlagName    = data.stockFlagName or nil
 
     -- Extract objective (nil = this zone has no extract function)
@@ -66,9 +67,25 @@ function CTLDTroopZone:init(data)
     self.objectiveTarget  = data.objectiveTarget -- nil | number
 
     -- WPZ: troops deployed inside march to zone center
-    self.isWaypoint = data.isWaypoint or false
-    -- IAZ: AI transport landing here auto-deploys its troops
-    self.isDropoff  = data.isDropoff  or false
+    self.isWaypoint  = data.isWaypoint  or false
+    -- IAZ legacy: AI transport landing here auto-deploys its troops (isDropoff → hasDropoff)
+    self.isDropoff   = data.isDropoff   or false
+    -- IAZ v2: AI-only pickup / dropoff (not visible to player menus)
+    self.isAIPickup  = data.isAIPickup  or false
+    self.isAIDropoff = data.isAIDropoff or false
+    -- Drop mode for AIZ_D zones: "G"=ground only, "P"=parachute only, "GP"=both (default)
+    self.aiDropMode  = data.aiDropMode  or "GP"
+    -- AIZ_P cargo type: "T"=troops only, "V"=vehicles only, "TV"=both (default "T")
+    self.aiCargoType         = data.aiCargoType          or "T"
+    self.pickMaxTroopStock   = data.pickMaxTroopStock    -- nil | number (0=unlimited)
+    self.pickMaxVehicleStock = data.pickMaxVehicleStock  -- nil | number (0=unlimited)
+    self.pickCurrentVehicleStock = (data.pickMaxVehicleStock and data.pickMaxVehicleStock > 0)
+                                   and data.pickMaxVehicleStock or nil
+    -- Feature S: AIZ config-only fields
+    -- troopTemplates: nil/{}=all compatible templates ; {name,...}=strict whitelist
+    self.troopTemplates      = data.troopTemplates  or nil
+    -- vehicleTypes: nil=all DCS vehicles present in zone ; {typeName,...}=whitelist
+    self.vehicleTypes        = data.vehicleTypes    or nil
 
     self.smoke  = (data.smoke ~= nil) and data.smoke or -1
     self.active = (data.active ~= nil) and data.active or true
@@ -89,9 +106,19 @@ function CTLDTroopZone:hasWaypoint()
     return self.isWaypoint == true
 end
 
---- True if this zone is an AI auto-drop point (IAZ).
+--- True if this zone is an AI auto-drop point (IAZ legacy).
 function CTLDTroopZone:hasDropoff()
     return self.isDropoff == true
+end
+
+--- True if this zone is an AI-exclusive pickup point (IAZ v2 P role).
+function CTLDTroopZone:hasAIPickup()
+    return self.isAIPickup == true
+end
+
+--- True if this zone is an AI-exclusive dropoff point (IAZ v2 D role).
+function CTLDTroopZone:hasAIDropoff()
+    return self.isAIDropoff == true
 end
 
 --- True if point is inside the zone (circular or polygonal).
@@ -263,7 +290,7 @@ function CTLDZoneManager:init()
 
     self:_validateZoneNames()
     self:_discoverTRZ()
-    self:_discoverIAZ()
+    self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
     self:_discoverLGZ()
     self:_loadLegacyZones()
@@ -384,7 +411,7 @@ function CTLDZoneManager:_parseLGZ(name)
     return { name = lgzName, coalition = coalitionId }
 end
 
--- Parse IAZ_name_[R|B|N]  (AI auto-drop zone)
+-- Parse AIZ_name_[R|B|N]  (AI auto-drop zone)
 -- Parse WPZ_name_[R|B|N]  (waypoint zone — troops march to center)
 -- Shared logic: prefix must match, second field = zoneName, optional third = coalition.
 local function _parseSimpleZone(prefix, name)
@@ -399,7 +426,6 @@ local function _parseSimpleZone(prefix, name)
     return { zoneName = zoneName, coalition = coalitionId }
 end
 
-function CTLDZoneManager:_parseIAZ(name) return _parseSimpleZone("IAZ", name) end
 function CTLDZoneManager:_parseWPZ(name) return _parseSimpleZone("WPZ", name) end
 
 -- ============================================================
@@ -468,31 +494,77 @@ function CTLDZoneManager:_discoverLGZ()
     end
 end
 
-function CTLDZoneManager:_discoverIAZ()
-    if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
-    for _, zd in pairs(env.mission.triggers.zones) do
-        local name = zd.name or ""
-        if string.sub(name, 1, 4) == "IAZ_" then
-            local parsed, err = self:_parseIAZ(name)
-            if not parsed then
-                ctld.utils.log("WARN", "CTLDZoneManager: cannot parse IAZ '%s': %s", name, tostring(err))
-            elseif not self._troopZones[parsed.zoneName] then
+--- Feature S: Load AI zones from cfg.settings["aiZones"] config table (config-only, no naming convention).
+-- Each entry: { dcsZoneName, coalition, isPickup, isDropoff, cargoType, troopStock, troopTemplates,
+--              vehicleTypes, aiDropMode }
+-- troopStock: 0=disabled, -1=unlimited, N>0=limited.
+-- Validation errors/warns are accumulated in _validateZoneNames; this method only creates valid zones.
+function CTLDZoneManager:_loadAIZonesFromConfig()
+    local entries = ctld.gs("aiZones")
+    if not entries or #entries == 0 then return end
+    -- Build set of already-errored dcsZoneNames (from _validateZoneNames, stored in _aiZoneErrors)
+    local skip = self._aiZoneErrors or {}
+    for _, entry in ipairs(entries) do
+        local dzn = entry.dcsZoneName
+        if dzn and not skip[dzn] and not self._troopZones[dzn] then
+            local trig = trigger.misc.getZone(dzn)
+            if not trig then
+                -- should have been caught by validate, but guard anyway
+                ctld.utils.log("WARN", "CTLDZoneManager: aiZones '%s' not found in ME — skipped", dzn)
+            else
+                -- coalition string → id
+                local coaStr = entry.coalition or ""
+                local coaId
+                if     coaStr == "RED"     then coaId = coalition.side.RED
+                elseif coaStr == "BLUE"    then coaId = coalition.side.BLUE
+                elseif coaStr == "NEUTRAL" then coaId = coalition.side.NEUTRAL
+                else coaId = 0 end  -- should not happen (validate caught it)
+
+                -- troopStock: 0=disabled(nil stock), -1=unlimited(0), N=limited
+                local rawStock = entry.troopStock
+                local pickMaxTroopStock = nil
+                if rawStock == -1 then
+                    pickMaxTroopStock = 0        -- unlimited
+                elseif type(rawStock) == "number" and rawStock > 0 then
+                    pickMaxTroopStock = rawStock  -- limited
+                end
+                -- pickMaxStock alias (embarkFromTroopZone compat)
+                local pickMaxStock = pickMaxTroopStock
+
+                local troopTemplates = (entry.troopTemplates and #entry.troopTemplates > 0)
+                                       and entry.troopTemplates or nil
+
                 local zone = CTLDTroopZone:new({
-                    dcsName   = name,
-                    zoneName  = parsed.zoneName,
-                    coalition = parsed.coalition,
-                    center    = _buildCenter(zd),
-                    radius    = zd.radius or 500,
-                    verticies = zd.verticies or nil,
-                    isDropoff = true,
-                    active    = true,
+                    dcsName             = dzn,
+                    zoneName            = dzn,
+                    coalition           = coaId,
+                    center              = { x = trig.point.x, y = trig.point.y, z = trig.point.z },
+                    radius              = trig.radius or 500,
+                    isAIPickup          = entry.isPickup  == true,
+                    isAIDropoff         = entry.isDropoff == true,
+                    aiCargoType         = entry.cargoType or "T",
+                    pickMaxTroopStock   = pickMaxTroopStock,
+                    pickMaxStock        = pickMaxStock,
+                    pickMaxVehicleStock = entry.vehicleStock or nil,
+                    troopTemplates      = troopTemplates,
+                    vehicleTypes        = (entry.vehicleTypes and #entry.vehicleTypes > 0)
+                                         and entry.vehicleTypes or nil,
+                    aiDropMode          = entry.aiDropMode or "GP",
+                    active              = true,
                 })
-                self._troopZones[parsed.zoneName] = zone
-                ctld.utils.log("INFO", "CTLDZoneManager: IAZ '%s' coalition=%d",
-                    parsed.zoneName, parsed.coalition)
+                self._troopZones[dzn] = zone
+                ctld.utils.log("INFO",
+                    "CTLDZoneManager: aiZones '%s' coalition=%s P=%s D=%s cargo=%s troopStock=%s tmpl=%s",
+                    dzn, coaStr,
+                    tostring(entry.isPickup == true),
+                    tostring(entry.isDropoff == true),
+                    tostring(entry.cargoType or "T"),
+                    tostring(rawStock),
+                    troopTemplates and table.concat(troopTemplates, ",") or "all")
             end
         end
     end
+    self._aiZoneErrors = nil  -- cleanup
 end
 
 function CTLDZoneManager:_discoverWPZ()
@@ -528,9 +600,9 @@ end
 
 function CTLDZoneManager:_loadLegacyZones()
 
-    -- pickupZones → CTLDTroopZone (pickup only)
+    -- troopZones → CTLDTroopZone (player pickup only — not visible to AI)
     -- Supports both DCS trigger zones and ship unit names (mobile pickup point).
-    for _, zd in pairs(ctld.gs("pickupZones") or {}) do
+    for _, zd in pairs(ctld.gs("troopZones") or {}) do
         if not self._troopZones[zd[1]] then
             local smoke = -1
             if zd[2] then
@@ -571,26 +643,6 @@ function CTLDZoneManager:_loadLegacyZones()
                     })
                 end
             end
-        end
-    end
-
-    -- dropOffZones → CTLDTroopZone (AI auto-drop marker)
-    for _, zd in pairs(ctld.gs("dropOffZones") or {}) do
-        local trig = trigger.misc.getZone(zd[1])
-        if trig and not self._troopZones[zd[1]] then
-            local smoke = -1
-            if zd[2] then
-                local n = tonumber(_LEGACY_SMOKE_STR[zd[2]] or zd[2])
-                smoke = _TROOP_SMOKE_COLOR[n] or -1
-            end
-            self._troopZones[zd[1]] = CTLDTroopZone:new({
-                dcsName   = zd[1], zoneName = zd[1],
-                coalition = tonumber(zd[3]) or 0,
-                center    = { x=trig.point.x, y=trig.point.y, z=trig.point.z },
-                radius    = trig.radius,
-                isDropoff = true,
-                smoke     = smoke, active = true,
-            })
         end
     end
 
@@ -837,12 +889,14 @@ function CTLDZoneManager:getTroopZonesForCoalition(coalition)
 end
 
 --- Return the troop zone containing point, or nil.
+-- AI-only pickup zones (isAIPickup) are excluded — use getAIPickupZoneAt for AI logic.
 -- @param point     vec3
 -- @param coalition number  (0 = accept all)
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getTroopZoneAtPoint(point, coalition)
     for _, zone in pairs(self._troopZones) do
-        if zone.active and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
+        if zone.active and not zone.isAIPickup
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
             if zone:isInZone(point) then return zone end
         end
     end
@@ -909,6 +963,42 @@ function CTLDZoneManager:getDropoffZoneAt(point, coalition)
         end
     end
     return nil
+end
+
+--- Return the active AIZ_P zone containing point for the given coalition, or nil.
+-- Used by AI transport auto-pickup logic (_checkAIStatus).
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getAIPickupZoneAt(point, coalition)
+    local best, bestR = nil, math.huge
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasAIPickup()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            local r = zone.radius or math.huge
+            if r < bestR then best = zone; bestR = r end
+        end
+    end
+    return best
+end
+
+--- Return the active AIZ_D zone containing point for the given coalition, or nil.
+-- Used by AI transport auto-dropoff logic (_checkAIStatus).
+-- @param point     vec3
+-- @param coalition number  (coalition.side.* — 0 = accept all)
+-- @return CTLDTroopZone or nil
+function CTLDZoneManager:getAIDropoffZoneAt(point, coalition)
+    local best, bestR = nil, math.huge
+    for _, zone in pairs(self._troopZones) do
+        if zone.active and zone:hasAIDropoff()
+        and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
+        and zone:isInZone(point) then
+            local r = zone.radius or math.huge
+            if r < bestR then best = zone; bestR = r end
+        end
+    end
+    return best
 end
 
 -- ============================================================
@@ -1098,38 +1188,148 @@ end
 -- ============================================================
 
 function CTLDZoneManager:_validateZoneNames()
-    if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
-    local errors = {}
-    for _, zd in pairs(env.mission.triggers.zones) do
-        local name = zd.name or ""
-        if string.sub(name, 1, 4) == "TRZ_" then
-            local parsed, err = self:_parseTRZ(name)
-            if not parsed then
-                errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
-            end
-        elseif string.sub(name, 1, 4) == "IAZ_" then
-            local parsed, err = self:_parseIAZ(name)
-            if not parsed then
-                errors[#errors + 1] = "  IAZ ERROR '" .. name .. "': " .. tostring(err)
-            end
-        elseif string.sub(name, 1, 4) == "WPZ_" then
-            local parsed, err = self:_parseWPZ(name)
-            if not parsed then
-                errors[#errors + 1] = "  WPZ ERROR '" .. name .. "': " .. tostring(err)
-            end
-        elseif string.sub(name, 1, 4) == "LGZ_" then
-            local parsed = self:_parseLGZ(name)
-            if not parsed then
-                errors[#errors + 1] = "  LGZ ERROR '" .. name .. "': parse failed"
+    local errors  = {}   -- parse errors / config errors
+    local warns   = {}   -- semantic warnings
+
+    -- ── TRZ / WPZ / LGZ naming validation ────────────────────
+    if env.mission and env.mission.triggers and env.mission.triggers.zones then
+        for _, zd in pairs(env.mission.triggers.zones) do
+            local name = zd.name or ""
+            if string.sub(name, 1, 4) == "TRZ_" then
+                local parsed, err = self:_parseTRZ(name)
+                if not parsed then
+                    errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
+                end
+            elseif string.sub(name, 1, 4) == "WPZ_" then
+                local parsed, err = self:_parseWPZ(name)
+                if not parsed then
+                    errors[#errors + 1] = "  WPZ ERROR '" .. name .. "': " .. tostring(err)
+                end
+            elseif string.sub(name, 1, 4) == "LGZ_" then
+                local parsed = self:_parseLGZ(name)
+                if not parsed then
+                    errors[#errors + 1] = "  LGZ ERROR '" .. name .. "': parse failed"
+                end
             end
         end
     end
-    if #errors > 0 then
-        local report = "[CTLD] Zone validation — " .. #errors .. " issue(s):\n"
-                    .. table.concat(errors, "\n")
+
+    -- ── AIZ config validation (Feature S) ────────────────────
+    local aiZoneErrors = {}   -- dcsZoneName → true (skip in _loadAIZonesFromConfig)
+    local seenDzn      = {}   -- duplicate detection
+    local aiZonePickup  = {}  -- for overlap check
+    local aiZoneDropoff = {}
+
+    -- Pre-build template name set for WARN checks (lazy — only if aiZones non-empty)
+    local knownTemplates = nil
+    local function getKnownTemplates()
+        if knownTemplates then return knownTemplates end
+        knownTemplates = {}
+        local okTM, tm = pcall(CTLDTroopManager.getInstance)
+        if okTM and tm then
+            for _, t in ipairs(tm._templates) do
+                knownTemplates[t.name] = true
+            end
+        end
+        return knownTemplates
+    end
+
+    local VALID_COALITION = { RED = true, BLUE = true, NEUTRAL = true }
+    local VALID_CARGO     = { T = true, V = true, TV = true }
+    local VALID_DROP_MODE = { G = true, P = true, GP = true }
+
+    for i, entry in ipairs(ctld.gs("aiZones") or {}) do
+        local pfx   = "  AIZ[" .. i .. "]"
+        local dzn   = entry.dcsZoneName
+        local hasErr = false
+        if not dzn or dzn == "" then
+            errors[#errors + 1] = pfx .. " ERROR: missing dcsZoneName"
+            hasErr = true
+        else
+            -- Duplicate check
+            if seenDzn[dzn] then
+                errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': duplicate dcsZoneName — entry ignored"
+                hasErr = true
+            else
+                seenDzn[dzn] = true
+                -- Zone present in ME?
+                local trig = trigger.misc.getZone(dzn)
+                if not trig then
+                    errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': not found in Mission Editor — entry ignored"
+                    hasErr = true
+                end
+            end
+            -- Coalition
+            if not entry.coalition or not VALID_COALITION[entry.coalition] then
+                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"
+                hasErr = true
+            end
+            -- cargoType
+            if entry.cargoType and not VALID_CARGO[entry.cargoType] then
+                errors[#errors + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid cargoType '" .. tostring(entry.cargoType) .. "' — defaulting to T"
+            end
+            -- aiDropMode
+            if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
+                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid aiDropMode '" .. tostring(entry.aiDropMode) .. "' — defaulting to GP"
+            end
+            -- troopTemplates: warn on unknown names
+            if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then
+                local kt = getKnownTemplates()
+                for _, tName in ipairs(entry.troopTemplates) do
+                    if not kt[tName] then
+                        warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': troopTemplates['" .. tName .. "'] not found in loadableGroups"
+                    end
+                end
+            end
+            -- Collect pickup/dropoff for overlap check
+            if not hasErr then
+                local trig2 = trigger.misc.getZone(dzn)
+                if trig2 then
+                    local ctr = { x = trig2.point.x, y = trig2.point.y, z = trig2.point.z }
+                    local r   = trig2.radius or 500
+                    local coa = entry.coalition
+                    if entry.isPickup then
+                        aiZonePickup[#aiZonePickup + 1] = { name=dzn, center=ctr, radius=r, coa=coa }
+                    end
+                    if entry.isDropoff then
+                        aiZoneDropoff[#aiZoneDropoff + 1] = { name=dzn, center=ctr, radius=r, coa=coa }
+                    end
+                end
+            end
+        end
+        if hasErr and dzn then aiZoneErrors[dzn] = true end
+    end
+
+    -- AIZ P+D overlap check
+    for _, p in ipairs(aiZonePickup) do
+        for _, d in ipairs(aiZoneDropoff) do
+            if p.name ~= d.name and p.coa == d.coa then
+                local dx   = p.center.x - d.center.x
+                local dz   = p.center.z - d.center.z
+                local dist = math.sqrt(dx*dx + dz*dz)
+                if dist < (p.radius + d.radius) then
+                    warns[#warns + 1] = "  AIZ WARN: '" .. p.name .. "' (P) overlaps '"
+                        .. d.name .. "' (D) same coalition — risk of instant pickup+dropoff loop"
+                end
+            end
+        end
+    end
+
+    -- Store error set for _loadAIZonesFromConfig
+    self._aiZoneErrors = aiZoneErrors
+
+    -- ── Emit single grouped report ────────────────────────────
+    local all = {}
+    for _, e in ipairs(errors) do all[#all + 1] = e end
+    for _, w in ipairs(warns)  do all[#all + 1] = w end
+
+    if #all > 0 then
+        local report = "[CTLD] Zone validation — " .. #errors .. " error(s), "
+                    .. #warns .. " warning(s):\n" .. table.concat(all, "\n")
         trigger.action.outText(report, 30)
         ctld.utils.log("WARN", report)
+        env.warning(report)
     else
-        ctld.utils.log("INFO", "CTLDZoneManager: all zone names valid")
+        ctld.utils.log("INFO", "CTLDZoneManager: zone config valid")
     end
 end

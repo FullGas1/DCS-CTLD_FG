@@ -127,7 +127,7 @@ ctld.yamlConfigDatas = [[
 # ctld.maxExtractDistance: 125
 
 # Maximum distance (m) deployed troops will search for an enemy unit.
-# ctld.maximumSearchDistance: 4000
+# ctld.maximumSearchDistance: 3000
 
 
 # Allow pilots to insert troops via fast-rope.
@@ -521,7 +521,7 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Pickup zones
+-- Troop pickup zones (players only — AI transports use AIZones)
 -- Each entry: { "zone_or_ship_name", "smoke_color", limit, "active", side [, flag] }
 --
 --   "zone_or_ship_name" : ME trigger zone name, or DCS unit name of a ship
@@ -533,7 +533,7 @@ local _cfg = CTLDConfig.get()
 --   side                : 0 = both coalitions ; 1 = RED only ; 2 = BLUE only
 --   flag (optional)     : DCS flag number where remaining group count is stored
 -- ============================================================
--- _cfg.settings["pickupZones"] = {
+-- _cfg.settings["troopZones"] = {
 --     { "pickzone1",   "blue",   -1, "yes", 0 },
 --     { "pickzone2",   "red",    -1, "yes", 0 },
 --     { "pickzone3",   "none",   -1, "yes", 0 },
@@ -558,21 +558,54 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Drop-off zones (AI transports auto-unload when inside the zone)
--- Each entry: { "zone_name", "smoke_color", side }
---   side : 0 = both ; 1 = RED ; 2 = BLUE
+-- AI-only zones (Feature S — config-only, no naming convention in ME).
+-- The DCS trigger zone name is used only for position + radius.
+-- Each entry supports pickup and/or dropoff on the same zone.
+--
+-- Required fields:
+--   dcsZoneName  : DCS trigger zone name (must exist in Mission Editor)
+--   coalition    : "RED" | "BLUE" | "NEUTRAL"
+--
+-- Optional pickup fields (isPickup = true):
+--   cargoType      : "T"=troops | "V"=vehicles | "TV"=both  (default "T")
+--   troopStock     : 0=disabled, -1=unlimited, N=limited stock
+--   troopTemplates : list of template names (nil/{}=all compatible ; 1=guaranteed ; N=random among listed)
+--   vehicleTypes   : list of DCS typeNames to allow (nil=all vehicles physically present in zone)
+--
+-- Optional dropoff fields (isDropoff = true):
+--   aiDropMode   : "G"=ground | "P"=parachute | "GP"=both  (default "GP")
+--
+-- Note: vehicles at pickup are always physically present DCS units inside the zone radius.
+--       CTLD does not manage a virtual vehicle stock.
 -- ============================================================
--- _cfg.settings["dropOffZones"] = {
---     { "dropzone1",  "green",  2 },
---     { "dropzone2",  "blue",   2 },
---     { "dropzone3",  "orange", 2 },
---     { "dropzone4",  "none",   2 },
---     { "dropzone5",  "none",   1 },
---     { "dropzone6",  "none",   1 },
---     { "dropzone7",  "none",   1 },
---     { "dropzone8",  "none",   1 },
---     { "dropzone9",  "none",   1 },
---     { "dropzone10", "none",   1 },
+-- _cfg.settings["aiZones"] = {
+--
+--     -- Pickup zone: troops only, stock=10, any compatible template
+--     { dcsZoneName = "Depot_bleu",   coalition = "BLUE",
+--       isPickup = true,  cargoType = "T", troopStock = 10 },
+--
+--     -- Pickup zone: troops, restricted to Standard Group only (guaranteed if fits heli)
+--     { dcsZoneName = "Depot_inf",    coalition = "BLUE",
+--       isPickup = true,  cargoType = "T", troopStock = 10,
+--       troopTemplates = { "Standard Group" } },
+--
+--     -- Pickup zone: vehicles only, Hummers only (DCS vehicles physically present in zone)
+--     { dcsZoneName = "Depot_hummer", coalition = "BLUE",
+--       isPickup = true,  cargoType = "V",
+--       vehicleTypes = { "Hummer", "M1025 HMMWV" } },
+--
+--     -- Pickup zone: troops + vehicles, unlimited troop stock
+--     { dcsZoneName = "Depot_tv",     coalition = "BLUE",
+--       isPickup = true,  cargoType = "TV", troopStock = -1 },
+--
+--     -- Dropoff zone: ground only
+--     { dcsZoneName = "LZ_nord",      coalition = "BLUE",
+--       isDropoff = true, aiDropMode = "G" },
+--
+--     -- Combined zone: pickup troops AND dropoff (same DCS zone)
+--     { dcsZoneName = "FARP_avance",  coalition = "BLUE",
+--       isPickup = true, isDropoff = true,
+--       cargoType = "T", troopStock = 5, aiDropMode = "GP" },
 -- }
 
 -- ============================================================

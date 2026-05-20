@@ -675,6 +675,16 @@ function CTLDCoreManager:onAILand(event)
                             or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
             if vehStockOk then
                 local loadables = vs:findLoadableVehicles(u)
+                -- vehicleTypes whitelist filter (Feature S)
+                if pickZone.vehicleTypes then
+                    local typeSet = {}
+                    for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
+                    local filtered = {}
+                    for _, v in ipairs(loadables) do
+                        if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
+                    end
+                    loadables = filtered
+                end
                 -- Weight filter: skip vehicles heavier than transport capacity
                 local maxW   = caps.maxVehicleWeight  -- nil = unlimited
                 local weights = ctld.gs("groundVehicleWeights") or {}
@@ -710,6 +720,21 @@ function CTLDCoreManager:onAILand(event)
         -- Troop pickup (re-check hasTroops after potential vehicle load)
         if doTroops and not tm:hasTroops(unitName) then
             local teams = self._aiTeams[coa] or {}
+            -- Feature S: troopTemplates whitelist — filter strictly to named templates
+            if pickZone.troopTemplates then
+                local nameSet = {}
+                for _, tn in ipairs(pickZone.troopTemplates) do nameSet[tn] = true end
+                local filtered = {}
+                for _, t in ipairs(teams) do
+                    if nameSet[t.name] then filtered[#filtered + 1] = t end
+                end
+                if #filtered == 0 then
+                    ctld.utils.log("WARN",
+                        "CTLDCoreManager:onAILand [%s] troopTemplates whitelist matched no team in _aiTeams — pickup skipped",
+                        unitName)
+                end
+                teams = filtered
+            end
             local tmpl  = nil
             if #teams > 0 then
                 local startIdx = randomPickup and math.random(#teams) or 1
