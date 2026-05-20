@@ -609,6 +609,40 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
+-- Recette MT-07 to MT-10 — AI zone declarations (Feature S).
+-- These replace the old AIZ_ naming convention used in the test mission.
+-- To activate: remove the surrounding if false then / end block.
+-- Once recettes validated, keep as commented reference examples for MMs.
+-- ============================================================
+if false then
+_cfg.settings["aiZones"] = {
+    -- MT-07: troop pickup (base) + dropoff
+    { dcsZoneName = "AIZ_base_B_P_5",      coalition = "BLUE",
+      isPickup = true,  cargoType = "T", troopStock = 5 },
+
+    -- MT-08: vehicle pickup only (vehicles physically present in zone)
+    { dcsZoneName = "AIZ_depot_B_P_V_10",  coalition = "BLUE",
+      isPickup = true,  cargoType = "V" },
+
+    -- MT-09: troops + vehicle pickup
+    { dcsZoneName = "AIZ_depot_B_P_TV_5_10", coalition = "BLUE",
+      isPickup = true,  cargoType = "TV", troopStock = 5 },
+
+    -- MT-10a/b: troop pickup, stock=10 (fits Standard Group total=10)
+    { dcsZoneName = "AIZ_depot_B_P_T_10",  coalition = "BLUE",
+      isPickup = true,  cargoType = "T", troopStock = 10 },
+
+    -- Shared dropoff: ground only (MT-07/08/09)
+    { dcsZoneName = "AIZ_livraison_B_D_G", coalition = "BLUE",
+      isDropoff = true, aiDropMode = "G" },
+
+    -- MT-10a/b dropoff: ground only
+    { dcsZoneName = "AIZ_mt10d_B_D_G",     coalition = "BLUE",
+      isDropoff = true, aiDropMode = "G" },
+}
+end
+
+-- ============================================================
 -- Waypoint zones (AI routing — transport will fly to each active
 -- waypoint zone in sequence before reaching the drop-off zone)
 -- Each entry: { "zone_name", "smoke_color", "active", side }
