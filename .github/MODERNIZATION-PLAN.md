@@ -1223,7 +1223,8 @@ Minor cleanups identified — low priority, no functional impact.
   `CTLDCoreManager:onAILand` dropoff — branche `elseif vEntry.isAASystem then spawnSystemAt()`.
   `CTLD_userConfig.lua` — zones MT-14 debug (AIZ_mt14_B_P_V vehicleStock=HAWK/AIZ_mt14_B_D).
   Recette F-181 (19/19 PASS) + F-182 (11/11 PASS) [2026-06-06].
-  MT-14 interactive (live DCS) ⬜ pending — ajouter heliai_mt14 + zones DCS dans mission test.
+  **MT-14 ✅ PASS live DCS [2026-06-07]** — pickup HAWK isAASystem=true, dropoff spawnSystemAt 10 unités, stock 1→0 ; bugfix `computeSafeDropPos` rearSector + i18n "loaded/unloaded/delivered" sans "vehicle".
+  **TODO [6] : vérifier et corriger le positionnement des caisses/objets de scène FARP au dropoff — observé MT-13 live : les caisses ne sont pas correctement posées sur le FARP (mauvais offset ou rotation). Investiguer `CTLDSceneManager:playScene` / `_buildSceneAt`.**
 
 - **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
 

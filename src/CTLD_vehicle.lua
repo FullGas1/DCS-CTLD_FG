@@ -186,31 +186,47 @@ end
 -- Helpers (module-local)
 -- ============================================================
 
---- Secure spawn offset in metres, derived from the transport's bounding box.
--- Mirrors ctld.getSecureDistanceFromUnit but works directly from a DCS Unit.
--- Falls back to 30 m if desc.box is unavailable.
+--- Secure spawn offset in metres derived from the transport's bounding box.
+-- The minimum collision-free distance for a ±45° sector is the bounding box
+-- diagonal sqrt(halfLen² + halfWid²).  A safety factor of ×2 is applied so
+-- the spawned vehicle clears both the airframe and the rotor disk.
+-- Falls back to 60 m if desc.box is unavailable.
 local function _secureOffset(transport)
     local ok, box = pcall(function() return transport:getDesc().box end)
     if ok and box then
-        return math.max(math.abs(box.max.x), math.abs(box.min.x)) + 5
+        local halfLen = math.max(math.abs(box.max.x), math.abs(box.min.x))
+        local halfWid = math.max(math.abs(box.max.z), math.abs(box.min.z))
+        return math.sqrt(halfLen * halfLen + halfWid * halfWid) * 2 + 10
     end
-    return 30
+    return 60
 end
 
---- Compute a spawn position in the front sector (±45 °) of transport.
--- @param transport DCS Unit
+--- Compute a spawn position near transport.
+-- @param transport  DCS Unit
+-- @param rearSector boolean  true = rear sector (behind transport, safe for AI takeoff)
 -- @return vec3
-local function _computeSpawnPosition(transport)
+local function _computeSpawnPosition(transport, rearSector)
     local hdg    = ctld.utils.getHeadingInRadians("CTLDVehicleSpawner._computeSpawnPosition",
                        transport, true)
+    -- Rear sector: 180° offset so vehicle appears behind the helicopter,
+    -- clear of the takeoff path when the AI resumes its route.
+    local baseHdg = rearSector and (hdg + math.pi) or hdg
     local offset = _secureOffset(transport)
     local angle  = ctld.utils.RandomReal("CTLDVehicleSpawner._computeSpawnPosition",
-                       hdg - math.pi / 4, hdg + math.pi / 4)
+                       baseHdg - math.pi / 4, baseHdg + math.pi / 4)
     local pos    = transport:getPoint()
     local px     = pos.x + math.cos(angle) * offset
     local pz     = pos.z + math.sin(angle) * offset
     local py     = land.getHeight({ x = px, y = pz })
     return { x = px, y = py, z = pz }
+end
+
+--- Public wrapper around _computeSpawnPosition for use by CTLDCoreManager.
+-- @param transport  DCS Unit
+-- @param rearSector boolean  true = rear sector
+-- @return vec3
+function CTLDVehicleSpawner:computeSafeDropPos(transport, rearSector)
+    return _computeSpawnPosition(transport, rearSector)
 end
 
 --- True if the unit type has canTransportWholeVehicle=true in capabilitiesByType.
@@ -508,11 +524,12 @@ end
 -- For dcs_native: DCS has already placed the unit on the ground — just refresh the ref.
 -- Publishes OnVehicleUnloaded.
 --
--- @param vehicle   CTLDVehicle
--- @param transport DCS Unit
--- @param player    string|nil
--- @param method    string      "menu_ctld" | "dcs_native" | "parachute"
-function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
+-- @param vehicle    CTLDVehicle
+-- @param transport  DCS Unit
+-- @param player     string|nil
+-- @param method     string      "menu_ctld" | "dcs_native" | "parachute"
+-- @param rearSector boolean|nil true = spawn behind transport (AI dropoff use case)
+function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, rearSector)
     if vehicle:getState() ~= CTLDVehicle.STATE.LOADED then
         ctld.utils.log("WARNING", "CTLDVehicleSpawner:unloadVehicle — vehicle "
             .. vehicle.id .. " not in LOADED state")
@@ -520,7 +537,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     end
 
     local sd       = vehicle.spawnData
-    local spawnPos = _computeSpawnPosition(transport)
+    local spawnPos = _computeSpawnPosition(transport, rearSector)
     local unloadedUnit
 
     if method == "dcs_native" then
@@ -528,7 +545,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
         local g = Group.getByName(sd.groupName)
         unloadedUnit = g and g:getUnit(1) or nil
     else
-        -- Virtual unload: respawn unit near transport.
+        -- Virtual unload: respawn unit near transport immediately.
         local spawnHdg = ctld.utils.getHeadingInRadians(
                              "CTLDVehicleSpawner:unloadVehicle", transport, true)
         local groupData = {
@@ -537,6 +554,9 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
             category = Group.Category.GROUND,
             country  = sd.countryId,
             name     = sd.groupName,
+            -- Group-level position must match unit position for coalition.addGroup
+            x        = spawnPos.x,
+            y        = spawnPos.z,
             task     = {},
             units    = {
                 {

@@ -1760,9 +1760,9 @@ ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport wei
 ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."
 ctld.i18n["en"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1 picked up troops: %2 (%3 soldiers)"
 ctld.i18n["en"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1 dropped troops: %2 (%3 soldiers)"
-ctld.i18n["en"]["AI %1 loaded vehicle: %2"]                    = "AI %1 loaded vehicle: %2"
-ctld.i18n["en"]["AI %1 unloaded vehicle: %2"]                  = "AI %1 unloaded vehicle: %2"
-ctld.i18n["en"]["AI %1 delivered vehicle: %2"]                 = "AI %1 delivered vehicle: %2"
+ctld.i18n["en"]["AI %1 loaded: %2"]                    = "AI %1 loaded: %2"
+ctld.i18n["en"]["AI %1 unloaded: %2"]                  = "AI %1 unloaded: %2"
+ctld.i18n["en"]["AI %1 delivered: %2"]                 = "AI %1 delivered: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["en"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: missing dcsZoneName"
@@ -2230,9 +2230,9 @@ ctld.i18n["fr"]["Transport weight limit exceeded (%1 kg max)."] = "Limite de poi
 ctld.i18n["fr"]["Vehicle ready for loading"]                    = "Un %1 est prêt à être chargé."
 ctld.i18n["fr"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 a embarqué des troupes : %2 (%3 soldats)"
 ctld.i18n["fr"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 a déposé des troupes : %2 (%3 soldats)"
-ctld.i18n["fr"]["AI %1 loaded vehicle: %2"]                    = "IA %1 a chargé le véhicule : %2"
-ctld.i18n["fr"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 a déposé le véhicule : %2"
-ctld.i18n["fr"]["AI %1 delivered vehicle: %2"]                 = "IA %1 a livré le véhicule : %2"
+ctld.i18n["fr"]["AI %1 loaded: %2"]                    = "IA %1 a chargé le véhicule : %2"
+ctld.i18n["fr"]["AI %1 unloaded: %2"]                  = "IA %1 a déposé le véhicule : %2"
+ctld.i18n["fr"]["AI %1 delivered: %2"]                 = "IA %1 a livré le véhicule : %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["fr"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERREUR : dcsZoneName manquant"
@@ -2701,9 +2701,9 @@ ctld.i18n["es"]["Transport weight limit exceeded (%1 kg max)."] = "Límite de pe
 ctld.i18n["es"]["Vehicle ready for loading"]                    = "Un %1 está listo para cargar."
 ctld.i18n["es"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 embarcó tropas: %2 (%3 soldados)"
 ctld.i18n["es"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 dejó tropas: %2 (%3 soldados)"
-ctld.i18n["es"]["AI %1 loaded vehicle: %2"]                    = "IA %1 cargó el vehículo: %2"
-ctld.i18n["es"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 descargó el vehículo: %2"
-ctld.i18n["es"]["AI %1 delivered vehicle: %2"]                 = "IA %1 entregó el vehículo: %2"
+ctld.i18n["es"]["AI %1 loaded: %2"]                    = "IA %1 cargó el vehículo: %2"
+ctld.i18n["es"]["AI %1 unloaded: %2"]                  = "IA %1 descargó el vehículo: %2"
+ctld.i18n["es"]["AI %1 delivered: %2"]                 = "IA %1 entregó el vehículo: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["es"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: falta dcsZoneName"
@@ -3019,9 +3019,9 @@ ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량
 ctld.i18n["ko"]["Vehicle ready for loading"]                    = "%1이(가) 적재 준비되었습니다."
 ctld.i18n["ko"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1이(가) 병력을 탑승시켰습니다: %2 (%3명)"
 ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 병력을 하차시켰습니다: %2 (%3명)"
-ctld.i18n["ko"]["AI %1 loaded vehicle: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
-ctld.i18n["ko"]["AI %1 unloaded vehicle: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
-ctld.i18n["ko"]["AI %1 delivered vehicle: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
+ctld.i18n["ko"]["AI %1 loaded: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
+ctld.i18n["ko"]["AI %1 unloaded: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
+ctld.i18n["ko"]["AI %1 delivered: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
@@ -13290,31 +13290,47 @@ end
 -- Helpers (module-local)
 -- ============================================================
 
---- Secure spawn offset in metres, derived from the transport's bounding box.
--- Mirrors ctld.getSecureDistanceFromUnit but works directly from a DCS Unit.
--- Falls back to 30 m if desc.box is unavailable.
+--- Secure spawn offset in metres derived from the transport's bounding box.
+-- The minimum collision-free distance for a ±45° sector is the bounding box
+-- diagonal sqrt(halfLen² + halfWid²).  A safety factor of ×2 is applied so
+-- the spawned vehicle clears both the airframe and the rotor disk.
+-- Falls back to 60 m if desc.box is unavailable.
 local function _secureOffset(transport)
     local ok, box = pcall(function() return transport:getDesc().box end)
     if ok and box then
-        return math.max(math.abs(box.max.x), math.abs(box.min.x)) + 5
+        local halfLen = math.max(math.abs(box.max.x), math.abs(box.min.x))
+        local halfWid = math.max(math.abs(box.max.z), math.abs(box.min.z))
+        return math.sqrt(halfLen * halfLen + halfWid * halfWid) * 2 + 10
     end
-    return 30
+    return 60
 end
 
---- Compute a spawn position in the front sector (±45 °) of transport.
--- @param transport DCS Unit
+--- Compute a spawn position near transport.
+-- @param transport  DCS Unit
+-- @param rearSector boolean  true = rear sector (behind transport, safe for AI takeoff)
 -- @return vec3
-local function _computeSpawnPosition(transport)
+local function _computeSpawnPosition(transport, rearSector)
     local hdg    = ctld.utils.getHeadingInRadians("CTLDVehicleSpawner._computeSpawnPosition",
                        transport, true)
+    -- Rear sector: 180° offset so vehicle appears behind the helicopter,
+    -- clear of the takeoff path when the AI resumes its route.
+    local baseHdg = rearSector and (hdg + math.pi) or hdg
     local offset = _secureOffset(transport)
     local angle  = ctld.utils.RandomReal("CTLDVehicleSpawner._computeSpawnPosition",
-                       hdg - math.pi / 4, hdg + math.pi / 4)
+                       baseHdg - math.pi / 4, baseHdg + math.pi / 4)
     local pos    = transport:getPoint()
     local px     = pos.x + math.cos(angle) * offset
     local pz     = pos.z + math.sin(angle) * offset
     local py     = land.getHeight({ x = px, y = pz })
     return { x = px, y = py, z = pz }
+end
+
+--- Public wrapper around _computeSpawnPosition for use by CTLDCoreManager.
+-- @param transport  DCS Unit
+-- @param rearSector boolean  true = rear sector
+-- @return vec3
+function CTLDVehicleSpawner:computeSafeDropPos(transport, rearSector)
+    return _computeSpawnPosition(transport, rearSector)
 end
 
 --- True if the unit type has canTransportWholeVehicle=true in capabilitiesByType.
@@ -13612,11 +13628,12 @@ end
 -- For dcs_native: DCS has already placed the unit on the ground — just refresh the ref.
 -- Publishes OnVehicleUnloaded.
 --
--- @param vehicle   CTLDVehicle
--- @param transport DCS Unit
--- @param player    string|nil
--- @param method    string      "menu_ctld" | "dcs_native" | "parachute"
-function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
+-- @param vehicle    CTLDVehicle
+-- @param transport  DCS Unit
+-- @param player     string|nil
+-- @param method     string      "menu_ctld" | "dcs_native" | "parachute"
+-- @param rearSector boolean|nil true = spawn behind transport (AI dropoff use case)
+function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, rearSector)
     if vehicle:getState() ~= CTLDVehicle.STATE.LOADED then
         ctld.utils.log("WARNING", "CTLDVehicleSpawner:unloadVehicle — vehicle "
             .. vehicle.id .. " not in LOADED state")
@@ -13624,7 +13641,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
     end
 
     local sd       = vehicle.spawnData
-    local spawnPos = _computeSpawnPosition(transport)
+    local spawnPos = _computeSpawnPosition(transport, rearSector)
     local unloadedUnit
 
     if method == "dcs_native" then
@@ -13632,7 +13649,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
         local g = Group.getByName(sd.groupName)
         unloadedUnit = g and g:getUnit(1) or nil
     else
-        -- Virtual unload: respawn unit near transport.
+        -- Virtual unload: respawn unit near transport immediately.
         local spawnHdg = ctld.utils.getHeadingInRadians(
                              "CTLDVehicleSpawner:unloadVehicle", transport, true)
         local groupData = {
@@ -13641,6 +13658,9 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method)
             category = Group.Category.GROUND,
             country  = sd.countryId,
             name     = sd.groupName,
+            -- Group-level position must match unit position for coalition.addGroup
+            x        = spawnPos.x,
+            y        = spawnPos.z,
             task     = {},
             units    = {
                 {
@@ -20840,13 +20860,16 @@ function CTLDCoreManager:onAILand(event)
                     vEntry.type, pt, coa, u:getCountry())
             else
                 if okVS then
+                    -- Spawn in the rear sector at safe distance from the transport
+                    -- so the helicopter can take off without hitting the vehicle.
+                    local safePos = vs:computeSafeDropPos(u, true)
                     vs:spawnVehicleAt({ vehicleType = vEntry.type,
                                         country     = u:getCountry(),
-                                        coalitionId = coa }, pt)
+                                        coalitionId = coa }, safePos)
                 end
             end
             ctld.utils.notifyCoalition(
-                ctld.tr("AI %1 delivered vehicle: %2", unitName, vEntry.type), 10, coa)
+                ctld.tr("AI %1 delivered: %2", unitName, vEntry.type), 10, coa)
             -- restore stock if dropzone is also a pickup zone
             if dropZone.isAIPickup then dropZone:aiRestoreVehicleStock(vEntry.type) end
             self._aiTransportVehicle[unitName] = nil
@@ -20857,9 +20880,11 @@ function CTLDCoreManager:onAILand(event)
             local loaded = vs:findLoadedVehicles(u)
             if #loaded > 0 then
                 local veh = loaded[1]
-                vs:unloadVehicle(veh, u, nil, "menu_ctld")
+                -- Spawn behind the helicopter (rear sector) so the AI takeoff path
+                -- (forward) does not intersect the newly placed vehicle.
+                vs:unloadVehicle(veh, u, nil, "menu_ctld", true)
                 ctld.utils.notifyCoalition(
-                    ctld.tr("AI %1 unloaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                    ctld.tr("AI %1 unloaded: %2", unitName, veh.vehicleType or "vehicle"),
                     10, coa)
             end
         end
@@ -20940,7 +20965,7 @@ function CTLDCoreManager:onAILand(event)
                         local veh = compatible[1]
                         vs:loadVehicle(veh, u, nil, "menu_ctld")
                         ctld.utils.notifyCoalition(
-                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            ctld.tr("AI %1 loaded: %2", unitName, veh.vehicleType or "vehicle"),
                             10, coa)
                         physicalLoaded = true
                     end
@@ -20953,7 +20978,7 @@ function CTLDCoreManager:onAILand(event)
                         pickZone:aiConsumeVehicleStock(vEntry.type)
                         self._aiTransportVehicle[unitName] = vEntry
                         ctld.utils.notifyCoalition(
-                            ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
+                            ctld.tr("AI %1 loaded: %2", unitName, vEntry.type), 10, coa)
                     end
                 end
             end

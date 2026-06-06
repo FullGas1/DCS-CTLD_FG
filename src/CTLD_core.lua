@@ -673,13 +673,16 @@ function CTLDCoreManager:onAILand(event)
                     vEntry.type, pt, coa, u:getCountry())
             else
                 if okVS then
+                    -- Spawn in the rear sector at safe distance from the transport
+                    -- so the helicopter can take off without hitting the vehicle.
+                    local safePos = vs:computeSafeDropPos(u, true)
                     vs:spawnVehicleAt({ vehicleType = vEntry.type,
                                         country     = u:getCountry(),
-                                        coalitionId = coa }, pt)
+                                        coalitionId = coa }, safePos)
                 end
             end
             ctld.utils.notifyCoalition(
-                ctld.tr("AI %1 delivered vehicle: %2", unitName, vEntry.type), 10, coa)
+                ctld.tr("AI %1 delivered: %2", unitName, vEntry.type), 10, coa)
             -- restore stock if dropzone is also a pickup zone
             if dropZone.isAIPickup then dropZone:aiRestoreVehicleStock(vEntry.type) end
             self._aiTransportVehicle[unitName] = nil
@@ -690,9 +693,11 @@ function CTLDCoreManager:onAILand(event)
             local loaded = vs:findLoadedVehicles(u)
             if #loaded > 0 then
                 local veh = loaded[1]
-                vs:unloadVehicle(veh, u, nil, "menu_ctld")
+                -- Spawn behind the helicopter (rear sector) so the AI takeoff path
+                -- (forward) does not intersect the newly placed vehicle.
+                vs:unloadVehicle(veh, u, nil, "menu_ctld", true)
                 ctld.utils.notifyCoalition(
-                    ctld.tr("AI %1 unloaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                    ctld.tr("AI %1 unloaded: %2", unitName, veh.vehicleType or "vehicle"),
                     10, coa)
             end
         end
@@ -773,7 +778,7 @@ function CTLDCoreManager:onAILand(event)
                         local veh = compatible[1]
                         vs:loadVehicle(veh, u, nil, "menu_ctld")
                         ctld.utils.notifyCoalition(
-                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            ctld.tr("AI %1 loaded: %2", unitName, veh.vehicleType or "vehicle"),
                             10, coa)
                         physicalLoaded = true
                     end
@@ -786,7 +791,7 @@ function CTLDCoreManager:onAILand(event)
                         pickZone:aiConsumeVehicleStock(vEntry.type)
                         self._aiTransportVehicle[unitName] = vEntry
                         ctld.utils.notifyCoalition(
-                            ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
+                            ctld.tr("AI %1 loaded: %2", unitName, vEntry.type), 10, coa)
                     end
                 end
             end

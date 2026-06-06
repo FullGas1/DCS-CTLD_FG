@@ -447,9 +447,9 @@ ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport wei
 ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."
 ctld.i18n["en"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1 picked up troops: %2 (%3 soldiers)"
 ctld.i18n["en"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1 dropped troops: %2 (%3 soldiers)"
-ctld.i18n["en"]["AI %1 loaded vehicle: %2"]                    = "AI %1 loaded vehicle: %2"
-ctld.i18n["en"]["AI %1 unloaded vehicle: %2"]                  = "AI %1 unloaded vehicle: %2"
-ctld.i18n["en"]["AI %1 delivered vehicle: %2"]                 = "AI %1 delivered vehicle: %2"
+ctld.i18n["en"]["AI %1 loaded: %2"]                    = "AI %1 loaded: %2"
+ctld.i18n["en"]["AI %1 unloaded: %2"]                  = "AI %1 unloaded: %2"
+ctld.i18n["en"]["AI %1 delivered: %2"]                 = "AI %1 delivered: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["en"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: missing dcsZoneName"
