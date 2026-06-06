@@ -473,58 +473,83 @@ classDiagram
 
 ### 4.6 CtldZone / CTLDZoneManager
 
-**Responsabilité** : `CtldZone` représente une zone DCS (pickup, dropoff, waypoint, extract, logistic). `CTLDZoneManager` découvre les zones à l'init par parsing des noms DCS et fournit les requêtes de zones.
+**Responsabilité** : `CtldZone` représente une zone DCS (pickup, dropoff, waypoint, extract, logistic). `CTLDZoneManager` charge les zones AI depuis la config à l'init et découvre les zones humain par parsing des noms DCS.
 
 > **Décision EVO-09** : les pickupZones gèrent **uniquement les troupes**. Le chargement de véhicules depuis une pickupZone est supprimé (voir EVO-09 en section 7).
-> **Décision EVO-10** : les zones sont déclarées par **convention de nommage DCS** (voir ci-dessous), sans scripting mission maker. Compatibilité descendante conservée pour les missions sans nommage structuré.
+> **Feature S** : les zones AI (AIZ) sont déclarées par config (`cfg.settings["aiZones"]`), sans convention de nommage DCS. Voir §4.4 du missionmaker guide.
 
 **Fichier cible** : `src/CTLD_zone.lua`
-**Statut** : 🆕 À créer
+**Statut** : ✅ Implémenté
 
 ---
 
-#### Convention de nommage des zones (EVO-10)
+#### Zones AI (AIZ) — Feature S
 
-Le séparateur de champs est `_`. **Aucun champ ne peut contenir `_`** (règle à documenter dans le missionmaker guide).
+Les zones AI sont déclarées dans `cfg.settings["aiZones"]` (table d'entrées) et chargées par `_loadAIZonesFromConfig()` à l'init du `CTLDZoneManager`.
+
+**Champs d'une entrée AIZ** :
+
+| Champ | Type | Obligatoire | Description |
+|---|---|---|---|
+| `dcsZoneName` | `string` | ✅ | Nom exact de la trigger zone DCS |
+| `coalition` | `string` | ✅ | `"BLUE"` ou `"RED"` |
+| `isPickup` | `bool` | au moins un | Zone de pickup |
+| `isDropoff` | `bool` | au moins un | Zone de dropoff |
+| `cargoType` | `string` | pickup | `"T"` (troupes), `"V"` (véhicule entier), `"TV"` (les deux). Défaut : `"T"` |
+| `troopStock` | `number` | pickup T/TV | Nombre de soldats disponibles (-1 = illimité) |
+| `aiDropMode` | `string` | dropoff | `"G"` (gotoAttackNearest), `"P"` (parachute), `"GP"` (les deux). Défaut : `"GP"` |
+| `troopTemplates` | `table` | optionnel | Whitelist de noms de templates de troupes |
+| `vehicleTypes` | `table` | optionnel | Whitelist de types DCS de véhicules éligibles |
+
+---
+
+#### Validation au démarrage (`_validateZoneNames()`)
+
+Appelée à l'init du `CTLDZoneManager`, produit un rapport via `trigger.action.outText`, `env.warning` et `ctld.utils.log`. Messages i18n (EN/FR/ES/KO).
+
+| Code | Type | Condition |
+|---|---|---|
+| G1 | ERROR | `dcsZoneName` manquant |
+| G2 | ERROR | `dcsZoneName` dupliqué — entrée ignorée |
+| G3 | ERROR | `coalition` manquante |
+| G4 | ERROR | `coalition` invalide (ni `"BLUE"` ni `"RED"`) |
+| G5 | ERROR | ni `isPickup` ni `isDropoff` définis |
+| Fix5 | WARN | `isPickup=true` sans `cargoType` valide — défaut `"T"` appliqué |
+| Fix6 | WARN | `isDropoff=true` sans `aiDropMode` valide — défaut `"GP"` appliqué |
+| Overlap | WARN | pickup et dropoff même coalition dans la même trigger zone — risque de boucle |
+
+Si zéro erreur et zéro warning : `"CTLDZoneManager: zone config valid"` loggé en INFO uniquement.
+
+---
+
+#### Transport IA — onAILand / _checkAIStatus
+
+`CTLDCoreManager:onAILand(event)` — handler `S_EVENT_LAND` pour les pilotes IA :
+
+1. Identifie le pilote via `_aiPilotNames`
+2. Trouve la zone AIZ la plus proche du point de pose
+3. Si zone pickup → charge troupes et/ou véhicule entier disponibles
+4. Si zone dropoff → déploie la cargaison selon `aiDropMode`
+5. Si aucune zone AIZ à portée → log WARN, aucune action
+
+`_checkAIStatus()` : timer polling (toutes les 2 s) pour les transports IA déjà au sol au démarrage de la mission (non détectés par `S_EVENT_LAND`).
+
+---
+
+#### Convention de nommage des zones humain (EVO-10)
+
+Le séparateur de champs est `_`. **Aucun champ ne peut contenir `_`**.
 
 | Préfixe | Type | Schéma de nommage |
 |---|---|---|
-| `PKZ` | pickupZone (troupes) | `PKZ_name_smoke_limit_active_side` |
-| `IAZ` | dropOffZone | `IAZ_name_smoke_side` |
-| `WPZ` | wpZone (waypoint) | `WPZ_name_smoke_active_side` |
-| `EXZ` | extractZone | `EXZ_name_smoke` |
-| `LGZ` | logisticZone | `LGZ_name_side` |
-
-**Valeurs des paramètres :**
-- `smoke` : `-1`(aucune) `0`(green) `1`(red) `2`(white) `3`(orange) `4`(blue)
-- `limit` : entier ≥ 1, ou `-1` (illimité)
-- `active` : `1`(active) `0`(inactive)
-- `side` : `0`(both) `1`(red) `2`(blue)
-
-**Flag EXZ — génération automatique :**
-Le flag DCS associé à une extractZone est construit automatiquement : `string.upper(name) .. "_FLG"`
-Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
-
-**Contrainte d'unicité :** deux zones du même préfixe ne peuvent pas avoir le même `name`.
+| `PKZ` | pickupZone (troupes) | `PKZ_name_[R/B/N]` |
+| `WPZ` | wpZone (waypoint) | `WPZ_name_[R/B/N]` |
+| `EXZ` | extractZone | `EXZ_name` |
+| `LGZ` | logisticZone | `LGZ_name_[R/B/N]` |
 
 **Zones polygonales :** détectées par présence de `verticies` dans `env.mission.triggers.zones`.
 - Circulaire → `isInZone(point)` : `distance(point, center) ≤ radius`
 - Polygonale → `isInZone(point)` : ray casting sur `verticies`
-
-**Compatibilité descendante :** les zones dont le nom ne correspond à aucun préfixe sont ignorées par `discoverZones()`. Le chargement depuis `ctld.pickupZones = { ... }` reste actif en fallback.
-
----
-
-#### Validation au démarrage
-
-`CTLDZoneManager:validateZoneNames()` — appelée avant `discoverZones()`, produit un rapport via `trigger.action.outText` et `env.info` :
-
-| Contrôle | Exemple d'erreur |
-|---|---|
-| Nombre de champs correct | `PKZ_base1_blue` → manque `limit`, `active`, `side` |
-| Types valides | `limit` non numérique |
-| Valeurs dans l'énuméré | `side=9` invalide |
-| Unicité des `name` par préfixe | `EXZ_recup1` défini deux fois → conflit flag `RECUP1_FLG` |
 
 ---
 
@@ -538,11 +563,14 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 | `center` | `vec3` | Centre de la zone |
 | `radius` | `number` | Rayon (zones circulaires) |
 | `verticies` | `table\|nil` | Sommets (zones polygonales) |
-| `zoneType` | `string` | `"pickup"` `"drop"` `"waypoint"` `"extract"` `"logistic"` |
+| `zoneType` | `string` | `"pickup"` `"drop"` `"waypoint"` `"extract"` `"logistic"` `"ai_pickup"` `"ai_drop"` |
 | `active` | `bool` | Zone active ou désactivée |
 | `smoke` | `number` | Couleur fumée (-1 = aucune) |
 | `limit` | `number` | Limite de groupes (PKZ uniquement, -1 = illimité) |
 | `flagName` | `string\|nil` | Flag DCS auto (EXZ uniquement) = `NAME_FLG` |
+| `cargoType` | `string\|nil` | Type cargaison AIZ pickup (`"T"`, `"V"`, `"TV"`) |
+| `troopStock` | `number\|nil` | Stock de soldats AIZ pickup (-1 = illimité) |
+| `aiDropMode` | `string\|nil` | Mode déploiement AIZ dropoff (`"G"`, `"P"`, `"GP"`) |
 
 **Méthodes CtldZone** :
 
@@ -558,7 +586,8 @@ Exemple : `EXZ_recup1_-1` → flag = `"RECUP1_FLG"`
 | Signature | Description |
 |---|---|
 | `CTLDZoneManager.getInstance()` | Singleton |
-| `CTLDZoneManager:validateZoneNames()` | Rapport d'erreurs de nommage au démarrage |
+| `CTLDZoneManager:_loadAIZonesFromConfig()` | Charge les AIZ depuis `cfg.settings["aiZones"]` (Feature S) |
+| `CTLDZoneManager:_validateZoneNames()` | Rapport d'erreurs/warnings AIZ au démarrage (i18n) |
 | `CTLDZoneManager:discoverZones()` | Scan `env.mission.triggers.zones` + parsing + instanciation |
 | `CTLDZoneManager:getZonesForCoalition(coalition, type)` | Zones filtrées par coalition et type |
 | `CTLDZoneManager:getZoneByName(name, type)` | Zone par `zoneName` et type |
@@ -911,22 +940,22 @@ buildMenu(player)
 
 ---
 
-### 4.16 CTLDCore
+### 4.16 CTLDCoreManager
 
 **Responsabilité** : Point d'entrée unique. Initialise tous les singletons dans l'ordre correct, enregistre les handlers d'événements DCS, démarre les boucles de polling. Taille cible : **< 500 lignes**.
 
 **Fichier cible** : `src/CTLD_core.lua`
-**Statut** : 🆕 À créer
+**Statut** : ✅ Implémenté
 
 **Méthodes publiques** :
 
 | Signature | Description |
 |---|---|
-| `CTLDCore.getInstance()` | Singleton |
-| `CTLDCore:init()` | Initialise tous les managers dans l'ordre de dépendance |
-| `CTLDCore:onPlayerEnterUnit(event)` | Handler DCS → délègue à CTLDPlayerManager |
-| `CTLDCore:onPlayerLeaveUnit(event)` | Handler DCS → délègue à CTLDPlayerManager |
-| `CTLDCore:startPolling()` | Lance les timers : menu polling (10s), beacon cleanup, recon refresh |
+| `CTLDCoreManager.getInstance()` | Singleton |
+| `CTLDCoreManager:init()` | Initialise tous les managers dans l'ordre de dépendance |
+| `CTLDCoreManager:onEvent(event)` | Handler DCS unique → routing par type d'événement |
+| `CTLDCoreManager:onAILand(event)` | `S_EVENT_LAND` → auto-pickup/dropoff IA (Feature S) |
+| `CTLDCoreManager:startPolling()` | Lance les timers : menu polling (10s), beacon cleanup, recon refresh |
 
 **Séquence d'initialisation** :
 ```
@@ -936,20 +965,25 @@ init()
   3.  CTLDUtils:init()
   4.  MenuManager:init()
   5.  CTLDObjectsDescDb:init()
-  6.  CTLDSceneManager:init()       -- enregistre FARP Alpha, mineField, FOB
-  7.  CTLDZoneManager:loadZonesFromConfig()
-  8.  CTLDBeaconManager:init()
-  9.  CTLDTroopManager:init()
-  10. CTLDCrateManager:init()
-  11. CTLDVehicleManager:init()
-  12. CTLDFOBManager:init()
-  13. CTLDAASystemManager:init()
-  14. CTLDRecon:init()
-  14. CTLDJtacManager:init()
-  15. CTLDPlayerManager:init()
-  16. world.addEventHandler(self)
-  17. self:startPolling()
+  6.  CTLDSceneManager:init()                -- enregistre FARP Alpha, mineField, FOB
+  7.  CTLDZoneManager:discoverZones()        -- PKZ/WPZ/EXZ/LGZ depuis nommage DCS
+  8.  CTLDZoneManager:_loadAIZonesFromConfig() -- AIZ depuis cfg.settings["aiZones"]
+  9.  CTLDBeaconManager:init()
+  10. CTLDTroopManager:init()
+  11. CTLDCrateManager:init()
+  12. CTLDVehicleManager:init()
+  13. CTLDFOBManager:init()
+  14. CTLDAASystemManager:init()
+  15. CTLDRecon:init()
+  16. CTLDJtacManager:init()
+  17. CTLDPlayerManager:init()
+  18. self:_initAITransports()               -- INIT-A : détection pilotes IA
+  19. world.addEventHandler(self)
+  20. self:startPolling()
+  21. self:_checkAIStatus()                  -- polling 2s : IA déjà au sol au démarrage
 ```
+
+**INIT-A — `_initAITransports()`** : construit `_aiTeams` et `_aiPilotNames` depuis `cfg.settings["transportPilotNames"]`. Aucune donnée de test dans cette fonction — les paramètres de debug (aiZones, etc.) vont dans `CTLD_userConfig.lua` sous garde `if debug`.
 
 **Dépendances** : tous les managers
 

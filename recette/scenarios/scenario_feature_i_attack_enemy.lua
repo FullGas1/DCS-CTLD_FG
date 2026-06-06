@@ -1,10 +1,10 @@
 ---@diagnostic disable
 -- =============================================================================
 -- scenario_feature_i_attack_enemy.lua
--- Feature I — Post-spawn task: "gotoAttackNearestEnemyOnLos"
+-- Feature I — Post-spawn task: "AttackNearestEnemyOnLos"
 --
 -- Verifies that a spawned troop group is ordered to advance toward the nearest
--- RED enemy unit in LOS when specificParams = { task = "gotoAttackNearestEnemyOnLos" }.
+-- RED enemy unit in LOS when specificParams = { task = "AttackNearestEnemyOnLos" }.
 --
 -- Protocol:
 --   Step 1 — Spawn RED enemy 300 m from player (open terrain → LOS guaranteed),
@@ -188,7 +188,7 @@ if step == 1 then
 
     -- Trigger post-spawn task
     CTLDTroopManager.getInstance():_assignPostSpawnTask(
-        BLUE_GRP, spawnPt, coalition.side.BLUE, { task = "gotoAttackNearestEnemyOnLos" })
+        BLUE_GRP, spawnPt, coalition.side.BLUE, { task = "AttackNearestEnemyOnLos" })
     log("_assignPostSpawnTask called — task will execute in 2s")
 
     pass("Step 1 OK — re-inject in 8s+ for Step 2")
@@ -227,7 +227,7 @@ elseif step == 2 then
             " now=" .. string.format("%.1f", dNow))
     end
 
-    pass("Step 2 OK — gotoAttackNearestEnemyOnLos confirmed. Re-inject for cleanup.")
+    pass("Step 2 OK — AttackNearestEnemyOnLos confirmed. Re-inject for cleanup.")
     _G[STEP_N] = 99
     _result = "step=2 SUCCESS"
 

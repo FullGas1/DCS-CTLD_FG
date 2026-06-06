@@ -53,7 +53,7 @@ function CTLDTroopGroup:init(data)
     self.loadTime    = timer.getAbsTime()
     self._aliveUnits    = data._aliveUnits    or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
     self._jtacUnits     = data._jtacUnits     or {}  -- map[unitName] = true
-    self.specificParams = data.specificParams or {}   -- { task = "gotoNearestWPZ" | "gotoAttackNearestEnemyOnLos" }
+    self.specificParams = data.specificParams or {}   -- { task = "gotoNearestWPZ" | "AttackNearestEnemyOnLos" }
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -1472,7 +1472,7 @@ end
 --
 -- Supported tasks:
 --   "gotoNearestWPZ"                — march toward center of nearest active WPZ for the coalition
---   "gotoAttackNearestEnemyOnLos"   — advance toward nearest enemy unit with LOS (world.searchObjects)
+--   "AttackNearestEnemyOnLos"        — advance toward nearest enemy unit with LOS (world.searchObjects)
 --
 -- No task is assigned if specificParams.task is nil, or if no suitable target is found.
 --
@@ -1501,7 +1501,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
                     arg.grpName, wpzZone.zoneName)
             end
 
-        elseif arg.task == "gotoAttackNearestEnemyOnLos" then
+        elseif arg.task == "AttackNearestEnemyOnLos" then
             local enemyCoa = (arg.coalitionId == coalition.side.RED)
                              and coalition.side.BLUE or coalition.side.RED
             local offsetA  = { x = arg.spawnPt.x, y = arg.spawnPt.y + 2, z = arg.spawnPt.z }
@@ -1531,11 +1531,11 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             if bestPos then
                 destPt = bestPos
                 ctld.utils.log("INFO",
-                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → (%.1f, %.1f)",
+                    "_assignPostSpawnTask: '%s' AttackNearestEnemyOnLos → (%.1f, %.1f)",
                     arg.grpName, bestPos.x, bestPos.z)
             else
                 ctld.utils.log("WARN",
-                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
+                    "_assignPostSpawnTask: '%s' AttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
                     arg.grpName, ctld.gs("maximumSearchDistance") or 10000)
             end
         end

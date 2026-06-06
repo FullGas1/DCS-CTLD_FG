@@ -1,6 +1,6 @@
 ---@diagnostic disable
 -- =============================================================================
--- AUTO — B4: maximumSearchDistance câblé dans gotoAttackNearestEnemyOnLos
+-- AUTO — B4: maximumSearchDistance câblé dans AttackNearestEnemyOnLos
 -- =============================================================================
 -- Vérifie que le rayon de recherche passé à world.searchObjects correspond
 -- à ctld.gs("maximumSearchDistance") et non au hardcode 10000.
@@ -65,7 +65,7 @@ end
 local _origBuildWP = ctld.utils.buildWP
 ctld.utils.buildWP = function() return { type = "Turning Point" } end
 
--- ── Helper: trigger _assignPostSpawnTask with gotoAttackNearestEnemyOnLos ────
+-- ── Helper: trigger _assignPostSpawnTask with AttackNearestEnemyOnLos ────
 local mgr    = CTLDTroopManager.getInstance()
 local spawnPt = { x = 0, y = 0, z = 0 }
 
@@ -77,7 +77,7 @@ local function runTask(searchDist)
             "TestGroup_B4",
             spawnPt,
             coalition.side.BLUE,
-            { task = "gotoAttackNearestEnemyOnLos" }
+            { task = "AttackNearestEnemyOnLos" }
         )
     end)
     if not ok then
@@ -105,7 +105,7 @@ local ok, err = pcall(function()
         "TestGroup_B4",
         spawnPt,
         coalition.side.BLUE,
-        { task = "gotoAttackNearestEnemyOnLos" }
+        { task = "AttackNearestEnemyOnLos" }
     )
 end)
 if not ok then

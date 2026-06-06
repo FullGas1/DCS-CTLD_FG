@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- =============================================================================
 -- scenario_mt10_ai_postspawn_task.lua  [INTERACTIVE]
--- MT-10 — AI post-spawn task assignment: gotoNearestWPZ + gotoAttackNearestEnemyOnLos
+-- MT-10 — AI post-spawn task assignment: gotoNearestWPZ + AttackNearestEnemyOnLos
 --
 -- PREREQUIS MISSION :
 --   - heliai_mt10a : UH-1H BLUE, AI, activation retardee
@@ -21,7 +21,7 @@
 --   Step 2 — Verif A : log contient "gotoNearestWPZ" pointe vers "mt10"
 --   Step 3 — Setup B : reset stock, force template Attack, active heliai_mt10b
 --            >> Attendre que mt10b ait fait le CYCLE COMPLET (pickup + dropoff) <<
---   Step 4 — Verif B : log contient "gotoAttackNearestEnemyOnLos" avec coordonnees
+--   Step 4 — Verif B : log contient "AttackNearestEnemyOnLos" avec coordonnees
 --   Step 5 — Cleanup
 --
 -- NOTE: Les checks se font APRES le cycle complet du heli (pas mid-vol).
@@ -59,12 +59,16 @@ end
 
 -- Find first non-JTAC template that fits within the pickup zone stock.
 -- Uses Standard Group (total=10) if AIZ_P stock >= 10, else first that fits.
-local function findBaseTemplate(tm)
+local function findBaseTemplate(tm, typeName)
     local zm  = CTLDZoneManager.getInstance()
     local zP  = zm._troopZones[AIZ_P]
     local maxStock = (zP and zP.pickMaxStock) or 5
+    -- Respect transport capacity (e.g. UH-1H maxTroopsOnboard=8)
+    local caps = (ctld.gs("capabilitiesByType") or {})[typeName or ""] or {}
+    local transportLimit = caps.maxTroopsOnboard or ctld.gs("numberOfTroops") or 10
+    local effectiveMax = math.min(maxStock, transportLimit)
     for _, t in ipairs(tm._templates) do
-        if not t.disabled and not t.hasJtac and (t.total or 0) <= maxStock and (t.total or 0) > 0 then
+        if not t.disabled and not t.hasJtac and (t.total or 0) <= effectiveMax and (t.total or 0) > 0 then
             return t
         end
     end
@@ -91,25 +95,36 @@ end
 -- Modifying _templates in-place ensures task survives any _initAITransports rebuild.
 -- State persisted in _G to survive across per-step injections.
 local function forceAITeam(core, tm, taskName, unitName)
-    local baseTmpl = findBaseTemplate(tm)
-    if not baseTmpl then return nil, "no base template found (total<=5)" end
+    -- Get typeName via Unit (if active) or Group (if late-activated, before activate())
+    local u2 = Unit.getByName(unitName)
+    local typeName = u2 and u2:getTypeName() or ""
+    if typeName == "" then
+        local g2 = Group.getByName(unitName)
+        local u3 = g2 and g2:getUnit(1)
+        typeName = u3 and u3:getTypeName() or ""
+    end
+    local baseTmpl = findBaseTemplate(tm, typeName)
+    if not baseTmpl then return nil, "no base template found (total<=transportLimit)" end
     -- Save original specificParams in _G (persists across injections)
     _G["_MT10_FORCED_TMPL_KEY"] = baseTmpl._dbKey or baseTmpl.name
     _G["_MT10_SAVED_SP"]        = baseTmpl.specificParams
     baseTmpl.specificParams = { task = taskName }
     -- Restrict _aiTeams[2] to only this template so no other is picked
     core._aiTeams[2] = { baseTmpl }
-    -- Register unit in transportPilotNames
+    -- Register unit in transportPilotNames (list style)
     local names = cfg.settings["transportPilotNames"] or {}
-    names[unitName] = true
+    local alreadyIn = false
+    for _, n in ipairs(names) do if n == unitName then alreadyIn = true; break end end
+    if not alreadyIn then table.insert(names, unitName) end
     cfg.settings["transportPilotNames"] = names
     return baseTmpl, nil
 end
 
 local function cleanup()
     local names = cfg.settings["transportPilotNames"] or {}
-    names[AI_UNIT_A] = nil
-    names[AI_UNIT_B] = nil
+    for i = #names, 1, -1 do
+        if names[i] == AI_UNIT_A or names[i] == AI_UNIT_B then table.remove(names, i) end
+    end
     -- Restore modified template specificParams (lookup by key in _templates)
     local tmplKey = _G["_MT10_FORCED_TMPL_KEY"]
     local savedSP = _G["_MT10_SAVED_SP"]
@@ -154,6 +169,10 @@ local _ok, _err = pcall(function()
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
+    -- Remplacer transportPilotNames par AI_UNIT_A UNIQUEMENT (evite contamination inter-scenarios)
+    cfg.settings["transportPilotNames"] = { AI_UNIT_A }
+    CTLDCoreManager.getInstance():_initAITransports()
+
     local zm   = CTLDZoneManager.getInstance()
     local tm   = CTLDTroopManager.getInstance()
     local core = CTLDCoreManager.getInstance()
@@ -185,19 +204,19 @@ if step == 1 then
     local enemyGrp = Group.getByName(ENEMY_GRP)
     check("MT-10.1.8", "Groupe ennemi RED: " .. ENEMY_GRP, enemyGrp ~= nil)
 
+    -- Activer heliai_mt10a AVANT forceAITeam pour que Unit.getByName fonctionne
+    local grpA = Group.getByName(AI_UNIT_A)
+    check("MT-10.1.11", "Group " .. AI_UNIT_A .. " accessible", grpA ~= nil)
+    if grpA then grpA:activate() end
+
     -- Clone + force _aiTeams[2] = {tmplWPZ}
     local tmplWPZ, err = forceAITeam(core, tm, "gotoNearestWPZ", AI_UNIT_A)
-    check("MT-10.1.9",  "Template WPZ clone cree (total<=5)", tmplWPZ ~= nil, err)
+    check("MT-10.1.9",  "Template WPZ clone cree (total<=transportLimit)", tmplWPZ ~= nil, err)
     check("MT-10.1.10", "_aiTeams[2] force sur 1 template", #core._aiTeams[2] == 1)
     if tmplWPZ then
         report("Template: '" .. tmplWPZ.name .. "' total=" .. tmplWPZ.total
             .. " task=" .. tmplWPZ.specificParams.task)
     end
-
-    -- Activer heliai_mt10a
-    local grpA = Group.getByName(AI_UNIT_A)
-    check("MT-10.1.11", "Group " .. AI_UNIT_A .. " accessible", grpA ~= nil)
-    if grpA then grpA:activate() end
 
     report("STEP 1 OK — " .. AI_UNIT_A .. " active."
         .. " Attendre CYCLE COMPLET (pickup + dropoff),"
@@ -260,9 +279,16 @@ elseif step == 3 then
         report("Stock AIZ_P reset: cur=" .. zP.pickCurrentStock)
     end
 
+    -- Activer heliai_mt10b AVANT forceAITeam pour que Unit.getByName fonctionne
+    local grpB = Group.getByName(AI_UNIT_B)
+    check("MT-10.3.4", "Group " .. AI_UNIT_B .. " accessible", grpB ~= nil)
+    if grpB then grpB:activate() end
+
     -- Clone + force _aiTeams[2] = {tmplAttack}
-    local tmplAttack, err = forceAITeam(core, tm, "gotoAttackNearestEnemyOnLos", AI_UNIT_B)
-    check("MT-10.3.1", "Template Attack clone cree (total<=5)", tmplAttack ~= nil, err)
+    -- Enregistrement direct dans _aiPilotNames (pas _initAITransports qui ecraserait _aiTeams[2])
+    local tmplAttack, err = forceAITeam(core, tm, "AttackNearestEnemyOnLos", AI_UNIT_B)
+    core._aiPilotNames[AI_UNIT_B] = true
+    check("MT-10.3.1", "Template Attack clone cree (total<=transportLimit)", tmplAttack ~= nil, err)
     check("MT-10.3.2", "_aiTeams[2] force sur 1 template", #core._aiTeams[2] == 1)
     if tmplAttack then
         report("Template: '" .. tmplAttack.name .. "' total=" .. tmplAttack.total
@@ -274,11 +300,6 @@ elseif step == 3 then
     local alive = enemyGrp ~= nil and enemyGrp:getSize() > 0
     check("MT-10.3.3", "Ennemi RED vivant pour LOS", alive)
 
-    -- Activer heliai_mt10b
-    local grpB = Group.getByName(AI_UNIT_B)
-    check("MT-10.3.4", "Group " .. AI_UNIT_B .. " accessible", grpB ~= nil)
-    if grpB then grpB:activate() end
-
     report("STEP 3 OK — " .. AI_UNIT_B .. " active."
         .. " Attendre CYCLE COMPLET (pickup + dropoff),"
         .. " puis injecter step 4 (~3s apres pose sur " .. AIZ_D .. ").")
@@ -286,7 +307,7 @@ elseif step == 3 then
     _result = "step=3 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 4 — Verif B : log contient gotoAttackNearestEnemyOnLos avec coords
+-- STEP 4 — Verif B : log contient AttackNearestEnemyOnLos avec coords
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 4 then
 
@@ -295,9 +316,9 @@ elseif step == 4 then
     check("MT-10.4.1", "hasTroops=false (cycle complet)", not hasTr,
         "hasTroops=" .. tostring(hasTr))
 
-    -- Chercher la derniere ligne contenant "gotoAttackNearestEnemyOnLos" (plain=true dans scanLog)
+    -- Chercher la derniere ligne contenant "AttackNearestEnemyOnLos" (plain=true dans scanLog)
     -- La derniere occurrence est la ligne resultat de _assignPostSpawnTask (avec coordonnees)
-    local logLine = scanLog("gotoAttackNearestEnemyOnLos")
+    local logLine = scanLog("AttackNearestEnemyOnLos")
     -- Rejeter la ligne de setup template (ne contient pas "_assignPostSpawnTask")
     if logLine and not string.find(logLine, "_assignPostSpawnTask", 1, true) then
         logLine = nil
@@ -321,7 +342,7 @@ elseif step == 4 then
         end
         report("DIAG ennemi: " .. diagInfo)
     end
-    check("MT-10.4.2", "CTLD.log contient 'gotoAttackNearestEnemyOnLos'", logLine ~= nil,
+    check("MT-10.4.2", "CTLD.log contient 'AttackNearestEnemyOnLos'", logLine ~= nil,
         logLine or "ennemi hors portee ou pas en LOS")
     if logLine then
         trigger.action.outText(TAG .. " Log B: " .. logLine, 30)
@@ -340,7 +361,7 @@ elseif step == 4 then
 elseif step == 5 then
 
     cleanup()
-    report("MT-10 ALL SUCCESS — gotoNearestWPZ + gotoAttackNearestEnemyOnLos valides")
+    report("MT-10 ALL SUCCESS — gotoNearestWPZ + AttackNearestEnemyOnLos valides")
     _G[STEP_N] = 1
     _result = "ALL SUCCESS"
 

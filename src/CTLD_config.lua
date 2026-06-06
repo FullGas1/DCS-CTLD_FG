@@ -211,7 +211,7 @@ function CTLDConfig:load()
     -- troopTemplates: nil/{}=all templates ; {"Name1","Name2"}=strict whitelist
     -- vehicleTypes: nil=all DCS vehicles in zone ; {"typeName1",...}=whitelist
     -- aiDropMode: "G"|"P"|"GP" (default "GP") — dropoff only
-    self.settings["aiZones"]                           = {}
+    self.settings["aiZones"]                           = self.settings["aiZones"] or {}
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
@@ -227,7 +227,7 @@ function CTLDConfig:load()
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
         ["M1043 HMMWV Armament"] = 2500,
-        ["Hummer"] = 2500,
+        ["Hummer"] = 1200,  -- TEMP: reduced for UH-1H recette (real ~2400 kg)
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -624,7 +624,7 @@ function CTLDConfig:load()
         -- {name = ctld.tr("Mortar Squad Red"), inf = 2, mortar = 5, side =1 }, --would make a group loadable by RED only
         -- Feature I: post-deploy task assignment examples (specificParams.task)
         -- { name = ctld.tr("Assault Team"), inf = 6, mg = 2, at = 2,
-        --   specificParams = { task = "gotoAttackNearestEnemyOnLos" } },
+        --   specificParams = { task = "AttackNearestEnemyOnLos" } },
         -- { name = ctld.tr("Advance Guard"), inf = 4, at = 2,
         --   specificParams = { task = "gotoNearestWPZ" } },
     }

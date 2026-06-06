@@ -733,6 +733,23 @@ _cfg.settings["transportPilotNames"] = {
 
 > Both pickup and drop-off use `S_EVENT_LAND` — the trigger fires at the **exact moment of touchdown**. The AI unit must physically land inside the zone radius.
 
+#### Validation report
+
+At mission start, CTLD validates all entries in `cfg.settings["aiZones"]` and displays a report on screen and in `CTLD.log`. The report is shown in the mission language (EN/FR/ES/KO).
+
+| Code | Severity | Trigger | Action |
+| --- | --- | --- | --- |
+| G1 | ERROR | Entry has no `dcsZoneName` | Entry ignored |
+| G2 | ERROR | `dcsZoneName` is a duplicate | Entry ignored |
+| G3 | ERROR | Entry has no `coalition` | Entry ignored |
+| G4 | ERROR | `coalition` is not `"BLUE"` or `"RED"` | Entry ignored |
+| G5 | ERROR | Neither `isPickup` nor `isDropoff` is set | Entry ignored |
+| Fix5 | WARN | `isPickup=true` but `cargoType` missing or invalid | Default `"T"` applied |
+| Fix6 | WARN | `isDropoff=true` but `aiDropMode` missing or invalid | Default `"GP"` applied |
+| Overlap | WARN | A zone is both pickup and drop-off for the same coalition | Risk of instant pickup+drop-off loop |
+
+If there are no errors and no warnings, a single `INFO` line is written to `CTLD.log` (no screen popup).
+
 ---
 
 ### 4.5 WPZ — Waypoint zone
@@ -960,7 +977,7 @@ Adding `specificParams = { task = "..." }` to a template makes the spawned group
 | Value | Behaviour |
 |---|---|
 | `"gotoNearestWPZ"` | Group marches toward the center of the nearest active `WPZ_` zone for its coalition. No movement if no WPZ exists. |
-| `"gotoAttackNearestEnemyOnLos"` | Group advances toward the nearest enemy unit within 10 km with line-of-sight. No movement if no visible enemy is found. |
+| `"AttackNearestEnemyOnLos"` | Group advances toward the nearest enemy unit within 10 km with line-of-sight. No movement if no visible enemy is found. |
 | *(absent / nil)* | No task assigned after spawn (default). |
 
 In both cases the group is set to ROE `OPEN_FIRE` and alarm state `AUTO`.
@@ -971,7 +988,7 @@ ctld.loadableGroups = {
     { name = "Standard Group", inf = 6, mg = 2, at = 2 },
     -- Assault team: automatically advance toward nearest visible enemy
     { name = "Assault Team",   inf = 6, mg = 2, at = 2,
-      specificParams = { task = "gotoAttackNearestEnemyOnLos" } },
+      specificParams = { task = "AttackNearestEnemyOnLos" } },
     -- Advance guard: march to the nearest waypoint zone
     { name = "Advance Guard",  inf = 4, at = 2,
       specificParams = { task = "gotoNearestWPZ" } },

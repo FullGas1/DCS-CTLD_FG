@@ -578,7 +578,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • CTLDTroopManager:_assignPostSpawnTask — helper schedulé +2 s post-spawn
           • Tâches supportées :
             - "gotoNearestWPZ"               → route vers le centre de la WPZ la plus proche
-            - "gotoAttackNearestEnemyOnLos"  → route vers l'ennemi le plus proche avec LOS
+            - "AttackNearestEnemyOnLos"       → route vers l'ennemi le plus proche avec LOS
               (world.searchObjects sphere 10 km + land.isVisible +2m offset)
           • ROE OPEN_FIRE + ALARM_STATE AUTO dans les deux cas
           • Fallback silencieux si aucune cible trouvée
@@ -821,7 +821,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           MT-10a PASS [2026-05-20] — gotoNearestWPZ : troupes IA → WPZ_mt10_B confirmée log+DCS
             bugfix : grpName nil hors WPZ inline (var déclarée dans if wpzZone)
             ⚠️ à re-recetter après Feature S (AIZ naming → config)
-          MT-10b ✅ PASS [2026-05-20] — gotoAttackNearestEnemyOnLos : troupes IA avancent vers ennemi RED en LOS
+          MT-10b ✅ PASS [2026-05-20] — AttackNearestEnemyOnLos : troupes IA avancent vers ennemi RED en LOS
             ⚠️ à re-recetter après Feature S (AIZ naming → config)
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
@@ -1161,8 +1161,8 @@ Minor cleanups identified — low priority, no functional impact.
 - **CL-8** Points config en attente d'analyse/décision (audit 2026-05-17) :
   • ~~`dynamicLogisticUnitsIndex`~~ ✅ — feature résilience portée via `CTLDLogisticZone:isAlive()` + `CTLDFOBManager:_destroyFOB()` → `unregisterLogistic()`. FOB = seul moyen de créer une LGZ dynamique. MM guide §4 + §12 mis à jour [2026-05-19].
   • ~~`loadCrateFromMenu`~~ ✅ — gate `refreshLoadCrateSection` + `buildMenuSection` + `refreshCrateFlightSection` (3 sites câblés) ; recette F-B3-1→F-B3-5 5/5 PASS [2026-05-19]
-  • ~~`maximumSearchDistance`~~ ✅ — câblé dans `_assignPostSpawnTask` `gotoAttackNearestEnemyOnLos` (remplace hardcode 10000) ; recette F-B4-1→F-B4-3 3/3 PASS [2026-05-19]
-  • ~~`maximumMoveDistance`~~ ✅ — supprimé de `CTLD_config.lua` + `CTLD_userConfig.lua` [2026-05-19]. V2 n'a pas d'errance aléatoire : `_assignPostSpawnTask` utilise des tâches explicites (`gotoNearestWPZ` / `gotoAttackNearestEnemyOnLos`), pas de fallback random.
+  • ~~`maximumSearchDistance`~~ ✅ — câblé dans `_assignPostSpawnTask` `AttackNearestEnemyOnLos` (remplace hardcode 10000) ; recette F-B4-1→F-B4-3 3/3 PASS [2026-05-19]
+  • ~~`maximumMoveDistance`~~ ✅ — supprimé de `CTLD_config.lua` + `CTLD_userConfig.lua` [2026-05-19]. V2 n'a pas d'errance aléatoire : `_assignPostSpawnTask` utilise des tâches explicites (`gotoNearestWPZ` / `AttackNearestEnemyOnLos`), pas de fallback random.
   • ~~`unitLoadLimits`~~ — absorbé par Feature P ✅ (`maxTroopsOnboard` dans `capabilitiesByType`)
   • `vehiclesForTransportRED/BLUE` + `maxVehiclesByType` — fusionnés en `vehicleTransportCapabilities` [2026-05-17] (Feature Q)
 
@@ -1203,9 +1203,11 @@ Minor cleanups identified — low priority, no functional impact.
   Recette : F-R-1→F-R-49 147/147 PASS [2026-05-20] — Section 11 (G1→G5), Section 12 (rapport MM live outText écran).
   Fixes [2026-05-20] : Fix 5 (cargoType invalide → `warns[]` correctement) ; Fix 6 (aiDropMode invalide → zone stocke "GP" réellement dans `_loadAIZonesFromConfig`).
   Nouveaux checks [2026-05-20] : G1 ni isPickup ni isDropoff→ERROR ; G2 tous troopTemplates inconnus→WARN distinct ; G3 troopStock=0 sur pickup troop→WARN ; G4 tous vehicleTypes inconnus dans loadableVehicles→WARN ; G5 cargoType=V/TV + aucun transport canTransportWholeVehicle→ERROR.
-  **TODO : re-recetter MT-07→MT-10 en interactif (zones native chargées au démarrage — valider lifecycle complet).**
-  **TODO : une fois MT-07→MT-10 re-recettés, enfermer les entrées `aiZones` dans `if false then...end` dans userConfig.**
-  **TODO : vérifier que le rapport de validation MM (`_validateZoneNames`) est généré dans la langue active CTLD (via `ctld.tr()` / dico i18n). Si non : internationaliser les messages errors/warns — EN + FR + ES + KO obligatoires.**
+  ✅ **TODO [1] DONE [2026-05-21] : renommage `gotoAttackNearestEnemyOnLos` → `AttackNearestEnemyOnLos` — tous fichiers impactés mis à jour (src/CTLD_troop.lua, src/CTLD_config.lua, scénarios recette, diags, recette.md, missionmaker_guide.md, MODERNIZATION-PLAN.md).**
+  **TODO [2] : re-recetter MT-07→MT-10 en interactif (zones native chargées au démarrage — valider lifecycle complet + maîtrise stocks).**
+  **TODO [3] : une fois MT-07→MT-10 re-recettés, enfermer les entrées `aiZones` dans `if false then...end` dans userConfig.**
+  **TODO [4] : vérifier que le rapport de validation MM (`_validateZoneNames`) est généré dans la langue active CTLD (via `ctld.tr()` / dico i18n). Si non : internationaliser les messages errors/warns — EN + FR + ES + KO obligatoires.**
+  **TODO [5] : regrouper toutes les informations relatives à la gestion des transports IA dans un chapitre dédié dans chaque doc concernée, avec des exemples précis — guides à couvrir : `docs/missionmaker_guide.md` (§ AI Transport complet : aiZones config, transportPilotNames, cargoType T/V/TV, troopStock, troopTemplates, vehicleTypes, aiDropMode, rapport validation, exemples mission) + `docs/CTLD_CDC.md` (architecture interne : onAILand, _loadAIZonesFromConfig, _validateZoneNames, _checkAIStatus, cleanupDeadTransports, CTLDZoneManager ↔ CTLDCoreManager flow).**
 
 - **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
 

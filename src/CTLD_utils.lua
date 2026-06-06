@@ -2086,6 +2086,20 @@ function ctld.utils.updateTransportWeight(unitName)
         "updateTransportWeight %s = %d kg (troops+crates+vehicles)", unitName, total)
 end
 
+--- LUA PREDICATE helper: returns true after `duration` seconds from first call.
+-- `key` must be unique per waypoint (e.g. "heliai_troops_wp2").
+-- Usage in ME LUA PREDICATE field:
+--   return ctld.utils.waitFor("heliai_troops_wp2", 15)
+function ctld.utils.waitFor(key, duration)
+    local gkey = "_waitFor_" .. key
+    if not _G[gkey] then _G[gkey] = timer.getTime() end
+    if timer.getTime() - _G[gkey] >= duration then
+        _G[gkey] = nil
+        return true
+    end
+    return false
+end
+
 -- ============================================================
 -- ctld.scheduler  — central registry for long-running timer loops
 -- ============================================================
