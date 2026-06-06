@@ -22399,6 +22399,8 @@ if _cfg.settings["debug"] == true then
     _cfg.settings["aiZones"] = {
         -- troopStock / vehicleStock are now tables: { [templateName/typeName] = N }
         -- N=-1=unlimited, N>0=limited. Key "All"=all templates, unlimited.
+
+        -- ── MT-07 / MT-08 / MT-09 / MT-10 ──────────────────────────────
         { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",
           troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
@@ -22410,6 +22412,21 @@ if _cfg.settings["debug"] == true then
         { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"  },
         { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",
           troopStock = { ["All"] = -1 } },
+
+        -- ── MT-11 : 2 troop templates avec stock limité ──────────────────
+        { dcsZoneName="AIZ_mt11_B_P_T",  coalition="BLUE", isPickup=true,  cargoType="T",
+          troopStock = { ["Standard Group"] = 3, ["Anti Tank"] = 2 } },
+        { dcsZoneName="AIZ_mt11_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="GP" },
+
+        -- ── MT-12 : véhicule DCS natif via vehicleStock (Hummer) ────────
+        { dcsZoneName="AIZ_mt12_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["Hummer"] = 2 } },
+        { dcsZoneName="AIZ_mt12_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+
+        -- ── MT-13 : scène (FARP Alpha) via vehicleStock isScene=true ────
+        { dcsZoneName="AIZ_mt13_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["FARP Alpha"] = 1 } },
+        { dcsZoneName="AIZ_mt13_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
     }
 end
 

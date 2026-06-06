@@ -1,0 +1,226 @@
+---@diagnostic disable
+-- =============================================================================
+-- scenario_mt13_ai_vehicle_scene.lua  [INTERACTIVE]
+-- MT-13 — AI auto-pickup d'une scène CTLDSceneManager via vehicleStock (Feature T)
+--
+-- PRÉREQUIS MISSION :
+--   - Héli BLUE nommé "heliai_mt13" (UH-60L ou tout appareil canTransportWholeVehicle=true)
+--   - Route : WP1 = posé sur AIZ_mt13_B_P_V → WP2 = vol → WP3 = posé sur AIZ_mt13_B_D
+--   - Zone DCS trigger "AIZ_mt13_B_P_V" (rayon ~200 m, centré sur WP1)
+--   - Zone DCS trigger "AIZ_mt13_B_D"   (rayon ~200 m, centré sur WP3)
+--   - PAS de groupe DCS physique requis dans la zone (stock virtuel Feature T)
+--   - Espace dégagé près de AIZ_mt13_B_D (la scène FARP Alpha déploie plusieurs statics)
+--   - enable_debug.lua injecté avant ce script
+--   - ctldLogPath défini dans le .miz (trigger MISSION START)
+--
+-- USE CASE :
+--   Zone AIZ_mt13_B_P_V : vehicleStock = { ["FARP Alpha"] = 1 }
+--   "FARP Alpha" est une scène enregistrée dans CTLDSceneManager.
+--   Au pickup : _aiTransportVehicle[unitName] = { type="FARP Alpha", isScene=true }
+--               aiConsumeVehicleStock("FARP Alpha") → current = 0
+--   Au dropoff : CTLDSceneManager:playScene(u, "FARP Alpha", nil, nil)
+--                Déploie les statics FARP à la position de l'AIZ_D
+--                Message coalition "AI heliai_mt13 delivered vehicle: FARP Alpha"
+--
+-- PROTOCOL :
+--   Step 1 — Enregistre heliai_mt13 + vérifie vehicleStock + isScene=true
+--   Step 2 — Vérifie pickup virtuel (isScene=true + stock 1→0)
+--             Re-injecter après que l'héli soit posé sur AIZ_mt13_B_P_V (~2s)
+--   Step 3 — Vérifie dropoff (playScene déclenché = statics FARP visibles + _aiTransportVehicle vidé)
+--             Re-injecter après que l'héli soit posé sur AIZ_mt13_B_D
+--   Step 4 — Cleanup
+-- =============================================================================
+
+local cfg = CTLDConfig.get()
+local _saved_debug = cfg.settings["debug"]
+cfg.settings["debug"] = true
+
+local TAG    = "[MT-13]"
+local START  = os.date("%Y-%m-%d %H:%M:%S")
+local STEP_N = "_MT13_STEP"
+
+local AI_UNIT    = "heliai_mt13"
+local AIZ_P      = "AIZ_mt13_B_P_V"
+local AIZ_D      = "AIZ_mt13_B_D"
+local SCENE_NAME = "FARP Alpha"
+
+local function log(msg)    ctld.utils.log("INFO",  TAG .. " " .. msg) end
+local function report(msg) trigger.action.outText(TAG .. " " .. msg, 30); log(msg) end
+local function pass(msg)   report("[PASS] " .. msg) end
+local function fail(msg)
+    trigger.action.outText(TAG .. " !! FAIL: " .. msg, 60)
+    log("FAIL: " .. msg)
+    error(msg)
+end
+local function check(id, desc, cond, details)
+    if cond then pass(id .. " — " .. desc)
+    else fail(id .. " — " .. desc .. (details and (" | " .. details) or "")) end
+end
+
+local function cleanup()
+    local names = cfg.settings["transportPilotNames"] or {}
+    for i = #names, 1, -1 do
+        if names[i] == AI_UNIT then table.remove(names, i) end
+    end
+    local cm = CTLDCoreManager.getInstance()
+    if cm._aiTransportVehicle then cm._aiTransportVehicle[AI_UNIT] = nil end
+    log("cleanup done")
+end
+
+-- ── STATE MACHINE ─────────────────────────────────────────────────────────────
+_G[STEP_N] = _G[STEP_N] or 1
+local step = _G[STEP_N]
+report("==== START " .. START .. " | step=" .. step .. " ====")
+
+local _step_start = os.clock()
+local _result = "INCOMPLETE"
+local _ok, _err = pcall(function()
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- STEP 1 — Init zones + vérification vehicleStock + isScene
+-- ══════════════════════════════════════════════════════════════════════════════
+if step == 1 then
+
+    cfg.settings["transportPilotNames"] = { AI_UNIT }
+    CTLDCoreManager.getInstance():_initAITransports()
+
+    -- Vérifier que "FARP Alpha" est bien une scène enregistrée
+    local sm = CTLDSceneManager.getInstance()
+    local scene = sm:getScene(SCENE_NAME)
+    check("MT-13.1.1", "'FARP Alpha' enregistrée dans CTLDSceneManager", scene ~= nil,
+          "'FARP Alpha' not found in _models")
+
+    local zm = CTLDZoneManager.getInstance()
+    local zP = zm._troopZones[AIZ_P]
+    local zD = zm._troopZones[AIZ_D]
+    check("MT-13.1.2", "AIZ_P trouvée : " .. AIZ_P, zP ~= nil)
+    check("MT-13.1.3", "AIZ_D trouvée : " .. AIZ_D, zD ~= nil)
+    if zP then
+        check("MT-13.1.4", "AIZ_P.isAIPickup=true",        zP.isAIPickup == true)
+        check("MT-13.1.5", "AIZ_P.aiCargoType='V'",         zP.aiCargoType == "V",
+              tostring(zP.aiCargoType))
+        check("MT-13.1.6", "AIZ_P._aiVehicleStock non-nil", zP._aiVehicleStock ~= nil)
+        if zP._aiVehicleStock then
+            local vs = zP._aiVehicleStock
+            check("MT-13.1.7", "_aiVehicleStock.isAll=false", vs.isAll == false)
+            check("MT-13.1.8", "init['FARP Alpha']=1",
+                  vs.init[SCENE_NAME] == 1, tostring(vs.init[SCENE_NAME]))
+            check("MT-13.1.9", "current['FARP Alpha']=1 (init)",
+                  vs.current[SCENE_NAME] == 1, tostring(vs.current[SCENE_NAME]))
+        end
+    end
+
+    -- Vérifier que aiPickVehicleEntry detecte bien isScene=true pour "FARP Alpha"
+    if zP then
+        local entry = zP:aiPickVehicleEntry()
+        check("MT-13.1.10", "aiPickVehicleEntry retourne non-nil", entry ~= nil)
+        if entry then
+            check("MT-13.1.11", "entry.type='FARP Alpha'",
+                  entry.type == SCENE_NAME, tostring(entry.type))
+            check("MT-13.1.12", "entry.isScene=true (scène CTLDSceneManager)",
+                  entry.isScene == true, tostring(entry.isScene))
+        end
+    end
+
+    -- Activer le groupe (late-activation dans le .miz)
+    local grp = Group.getByName(AI_UNIT)
+    if grp then grp:activate() end
+
+    local unit = Unit.getByName(AI_UNIT)
+    check("MT-13.1.13", "Unité AI '" .. AI_UNIT .. "' présente en mission", unit ~= nil)
+
+    local cm = CTLDCoreManager.getInstance()
+    check("MT-13.1.14", "_aiTransportVehicle[heliai_mt13] vide initialement",
+          cm._aiTransportVehicle[AI_UNIT] == nil)
+
+    report("⬛ STEP 1 OK — Pose l'héli sur " .. AIZ_P .. ", attends 3s, re-injecte pour STEP 2")
+    report("   (pas de groupe DCS requis — stock virtuel FARP Alpha)")
+    _G[STEP_N] = 2
+    _result = "step=1 SUCCESS"
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- STEP 2 — Vérifier pickup virtuel (isScene=true + stock décrémenté)
+-- ══════════════════════════════════════════════════════════════════════════════
+elseif step == 2 then
+
+    local cm = CTLDCoreManager.getInstance()
+    local vEntry = cm._aiTransportVehicle[AI_UNIT]
+
+    if vEntry == nil then
+        report("⚠️  _aiTransportVehicle[" .. AI_UNIT .. "]=nil — l'héli est-il bien posé dans " .. AIZ_P .. " ?")
+        report("   Attends 2s de plus et re-injecte STEP 2.")
+        _result = "step=2 WAITING"
+        return
+    end
+
+    check("MT-13.2.1", "_aiTransportVehicle peuplé au pickup", vEntry ~= nil)
+    check("MT-13.2.2", "type='FARP Alpha'",
+          vEntry.type == SCENE_NAME, tostring(vEntry.type))
+    check("MT-13.2.3", "isScene=true (scène CTLDSceneManager, pas DCS natif)",
+          vEntry.isScene == true, tostring(vEntry.isScene))
+    report("🏕️ En transit : " .. tostring(vEntry.type) .. " | isScene=" .. tostring(vEntry.isScene))
+
+    -- Vérifier stock décrémenté (1→0)
+    local zm = CTLDZoneManager.getInstance()
+    local zP = zm._troopZones[AIZ_P]
+    if zP and zP._aiVehicleStock then
+        local cur = zP._aiVehicleStock.current[SCENE_NAME]
+        check("MT-13.2.4", "stock 'FARP Alpha' décrémenté (1→0)",
+              cur == 0, "current=" .. tostring(cur))
+    end
+
+    report("⬛ STEP 2 OK — Envoie l'héli sur " .. AIZ_D .. " (posé), re-injecte pour STEP 3")
+    report("   La scène FARP Alpha va se déployer à la position de " .. AIZ_D)
+    _G[STEP_N] = 3
+    _result = "step=2 SUCCESS"
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- STEP 3 — Vérifier dropoff (playScene + _aiTransportVehicle vidé)
+-- ══════════════════════════════════════════════════════════════════════════════
+elseif step == 3 then
+
+    local cm = CTLDCoreManager.getInstance()
+    local vEntry = cm._aiTransportVehicle[AI_UNIT]
+
+    if vEntry ~= nil then
+        report("⚠️  _aiTransportVehicle encore peuplé — l'héli est-il bien posé dans " .. AIZ_D .. " ?")
+        _result = "step=3 WAITING"
+        return
+    end
+
+    check("MT-13.3.1", "_aiTransportVehicle vidé après dropoff (playScene appelé)", vEntry == nil)
+    report("🏕️ Dropoff scène confirmé — vérifie sur F10 map que les statics FARP Alpha sont apparus près de " .. AIZ_D)
+    report("   Éléments attendus : tente FARP, stockage munitions, générateur, personnel sécurité, etc.")
+    report("   Message coalition attendu : 'AI heliai_mt13 delivered vehicle: FARP Alpha'")
+    report("⬛ Re-injecte pour STEP 4 (cleanup)")
+    _G[STEP_N] = 4
+    _result = "step=3 SUCCESS"
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- STEP 4 — Cleanup
+-- ══════════════════════════════════════════════════════════════════════════════
+elseif step == 4 then
+
+    cleanup()
+    report("✅ MT-13 ALL SUCCESS — pickup scène 'FARP Alpha' (isScene=true) + stock 1→0 + playScene confirmés")
+    _G[STEP_N] = 1
+    _result = "ALL SUCCESS"
+
+else
+    fail("step=" .. step .. " sans branche — réinitialise avec _G['" .. STEP_N .. "']=1")
+end
+
+end)  -- end pcall
+
+cfg.settings["debug"] = _saved_debug
+
+local _ms = math.floor((os.clock() - _step_start) * 1000)
+if not _ok then
+    pcall(cleanup)
+    return TAG .. " step=" .. step .. " FAIL: " .. tostring(_err)
+end
+if _result == "ALL SUCCESS" then
+    return TAG .. " " .. _result .. " (" .. _ms .. "ms)"
+end
+return TAG .. " " .. _result:gsub("SUCCESS", "SUCCESS (" .. _ms .. "ms)")
+                             :gsub("WAITING", "WAITING (" .. _ms .. "ms)")
