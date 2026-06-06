@@ -403,6 +403,10 @@ ctld.yamlConfigDatas = [[
 ---@diagnostic disable-next-line: unused-local
 local _cfg = CTLDConfig.get()
 
+-- Debug mode — active for recette (branch feature_modularisation_and_Config).
+-- Set to false (or remove this line) for production missions.
+_cfg.settings["debug"] = true
+
 -- ============================================================
 -- Per-aircraft capabilities — the unified type registry (replaces
 -- aircraftTypeTable, unitActions, and all legacy parallel type-indexed tables).
