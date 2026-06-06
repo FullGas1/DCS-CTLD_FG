@@ -818,11 +818,8 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           MT-07 4/4 PASS [2026-05-19] — pickup troupes AIZ_P_T, dropoff AIZ_D, msgs coalition + count
           MT-08 4/4 PASS [2026-05-19] — pickup véhicule AIZ_P_V (stock=10), dropoff AIZ_D
           MT-09 4/4 PASS [2026-05-19] — pickup troupes+véhicule AIZ_P_TV, dropoff AIZ_D
-          MT-10a PASS [2026-05-20] — gotoNearestWPZ : troupes IA → WPZ_mt10_B confirmée log+DCS
-            bugfix : grpName nil hors WPZ inline (var déclarée dans if wpzZone)
-            ⚠️ à re-recetter après Feature S (AIZ naming → config)
-          MT-10b ✅ PASS [2026-05-20] — AttackNearestEnemyOnLos : troupes IA avancent vers ennemi RED en LOS
-            ⚠️ à re-recetter après Feature S (AIZ naming → config)
+          MT-10a ✅ PASS [2026-06-06] — re-recette Feature S (zones depuis userConfig) : gotoNearestWPZ PASS
+          MT-10b ✅ PASS [2026-06-06] — re-recette Feature S : AttackNearestEnemyOnLos PASS
 
 ⬜  FG  SVG troops transport flows — schéma visuel transport troupes
         Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
@@ -1204,10 +1201,10 @@ Minor cleanups identified — low priority, no functional impact.
   Fixes [2026-05-20] : Fix 5 (cargoType invalide → `warns[]` correctement) ; Fix 6 (aiDropMode invalide → zone stocke "GP" réellement dans `_loadAIZonesFromConfig`).
   Nouveaux checks [2026-05-20] : G1 ni isPickup ni isDropoff→ERROR ; G2 tous troopTemplates inconnus→WARN distinct ; G3 troopStock=0 sur pickup troop→WARN ; G4 tous vehicleTypes inconnus dans loadableVehicles→WARN ; G5 cargoType=V/TV + aucun transport canTransportWholeVehicle→ERROR.
   ✅ **TODO [1] DONE [2026-05-21] : renommage `gotoAttackNearestEnemyOnLos` → `AttackNearestEnemyOnLos` — tous fichiers impactés mis à jour (src/CTLD_troop.lua, src/CTLD_config.lua, scénarios recette, diags, recette.md, missionmaker_guide.md, MODERNIZATION-PLAN.md).**
-  **TODO [2] : re-recetter MT-07→MT-10 en interactif (zones native chargées au démarrage — valider lifecycle complet + maîtrise stocks).**
-  **TODO [3] : une fois MT-07→MT-10 re-recettés, enfermer les entrées `aiZones` dans `if false then...end` dans userConfig.**
-  **TODO [4] : vérifier que le rapport de validation MM (`_validateZoneNames`) est généré dans la langue active CTLD (via `ctld.tr()` / dico i18n). Si non : internationaliser les messages errors/warns — EN + FR + ES + KO obligatoires.**
-  **TODO [5] : regrouper toutes les informations relatives à la gestion des transports IA dans un chapitre dédié dans chaque doc concernée, avec des exemples précis — guides à couvrir : `docs/missionmaker_guide.md` (§ AI Transport complet : aiZones config, transportPilotNames, cargoType T/V/TV, troopStock, troopTemplates, vehicleTypes, aiDropMode, rapport validation, exemples mission) + `docs/CTLD_CDC.md` (architecture interne : onAILand, _loadAIZonesFromConfig, _validateZoneNames, _checkAIStatus, cleanupDeadTransports, CTLDZoneManager ↔ CTLDCoreManager flow).**
+  ✅ **TODO [2] DONE [2026-06-06] : re-recette MT-07→MT-10 en interactif — lifecycle complet validé live DCS, zones chargées via _loadAIZonesFromConfig() depuis userConfig.**
+  ✅ **TODO [3] DONE [2026-06-06] : zones `aiZones` de recette placées dans userConfig sous `if _cfg.settings["debug"] == true then` — code source propre, aucune donnée de test dans _initAITransports().**
+  ✅ **TODO [4] DONE [2026-06-06] : `_validateZoneNames()` i18n complet — 15 clés EN/FR/ES/KO via ctld.tr(), substitutions %1/%2, commit 7dbb45b.**
+  ✅ **TODO [5] DONE [2026-06-06] : docs/CTLD_CDC.md §4.6 (réécriture Feature S + AIZ + validation + onAILand/_checkAIStatus) + §4.16 (CTLDCoreManager, séquence init 21 étapes) + docs/missionmaker_guide.md §4.4 subsection "Validation report" (G1-G5/Fix5/Fix6/Overlap), commit b4efb5e.**
 
 - **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
 
