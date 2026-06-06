@@ -15314,11 +15314,11 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "HAWK AA System",
         count = 5,
         parts = {
-            { name = "Hawk ln",   desc = "HAWK Launcher",     launcher = true },
-            { name = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2 },
-            { name = "Hawk sr",   desc = "HAWK Search Radar", amount = 2 },
-            { name = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true },
-            { name = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true },
+            { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",     launcher = true },
+            { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2 },
+            { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar", amount = 2 },
+            { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true },
+            { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true },
         },
         repair = "HAWK Repair",
     },
@@ -15326,10 +15326,10 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "Patriot AA System",
         count = 4,
         parts = {
-            { name = "Patriot ln",  desc = "Patriot Launcher",               launcher = true, amount = 8 },
-            { name = "Patriot ECS", desc = "Patriot Control Unit" },
-            { name = "Patriot str", desc = "Patriot Search and Track Radar", amount = 2 },
-            { name = "Patriot AMG", desc = "Patriot AMG DL relay",           NoCrate = true },
+            { DCSTypename = "Patriot ln",  desc = "Patriot Launcher",               launcher = true, amount = 8 },
+            { DCSTypename = "Patriot ECS", desc = "Patriot Control Unit" },
+            { DCSTypename = "Patriot str", desc = "Patriot Search and Track Radar", amount = 2 },
+            { DCSTypename = "Patriot AMG", desc = "Patriot AMG DL relay",           NoCrate = true },
         },
         repair = "Patriot Repair",
     },
@@ -15337,9 +15337,9 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "NASAMS AA System",
         count = 3,
         parts = {
-            { name = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true },
-            { name = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar" },
-            { name = "NASAMS_Command_Post",  desc = "NASAMS Command Post" },
+            { DCSTypename = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true },
+            { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar" },
+            { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post" },
         },
         repair = "NASAMS Repair",
     },
@@ -15347,9 +15347,9 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "BUK AA System",
         count = 3,
         parts = {
-            { name = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",    launcher = true },
-            { name = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar" },
-            { name = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar" },
+            { DCSTypename = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",    launcher = true },
+            { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar" },
+            { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar" },
         },
         repair = "BUK Repair",
     },
@@ -15357,8 +15357,8 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "KUB AA System",
         count = 2,
         parts = {
-            { name = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true },
-            { name = "Kub 1S91 str", desc = "KUB Radar" },
+            { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true },
+            { DCSTypename = "Kub 1S91 str", desc = "KUB Radar" },
         },
         repair = "KUB Repair",
     },
@@ -15366,12 +15366,12 @@ CTLDCrateAssemblyManager.TEMPLATES = {
         name  = "S-300 AA System",
         count = 6,
         parts = {
-            { name = "S-300PS 5P85C ln", desc = "S-300 Grumble TEL C",         launcher = true, amount = 1 },
-            { name = "S-300PS 5P85D ln", desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },
-            { name = "S-300PS 40B6M tr", desc = "S-300 Grumble Flap Lid-A TR" },
-            { name = "S-300PS 40B6MD sr",desc = "S-300 Grumble Clam Shell SR" },
-            { name = "S-300PS 64H6E sr", desc = "S-300 Grumble Big Bird SR" },
-            { name = "S-300PS 54K6 cp",  desc = "S-300 Grumble C2" },
+            { DCSTypename = "S-300PS 5P85C ln", desc = "S-300 Grumble TEL C",         launcher = true, amount = 1 },
+            { DCSTypename = "S-300PS 5P85D ln", desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },
+            { DCSTypename = "S-300PS 40B6M tr", desc = "S-300 Grumble Flap Lid-A TR" },
+            { DCSTypename = "S-300PS 40B6MD sr",desc = "S-300 Grumble Clam Shell SR" },
+            { DCSTypename = "S-300PS 64H6E sr", desc = "S-300 Grumble Big Bird SR" },
+            { DCSTypename = "S-300PS 54K6 cp",  desc = "S-300 Grumble C2" },
         },
         repair = "S-300 Repair",
     },
@@ -15418,7 +15418,7 @@ end
 --- Return the launcher part name for a template, or nil.
 local function _getLauncherUnit(template)
     for _, part in ipairs(template.parts) do
-        if part.launcher then return part.name end
+        if part.launcher then return part.DCSTypename end
     end
     return nil
 end
@@ -15436,7 +15436,7 @@ function CTLDCrateAssemblyManager:getTemplateForUnit(unitName)
     for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
         if tmpl.repair == unitName then return tmpl end
         for _, part in ipairs(tmpl.parts) do
-            if part.name == unitName then return tmpl end
+            if part.DCSTypename == unitName then return tmpl end
         end
     end
     return nil
@@ -15531,7 +15531,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- systemParts[partName] = { desc, launcher, amount, NoCrate, found, required, crates[] }
     local systemParts = {}
     for _, part in ipairs(template.parts) do
-        systemParts[part.name] = {
+        systemParts[part.DCSTypename] = {
             desc     = part.desc,
             launcher = part.launcher,
             amount   = part.amount,
@@ -15565,7 +15565,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- ---- Check completeness, build missing-parts message ----
     local missingTxt = ""
     for _, part in ipairs(template.parts) do
-        local sp = systemParts[part.name]
+        local sp = systemParts[part.DCSTypename]
         if sp.found < sp.required then
             missingTxt = missingTxt .. ctld.tr("Missing %1\n", "Missing " .. sp.desc .. "\n")
         end
@@ -15600,7 +15600,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- ---- Destroy consumed crates ----
     local stacking = ctld.gs("AASystemCrateStacking") or false
     for _, part in ipairs(template.parts) do
-        local sp = systemParts[part.name]
+        local sp = systemParts[part.DCSTypename]
         if not sp.NoCrate then
             local amountFactor = stacking
                 and (sp.found - sp.found % sp.required)
@@ -15866,7 +15866,7 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
     local partCount    = #template.parts
 
     for _, part in ipairs(template.parts) do
-        local sp = systemParts[part.name]
+        local sp = systemParts[part.DCSTypename]
 
         -- Compute amountFactor (stacking multiplier)
         local amountFactor = 1
@@ -15893,7 +15893,7 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
             local pz = origin.z + math.sin(angle) * _SPAWN_RADIUS
             local py = land.getHeight({ x = px, y = pz })
             table.insert(positions, { x = px, y = py, z = pz })
-            table.insert(types,     part.name)
+            table.insert(types,     part.DCSTypename)
             table.insert(headings,  angle)
         else
             local step = arcRad / partAmount
@@ -15903,7 +15903,7 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
                 local pz = origin.z + math.sin(angle) * _SPAWN_RADIUS
                 local py = land.getHeight({ x = px, y = pz })
                 table.insert(positions, { x = px, y = py, z = pz })
-                table.insert(types,     part.name)
+                table.insert(types,     part.DCSTypename)
                 table.insert(headings,  angle)
             end
         end
