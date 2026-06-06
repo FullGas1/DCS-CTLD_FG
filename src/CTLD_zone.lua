@@ -1452,10 +1452,15 @@ function CTLDZoneManager:_validateZoneNames()
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
                 warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
-            -- G3: isPickup + troop cargo + troopStock=0 → no troops will ever be loaded
+            -- G3: isPickup + troop cargo + troopStock not defined → troop pickup disabled
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
-            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == 0 then
-                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded", i, tostring(dzn))
+            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == nil then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled", i, tostring(dzn))
+            end
+            -- G6: isPickup + vehicle cargo + vehicleStock not defined → vehicle pickup disabled
+            local effCargoHasVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
+            if not hasErr and entry.isPickup and effCargoHasVehicle and entry.vehicleStock == nil then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled", i, tostring(dzn))
             end
             -- troopTemplates: warn on unknown names; G2: all unknown → extra WARN
             if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then

@@ -656,7 +656,6 @@ function CTLDCoreManager:onAILand(event)
     local typeName  = u:getTypeName()
     local hasTr     = tm:hasTroops(unitName)
     local caps      = (ctld.gs("capabilitiesByType") or {})[typeName] or {}
-    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
 
     -- ---- Dropoff zone (vehicle + troops, ground only) -------------------
     local dropZone = zm:getAIDropoffZoneAt(pt, coa)
@@ -735,56 +734,63 @@ function CTLDCoreManager:onAILand(event)
         local doTroops  = (cargoType == "T" or cargoType == "TV")
 
         -- Vehicle pickup
-        if doVeh and caps.canTransportWholeVehicle then
+        -- A: vehicleStock=nil → pickup disabled for this zone
+        if doVeh and caps.canTransportWholeVehicle and pickZone._aiVehicleStock then
             local alreadyLoaded = (self._aiTransportVehicle[unitName] ~= nil)
                                or (okVS and #vs:findLoadedVehicles(u) > 0)
             if not alreadyLoaded then
-                -- Feature T: stock-based virtual pickup
-                local vEntry = pickZone:aiPickVehicleEntry()
-                if vEntry then
-                    pickZone:aiConsumeVehicleStock(vEntry.type)
-                    self._aiTransportVehicle[unitName] = vEntry
-                    ctld.utils.notifyCoalition(
-                        ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
-                else
-                    -- isAll or no stock defined → physical scan (legacy path)
-                    if okVS then
-                        local loadables = vs:findLoadableVehicles(u)
-                        if pickZone.vehicleTypes then
-                            local typeSet = {}
-                            for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
-                            local filtered = {}
-                            for _, v in ipairs(loadables) do
-                                if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
-                            end
-                            loadables = filtered
-                        end
-                        local maxW    = caps.maxVehicleWeight
-                        local weights = ctld.gs("groundVehicleWeights") or {}
-                        local compatible = {}
+                local physicalLoaded = false
+
+                -- C1: physical DCS vehicles in zone take priority
+                if okVS then
+                    local loadables = vs:findLoadableVehicles(u)
+                    if pickZone.vehicleTypes then
+                        local typeSet = {}
+                        for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
+                        local filtered = {}
                         for _, v in ipairs(loadables) do
-                            local w = weights[v.vehicleType] or 0
-                            if not maxW or w <= maxW then compatible[#compatible + 1] = v end
+                            if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
                         end
-                        if #loadables > 0 and #compatible == 0 then
-                            ctld.utils.log("WARN",
-                                "CTLDCoreManager:onAILand [%s] no vehicle within weight limit (%s kg), %d found",
-                                unitName, tostring(maxW), #loadables)
-                        end
-                        if #compatible > 0 then
-                            local veh = compatible[1]
-                            vs:loadVehicle(veh, u, nil, "menu_ctld")
-                            ctld.utils.notifyCoalition(
-                                ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
-                                10, coa)
-                        end
+                        loadables = filtered
+                    end
+                    local maxW    = caps.maxVehicleWeight
+                    local weights = ctld.gs("groundVehicleWeights") or {}
+                    local compatible = {}
+                    for _, v in ipairs(loadables) do
+                        local w = weights[v.vehicleType] or 0
+                        if not maxW or w <= maxW then compatible[#compatible + 1] = v end
+                    end
+                    if #loadables > 0 and #compatible == 0 then
+                        ctld.utils.log("WARN",
+                            "CTLDCoreManager:onAILand [%s] no physical vehicle within weight limit (%s kg), %d found",
+                            unitName, tostring(maxW), #loadables)
+                    end
+                    if #compatible > 0 then
+                        local veh = compatible[1]
+                        vs:loadVehicle(veh, u, nil, "menu_ctld")
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            10, coa)
+                        physicalLoaded = true
+                    end
+                end
+
+                -- C2: virtual stock pickup only when no physical vehicle found
+                if not physicalLoaded then
+                    local vEntry = pickZone:aiPickVehicleEntry()  -- nil if isAll
+                    if vEntry then
+                        pickZone:aiConsumeVehicleStock(vEntry.type)
+                        self._aiTransportVehicle[unitName] = vEntry
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
                     end
                 end
             end
         end
 
         -- Troop pickup (re-check hasTroops after potential vehicle load)
-        if doTroops and not tm:hasTroops(unitName) then
+        -- A: troopStock=nil → pickup disabled for this zone
+        if doTroops and not tm:hasTroops(unitName) and pickZone._aiTroopStock then
             local teams = self._aiTeams[coa] or {}
             -- troopTemplates whitelist (Feature S) — applied before stock selection
             if pickZone.troopTemplates then
@@ -801,32 +807,15 @@ function CTLDCoreManager:onAILand(event)
                 end
                 teams = filtered
             end
-            local tmpl = nil
-            -- Feature T: per-template stock selection
-            if pickZone._aiTroopStock then
-                tmpl = pickZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
-                if not tmpl then
-                    ctld.utils.log("WARN",
-                        "CTLDCoreManager:onAILand [%s] _aiTroopStock exhausted or no eligible template",
-                        unitName)
-                end
+            -- B: equitable draw among eligible templates by highest current stock
+            local tmpl = pickZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
+            if not tmpl then
+                ctld.utils.log("WARN",
+                    "CTLDCoreManager:onAILand [%s] troopStock exhausted or no eligible template",
+                    unitName)
             else
-                -- Legacy: first-compatible or random
-                if #teams > 0 then
-                    local startIdx = randomPickup and math.random(#teams) or 1
-                    local n = #teams
-                    for i = 0, n - 1 do
-                        local candidate = teams[((startIdx - 1 + i) % n) + 1]
-                        local w  = tm:_weightForGroup(candidate)
-                        local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
-                        if canEmb then tmpl = candidate; break end
-                    end
-                end
-            end
-            if tmpl then
                 local loaded = tm:embarkFromTroopZone(u, pickZone, tmpl)
                 if loaded then
-                    -- consume per-template stock (Feature T)
                     pickZone:aiConsumeTroopStock(tmpl.name)
                     ctld.utils.notifyCoalition(
                         ctld.tr("AI %1 picked up troops: %2 (%3)", unitName, tmpl.name, tmpl.total),

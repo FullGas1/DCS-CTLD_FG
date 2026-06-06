@@ -1773,7 +1773,8 @@ ctld.i18n["en"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["en"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"
-ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"
@@ -2242,7 +2243,8 @@ ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERREUR '%2' : cargoType '%3' nécessite un transport de véhicule entier mais aucun aéronef n'a canTransportWholeVehicle=true — entrée ignorée"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVERT '%2' : cargoType '%3' invalide — valeur par défaut T"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVERT '%2' : aiDropMode '%3' invalide — valeur par défaut GP"
-ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de troupes mais troopStock=0 — aucune troupe ne sera jamais chargée"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de troupes mais troopStock non défini — pickup de troupes désactivé"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de véhicule mais vehicleStock non défini — pickup de véhicule désactivé"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVERT '%2' : troopTemplates['%3'] introuvable dans loadableGroups"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVERT '%2' : tous les troopTemplates sont inconnus — le pickup de troupes sera toujours ignoré"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] AVERT '%2' : toutes les entrées vehicleTypes sont inconnues dans les listes de véhicules loadables — le pickup de véhicule sera toujours ignoré"
@@ -2712,7 +2714,8 @@ ctld.i18n["es"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["es"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requiere transporte de vehículo completo pero ninguna aeronave tiene canTransportWholeVehicle=true — entrada ignorada"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVISO '%2': cargoType '%3' inválido — predeterminado a T"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVISO '%2': aiDropMode '%3' inválido — predeterminado a GP"
-ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de tropas pero troopStock=0 — nunca se cargará ninguna tropa"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de tropas pero troopStock no definido — carga de tropas desactivada"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de vehículo pero vehicleStock no definido — carga de vehículo desactivada"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVISO '%2': troopTemplates['%3'] no encontrado en loadableGroups"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVISO '%2': todos los troopTemplates son desconocidos — el pickup de tropas siempre se omitirá"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] AVISO '%2': todas las entradas vehicleTypes son desconocidas en las listas de vehículos cargables — el pickup de vehículos siempre se omitirá"
@@ -3029,7 +3032,8 @@ ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] 오류 '%2': cargoType '%3'은(는) 차량 전체 수송이 필요하지만 canTransportWholeVehicle=true인 항공기가 없음 — 항목 무시됨"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] 경고 '%2': cargoType '%3' 잘못됨 — 기본값 T"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] 경고 '%2': aiDropMode '%3' 잘못됨 — 기본값 GP"
-ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 병력 화물이지만 troopStock=0 — 병력이 절대 탑재되지 않음"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 병력 화물이지만 troopStock 미정의 — 병력 픽업 비활성화"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 차량 화물이지만 vehicleStock 미정의 — 차량 픽업 비활성화"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] 경고 '%2': troopTemplates['%3']을(를) loadableGroups에서 찾을 수 없음"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] 경고 '%2': 모든 troopTemplates를 알 수 없음 — 병력 픽업이 항상 건너뜀"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] 경고 '%2': 모든 vehicleTypes 항목이 탑재 가능 차량 목록에 없음 — 차량 픽업이 항상 건너뜀"
@@ -8114,10 +8118,15 @@ function CTLDZoneManager:_validateZoneNames()
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
                 warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
-            -- G3: isPickup + troop cargo + troopStock=0 → no troops will ever be loaded
+            -- G3: isPickup + troop cargo + troopStock not defined → troop pickup disabled
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
-            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == 0 then
-                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded", i, tostring(dzn))
+            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == nil then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled", i, tostring(dzn))
+            end
+            -- G6: isPickup + vehicle cargo + vehicleStock not defined → vehicle pickup disabled
+            local effCargoHasVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
+            if not hasErr and entry.isPickup and effCargoHasVehicle and entry.vehicleStock == nil then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled", i, tostring(dzn))
             end
             -- troopTemplates: warn on unknown names; G2: all unknown → extra WARN
             if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then
@@ -20698,7 +20707,6 @@ function CTLDCoreManager:onAILand(event)
     local typeName  = u:getTypeName()
     local hasTr     = tm:hasTroops(unitName)
     local caps      = (ctld.gs("capabilitiesByType") or {})[typeName] or {}
-    local randomPickup = ctld.gs("allowRandomAiTeamPickups") == true
 
     -- ---- Dropoff zone (vehicle + troops, ground only) -------------------
     local dropZone = zm:getAIDropoffZoneAt(pt, coa)
@@ -20777,56 +20785,63 @@ function CTLDCoreManager:onAILand(event)
         local doTroops  = (cargoType == "T" or cargoType == "TV")
 
         -- Vehicle pickup
-        if doVeh and caps.canTransportWholeVehicle then
+        -- A: vehicleStock=nil → pickup disabled for this zone
+        if doVeh and caps.canTransportWholeVehicle and pickZone._aiVehicleStock then
             local alreadyLoaded = (self._aiTransportVehicle[unitName] ~= nil)
                                or (okVS and #vs:findLoadedVehicles(u) > 0)
             if not alreadyLoaded then
-                -- Feature T: stock-based virtual pickup
-                local vEntry = pickZone:aiPickVehicleEntry()
-                if vEntry then
-                    pickZone:aiConsumeVehicleStock(vEntry.type)
-                    self._aiTransportVehicle[unitName] = vEntry
-                    ctld.utils.notifyCoalition(
-                        ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
-                else
-                    -- isAll or no stock defined → physical scan (legacy path)
-                    if okVS then
-                        local loadables = vs:findLoadableVehicles(u)
-                        if pickZone.vehicleTypes then
-                            local typeSet = {}
-                            for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
-                            local filtered = {}
-                            for _, v in ipairs(loadables) do
-                                if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
-                            end
-                            loadables = filtered
-                        end
-                        local maxW    = caps.maxVehicleWeight
-                        local weights = ctld.gs("groundVehicleWeights") or {}
-                        local compatible = {}
+                local physicalLoaded = false
+
+                -- C1: physical DCS vehicles in zone take priority
+                if okVS then
+                    local loadables = vs:findLoadableVehicles(u)
+                    if pickZone.vehicleTypes then
+                        local typeSet = {}
+                        for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
+                        local filtered = {}
                         for _, v in ipairs(loadables) do
-                            local w = weights[v.vehicleType] or 0
-                            if not maxW or w <= maxW then compatible[#compatible + 1] = v end
+                            if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
                         end
-                        if #loadables > 0 and #compatible == 0 then
-                            ctld.utils.log("WARN",
-                                "CTLDCoreManager:onAILand [%s] no vehicle within weight limit (%s kg), %d found",
-                                unitName, tostring(maxW), #loadables)
-                        end
-                        if #compatible > 0 then
-                            local veh = compatible[1]
-                            vs:loadVehicle(veh, u, nil, "menu_ctld")
-                            ctld.utils.notifyCoalition(
-                                ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
-                                10, coa)
-                        end
+                        loadables = filtered
+                    end
+                    local maxW    = caps.maxVehicleWeight
+                    local weights = ctld.gs("groundVehicleWeights") or {}
+                    local compatible = {}
+                    for _, v in ipairs(loadables) do
+                        local w = weights[v.vehicleType] or 0
+                        if not maxW or w <= maxW then compatible[#compatible + 1] = v end
+                    end
+                    if #loadables > 0 and #compatible == 0 then
+                        ctld.utils.log("WARN",
+                            "CTLDCoreManager:onAILand [%s] no physical vehicle within weight limit (%s kg), %d found",
+                            unitName, tostring(maxW), #loadables)
+                    end
+                    if #compatible > 0 then
+                        local veh = compatible[1]
+                        vs:loadVehicle(veh, u, nil, "menu_ctld")
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                            10, coa)
+                        physicalLoaded = true
+                    end
+                end
+
+                -- C2: virtual stock pickup only when no physical vehicle found
+                if not physicalLoaded then
+                    local vEntry = pickZone:aiPickVehicleEntry()  -- nil if isAll
+                    if vEntry then
+                        pickZone:aiConsumeVehicleStock(vEntry.type)
+                        self._aiTransportVehicle[unitName] = vEntry
+                        ctld.utils.notifyCoalition(
+                            ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
                     end
                 end
             end
         end
 
         -- Troop pickup (re-check hasTroops after potential vehicle load)
-        if doTroops and not tm:hasTroops(unitName) then
+        -- A: troopStock=nil → pickup disabled for this zone
+        if doTroops and not tm:hasTroops(unitName) and pickZone._aiTroopStock then
             local teams = self._aiTeams[coa] or {}
             -- troopTemplates whitelist (Feature S) — applied before stock selection
             if pickZone.troopTemplates then
@@ -20843,32 +20858,15 @@ function CTLDCoreManager:onAILand(event)
                 end
                 teams = filtered
             end
-            local tmpl = nil
-            -- Feature T: per-template stock selection
-            if pickZone._aiTroopStock then
-                tmpl = pickZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
-                if not tmpl then
-                    ctld.utils.log("WARN",
-                        "CTLDCoreManager:onAILand [%s] _aiTroopStock exhausted or no eligible template",
-                        unitName)
-                end
+            -- B: equitable draw among eligible templates by highest current stock
+            local tmpl = pickZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
+            if not tmpl then
+                ctld.utils.log("WARN",
+                    "CTLDCoreManager:onAILand [%s] troopStock exhausted or no eligible template",
+                    unitName)
             else
-                -- Legacy: first-compatible or random
-                if #teams > 0 then
-                    local startIdx = randomPickup and math.random(#teams) or 1
-                    local n = #teams
-                    for i = 0, n - 1 do
-                        local candidate = teams[((startIdx - 1 + i) % n) + 1]
-                        local w  = tm:_weightForGroup(candidate)
-                        local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
-                        if canEmb then tmpl = candidate; break end
-                    end
-                end
-            end
-            if tmpl then
                 local loaded = tm:embarkFromTroopZone(u, pickZone, tmpl)
                 if loaded then
-                    -- consume per-template stock (Feature T)
                     pickZone:aiConsumeTroopStock(tmpl.name)
                     ctld.utils.notifyCoalition(
                         ctld.tr("AI %1 picked up troops: %2 (%3)", unitName, tmpl.name, tmpl.total),
