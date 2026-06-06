@@ -256,7 +256,7 @@ function CTLDConfig:load()
     -- troopTemplates: nil/{}=all templates ; {"Name1","Name2"}=strict whitelist
     -- vehicleTypes: nil=all DCS vehicles in zone ; {"typeName1",...}=whitelist
     -- aiDropMode: "G"|"P"|"GP" (default "GP") — dropoff only
-    self.settings["aiZones"]                           = {}
+    self.settings["aiZones"]                           = self.settings["aiZones"] or {}
     -- Limit the dropping of infantry teams -- this limit control is inactive if ctld.nbLimitSpawnedTroops = {0, 0} ----
     self.settings["nbLimitSpawnedTroops"]               = { 0, 0 } -- {redLimitInfantryCount, blueLimitInfantryCount} when this cumulative number of troops is reached, no more troops can be loaded onboard
     self.settings["maxExtractDistance"]                 = 125      -- max distance from vehicle to troops to allow a group extraction
@@ -272,7 +272,7 @@ function CTLDConfig:load()
         ["BTR_D"] = 8000,
         ["M1045 HMMWV TOW"] = 3220,
         ["M1043 HMMWV Armament"] = 2500,
-        ["Hummer"] = 2500,
+        ["Hummer"] = 1200,  -- TEMP: reduced for UH-1H recette (real ~2400 kg)
     }
 
     -- ═══════════════════════════════════════════════════════════
@@ -669,7 +669,7 @@ function CTLDConfig:load()
         -- {name = ctld.tr("Mortar Squad Red"), inf = 2, mortar = 5, side =1 }, --would make a group loadable by RED only
         -- Feature I: post-deploy task assignment examples (specificParams.task)
         -- { name = ctld.tr("Assault Team"), inf = 6, mg = 2, at = 2,
-        --   specificParams = { task = "gotoAttackNearestEnemyOnLos" } },
+        --   specificParams = { task = "AttackNearestEnemyOnLos" } },
         -- { name = ctld.tr("Advance Guard"), inf = 4, at = 2,
         --   specificParams = { task = "gotoNearestWPZ" } },
     }
@@ -8037,7 +8037,7 @@ function CTLDTroopGroup:init(data)
     self.loadTime    = timer.getAbsTime()
     self._aliveUnits    = data._aliveUnits    or {}  -- map[unitName] = dcsUnit (DCS Unit reference)
     self._jtacUnits     = data._jtacUnits     or {}  -- map[unitName] = true
-    self.specificParams = data.specificParams or {}   -- { task = "gotoNearestWPZ" | "gotoAttackNearestEnemyOnLos" }
+    self.specificParams = data.specificParams or {}   -- { task = "gotoNearestWPZ" | "AttackNearestEnemyOnLos" }
 end
 
 --- Transition to DEPLOYED: record the spawned DCS group.
@@ -9456,7 +9456,7 @@ end
 --
 -- Supported tasks:
 --   "gotoNearestWPZ"                — march toward center of nearest active WPZ for the coalition
---   "gotoAttackNearestEnemyOnLos"   — advance toward nearest enemy unit with LOS (world.searchObjects)
+--   "AttackNearestEnemyOnLos"        — advance toward nearest enemy unit with LOS (world.searchObjects)
 --
 -- No task is assigned if specificParams.task is nil, or if no suitable target is found.
 --
@@ -9485,7 +9485,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
                     arg.grpName, wpzZone.zoneName)
             end
 
-        elseif arg.task == "gotoAttackNearestEnemyOnLos" then
+        elseif arg.task == "AttackNearestEnemyOnLos" then
             local enemyCoa = (arg.coalitionId == coalition.side.RED)
                              and coalition.side.BLUE or coalition.side.RED
             local offsetA  = { x = arg.spawnPt.x, y = arg.spawnPt.y + 2, z = arg.spawnPt.z }
@@ -9515,11 +9515,11 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             if bestPos then
                 destPt = bestPos
                 ctld.utils.log("INFO",
-                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → (%.1f, %.1f)",
+                    "_assignPostSpawnTask: '%s' AttackNearestEnemyOnLos → (%.1f, %.1f)",
                     arg.grpName, bestPos.x, bestPos.z)
             else
                 ctld.utils.log("WARN",
-                    "_assignPostSpawnTask: '%s' gotoAttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
+                    "_assignPostSpawnTask: '%s' AttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
                     arg.grpName, ctld.gs("maximumSearchDistance") or 10000)
             end
         end
@@ -20397,15 +20397,32 @@ function CTLDCoreManager:_initAITransports()
         end
     end
 
-    -- Skip timer if no AI pilots configured.
+    -- Build lookup set for fast O(1) check in onAILand.
     local pilotNames = ctld.gs("transportPilotNames")
+    self._aiPilotNames = {}
+    if pilotNames then
+        for _, n in ipairs(pilotNames) do self._aiPilotNames[n] = true end
+    end
+
+    -- Skip timer if no AI pilots configured.
     if not pilotNames or #pilotNames == 0 then
         ctld.utils.log("INFO", "CTLDCoreManager: INIT-A teams built — timer skipped (transportPilotNames empty)")
         return
     end
 
-    -- Start polling loop (2 s interval — same as legacy).
+    -- Post-init scan: trigger pickup for AI pilots already on the ground inside a pickup zone.
+    -- Handles the case where the unit spawns at the AIZ_P location (S_EVENT_LAND never fires).
     local selfRef = self
+    timer.scheduleFunction(function()
+        for unitName in pairs(selfRef._aiPilotNames) do
+            local u = Unit.getByName(unitName)
+            if u and u:isExist() and not u:inAir() then
+                selfRef:onAILand({ id = world.event.S_EVENT_LAND, initiator = u })
+            end
+        end
+    end, nil, timer.getTime() + 0.5)
+
+    -- Start polling loop (2 s interval — same as legacy).
     local function loop(_, t)
         -- Guard B: stop zombie loop if this instance is no longer the singleton.
         if CTLDCoreManager._instance ~= selfRef then return nil end
@@ -20419,14 +20436,24 @@ function CTLDCoreManager:_initAITransports()
 end
 
 --- Periodic AI transport maintenance (every 2 s).
--- Vehicle and troop pickup/dropoff are handled by onAILand (S_EVENT_LAND).
--- This loop handles only cleanup of orphaned transport entries.
+-- Primary pickup/dropoff via S_EVENT_LAND; this loop is a safety fallback for units
+-- still on the ground after landing (handles cases where S_EVENT_LAND fires before
+-- the unit has fully stopped inside the zone).
 function CTLDCoreManager:_checkAIStatus()
     local ok, tm = pcall(CTLDTroopManager.getInstance)
     if not ok or not tm then return end
+    -- Cleanup orphaned transport entries.
     local okClean, errClean = pcall(tm.cleanupDeadTransports, tm)
     if not okClean then
         ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus cleanupDeadTransports error: %s", tostring(errClean))
+    end
+    -- Fallback pickup/dropoff: process any AI pilot currently on the ground.
+    -- Guards inside onAILand (hasTroops checks, zone checks) prevent double actions.
+    for unitName in pairs(self._aiPilotNames) do
+        local u = Unit.getByName(unitName)
+        if u and u:isExist() and not u:inAir() then
+            self:onAILand({ id = world.event.S_EVENT_LAND, initiator = u, _aiRetried = true })
+        end
     end
 end
 
@@ -20439,8 +20466,8 @@ function CTLDCoreManager:onAILand(event)
     if not u or not u:isExist() then return end
 
     local unitName = u:getName()
-    local pilotNames = ctld.gs("transportPilotNames") or {}
-    if not pilotNames[unitName] then return end
+    local aiSet = self._aiPilotNames or {}
+    if not aiSet[unitName] then return end
     if u:getPlayerName() ~= nil then return end  -- skip player-controlled
 
     local ok, tm = pcall(CTLDTroopManager.getInstance)
@@ -20489,6 +20516,16 @@ function CTLDCoreManager:onAILand(event)
 
     -- ---- Pickup zone (vehicle + troops, gated by aiCargoType) ----------
     local pickZone = zm:getAIPickupZoneAt(pt, coa)
+    if not pickZone and not event._aiRetried then
+        -- S_EVENT_LAND may fire before the heli has fully stopped.
+        -- Schedule a single retry at t+1.5 s when the heli has settled.
+        local selfRef = self
+        timer.scheduleFunction(function()
+            if u and u:isExist() and not u:inAir() then
+                selfRef:onAILand({ id = event.id, initiator = u, _aiRetried = true })
+            end
+        end, nil, timer.getTime() + 1.5)
+    end
     if pickZone then
         local cargoType = pickZone.aiCargoType or "T"
         local doVeh     = (cargoType == "V" or cargoType == "TV")
@@ -22091,37 +22128,21 @@ local _cfg = CTLDConfig.get()
 -- }
 
 -- ============================================================
--- Recette MT-07 to MT-10 — AI zone declarations (Feature S).
--- These replace the old AIZ_ naming convention used in the test mission.
--- Once recettes validated, wrap in "if false then / end" to deactivate.
+-- Debug-only: AI zones for recette MT-07 to MT-10 (Feature S).
+-- Active only when debug=true above. Remove this block after
+-- all interactive AI recettes have passed.
 -- ============================================================
-_cfg.settings["aiZones"] = {
-    -- MT-07: troop pickup (base) + dropoff front
-    { dcsZoneName = "AIZ_base_B_P_5",        coalition = "BLUE",
-      isPickup = true,  cargoType = "T", troopStock = 5 },
-    { dcsZoneName = "AIZ_front_B_D",          coalition = "BLUE",
-      isDropoff = true, aiDropMode = "GP" },
-
-    -- MT-08: vehicle pickup only (vehicles physically present in zone)
-    { dcsZoneName = "AIZ_depot_B_P_V_10",     coalition = "BLUE",
-      isPickup = true,  cargoType = "V" },
-
-    -- MT-09: troops + vehicle pickup
-    { dcsZoneName = "AIZ_depot_B_P_TV_5_10",  coalition = "BLUE",
-      isPickup = true,  cargoType = "TV", troopStock = 5 },
-
-    -- MT-10a/b: troop pickup, stock=10 (fits Standard Group total=10)
-    { dcsZoneName = "AIZ_depot_B_P_T_10",     coalition = "BLUE",
-      isPickup = true,  cargoType = "T", troopStock = 10 },
-
-    -- Shared dropoff: ground only (MT-08/09)
-    { dcsZoneName = "AIZ_livraison_B_D_G",    coalition = "BLUE",
-      isDropoff = true, aiDropMode = "G" },
-
-    -- MT-10a/b dropoff: ground only
-    { dcsZoneName = "AIZ_mt10d_B_D_G",        coalition = "BLUE",
-      isDropoff = true, aiDropMode = "G" },
-}
+if _cfg.settings["debug"] == true then
+    _cfg.settings["aiZones"] = {
+        { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=5  },
+        { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
+        { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V"                 },
+        { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV", troopStock=5  },
+        { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"                },
+        { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"                },
+        { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=10 },
+    }
+end
 
 -- ============================================================
 -- Waypoint zones (AI routing — transport will fly to each active

@@ -572,15 +572,32 @@ function CTLDCoreManager:_initAITransports()
         end
     end
 
-    -- Skip timer if no AI pilots configured.
+    -- Build lookup set for fast O(1) check in onAILand.
     local pilotNames = ctld.gs("transportPilotNames")
+    self._aiPilotNames = {}
+    if pilotNames then
+        for _, n in ipairs(pilotNames) do self._aiPilotNames[n] = true end
+    end
+
+    -- Skip timer if no AI pilots configured.
     if not pilotNames or #pilotNames == 0 then
         ctld.utils.log("INFO", "CTLDCoreManager: INIT-A teams built — timer skipped (transportPilotNames empty)")
         return
     end
 
-    -- Start polling loop (2 s interval — same as legacy).
+    -- Post-init scan: trigger pickup for AI pilots already on the ground inside a pickup zone.
+    -- Handles the case where the unit spawns at the AIZ_P location (S_EVENT_LAND never fires).
     local selfRef = self
+    timer.scheduleFunction(function()
+        for unitName in pairs(selfRef._aiPilotNames) do
+            local u = Unit.getByName(unitName)
+            if u and u:isExist() and not u:inAir() then
+                selfRef:onAILand({ id = world.event.S_EVENT_LAND, initiator = u })
+            end
+        end
+    end, nil, timer.getTime() + 0.5)
+
+    -- Start polling loop (2 s interval — same as legacy).
     local function loop(_, t)
         -- Guard B: stop zombie loop if this instance is no longer the singleton.
         if CTLDCoreManager._instance ~= selfRef then return nil end
@@ -594,14 +611,24 @@ function CTLDCoreManager:_initAITransports()
 end
 
 --- Periodic AI transport maintenance (every 2 s).
--- Vehicle and troop pickup/dropoff are handled by onAILand (S_EVENT_LAND).
--- This loop handles only cleanup of orphaned transport entries.
+-- Primary pickup/dropoff via S_EVENT_LAND; this loop is a safety fallback for units
+-- still on the ground after landing (handles cases where S_EVENT_LAND fires before
+-- the unit has fully stopped inside the zone).
 function CTLDCoreManager:_checkAIStatus()
     local ok, tm = pcall(CTLDTroopManager.getInstance)
     if not ok or not tm then return end
+    -- Cleanup orphaned transport entries.
     local okClean, errClean = pcall(tm.cleanupDeadTransports, tm)
     if not okClean then
         ctld.utils.log("WARN", "CTLDCoreManager:_checkAIStatus cleanupDeadTransports error: %s", tostring(errClean))
+    end
+    -- Fallback pickup/dropoff: process any AI pilot currently on the ground.
+    -- Guards inside onAILand (hasTroops checks, zone checks) prevent double actions.
+    for unitName in pairs(self._aiPilotNames) do
+        local u = Unit.getByName(unitName)
+        if u and u:isExist() and not u:inAir() then
+            self:onAILand({ id = world.event.S_EVENT_LAND, initiator = u, _aiRetried = true })
+        end
     end
 end
 
@@ -614,8 +641,8 @@ function CTLDCoreManager:onAILand(event)
     if not u or not u:isExist() then return end
 
     local unitName = u:getName()
-    local pilotNames = ctld.gs("transportPilotNames") or {}
-    if not pilotNames[unitName] then return end
+    local aiSet = self._aiPilotNames or {}
+    if not aiSet[unitName] then return end
     if u:getPlayerName() ~= nil then return end  -- skip player-controlled
 
     local ok, tm = pcall(CTLDTroopManager.getInstance)
@@ -664,6 +691,16 @@ function CTLDCoreManager:onAILand(event)
 
     -- ---- Pickup zone (vehicle + troops, gated by aiCargoType) ----------
     local pickZone = zm:getAIPickupZoneAt(pt, coa)
+    if not pickZone and not event._aiRetried then
+        -- S_EVENT_LAND may fire before the heli has fully stopped.
+        -- Schedule a single retry at t+1.5 s when the heli has settled.
+        local selfRef = self
+        timer.scheduleFunction(function()
+            if u and u:isExist() and not u:inAir() then
+                selfRef:onAILand({ id = event.id, initiator = u, _aiRetried = true })
+            end
+        end, nil, timer.getTime() + 1.5)
+    end
     if pickZone then
         local cargoType = pickZone.aiCargoType or "T"
         local doVeh     = (cargoType == "V" or cargoType == "TV")
