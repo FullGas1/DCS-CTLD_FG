@@ -1085,8 +1085,8 @@ Rules: all player-visible strings use `ctld.tr()`. Key added to EN first, propag
 | **Crates** (`CTLD_crate.lua`) | ✅ | ✅ | ✅ | **100%** | R1 ✅ [2026-04-07]. CL-4: quota gate _spawnUnpacked + getJTACDescriptors() [2026-05-12] |
 | **Troops** (`CTLD_troop.lua`) | ✅ | ✅ | ✅ | **100%** | R2 ✅ [2026-04-07]. CL-5: _weightForGroup() randomisation `[SW×0.9,SW×1.2]` + config keys actifs [2026-05-12]. Feature L: multi-group `_inTransit`, disembark/extract menus, bugfixes spawn overlap+extract guard, F-140→F-146 22/22 PASS + MT-01 live DCS [2026-05-12]. Feature I bugfix: grpName nil hors WPZ block dans disembark, MT-10 5/5 PASS [2026-05-20] |
 | **JTAC** (`CTLD_jtac.lua`) | ✅ | ✅ | ✅ | **100%** | R3 ✅ [2026-04-07]. CL-4: _consumeJTACSlot + getJTACDescriptors + spawnJTACFromDescriptor [2026-05-12] |
-| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12]. Feature R: onAILand (S_EVENT_LAND) pickup+dropoff véhicule+troupes, ipairs fix, maxVehicleWeight gate, MT-07→MT-10 PASS [2026-05-20] |
-| Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature R+S: `_loadAIZonesFromConfig`, `_validateZoneNames` AIZ section, `troopTemplates`/`vehicleTypes` whitelists, `getAIPickupZoneAt`/`getAIDropoffZoneAt`, F-R-1→F-R-49 147/147 PASS [2026-05-20] |
+| Core (`CTLD_core.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature N: INIT-A _initAITransports/_checkAIStatus, F-133/F-134 [2026-05-12]. Feature R: onAILand (S_EVENT_LAND) pickup+dropoff véhicule+troupes, ipairs fix, maxVehicleWeight gate, MT-07→MT-10 PASS [2026-05-20]. Feature T: _aiTransportVehicle runtime tracking, onAILand virtual vehicle pickup/dropoff (playScene/spawnVehicleAt), stock consume/restore calls, F-176→F-180 PASS [2026-06-06] |
+| Zones (`CTLD_zone.lua`) | ✅ | ✅ | ✅ | 100% | 9/9 PASS [2026-04-02]. Feature R+S: `_loadAIZonesFromConfig`, `_validateZoneNames` AIZ section, `troopTemplates`/`vehicleTypes` whitelists, `getAIPickupZoneAt`/`getAIDropoffZoneAt`, F-R-1→F-R-49 147/147 PASS [2026-05-20]. Feature T: `parseStockTable`, `_aiTroopStock`/`_aiVehicleStock` fields, 6 méthodes aiPick/aiConsume/aiRestore, F-176→F-180 58/58 PASS [2026-06-06] |
 | Beacons (`CTLD_beacon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] |
 | Recon (`CTLD_recon.lua`) | ✅ | ✅ | ✅ | 100% | 5/5 PASS [2026-04-02] + F-116→F-119 19/19 PASS [2026-04-29] + F-150→F-158 22/22 PASS [2026-05-17] + MT-06 9/9 PASS [2026-05-17] — Feature F: CTLDStaticWatcher, farp_fob layer, drawFarpIcon, coalition rendering, MarkIdCounter persistence ; bugfixes menu: reconF10Menu guard, labels [activate]/[deactivate], no early-return 0 layers |
 | FOB (`CTLD_fob.lua`) | ✅ | ✅ | ✅ | 100% | 4/4 + F-90/F-93 visual ✅ [2026-04-14] |
@@ -1189,7 +1189,16 @@ Minor cleanups identified — low priority, no functional impact.
 
 ## Backlog ideas
 
-- **AIZ_P vehicle stock** : réfléchir à la possibilité de définir et gérer un stock de véhicules loadables sur une zone AIZ_P (analogue au stock de troupes), pour éviter que le pickup véhicule nécessite un groupe DCS physiquement présent dans la zone.
+- **Feature T — AIZ stock par template/type** ✅ IMPLÉMENTÉE + RECETTÉE [2026-06-06]
+  Remplace `troopStock: number` par des tables `troopStock`/`vehicleStock` `{[name]=N}` (N=-1=illimité, N>0=limité).
+  Clé spéciale `"All"=-1` = tous les types disponibles, illimité.
+  Algorithme rotation (C) : parmi les templates eligibles (stock>0 ET capacité compatible), choisir au hasard parmi ceux à stock courant le plus élevé.
+  Véhicules virtuels : `aiPickVehicleEntry()` → `{type, isScene}` ; si isScene=true → `playScene()` à la livraison ; sinon → `spawnVehicleAt()`.
+  `_aiTransportVehicle[unitName]` : tracking runtime du véhicule virtuel en transit (set au pickup, clear au dropoff).
+  `pickMaxStock=0` (gate illimitée) sur les zones AIZ_P so que `embarkFromTroopZone` ne bloque jamais sur stock.
+  Restauration stock sur dropoff si `dropZone.isAIPickup=true` (navette).
+  Recette : F-176→F-180 58/58 PASS [2026-06-06] — parsing tables, rotation, consume, restore, isScene flag.
+  ~~**AIZ_P vehicle stock** : réfléchir à la possibilité de définir et gérer un stock de véhicules loadables sur une zone AIZ_P~~ → résolu par Feature T.
 
 - **Feature S — AIZ config-only** ✅ IMPLÉMENTÉE + RECETTÉE [2026-05-20]
   Remplacement complet de la convention de nommage `AIZ_name_[R|B|N]_[P|D]_...` par une table `cfg.settings["aiZones"]` dans userConfig. Coupure franche — aucune rétrocompatibilité naming.

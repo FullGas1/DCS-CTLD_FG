@@ -399,7 +399,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Feature S — AIZ zones config-only** : activé dans `CTLD_userConfig.lua` (7 zones MT-07→MT-10 déclarées nativement, `if false then` retiré) — re-recette MT-07→MT-10 interactive pendante
 - **MT-10a — AI _assignPostSpawnTask gotoNearestWPZ** : ✅ PASS live DCS [2026-05-20] — troupes IA déposées → marche vers WPZ_mt10_B confirmée (CTLD.log + mouvement DCS) ; bugfix grpName nil hors WPZ inline ; ⚠️ re-recette Feature S (zones native) à planifier
 - **MT-10b — AI _assignPostSpawnTask AttackNearestEnemyOnLos** : ✅ PASS live DCS [2026-05-20] — log confirme coords ennemi RED en LOS (727m, LOS=true) + mouvement troupes vers ennemi observé DCS ; ⚠️ re-recette Feature S (zones native) à planifier
-- **Total** : **457 cas** — 1401/1401 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS
+- **Feature T — stock par template/type AIZ (troopStock/vehicleStock tables)** : 5 fonctionnels = **58 cas** ✅ PASS (F-176 20/20 + F-177 6/6 + F-178 10/10 + F-179 11/11 + F-180 11/11 [2026-06-06]) — `parseStockTable` : isAll/init/current ; `pickMaxStock=0` gate ; `aiPickTroopTemplate` rotation : highest-stock priority, ex-aequo random, all-zero→nil, _aiTroopStock nil→legacy ; `aiConsumeTroopStock`/`aiConsumeVehicleStock` : décrément sans négatif, no-op isAll, no-op stock=-1 ; `aiRestoreTroopStock`/`aiRestoreVehicleStock` : capped at init, no-op isAll/maxS=-1/key absent ; `aiPickVehicleEntry` : nil si isAll/nil/zero, type DCS isScene=false, modèle CTLDSceneManager isScene=true, priorité stock max, stock=-1 prioritaire
+- **Total** : **515 cas** — 1459/1459 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS
 
 ---
 

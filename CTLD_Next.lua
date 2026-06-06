@@ -22400,7 +22400,7 @@ if _cfg.settings["debug"] == true then
         -- troopStock / vehicleStock are now tables: { [templateName/typeName] = N }
         -- N=-1=unlimited, N>0=limited. Key "All"=all templates, unlimited.
         { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",
-          troopStock = { ["Infantry Squad"] = 5, ["Anti Tank"] = 2 } },
+          troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
         { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V",
           vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
