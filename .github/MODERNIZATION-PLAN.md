@@ -1215,7 +1215,15 @@ Minor cleanups identified — low priority, no functional impact.
   ✅ **TODO [4] DONE [2026-06-06] : `_validateZoneNames()` i18n complet — 15 clés EN/FR/ES/KO via ctld.tr(), substitutions %1/%2, commit 7dbb45b.**
   ✅ **TODO [5] DONE [2026-06-06] : docs/CTLD_CDC.md §4.6 (réécriture Feature S + AIZ + validation + onAILand/_checkAIStatus) + §4.16 (CTLDCoreManager, séquence init 21 étapes) + docs/missionmaker_guide.md §4.4 subsection "Validation report" (G1-G5/Fix5/Fix6/Overlap), commit b4efb5e.**
 
-- **Feature U — AI AA system deployment** : permettre aux IA de transporter et déployer un système AA multi-composants (HAWK, Patriot, NASAMS, BUK, KUB, S-300) défini dans `CTLDCrateAssemblyManager.TEMPLATES`. Le MM déclare `vehicleStock = { ["HAWK AA System"] = 1 }` sur une zone AIZ_P. Au pickup, `_aiTransportVehicle[unitName] = { type="HAWK AA System", isScene=false, isAASystem=true }`. Au dropoff, une nouvelle méthode `CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa)` spawne directement tous les composants du template en cercle (bypass du check de caisses). Nécessite : 3ème catégorie de lookup dans `aiPickVehicleEntry()` (après CTLDSceneManager, vérifier CTLDCrateAssemblyManager), méthode `spawnSystemAt()`, branche supplémentaire dans `onAILand` dropoff.
+- **Feature U — AI AA system deployment** ✅ IMPLÉMENTÉE + RECETTÉE [2026-06-06]
+  `CTLDCrateAssemblyManager:getTemplateByName(name)` — lookup par `tmpl.name` (6 systèmes).
+  `CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countryId)` — bypass caisses, cercle _SPAWN_RADIUS, aaLaunchers config, limit gate, OnAASystemDeployed event.
+  `_spawnGroup` refactorisé : signature `(positions, types, headings, countryId)` — plus de dépendance heli.
+  `CTLDTroopZone:aiPickVehicleEntry()` — 3e catégorie isAASystem : CTLDSceneManager (isScene) → CTLDCrateAssemblyManager (isAASystem) → DCS natif.
+  `CTLDCoreManager:onAILand` dropoff — branche `elseif vEntry.isAASystem then spawnSystemAt()`.
+  `CTLD_userConfig.lua` — zones MT-14 debug (AIZ_mt14_B_P_V vehicleStock=HAWK/AIZ_mt14_B_D).
+  Recette F-181 (19/19 PASS) + F-182 (11/11 PASS) [2026-06-06].
+  MT-14 interactive (live DCS) ⬜ pending — ajouter heliai_mt14 + zones DCS dans mission test.
 
 - **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
 

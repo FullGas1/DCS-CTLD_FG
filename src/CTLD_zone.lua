@@ -250,21 +250,26 @@ function CTLDTroopZone:aiRestoreTroopStock(templateName, n)
 end
 
 --- AI vehicle pickup: pick the best entry from vehicle stock.
--- Returns { type=string, isScene=bool } or nil.
+-- Returns { type=string, isScene=bool, isAASystem=bool } or nil.
 -- nil means caller should use legacy physical-scan path (isAll) or no stock defined.
+-- Priority: CTLDSceneManager (isScene=true) > CTLDCrateAssemblyManager (isAASystem=true) > DCS native.
 function CTLDTroopZone:aiPickVehicleEntry()
     local stock = self._aiVehicleStock
     if not stock then return nil end
     if stock.isAll then return nil end  -- isAll → physical scan (legacy path)
-    local sm = CTLDSceneManager.getInstance()
+    local sm  = CTLDSceneManager.getInstance()
+    local aam = CTLDCrateAssemblyManager.getInstance()
     local eligible = {}
     for typeName, s in pairs(stock.current) do
         local avail = (s == -1) and math.huge or s
         if avail > 0 then
+            local isScene    = sm:getModel(typeName) ~= nil
+            local isAASystem = not isScene and (aam:getTemplateByName(typeName) ~= nil)
             eligible[#eligible + 1] = {
-                type    = typeName,
-                stock   = avail,
-                isScene = sm:getModel(typeName) ~= nil,
+                type      = typeName,
+                stock     = avail,
+                isScene   = isScene,
+                isAASystem = isAASystem,
             }
         end
     end
@@ -274,7 +279,7 @@ function CTLDTroopZone:aiPickVehicleEntry()
     local top = {}
     for _, e in ipairs(eligible) do if e.stock == maxS then top[#top + 1] = e end end
     local picked = top[math.random(#top)]
-    return { type = picked.type, isScene = picked.isScene }
+    return { type = picked.type, isScene = picked.isScene, isAASystem = picked.isAASystem }
 end
 
 --- Consume 1 vehicle stock for the given type name.

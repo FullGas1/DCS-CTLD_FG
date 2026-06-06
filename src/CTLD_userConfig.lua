@@ -649,6 +649,11 @@ if _cfg.settings["debug"] == true then
         { dcsZoneName="AIZ_mt13_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
           vehicleStock = { ["FARP Alpha"] = 1 } },
         { dcsZoneName="AIZ_mt13_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+
+        -- ── MT-14 : système AA (HAWK) via vehicleStock isAASystem=true (Feature U) ────
+        { dcsZoneName="AIZ_mt14_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["HAWK AA System"] = 1 } },
+        { dcsZoneName="AIZ_mt14_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
     }
 end
 

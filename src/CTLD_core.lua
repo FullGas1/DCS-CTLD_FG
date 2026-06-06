@@ -667,6 +667,10 @@ function CTLDCoreManager:onAILand(event)
         if vEntry and (dm == "G" or dm == "GP") then
             if vEntry.isScene then
                 CTLDSceneManager.getInstance():playScene(u, vEntry.type, nil, nil)
+            elseif vEntry.isAASystem then
+                -- Feature U: spawn multi-part AA system directly (bypass crate assembly)
+                CTLDCrateAssemblyManager.getInstance():spawnSystemAt(
+                    vEntry.type, pt, coa, u:getCountry())
             else
                 if okVS then
                     vs:spawnVehicleAt({ vehicleType = vEntry.type,

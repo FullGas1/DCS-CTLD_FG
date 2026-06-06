@@ -6916,21 +6916,26 @@ function CTLDTroopZone:aiRestoreTroopStock(templateName, n)
 end
 
 --- AI vehicle pickup: pick the best entry from vehicle stock.
--- Returns { type=string, isScene=bool } or nil.
+-- Returns { type=string, isScene=bool, isAASystem=bool } or nil.
 -- nil means caller should use legacy physical-scan path (isAll) or no stock defined.
+-- Priority: CTLDSceneManager (isScene=true) > CTLDCrateAssemblyManager (isAASystem=true) > DCS native.
 function CTLDTroopZone:aiPickVehicleEntry()
     local stock = self._aiVehicleStock
     if not stock then return nil end
     if stock.isAll then return nil end  -- isAll → physical scan (legacy path)
-    local sm = CTLDSceneManager.getInstance()
+    local sm  = CTLDSceneManager.getInstance()
+    local aam = CTLDCrateAssemblyManager.getInstance()
     local eligible = {}
     for typeName, s in pairs(stock.current) do
         local avail = (s == -1) and math.huge or s
         if avail > 0 then
+            local isScene    = sm:getModel(typeName) ~= nil
+            local isAASystem = not isScene and (aam:getTemplateByName(typeName) ~= nil)
             eligible[#eligible + 1] = {
-                type    = typeName,
-                stock   = avail,
-                isScene = sm:getModel(typeName) ~= nil,
+                type      = typeName,
+                stock     = avail,
+                isScene   = isScene,
+                isAASystem = isAASystem,
             }
         end
     end
@@ -6940,7 +6945,7 @@ function CTLDTroopZone:aiPickVehicleEntry()
     local top = {}
     for _, e in ipairs(eligible) do if e.stock == maxS then top[#top + 1] = e end end
     local picked = top[math.random(#top)]
-    return { type = picked.type, isScene = picked.isScene }
+    return { type = picked.type, isScene = picked.isScene, isAASystem = picked.isAASystem }
 end
 
 --- Consume 1 vehicle stock for the given type name.
@@ -15479,6 +15484,117 @@ function CTLDCrateAssemblyManager:getAllowedCount(coalitionId)
     return ctld.gs("AASystemLimitRED") or 20
 end
 
+--- Find an AA system template by its display name.
+-- Used by aiPickVehicleEntry (Feature U) to detect AA system names in vehicleStock.
+-- @param name string   template display name (e.g. "HAWK AA System")
+-- @return table|nil    template entry from TEMPLATES, or nil
+function CTLDCrateAssemblyManager:getTemplateByName(name)
+    if not name then return nil end
+    for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+        if tmpl.name == name then return tmpl end
+    end
+    return nil
+end
+
+--- Spawn an AA system directly at a given world point, bypassing crate assembly.
+-- Called by onAILand dropoff when vEntry.isAASystem=true (Feature U).
+-- @param templateName string   display name of the template (e.g. "HAWK AA System")
+-- @param point        vec3     world spawn origin (centre of the circle)
+-- @param coa          number   coalition.side.*
+-- @param countryId    number   DCS country ID (from Unit:getCountry())
+-- @return boolean     true if spawned successfully
+function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countryId)
+    local template = self:getTemplateByName(templateName)
+    if not template then
+        ctld.utils.log("WARN",
+            "CTLDCrateAssemblyManager:spawnSystemAt — template '%s' not found", templateName)
+        return false
+    end
+
+    -- Check system limit
+    local active  = self:countComplete(coa)
+    local allowed = self:getAllowedCount(coa)
+    if active + 1 > allowed then
+        ctld.utils.log("WARN",
+            "CTLDCrateAssemblyManager:spawnSystemAt — AA system limit reached (%d/%d)",
+            active, allowed)
+        trigger.action.outTextForCoalition(
+            coa,
+            string.format("Cannot deploy %s: AA system limit reached (%d/%d)",
+                templateName, active, allowed),
+            10)
+        return false
+    end
+
+    -- Build spawn positions (same circle pattern as _buildSpawnArrays)
+    local aaLaunchers = ctld.gs("aaLaunchers") or 3
+    local arcRad      = math.pi * 2
+    local partCount   = #template.parts
+    local positions, types, headings = {}, {}, {}
+
+    for idx, part in ipairs(template.parts) do
+        local partAmount = 1
+        if part.amount then
+            partAmount = part.amount
+        elseif part.launcher then
+            partAmount = aaLaunchers
+        end
+        local arcBase = (arcRad / partCount) * (idx - 1)
+        if partAmount == 1 then
+            local angle = arcBase
+            local px    = point.x + math.cos(angle) * _SPAWN_RADIUS
+            local pz    = point.z + math.sin(angle) * _SPAWN_RADIUS
+            local py    = land.getHeight({ x = px, y = pz })
+            table.insert(positions, { x = px, y = py, z = pz })
+            table.insert(types,     part.DCSTypename)
+            table.insert(headings,  angle)
+        else
+            local step = arcRad / partAmount
+            for i = 1, partAmount do
+                local angle = ((step * (i - 1)) + arcBase) % arcRad
+                local px    = point.x + math.cos(angle) * _SPAWN_RADIUS
+                local pz    = point.z + math.sin(angle) * _SPAWN_RADIUS
+                local py    = land.getHeight({ x = px, y = pz })
+                table.insert(positions, { x = px, y = py, z = pz })
+                table.insert(types,     part.DCSTypename)
+                table.insert(headings,  angle)
+            end
+        end
+    end
+
+    local spawnedGroup = self:_spawnGroup(positions, types, headings, countryId)
+    if not spawnedGroup then
+        ctld.utils.log("ERROR",
+            "CTLDCrateAssemblyManager:spawnSystemAt — _spawnGroup failed for %s", templateName)
+        return false
+    end
+
+    self._completeSystems[spawnedGroup:getName()] = {
+        details  = self:_getDetails(spawnedGroup, template),
+        template = template,
+    }
+
+    EventDispatcher.getInstance():publish("OnAASystemDeployed", {
+        systemName = template.name,
+        groupName  = spawnedGroup:getName(),
+        heli       = nil,
+        coalition  = coa,
+        position   = point,
+        timestamp  = timer.getAbsTime(),
+    })
+
+    trigger.action.outTextForCoalition(
+        coa,
+        string.format("AI deployed a full %s.\n\nAA Active System limit: %d\nActive: %d",
+            template.name, allowed, active + 1),
+        10)
+
+    ctld.utils.log("INFO",
+        "CTLDCrateAssemblyManager:spawnSystemAt — deployed %s group=%s coalition=%d",
+        template.name, spawnedGroup:getName(), coa)
+    return true
+end
+
 -- ============================================================
 -- Main entry point
 -- ============================================================
@@ -15616,7 +15732,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     end
 
     -- ---- Spawn group ----
-    local spawnedGroup = self:_spawnGroup(heli, positions, types, headings)
+    local spawnedGroup = self:_spawnGroup(positions, types, headings, heli:getCountry())
     if not spawnedGroup then
         ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_assemble — spawnGroup failed for " .. template.name)
         return
@@ -15686,7 +15802,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     grp:destroy()
 
     -- Respawn with same positions/types/headings (fully rearmed)
-    local spawnedGroup = self:_spawnGroup(heli, points, types, headings)
+    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
     if not spawnedGroup then
         ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_rearm — spawnGroup failed")
         return false
@@ -15752,7 +15868,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     self._completeSystems[oldGrp:getName()] = nil
     oldGrp:destroy()
 
-    local spawnedGroup = self:_spawnGroup(heli, points, types, headings)
+    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
     if not spawnedGroup then
         ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_repair — spawnGroup failed")
         return
@@ -15915,12 +16031,12 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
 end
 
 --- Spawn a multi-unit ground group via dynAdd.
--- @param heli      Unit    used for country and coalition
 -- @param positions array   vec3 per unit
 -- @param types     array   DCS type name per unit
 -- @param headings  array   radians per unit
+-- @param countryId number  DCS country ID (from Unit:getCountry())
 -- @return DCS Group or nil
-function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
+function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countryId)
     if #positions == 0 then return nil end
 
     local baseName  = types[1] .. "_CTLD_AA_" .. tostring(math.floor(timer.getAbsTime()))
@@ -15928,7 +16044,7 @@ function CTLDCrateAssemblyManager:_spawnGroup(heli, positions, types, headings)
         visible  = false,
         hidden   = false,
         category = Group.Category.GROUND,
-        country  = heli:getCountry(),
+        country  = countryId,
         name     = baseName,
         task     = {},
         units    = {},
@@ -20718,6 +20834,10 @@ function CTLDCoreManager:onAILand(event)
         if vEntry and (dm == "G" or dm == "GP") then
             if vEntry.isScene then
                 CTLDSceneManager.getInstance():playScene(u, vEntry.type, nil, nil)
+            elseif vEntry.isAASystem then
+                -- Feature U: spawn multi-part AA system directly (bypass crate assembly)
+                CTLDCrateAssemblyManager.getInstance():spawnSystemAt(
+                    vEntry.type, pt, coa, u:getCountry())
             else
                 if okVS then
                     vs:spawnVehicleAt({ vehicleType = vEntry.type,
@@ -22425,6 +22545,11 @@ if _cfg.settings["debug"] == true then
         { dcsZoneName="AIZ_mt13_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
           vehicleStock = { ["FARP Alpha"] = 1 } },
         { dcsZoneName="AIZ_mt13_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+
+        -- ── MT-14 : système AA (HAWK) via vehicleStock isAASystem=true (Feature U) ────
+        { dcsZoneName="AIZ_mt14_B_P_V",  coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["HAWK AA System"] = 1 } },
+        { dcsZoneName="AIZ_mt14_B_D",    coalition="BLUE", isDropoff=true, aiDropMode="G"  },
     }
 end
 
