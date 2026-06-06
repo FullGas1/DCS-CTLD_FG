@@ -361,27 +361,27 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
 
         -- Step 6b1: Cargo box (STATIC)
         {
-            polar                    = { distance = 95, angle = 349 },
+            polar                    = { distance = 98, angle = 350.2 },
             delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
+            relativeHeadingInDegrees = 90,
             relativeAltitudeInMeters = 0,
             registryKey         = "Cargo06",
         },
 
         -- Step 6b2: Ammo cargo (STATIC)
         {
-            polar                    = { distance = 105, angle = 351.2 },
+            polar                    = { distance = 108, angle = 351.2 },
             delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
+            relativeHeadingInDegrees = 90,
             relativeAltitudeInMeters = 0,
             registryKey         = "ammo_cargo",
         },
 
         -- Step 6c: Ammo cargo 2 (STATIC)
         {
-            polar                    = { distance = 106.5, angle = 351.3 },
+            polar                    = { distance = 109.5, angle = 351.3 },
             delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 5,
+            relativeHeadingInDegrees = 95,
             relativeAltitudeInMeters = 0,
             registryKey         = "ammo_cargo",
         },
