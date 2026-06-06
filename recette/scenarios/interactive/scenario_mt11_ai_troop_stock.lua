@@ -14,8 +14,11 @@
 --
 -- USE CASE :
 --   Zone AIZ_mt11_B_P_T : troopStock = { ["Standard Group"]=3, ["Anti Tank"]=2 }
---   L'algorithme rotation charge le template au stock courant le plus élevé.
+--   Règle B : seul aiPickTroopTemplate() est utilisé (legacy first-compatible supprimé).
+--   Algorithme : tirage équitable parmi les templates au stock résiduel le plus élevé.
+--   Standard Group (3) > Anti Tank (2) → Standard Group attendu au 1er pickup.
 --   Après pickup : stock courant décrémenté ; le template chargé est vérifié.
+--   IMPORTANT : troopStock=nil bloquerait le pickup (règle A) — toujours déclarer troopStock.
 --
 -- PROTOCOL :
 --   Step 1 — Enregistre heliai_mt11 + vérifie zones + stocks initiaux

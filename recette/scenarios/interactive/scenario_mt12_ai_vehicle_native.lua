@@ -9,16 +9,19 @@
 --   - Route : WP1 = posé sur AIZ_mt12_B_P_V → WP2 = vol → WP3 = posé sur AIZ_mt12_B_D
 --   - Zone DCS trigger "AIZ_mt12_B_P_V" (rayon ~200 m, centré sur WP1)
 --   - Zone DCS trigger "AIZ_mt12_B_D"   (rayon ~200 m, centré sur WP3)
---   - PAS de groupe DCS Hummer physique requis dans la zone (Feature T : stock virtuel)
+--   - AUCUN groupe DCS véhicule dans AIZ_mt12_B_P_V — le scan physique (C1) prendrait
+--     le dessus sur le stock virtuel (C2) et _aiTransportVehicle ne serait pas peuplé.
 --   - enable_debug.lua injecté avant ce script
 --   - ctldLogPath défini dans le .miz (trigger MISSION START)
 --
 -- USE CASE :
 --   Zone AIZ_mt12_B_P_V : vehicleStock = { ["Hummer"] = 2 }
---   Au pickup : _aiTransportVehicle[unitName] = { type="Hummer", isScene=false }
---               aiConsumeVehicleStock("Hummer") → current = 1
+--   C1 : scan physique DCS — aucun véhicule présent → pas de loadVehicle()
+--   C2 : aiPickVehicleEntry() → { type="Hummer", isScene=false }
+--        → _aiTransportVehicle[unitName] peuplé + aiConsumeVehicleStock → current=1
 --   Au dropoff : spawnVehicleAt({ vehicleType="Hummer" }) à la position de l'AIZ_D
 --                Message coalition "AI heliai_mt12 delivered vehicle: Hummer"
+--   IMPORTANT : vehicleStock=nil bloquerait le pickup (règle A).
 --
 -- PROTOCOL :
 --   Step 1 — Enregistre heliai_mt12 + vérifie zones + vehicleStock initial
@@ -123,12 +126,12 @@ if step == 1 then
           cm._aiTransportVehicle[AI_UNIT] == nil)
 
     report("⬛ STEP 1 OK — Pose l'héli sur " .. AIZ_P .. ", attends 3s, re-injecte pour STEP 2")
-    report("   (pas de Hummer physique requis dans la zone — stock virtuel Feature T)")
+    report("   C1 (physique) = aucun véhicule DCS dans la zone → C2 (virtuel Hummer) s'applique")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 2 — Vérifier pickup virtuel
+-- STEP 2 — Vérifier pickup virtuel (C2 path — aucun véhicule physique dans la zone)
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
@@ -136,6 +139,15 @@ elseif step == 2 then
     local vEntry = cm._aiTransportVehicle[AI_UNIT]
 
     if vEntry == nil then
+        -- Diagnostic C1/C2 : vérifier si un véhicule physique a été chargé à la place
+        local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
+        if ok and vs then
+            local u = Unit.getByName(AI_UNIT)
+            local loaded = u and u:isExist() and vs:findLoadedVehicles(u) or {}
+            if #loaded > 0 then
+                fail("MT-12.2.0 — C1 (physique) a pris le dessus : un véhicule DCS est chargé dans l'héli — retirer le groupe DCS de " .. AIZ_P)
+            end
+        end
         report("⚠️  _aiTransportVehicle[" .. AI_UNIT .. "]=nil — l'héli est-il bien posé dans " .. AIZ_P .. " ?")
         report("   Attends 2s de plus et re-injecte STEP 2.")
         _result = "step=2 WAITING"

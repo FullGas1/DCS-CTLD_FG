@@ -8,19 +8,22 @@
 --   - Route : WP1 = posé sur AIZ_mt13_B_P_V → WP2 = vol → WP3 = posé sur AIZ_mt13_B_D
 --   - Zone DCS trigger "AIZ_mt13_B_P_V" (rayon ~200 m, centré sur WP1)
 --   - Zone DCS trigger "AIZ_mt13_B_D"   (rayon ~200 m, centré sur WP3)
---   - PAS de groupe DCS physique requis dans la zone (stock virtuel Feature T)
+--   - AUCUN groupe DCS véhicule dans AIZ_mt13_B_P_V — le scan physique (C1) prendrait
+--     le dessus sur le stock virtuel (C2) et _aiTransportVehicle ne serait pas peuplé.
 --   - Espace dégagé près de AIZ_mt13_B_D (la scène FARP Alpha déploie plusieurs statics)
 --   - enable_debug.lua injecté avant ce script
 --   - ctldLogPath défini dans le .miz (trigger MISSION START)
 --
 -- USE CASE :
 --   Zone AIZ_mt13_B_P_V : vehicleStock = { ["FARP Alpha"] = 1 }
---   "FARP Alpha" est une scène enregistrée dans CTLDSceneManager.
---   Au pickup : _aiTransportVehicle[unitName] = { type="FARP Alpha", isScene=true }
---               aiConsumeVehicleStock("FARP Alpha") → current = 0
+--   C1 : scan physique DCS — aucun véhicule présent → pas de loadVehicle()
+--   C2 : aiPickVehicleEntry() → { type="FARP Alpha", isScene=true }
+--        CTLDSceneManager:getScene("FARP Alpha") != nil → isScene=true
+--        → _aiTransportVehicle[unitName] peuplé + aiConsumeVehicleStock → current=0
 --   Au dropoff : CTLDSceneManager:playScene(u, "FARP Alpha", nil, nil)
 --                Déploie les statics FARP à la position de l'AIZ_D
 --                Message coalition "AI heliai_mt13 delivered vehicle: FARP Alpha"
+--   IMPORTANT : vehicleStock=nil bloquerait le pickup (règle A).
 --
 -- PROTOCOL :
 --   Step 1 — Enregistre heliai_mt13 + vérifie vehicleStock + isScene=true
@@ -134,12 +137,12 @@ if step == 1 then
           cm._aiTransportVehicle[AI_UNIT] == nil)
 
     report("⬛ STEP 1 OK — Pose l'héli sur " .. AIZ_P .. ", attends 3s, re-injecte pour STEP 2")
-    report("   (pas de groupe DCS requis — stock virtuel FARP Alpha)")
+    report("   C1 (physique) = aucun véhicule DCS dans la zone → C2 (FARP Alpha isScene=true) s'applique")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 2 — Vérifier pickup virtuel (isScene=true + stock décrémenté)
+-- STEP 2 — Vérifier pickup virtuel C2 (isScene=true + stock décrémenté)
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
@@ -147,6 +150,15 @@ elseif step == 2 then
     local vEntry = cm._aiTransportVehicle[AI_UNIT]
 
     if vEntry == nil then
+        -- Diagnostic C1/C2 : vérifier si un véhicule physique a été chargé à la place
+        local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
+        if ok and vs then
+            local u = Unit.getByName(AI_UNIT)
+            local loaded = u and u:isExist() and vs:findLoadedVehicles(u) or {}
+            if #loaded > 0 then
+                fail("MT-13.2.0 — C1 (physique) a pris le dessus : un véhicule DCS est chargé — retirer tout groupe DCS de " .. AIZ_P)
+            end
+        end
         report("⚠️  _aiTransportVehicle[" .. AI_UNIT .. "]=nil — l'héli est-il bien posé dans " .. AIZ_P .. " ?")
         report("   Attends 2s de plus et re-injecte STEP 2.")
         _result = "step=2 WAITING"
