@@ -1763,6 +1763,23 @@ ctld.i18n["en"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1 dropped 
 ctld.i18n["en"]["AI %1 loaded vehicle: %2"]                    = "AI %1 loaded vehicle: %2"
 ctld.i18n["en"]["AI %1 unloaded vehicle: %2"]                  = "AI %1 unloaded vehicle: %2"
 
+--- AIZ zone validation (_validateZoneNames)
+ctld.i18n["en"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: missing dcsZoneName"
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"]             = "  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored"]       = "  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored"
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"] = "  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored"]        = "  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored"
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"
+ctld.i18n["en"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"
+ctld.i18n["en"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] Zone validation — %1 error(s), %2 warning(s):"
+ctld.i18n["en"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager: zone config valid"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -2213,6 +2230,23 @@ ctld.i18n["fr"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 a embarq
 ctld.i18n["fr"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 a déposé des troupes : %2 (%3 soldats)"
 ctld.i18n["fr"]["AI %1 loaded vehicle: %2"]                    = "IA %1 a chargé le véhicule : %2"
 ctld.i18n["fr"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 a déposé le véhicule : %2"
+
+--- AIZ zone validation (_validateZoneNames)
+ctld.i18n["fr"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERREUR : dcsZoneName manquant"
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"]             = "  AIZ[%1] ERREUR '%2' : dcsZoneName dupliqué — entrée ignorée"
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored"]       = "  AIZ[%1] ERREUR '%2' : zone introuvable dans l'éditeur de mission — entrée ignorée"
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"] = "  AIZ[%1] ERREUR '%2' : coalition manquante ou invalide (attendu RED/BLUE/NEUTRAL) — entrée ignorée"
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored"]        = "  AIZ[%1] ERREUR '%2' : ni isPickup ni isDropoff — la zone ne fait rien, entrée ignorée"
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERREUR '%2' : cargoType '%3' nécessite un transport de véhicule entier mais aucun aéronef n'a canTransportWholeVehicle=true — entrée ignorée"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVERT '%2' : cargoType '%3' invalide — valeur par défaut T"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVERT '%2' : aiDropMode '%3' invalide — valeur par défaut GP"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de troupes mais troopStock=0 — aucune troupe ne sera jamais chargée"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVERT '%2' : troopTemplates['%3'] introuvable dans loadableGroups"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVERT '%2' : tous les troopTemplates sont inconnus — le pickup de troupes sera toujours ignoré"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] AVERT '%2' : toutes les entrées vehicleTypes sont inconnues dans les listes de véhicules loadables — le pickup de véhicule sera toujours ignoré"
+ctld.i18n["fr"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ AVERT : '%1' (P) chevauche '%2' (D) même coalition — risque de boucle pickup+dropoff instantanée"
+ctld.i18n["fr"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] Validation des zones — %1 erreur(s), %2 avertissement(s) :"
+ctld.i18n["fr"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager : configuration des zones valide"
 
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
@@ -2666,6 +2700,23 @@ ctld.i18n["es"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 dejó tr
 ctld.i18n["es"]["AI %1 loaded vehicle: %2"]                    = "IA %1 cargó el vehículo: %2"
 ctld.i18n["es"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 descargó el vehículo: %2"
 
+--- AIZ zone validation (_validateZoneNames)
+ctld.i18n["es"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: falta dcsZoneName"
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"]             = "  AIZ[%1] ERROR '%2': dcsZoneName duplicado — entrada ignorada"
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored"]       = "  AIZ[%1] ERROR '%2': no encontrado en el editor de misión — entrada ignorada"
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"] = "  AIZ[%1] ERROR '%2': coalición faltante o inválida (se esperaba RED/BLUE/NEUTRAL) — entrada ignorada"
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored"]        = "  AIZ[%1] ERROR '%2': ni isPickup ni isDropoff — la zona no hace nada, entrada ignorada"
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requiere transporte de vehículo completo pero ninguna aeronave tiene canTransportWholeVehicle=true — entrada ignorada"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVISO '%2': cargoType '%3' inválido — predeterminado a T"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVISO '%2': aiDropMode '%3' inválido — predeterminado a GP"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de tropas pero troopStock=0 — nunca se cargará ninguna tropa"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVISO '%2': troopTemplates['%3'] no encontrado en loadableGroups"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVISO '%2': todos los troopTemplates son desconocidos — el pickup de tropas siempre se omitirá"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] AVISO '%2': todas las entradas vehicleTypes son desconocidas en las listas de vehículos cargables — el pickup de vehículos siempre se omitirá"
+ctld.i18n["es"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ AVISO: '%1' (P) se superpone con '%2' (D) misma coalición — riesgo de bucle pickup+dropoff instantáneo"
+ctld.i18n["es"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] Validación de zonas — %1 error(es), %2 aviso(s):"
+ctld.i18n["es"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager: configuración de zonas válida"
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2964,6 +3015,23 @@ ctld.i18n["ko"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1이(가) 
 ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 병력을 하차시켰습니다: %2 (%3명)"
 ctld.i18n["ko"]["AI %1 loaded vehicle: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
 ctld.i18n["ko"]["AI %1 unloaded vehicle: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
+
+--- AIZ zone validation (_validateZoneNames)
+ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"]             = "  AIZ[%1] 오류 '%2': dcsZoneName 중복 — 항목 무시됨"
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored"]       = "  AIZ[%1] 오류 '%2': 임무 편집기에서 찾을 수 없음 — 항목 무시됨"
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"] = "  AIZ[%1] 오류 '%2': 연합 누락 또는 잘못됨 (RED/BLUE/NEUTRAL 필요) — 항목 무시됨"
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored"]        = "  AIZ[%1] 오류 '%2': isPickup도 isDropoff도 없음 — 구역이 아무것도 하지 않음, 항목 무시됨"
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] 오류 '%2': cargoType '%3'은(는) 차량 전체 수송이 필요하지만 canTransportWholeVehicle=true인 항공기가 없음 — 항목 무시됨"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] 경고 '%2': cargoType '%3' 잘못됨 — 기본값 T"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] 경고 '%2': aiDropMode '%3' 잘못됨 — 기본값 GP"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 병력 화물이지만 troopStock=0 — 병력이 절대 탑재되지 않음"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] 경고 '%2': troopTemplates['%3']을(를) loadableGroups에서 찾을 수 없음"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] 경고 '%2': 모든 troopTemplates를 알 수 없음 — 병력 픽업이 항상 건너뜀"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"] = "  AIZ[%1] 경고 '%2': 모든 vehicleTypes 항목이 탑재 가능 차량 목록에 없음 — 차량 픽업이 항상 건너뜀"
+ctld.i18n["ko"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ 경고: '%1' (P)이(가) '%2' (D)와 동일 연합에서 겹침 — 즉시 pickup+dropoff 루프 위험"
+ctld.i18n["ko"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] 구역 유효성 검사 — 오류 %1개, 경고 %2개:"
+ctld.i18n["ko"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager: 구역 구성이 유효합니다"
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -7852,54 +7920,53 @@ function CTLDZoneManager:_validateZoneNames()
     local VALID_DROP_MODE = { G = true, P = true, GP = true }
 
     for i, entry in ipairs(ctld.gs("aiZones") or {}) do
-        local pfx   = "  AIZ[" .. i .. "]"
         local dzn   = entry.dcsZoneName
         local hasErr = false
         if not dzn or dzn == "" then
-            errors[#errors + 1] = pfx .. " ERROR: missing dcsZoneName"
+            errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR: missing dcsZoneName", i)
             hasErr = true
         else
             -- Duplicate check
             if seenDzn[dzn] then
-                errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': duplicate dcsZoneName — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored", i, dzn)
                 hasErr = true
             else
                 seenDzn[dzn] = true
                 -- Zone present in ME?
                 local trig = trigger.misc.getZone(dzn)
                 if not trig then
-                    errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': not found in Mission Editor — entry ignored"
+                    errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored", i, dzn)
                     hasErr = true
                 end
             end
             -- Coalition
             if not entry.coalition or not VALID_COALITION[entry.coalition] then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored", i, tostring(dzn))
                 hasErr = true
             end
             -- G1: neither isPickup nor isDropoff — zone would do nothing
             if not entry.isPickup and not entry.isDropoff then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': neither isPickup nor isDropoff — zone does nothing, entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored", i, tostring(dzn))
                 hasErr = true
             end
             -- cargoType (Fix 5: WARN, not error — zone created with default "T")
             if entry.cargoType and not VALID_CARGO[entry.cargoType] then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid cargoType '" .. tostring(entry.cargoType) .. "' — defaulting to T"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T", i, tostring(dzn), tostring(entry.cargoType))
             end
             -- G5: cargoType V/TV on a pickup zone but no transport has canTransportWholeVehicle
             local effCargoIsVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
             if not hasErr and entry.isPickup and effCargoIsVehicle and not hasVehicleTransport() then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': cargoType '" .. tostring(entry.cargoType) .. "' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored", i, tostring(dzn), tostring(entry.cargoType))
                 hasErr = true
             end
             -- aiDropMode (Fix 6 applied in _loadAIZonesFromConfig — WARN only here)
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid aiDropMode '" .. tostring(entry.aiDropMode) .. "' — defaulting to GP"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
             -- G3: isPickup + troop cargo + troopStock=0 → no troops will ever be loaded
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
             if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == 0 then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded", i, tostring(dzn))
             end
             -- troopTemplates: warn on unknown names; G2: all unknown → extra WARN
             if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then
@@ -7907,12 +7974,12 @@ function CTLDZoneManager:_validateZoneNames()
                 local unknownCount = 0
                 for _, tName in ipairs(entry.troopTemplates) do
                     if not kt[tName] then
-                        warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': troopTemplates['" .. tName .. "'] not found in loadableGroups"
+                        warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups", i, dzn, tName)
                         unknownCount = unknownCount + 1
                     end
                 end
                 if unknownCount == #entry.troopTemplates then
-                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all troopTemplates are unknown — troop pickup will always be skipped"
+                    warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped", i, dzn)
                 end
             end
             -- G4: vehicleTypes whitelist — all types unknown in configured loadable vehicle lists
@@ -7923,7 +7990,7 @@ function CTLDZoneManager:_validateZoneNames()
                     if not kvt[vt] then unknownCount = unknownCount + 1 end
                 end
                 if unknownCount == #entry.vehicleTypes then
-                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"
+                    warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped", i, dzn)
                 end
             end
             -- Collect pickup/dropoff for overlap check
@@ -7953,8 +8020,7 @@ function CTLDZoneManager:_validateZoneNames()
                 local dz   = p.center.z - d.center.z
                 local dist = math.sqrt(dx*dx + dz*dz)
                 if dist < (p.radius + d.radius) then
-                    warns[#warns + 1] = "  AIZ WARN: '" .. p.name .. "' (P) overlaps '"
-                        .. d.name .. "' (D) same coalition — risk of instant pickup+dropoff loop"
+                    warns[#warns + 1] = ctld.tr("  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop", p.name, d.name)
                 end
             end
         end
@@ -7969,13 +8035,13 @@ function CTLDZoneManager:_validateZoneNames()
     for _, w in ipairs(warns)  do all[#all + 1] = w end
 
     if #all > 0 then
-        local report = "[CTLD] Zone validation — " .. #errors .. " error(s), "
-                    .. #warns .. " warning(s):\n" .. table.concat(all, "\n")
+        local report = ctld.tr("[CTLD] Zone validation — %1 error(s), %2 warning(s):", #errors, #warns)
+                    .. "\n" .. table.concat(all, "\n")
         trigger.action.outText(report, 30)
         ctld.utils.log("WARN", report)
         env.warning(report)
     else
-        ctld.utils.log("INFO", "CTLDZoneManager: zone config valid")
+        ctld.utils.log("INFO", ctld.tr("CTLDZoneManager: zone config valid"))
     end
 end
 

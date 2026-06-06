@@ -1268,54 +1268,53 @@ function CTLDZoneManager:_validateZoneNames()
     local VALID_DROP_MODE = { G = true, P = true, GP = true }
 
     for i, entry in ipairs(ctld.gs("aiZones") or {}) do
-        local pfx   = "  AIZ[" .. i .. "]"
         local dzn   = entry.dcsZoneName
         local hasErr = false
         if not dzn or dzn == "" then
-            errors[#errors + 1] = pfx .. " ERROR: missing dcsZoneName"
+            errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR: missing dcsZoneName", i)
             hasErr = true
         else
             -- Duplicate check
             if seenDzn[dzn] then
-                errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': duplicate dcsZoneName — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored", i, dzn)
                 hasErr = true
             else
                 seenDzn[dzn] = true
                 -- Zone present in ME?
                 local trig = trigger.misc.getZone(dzn)
                 if not trig then
-                    errors[#errors + 1] = pfx .. " ERROR '" .. dzn .. "': not found in Mission Editor — entry ignored"
+                    errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': not found in Mission Editor — entry ignored", i, dzn)
                     hasErr = true
                 end
             end
             -- Coalition
             if not entry.coalition or not VALID_COALITION[entry.coalition] then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': missing or invalid coalition (expected RED/BLUE/NEUTRAL) — entry ignored", i, tostring(dzn))
                 hasErr = true
             end
             -- G1: neither isPickup nor isDropoff — zone would do nothing
             if not entry.isPickup and not entry.isDropoff then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': neither isPickup nor isDropoff — zone does nothing, entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone does nothing, entry ignored", i, tostring(dzn))
                 hasErr = true
             end
             -- cargoType (Fix 5: WARN, not error — zone created with default "T")
             if entry.cargoType and not VALID_CARGO[entry.cargoType] then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid cargoType '" .. tostring(entry.cargoType) .. "' — defaulting to T"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T", i, tostring(dzn), tostring(entry.cargoType))
             end
             -- G5: cargoType V/TV on a pickup zone but no transport has canTransportWholeVehicle
             local effCargoIsVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
             if not hasErr and entry.isPickup and effCargoIsVehicle and not hasVehicleTransport() then
-                errors[#errors + 1] = pfx .. " ERROR '" .. tostring(dzn) .. "': cargoType '" .. tostring(entry.cargoType) .. "' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored", i, tostring(dzn), tostring(entry.cargoType))
                 hasErr = true
             end
             -- aiDropMode (Fix 6 applied in _loadAIZonesFromConfig — WARN only here)
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': invalid aiDropMode '" .. tostring(entry.aiDropMode) .. "' — defaulting to GP"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
             -- G3: isPickup + troop cargo + troopStock=0 → no troops will ever be loaded
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
             if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == 0 then
-                warns[#warns + 1] = pfx .. " WARN '" .. tostring(dzn) .. "': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded"
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock=0 — no troops will ever be loaded", i, tostring(dzn))
             end
             -- troopTemplates: warn on unknown names; G2: all unknown → extra WARN
             if not hasErr and entry.troopTemplates and #entry.troopTemplates > 0 then
@@ -1323,12 +1322,12 @@ function CTLDZoneManager:_validateZoneNames()
                 local unknownCount = 0
                 for _, tName in ipairs(entry.troopTemplates) do
                     if not kt[tName] then
-                        warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': troopTemplates['" .. tName .. "'] not found in loadableGroups"
+                        warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups", i, dzn, tName)
                         unknownCount = unknownCount + 1
                     end
                 end
                 if unknownCount == #entry.troopTemplates then
-                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all troopTemplates are unknown — troop pickup will always be skipped"
+                    warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped", i, dzn)
                 end
             end
             -- G4: vehicleTypes whitelist — all types unknown in configured loadable vehicle lists
@@ -1339,7 +1338,7 @@ function CTLDZoneManager:_validateZoneNames()
                     if not kvt[vt] then unknownCount = unknownCount + 1 end
                 end
                 if unknownCount == #entry.vehicleTypes then
-                    warns[#warns + 1] = pfx .. " WARN '" .. dzn .. "': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped"
+                    warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in loadable vehicle lists — vehicle pickup will always be skipped", i, dzn)
                 end
             end
             -- Collect pickup/dropoff for overlap check
@@ -1369,8 +1368,7 @@ function CTLDZoneManager:_validateZoneNames()
                 local dz   = p.center.z - d.center.z
                 local dist = math.sqrt(dx*dx + dz*dz)
                 if dist < (p.radius + d.radius) then
-                    warns[#warns + 1] = "  AIZ WARN: '" .. p.name .. "' (P) overlaps '"
-                        .. d.name .. "' (D) same coalition — risk of instant pickup+dropoff loop"
+                    warns[#warns + 1] = ctld.tr("  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop", p.name, d.name)
                 end
             end
         end
@@ -1385,12 +1383,12 @@ function CTLDZoneManager:_validateZoneNames()
     for _, w in ipairs(warns)  do all[#all + 1] = w end
 
     if #all > 0 then
-        local report = "[CTLD] Zone validation — " .. #errors .. " error(s), "
-                    .. #warns .. " warning(s):\n" .. table.concat(all, "\n")
+        local report = ctld.tr("[CTLD] Zone validation — %1 error(s), %2 warning(s):", #errors, #warns)
+                    .. "\n" .. table.concat(all, "\n")
         trigger.action.outText(report, 30)
         ctld.utils.log("WARN", report)
         env.warning(report)
     else
-        ctld.utils.log("INFO", "CTLDZoneManager: zone config valid")
+        ctld.utils.log("INFO", ctld.tr("CTLDZoneManager: zone config valid"))
     end
 end
