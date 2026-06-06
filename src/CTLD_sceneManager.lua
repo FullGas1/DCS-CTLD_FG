@@ -259,6 +259,12 @@ function CTLDSceneManager:getModel(name)
     return self._models[name]
 end
 
+-- Alias: returns a registered scene model by name, or nil.
+-- Used by AI vehicle pickup to distinguish whole-unit types from crate-assembled scenes.
+function CTLDSceneManager:getScene(name)
+    return self._models[name]
+end
+
 -- ====================================================================================================
 -- Built-in scene registration
 -- ====================================================================================================

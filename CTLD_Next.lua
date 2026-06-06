@@ -1762,6 +1762,7 @@ ctld.i18n["en"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1 picked u
 ctld.i18n["en"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1 dropped troops: %2 (%3 soldiers)"
 ctld.i18n["en"]["AI %1 loaded vehicle: %2"]                    = "AI %1 loaded vehicle: %2"
 ctld.i18n["en"]["AI %1 unloaded vehicle: %2"]                  = "AI %1 unloaded vehicle: %2"
+ctld.i18n["en"]["AI %1 delivered vehicle: %2"]                 = "AI %1 delivered vehicle: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["en"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: missing dcsZoneName"
@@ -2230,6 +2231,7 @@ ctld.i18n["fr"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 a embarq
 ctld.i18n["fr"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 a déposé des troupes : %2 (%3 soldats)"
 ctld.i18n["fr"]["AI %1 loaded vehicle: %2"]                    = "IA %1 a chargé le véhicule : %2"
 ctld.i18n["fr"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 a déposé le véhicule : %2"
+ctld.i18n["fr"]["AI %1 delivered vehicle: %2"]                 = "IA %1 a livré le véhicule : %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["fr"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERREUR : dcsZoneName manquant"
@@ -2699,6 +2701,7 @@ ctld.i18n["es"]["AI %1 picked up troops: %2 (%3)"]             = "IA %1 embarcó
 ctld.i18n["es"]["AI %1 dropped troops: %2 (%3)"]               = "IA %1 dejó tropas: %2 (%3 soldados)"
 ctld.i18n["es"]["AI %1 loaded vehicle: %2"]                    = "IA %1 cargó el vehículo: %2"
 ctld.i18n["es"]["AI %1 unloaded vehicle: %2"]                  = "IA %1 descargó el vehículo: %2"
+ctld.i18n["es"]["AI %1 delivered vehicle: %2"]                 = "IA %1 entregó el vehículo: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["es"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] ERROR: falta dcsZoneName"
@@ -3015,6 +3018,7 @@ ctld.i18n["ko"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1이(가) 
 ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 병력을 하차시켰습니다: %2 (%3명)"
 ctld.i18n["ko"]["AI %1 loaded vehicle: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
 ctld.i18n["ko"]["AI %1 unloaded vehicle: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
+ctld.i18n["ko"]["AI %1 delivered vehicle: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
@@ -6486,6 +6490,12 @@ function CTLDSceneManager:getModel(name)
     return self._models[name]
 end
 
+-- Alias: returns a registered scene model by name, or nil.
+-- Used by AI vehicle pickup to distinguish whole-unit types from crate-assembled scenes.
+function CTLDSceneManager:getScene(name)
+    return self._models[name]
+end
+
 -- ====================================================================================================
 -- Built-in scene registration
 -- ====================================================================================================
@@ -6738,6 +6748,11 @@ function CTLDTroopZone:init(data)
     self.troopTemplates      = data.troopTemplates  or nil
     -- vehicleTypes: nil=all DCS vehicles present in zone ; {typeName,...}=whitelist
     self.vehicleTypes        = data.vehicleTypes    or nil
+    -- Feature T: per-template/per-type stock tables
+    -- _aiTroopStock   = nil | { isAll=bool, init={name=N}, current={name=N} }
+    -- _aiVehicleStock = nil | { isAll=bool, init={type=N}, current={type=N} }
+    self._aiTroopStock   = data._aiTroopStock   or nil
+    self._aiVehicleStock = data._aiVehicleStock or nil
 
     self.smoke  = (data.smoke ~= nil) and data.smoke or -1
     self.active = (data.active ~= nil) and data.active or true
@@ -6827,6 +6842,122 @@ function CTLDTroopZone:restoreStock(n)
     if not self:hasPickup() or self.pickMaxStock == 0 then return end
     self.pickCurrentStock = math.min(self.pickMaxStock, self.pickCurrentStock + n)
     self:_syncStockFlag()
+end
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- Feature T: per-template / per-type AI stock management
+-- ────────────────────────────────────────────────────────────────────────────
+
+--- AI troop pickup: pick the best template from available stock respecting capacity.
+-- Returns a template table or nil if none eligible.
+-- @param teams    table   list of template tables (from _aiTeams[coa])
+-- @param typeName string  DCS type of the transport (for _canEmbark)
+-- @param unitName string  unit name (for _canEmbark)
+-- @param tm       CTLDTroopManager instance
+function CTLDTroopZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
+    local stock = self._aiTroopStock
+    if not stock then return nil end  -- no per-template stock; caller falls back to legacy path
+    local eligible = {}
+    for _, tmpl in ipairs(teams) do
+        local s
+        if stock.isAll then
+            s = math.huge
+        else
+            local raw = stock.current[tmpl.name]
+            if raw == nil then
+                s = nil  -- not in stock → ineligible
+            elseif raw == -1 then
+                s = math.huge
+            else
+                s = raw
+            end
+        end
+        if s and s > 0 then
+            local w = tm:_weightForGroup(tmpl)
+            local canEmb = tm:_canEmbark(typeName, unitName, tmpl.total, w)
+            if canEmb then
+                eligible[#eligible + 1] = { tmpl = tmpl, stock = s }
+            end
+        end
+    end
+    if #eligible == 0 then return nil end
+    -- C: prefer templates with highest current stock; random among ex-aequo
+    local maxS = 0
+    for _, e in ipairs(eligible) do if e.stock > maxS then maxS = e.stock end end
+    local top = {}
+    for _, e in ipairs(eligible) do if e.stock == maxS then top[#top + 1] = e.tmpl end end
+    return top[math.random(#top)]
+end
+
+--- Consume 1 troop stock unit for the given template name.
+-- No-op if isAll or template not in stock.
+-- @param templateName string
+function CTLDTroopZone:aiConsumeTroopStock(templateName)
+    local stock = self._aiTroopStock
+    if not stock or stock.isAll then return end
+    local s = stock.current[templateName]
+    if s and s > 0 then stock.current[templateName] = s - 1 end
+end
+
+--- Restore n units to troop stock for the given template name (capped at init).
+-- @param templateName string
+-- @param n            number  (default 1)
+function CTLDTroopZone:aiRestoreTroopStock(templateName, n)
+    local stock = self._aiTroopStock
+    if not stock or stock.isAll then return end
+    local maxS = stock.init[templateName]
+    if not maxS or maxS == -1 then return end
+    local cur = stock.current[templateName] or 0
+    stock.current[templateName] = math.min(maxS, cur + (n or 1))
+end
+
+--- AI vehicle pickup: pick the best entry from vehicle stock.
+-- Returns { type=string, isScene=bool } or nil.
+-- nil means caller should use legacy physical-scan path (isAll) or no stock defined.
+function CTLDTroopZone:aiPickVehicleEntry()
+    local stock = self._aiVehicleStock
+    if not stock then return nil end
+    if stock.isAll then return nil end  -- isAll → physical scan (legacy path)
+    local sm = CTLDSceneManager.getInstance()
+    local eligible = {}
+    for typeName, s in pairs(stock.current) do
+        local avail = (s == -1) and math.huge or s
+        if avail > 0 then
+            eligible[#eligible + 1] = {
+                type    = typeName,
+                stock   = avail,
+                isScene = sm:getModel(typeName) ~= nil,
+            }
+        end
+    end
+    if #eligible == 0 then return nil end
+    local maxS = 0
+    for _, e in ipairs(eligible) do if e.stock > maxS then maxS = e.stock end end
+    local top = {}
+    for _, e in ipairs(eligible) do if e.stock == maxS then top[#top + 1] = e end end
+    local picked = top[math.random(#top)]
+    return { type = picked.type, isScene = picked.isScene }
+end
+
+--- Consume 1 vehicle stock for the given type name.
+-- No-op if isAll or type not in stock.
+-- @param typeName string
+function CTLDTroopZone:aiConsumeVehicleStock(typeName)
+    local stock = self._aiVehicleStock
+    if not stock or stock.isAll then return end
+    local s = stock.current[typeName]
+    if s and s > 0 then stock.current[typeName] = s - 1 end
+end
+
+--- Restore 1 vehicle stock for the given type name (capped at init).
+-- @param typeName string
+function CTLDTroopZone:aiRestoreVehicleStock(typeName)
+    local stock = self._aiVehicleStock
+    if not stock or stock.isAll then return end
+    local maxS = stock.init[typeName]
+    if not maxS or maxS == -1 then return end
+    local cur = stock.current[typeName] or 0
+    stock.current[typeName] = math.min(maxS, cur + 1)
 end
 
 --- Increment the objective flag by soldierCount and check win condition.
@@ -7146,77 +7277,97 @@ function CTLDZoneManager:_discoverLGZ()
     end
 end
 
---- Feature S: Load AI zones from cfg.settings["aiZones"] config table (config-only, no naming convention).
--- Each entry: { dcsZoneName, coalition, isPickup, isDropoff, cargoType, troopStock, troopTemplates,
---              vehicleTypes, aiDropMode }
--- troopStock: 0=disabled, -1=unlimited, N>0=limited.
+--- Feature S/T: Load AI zones from cfg.settings["aiZones"] config table.
+-- troopStock / vehicleStock must be tables: { [name] = N } where N=-1=unlimited, N>0=limited.
+-- Special key "All" = all templates/types, unlimited (isAll=true).
 -- Validation errors/warns are accumulated in _validateZoneNames; this method only creates valid zones.
 function CTLDZoneManager:_loadAIZonesFromConfig()
     local entries = ctld.gs("aiZones")
     if not entries or #entries == 0 then return end
-    -- Build set of already-errored dcsZoneNames (from _validateZoneNames, stored in _aiZoneErrors)
     local skip = self._aiZoneErrors or {}
+
+    local function parseStockTable(raw)
+        -- raw must be a table {[name]=N}; returns { isAll, init, current } or nil
+        if type(raw) ~= "table" then return nil end
+        local isAll = false
+        local init  = {}
+        for k, v in pairs(raw) do
+            if k == "All" then
+                isAll = true
+            else
+                local n = tonumber(v)
+                init[k] = (n == -1) and -1 or math.max(0, n or 0)
+            end
+        end
+        local current = {}
+        if not isAll then
+            for k, v in pairs(init) do current[k] = v end
+        end
+        return { isAll = isAll, init = init, current = current }
+    end
+
     for _, entry in ipairs(entries) do
         local dzn = entry.dcsZoneName
         if dzn and not skip[dzn] and not self._troopZones[dzn] then
             local trig = trigger.misc.getZone(dzn)
             if not trig then
-                -- should have been caught by validate, but guard anyway
                 ctld.utils.log("WARN", "CTLDZoneManager: aiZones '%s' not found in ME — skipped", dzn)
             else
-                -- coalition string → id
                 local coaStr = entry.coalition or ""
                 local coaId
                 if     coaStr == "RED"     then coaId = coalition.side.RED
                 elseif coaStr == "BLUE"    then coaId = coalition.side.BLUE
                 elseif coaStr == "NEUTRAL" then coaId = coalition.side.NEUTRAL
-                else coaId = 0 end  -- should not happen (validate caught it)
+                else coaId = 0 end
 
-                -- troopStock: 0=disabled(nil stock), -1=unlimited(0), N=limited
-                local rawStock = entry.troopStock
-                local pickMaxTroopStock = nil
-                if rawStock == -1 then
-                    pickMaxTroopStock = 0        -- unlimited
-                elseif type(rawStock) == "number" and rawStock > 0 then
-                    pickMaxTroopStock = rawStock  -- limited
-                end
-                -- pickMaxStock alias (embarkFromTroopZone compat)
-                local pickMaxStock = pickMaxTroopStock
+                local aiTroopStock   = parseStockTable(entry.troopStock)
+                local aiVehicleStock = parseStockTable(entry.vehicleStock)
 
+                -- pickMaxStock=0 (unlimited) so embarkFromTroopZone never blocks on stock;
+                -- per-template stock is managed by _aiTroopStock.
                 local troopTemplates = (entry.troopTemplates and #entry.troopTemplates > 0)
                                        and entry.troopTemplates or nil
 
                 local zone = CTLDTroopZone:new({
-                    dcsName             = dzn,
-                    zoneName            = dzn,
-                    coalition           = coaId,
-                    center              = { x = trig.point.x, y = trig.point.y, z = trig.point.z },
-                    radius              = trig.radius or 500,
-                    isAIPickup          = entry.isPickup  == true,
-                    isAIDropoff         = entry.isDropoff == true,
-                    aiCargoType         = entry.cargoType or "T",
-                    pickMaxTroopStock   = pickMaxTroopStock,
-                    pickMaxStock        = pickMaxStock,
-                    pickMaxVehicleStock = entry.vehicleStock or nil,
-                    troopTemplates      = troopTemplates,
-                    vehicleTypes        = (entry.vehicleTypes and #entry.vehicleTypes > 0)
-                                         and entry.vehicleTypes or nil,
-                    aiDropMode          = (entry.aiDropMode == "G" or entry.aiDropMode == "P" or entry.aiDropMode == "GP") and entry.aiDropMode or "GP",
-                    active              = true,
+                    dcsName          = dzn,
+                    zoneName         = dzn,
+                    coalition        = coaId,
+                    center           = { x = trig.point.x, y = trig.point.y, z = trig.point.z },
+                    radius           = trig.radius or 500,
+                    isAIPickup       = entry.isPickup  == true,
+                    isAIDropoff      = entry.isDropoff == true,
+                    aiCargoType      = entry.cargoType or "T",
+                    pickMaxStock     = 0,  -- unlimited; per-template stock via _aiTroopStock
+                    troopTemplates   = troopTemplates,
+                    vehicleTypes     = (entry.vehicleTypes and #entry.vehicleTypes > 0)
+                                       and entry.vehicleTypes or nil,
+                    aiDropMode       = (entry.aiDropMode == "G" or entry.aiDropMode == "P"
+                                        or entry.aiDropMode == "GP") and entry.aiDropMode or "GP",
+                    _aiTroopStock    = aiTroopStock,
+                    _aiVehicleStock  = aiVehicleStock,
+                    active           = true,
                 })
                 self._troopZones[dzn] = zone
+
+                local tsLog = aiTroopStock
+                    and (aiTroopStock.isAll and "All" or table.concat(
+                        (function() local t={} for k,v in pairs(aiTroopStock.init) do t[#t+1]=k.."="..tostring(v) end return t end)(), ","))
+                    or "none"
+                local vsLog = aiVehicleStock
+                    and (aiVehicleStock.isAll and "All" or table.concat(
+                        (function() local t={} for k,v in pairs(aiVehicleStock.init) do t[#t+1]=k.."="..tostring(v) end return t end)(), ","))
+                    or "none"
                 ctld.utils.log("INFO",
-                    "CTLDZoneManager: aiZones '%s' coalition=%s P=%s D=%s cargo=%s troopStock=%s tmpl=%s",
+                    "CTLDZoneManager: aiZones '%s' coa=%s P=%s D=%s cargo=%s troops={%s} vehicles={%s}",
                     dzn, coaStr,
                     tostring(entry.isPickup == true),
                     tostring(entry.isDropoff == true),
                     tostring(entry.cargoType or "T"),
-                    tostring(rawStock),
-                    troopTemplates and table.concat(troopTemplates, ",") or "all")
+                    tsLog, vsLog)
             end
         end
     end
-    self._aiZoneErrors = nil  -- cleanup
+    self._aiZoneErrors = nil
 end
 
 function CTLDZoneManager:_discoverWPZ()
@@ -20449,6 +20600,7 @@ function CTLDCoreManager:_initAITransports()
     -- Always build team lists — populated regardless of transportPilotNames.
     -- side == nil → both coalitions ; side == 1 → RED ; side == 2 → BLUE
     self._aiTeams = { [1] = {}, [2] = {} }
+    self._aiTransportVehicle = {}  -- [unitName] = { type=string, isScene=bool } | nil
     local okTM, tm = pcall(CTLDTroopManager.getInstance)
     if okTM and tm then
         for _, tmpl in ipairs(tm._templates) do
@@ -20552,8 +20704,28 @@ function CTLDCoreManager:onAILand(event)
     local dropZone = zm:getAIDropoffZoneAt(pt, coa)
     if dropZone then
         local dm = dropZone.aiDropMode or "GP"
-        -- Vehicle dropoff
-        if okVS and (dm == "G" or dm == "GP") then
+
+        -- Virtual vehicle dropoff (Feature T: stock-based AI vehicles)
+        local vEntry = self._aiTransportVehicle[unitName]
+        if vEntry and (dm == "G" or dm == "GP") then
+            if vEntry.isScene then
+                CTLDSceneManager.getInstance():playScene(u, vEntry.type, nil, nil)
+            else
+                if okVS then
+                    vs:spawnVehicleAt({ vehicleType = vEntry.type,
+                                        country     = u:getCountry(),
+                                        coalitionId = coa }, pt)
+                end
+            end
+            ctld.utils.notifyCoalition(
+                ctld.tr("AI %1 delivered vehicle: %2", unitName, vEntry.type), 10, coa)
+            -- restore stock if dropzone is also a pickup zone
+            if dropZone.isAIPickup then dropZone:aiRestoreVehicleStock(vEntry.type) end
+            self._aiTransportVehicle[unitName] = nil
+        end
+
+        -- Physical vehicle dropoff (Feature S: DCS whole-unit in transit via loadVehicle)
+        if okVS and (dm == "G" or dm == "GP") and not vEntry then
             local loaded = vs:findLoadedVehicles(u)
             if #loaded > 0 then
                 local veh = loaded[1]
@@ -20563,6 +20735,7 @@ function CTLDCoreManager:onAILand(event)
                     10, coa)
             end
         end
+
         -- Troop dropoff
         if hasTr and (dm == "G" or dm == "GP") then
             local transitList = tm:getInTransit(unitName) or {}
@@ -20571,6 +20744,14 @@ function CTLDCoreManager:onAILand(event)
             for _, grp in ipairs(transitList) do
                 if grp.templateName then troopNames[#troopNames + 1] = grp.templateName end
                 troopTotal = troopTotal + (grp.unitTotal or 0)
+            end
+            -- restore per-template stock if dropzone is also a pickup zone (Feature T)
+            if dropZone.isAIPickup then
+                for _, grp in ipairs(transitList) do
+                    if grp.templateName then
+                        dropZone:aiRestoreTroopStock(grp.templateName, grp.unitTotal or 1)
+                    end
+                end
             end
             tm:disembarkAll(u)
             ctld.utils.notifyCoalition(
@@ -20583,8 +20764,6 @@ function CTLDCoreManager:onAILand(event)
     -- ---- Pickup zone (vehicle + troops, gated by aiCargoType) ----------
     local pickZone = zm:getAIPickupZoneAt(pt, coa)
     if not pickZone and not event._aiRetried then
-        -- S_EVENT_LAND may fire before the heli has fully stopped.
-        -- Schedule a single retry at t+1.5 s when the heli has settled.
         local selfRef = self
         timer.scheduleFunction(function()
             if u and u:isExist() and not u:inAir() then
@@ -20598,48 +20777,49 @@ function CTLDCoreManager:onAILand(event)
         local doTroops  = (cargoType == "T" or cargoType == "TV")
 
         -- Vehicle pickup
-        if doVeh and okVS and caps.canTransportWholeVehicle then
-            local vehStockOk = (not pickZone.pickMaxVehicleStock or pickZone.pickMaxVehicleStock == 0)
-                            or (pickZone.pickCurrentVehicleStock and pickZone.pickCurrentVehicleStock > 0)
-            if vehStockOk then
-                local loadables = vs:findLoadableVehicles(u)
-                -- vehicleTypes whitelist filter (Feature S)
-                if pickZone.vehicleTypes then
-                    local typeSet = {}
-                    for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
-                    local filtered = {}
-                    for _, v in ipairs(loadables) do
-                        if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
-                    end
-                    loadables = filtered
-                end
-                -- Weight filter: skip vehicles heavier than transport capacity
-                local maxW   = caps.maxVehicleWeight  -- nil = unlimited
-                local weights = ctld.gs("groundVehicleWeights") or {}
-                local compatible = {}
-                for _, v in ipairs(loadables) do
-                    local w = weights[v.vehicleType] or 0
-                    if not maxW or w <= maxW then
-                        compatible[#compatible + 1] = v
-                    end
-                end
-                if #loadables > 0 and #compatible == 0 then
-                    ctld.utils.log("WARN",
-                        "CTLDCoreManager:onAILand [%s] landed on AIZ_P but no vehicle is within weight limit (%s kg). Vehicles found: %d",
-                        unitName, tostring(maxW), #loadables)
-                end
-                if #compatible > 0 then
-                    local loaded = vs:findLoadedVehicles(u)
-                    if #loaded < (caps.maxWholeVehiclesOnboard or 1) then
-                        local veh = compatible[1]
-                        vs:loadVehicle(veh, u, nil, "menu_ctld")
-                        -- decrement vehicle stock
-                        if pickZone.pickMaxVehicleStock and pickZone.pickMaxVehicleStock > 0 then
-                            pickZone.pickCurrentVehicleStock = (pickZone.pickCurrentVehicleStock or 0) - 1
+        if doVeh and caps.canTransportWholeVehicle then
+            local alreadyLoaded = (self._aiTransportVehicle[unitName] ~= nil)
+                               or (okVS and #vs:findLoadedVehicles(u) > 0)
+            if not alreadyLoaded then
+                -- Feature T: stock-based virtual pickup
+                local vEntry = pickZone:aiPickVehicleEntry()
+                if vEntry then
+                    pickZone:aiConsumeVehicleStock(vEntry.type)
+                    self._aiTransportVehicle[unitName] = vEntry
+                    ctld.utils.notifyCoalition(
+                        ctld.tr("AI %1 loaded vehicle: %2", unitName, vEntry.type), 10, coa)
+                else
+                    -- isAll or no stock defined → physical scan (legacy path)
+                    if okVS then
+                        local loadables = vs:findLoadableVehicles(u)
+                        if pickZone.vehicleTypes then
+                            local typeSet = {}
+                            for _, vt in ipairs(pickZone.vehicleTypes) do typeSet[vt] = true end
+                            local filtered = {}
+                            for _, v in ipairs(loadables) do
+                                if typeSet[v.vehicleType] then filtered[#filtered + 1] = v end
+                            end
+                            loadables = filtered
                         end
-                        ctld.utils.notifyCoalition(
-                            ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
-                            10, coa)
+                        local maxW    = caps.maxVehicleWeight
+                        local weights = ctld.gs("groundVehicleWeights") or {}
+                        local compatible = {}
+                        for _, v in ipairs(loadables) do
+                            local w = weights[v.vehicleType] or 0
+                            if not maxW or w <= maxW then compatible[#compatible + 1] = v end
+                        end
+                        if #loadables > 0 and #compatible == 0 then
+                            ctld.utils.log("WARN",
+                                "CTLDCoreManager:onAILand [%s] no vehicle within weight limit (%s kg), %d found",
+                                unitName, tostring(maxW), #loadables)
+                        end
+                        if #compatible > 0 then
+                            local veh = compatible[1]
+                            vs:loadVehicle(veh, u, nil, "menu_ctld")
+                            ctld.utils.notifyCoalition(
+                                ctld.tr("AI %1 loaded vehicle: %2", unitName, veh.vehicleType or "vehicle"),
+                                10, coa)
+                        end
                     end
                 end
             end
@@ -20648,7 +20828,7 @@ function CTLDCoreManager:onAILand(event)
         -- Troop pickup (re-check hasTroops after potential vehicle load)
         if doTroops and not tm:hasTroops(unitName) then
             local teams = self._aiTeams[coa] or {}
-            -- Feature S: troopTemplates whitelist — filter strictly to named templates
+            -- troopTemplates whitelist (Feature S) — applied before stock selection
             if pickZone.troopTemplates then
                 local nameSet = {}
                 for _, tn in ipairs(pickZone.troopTemplates) do nameSet[tn] = true end
@@ -20658,25 +20838,38 @@ function CTLDCoreManager:onAILand(event)
                 end
                 if #filtered == 0 then
                     ctld.utils.log("WARN",
-                        "CTLDCoreManager:onAILand [%s] troopTemplates whitelist matched no team in _aiTeams — pickup skipped",
+                        "CTLDCoreManager:onAILand [%s] troopTemplates whitelist matched no team — skipped",
                         unitName)
                 end
                 teams = filtered
             end
-            local tmpl  = nil
-            if #teams > 0 then
-                local startIdx = randomPickup and math.random(#teams) or 1
-                local n = #teams
-                for i = 0, n - 1 do
-                    local candidate = teams[((startIdx - 1 + i) % n) + 1]
-                    local w  = tm:_weightForGroup(candidate)
-                    local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
-                    if canEmb then tmpl = candidate; break end
+            local tmpl = nil
+            -- Feature T: per-template stock selection
+            if pickZone._aiTroopStock then
+                tmpl = pickZone:aiPickTroopTemplate(teams, typeName, unitName, tm)
+                if not tmpl then
+                    ctld.utils.log("WARN",
+                        "CTLDCoreManager:onAILand [%s] _aiTroopStock exhausted or no eligible template",
+                        unitName)
+                end
+            else
+                -- Legacy: first-compatible or random
+                if #teams > 0 then
+                    local startIdx = randomPickup and math.random(#teams) or 1
+                    local n = #teams
+                    for i = 0, n - 1 do
+                        local candidate = teams[((startIdx - 1 + i) % n) + 1]
+                        local w  = tm:_weightForGroup(candidate)
+                        local canEmb = tm:_canEmbark(typeName, unitName, candidate.total, w)
+                        if canEmb then tmpl = candidate; break end
+                    end
                 end
             end
             if tmpl then
                 local loaded = tm:embarkFromTroopZone(u, pickZone, tmpl)
                 if loaded then
+                    -- consume per-template stock (Feature T)
+                    pickZone:aiConsumeTroopStock(tmpl.name)
                     ctld.utils.notifyCoalition(
                         ctld.tr("AI %1 picked up troops: %2 (%3)", unitName, tmpl.name, tmpl.total),
                         10, coa)
@@ -22204,13 +22397,19 @@ _cfg.settings["debug"] = true
 -- ============================================================
 if _cfg.settings["debug"] == true then
     _cfg.settings["aiZones"] = {
-        { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=5  },
+        -- troopStock / vehicleStock are now tables: { [templateName/typeName] = N }
+        -- N=-1=unlimited, N>0=limited. Key "All"=all templates, unlimited.
+        { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",
+          troopStock = { ["Infantry Squad"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
-        { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V"                 },
-        { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV", troopStock=5  },
-        { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"                },
-        { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"                },
-        { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=10 },
+        { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+        { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV",
+          troopStock = { ["All"] = -1 }, vehicleStock = { ["Hummer"] = 5 } },
+        { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+        { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+        { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",
+          troopStock = { ["All"] = -1 } },
     }
 end
 

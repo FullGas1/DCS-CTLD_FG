@@ -619,13 +619,19 @@ _cfg.settings["debug"] = true
 -- ============================================================
 if _cfg.settings["debug"] == true then
     _cfg.settings["aiZones"] = {
-        { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=5  },
+        -- troopStock / vehicleStock are now tables: { [templateName/typeName] = N }
+        -- N=-1=unlimited, N>0=limited. Key "All"=all templates, unlimited.
+        { dcsZoneName="AIZ_base_B_P_5",       coalition="BLUE", isPickup=true,  cargoType="T",
+          troopStock = { ["Infantry Squad"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
-        { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V"                 },
-        { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV", troopStock=5  },
-        { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"                },
-        { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"                },
-        { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",  troopStock=10 },
+        { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V",
+          vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+        { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV",
+          troopStock = { ["All"] = -1 }, vehicleStock = { ["Hummer"] = 5 } },
+        { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+        { dcsZoneName="AIZ_mt10d_B_D_G",       coalition="BLUE", isDropoff=true, aiDropMode="G"  },
+        { dcsZoneName="AIZ_depot_B_P_T_10",    coalition="BLUE", isPickup=true,  cargoType="T",
+          troopStock = { ["All"] = -1 } },
     }
 end
 

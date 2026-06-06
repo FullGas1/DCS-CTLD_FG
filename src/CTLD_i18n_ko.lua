@@ -293,6 +293,7 @@ ctld.i18n["ko"]["AI %1 picked up troops: %2 (%3)"]             = "AI %1이(가) 
 ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 병력을 하차시켰습니다: %2 (%3명)"
 ctld.i18n["ko"]["AI %1 loaded vehicle: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
 ctld.i18n["ko"]["AI %1 unloaded vehicle: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
+ctld.i18n["ko"]["AI %1 delivered vehicle: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
