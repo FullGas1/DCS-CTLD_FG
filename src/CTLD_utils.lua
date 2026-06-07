@@ -1975,10 +1975,8 @@ end
 -- @param unit DCS Unit
 -- @return boolean
 function ctld.utils.inAir(unit)
-    if not unit or not unit.getPoint then return false end
-    local pt   = unit:getPoint()
-    local gndH = land.getHeight({ x = pt.x, y = pt.z })
-    return (pt.y - gndH) > 2.0
+    if not unit or not unit.inAir then return false end
+    return unit:inAir() == true
 end
 
 --- Calculate the ground landing position for a single parachuting object.
