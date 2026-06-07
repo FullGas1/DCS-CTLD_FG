@@ -637,6 +637,7 @@ function CTLDConfig:load()
     self.settings["MG_WEIGHT"] = 10      -- kg
     self.settings["MORTAR_WEIGHT"] = 26  -- kg
     self.settings["JTAC_WEIGHT"] = 15    -- kg
+    self.settings["CIV_WEIGHT"] = 2      -- kg — light personal items for civilian role
 
     -- ************** INFANTRY GROUPS FOR PICKUP ******************
     -- Unit Types
@@ -672,6 +673,20 @@ function CTLDConfig:load()
         --   specificParams = { task = "AttackNearestEnemyOnLos" } },
         -- { name = ctld.tr("Advance Guard"), inf = 4, at = 2,
         --   specificParams = { task = "gotoNearestWPZ" } },
+        --
+        -- componentTypes example: custom DCS typeNames per role (including mod units).
+        -- Roles not in the standard set (inf/mg/at/aa/mortar/jtac/civ) are supported as
+        -- custom roles (e.g. civ1, civ2, civ3) — each maps to a distinct 3D model.
+        -- CTLDModValidator probes each typeName at mission start and logs missing mods.
+        -- If a typeName is not found in DCS, CTLD falls back to the standard soldier model.
+        --
+        -- { name = "Civilian Crowd", civ1 = 3, civ2 = 2, civ3 = 1,
+        --   componentTypes = {
+        --     civ1 = { [1] = "CivilianMod_Worker", [2] = "CivilianMod_Worker" },
+        --     civ2 = { [1] = "CivilianMod_Farmer", [2] = "CivilianMod_Farmer" },
+        --     civ3 = { [1] = "CivilianMod_Vendor", [2] = "CivilianMod_Vendor" },
+        --   }
+        -- },
     }
 
     -- ************** SPAWNABLE CRATES ******************
@@ -6232,6 +6247,268 @@ CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 
 -- End : lib/CTLDParachuteEffect.lua
 -- ====================================================================================================
+-- Start : lib/CTLD_modValidator.lua
+---@diagnostic disable
+-- CTLD_modValidator.lua
+-- Probes all DCS typeNames declared in CTLD configuration at mission start.
+-- Detects missing mods (unknown typeNames) before any player-facing spawn occurs.
+--
+-- Detection methods (validated empirically):
+--   GROUND: coalition.addGroup → unit:getTypeName() ~= requested → invalid (DCS silently substitutes)
+--   STATIC: coalition.addStaticObject → returns nil → invalid
+--
+-- Usage:
+--   CTLDModValidator.getInstance():run()   -- call once in CTLDCoreManager:init()
+--   CTLDModValidator.getInstance():isGroundInvalid(typeName) → bool
+--   CTLDModValidator.getInstance():isStaticInvalid(typeName) → bool
+
+CTLDModValidator = {}
+CTLDModValidator.__index = CTLDModValidator
+CTLDModValidator._instance = nil
+
+-- ============================================================
+-- Singleton
+-- ============================================================
+
+function CTLDModValidator.getInstance()
+    if not CTLDModValidator._instance then
+        CTLDModValidator._instance = setmetatable({}, CTLDModValidator)
+        CTLDModValidator._instance:_initState()
+    end
+    return CTLDModValidator._instance
+end
+
+function CTLDModValidator:_initState()
+    self._cache    = {}   -- ["G:typeName"] / ["S:typeName"] = true|false
+    self._probeIdx = 0
+    self._probePos = nil
+end
+
+-- ============================================================
+-- Public API
+-- ============================================================
+
+--- Returns true if the ground typeName was probed and found invalid.
+function CTLDModValidator:isGroundInvalid(typeName)
+    return self._cache["G:" .. typeName] == false
+end
+
+--- Returns true if the static typeName was probed and found invalid.
+function CTLDModValidator:isStaticInvalid(typeName)
+    return self._cache["S:" .. typeName] == false
+end
+
+--- Main entry point. Collect all typeNames, probe each, emit a unified report.
+-- Safe to call multiple times (cached results are reused).
+function CTLDModValidator:run()
+    self._probePos = self:_getProbePos()
+
+    local entries  = self:_collectTypeNames()
+    local invalids = {}
+
+    for _, entry in ipairs(entries) do
+        local valid
+        if entry.probeType == "GROUND" then
+            valid = self:_probeGround(entry.typeName)
+        else
+            valid = self:_probeStatic(entry.typeName, entry.category)
+        end
+        if not valid then
+            invalids[#invalids + 1] = entry
+        end
+    end
+
+    if #invalids > 0 then
+        local lines = { string.format("[CTLD] Mod validation — %d type(s) not found in DCS:", #invalids) }
+        for _, inv in ipairs(invalids) do
+            local suffix = inv.role and (" role=" .. inv.role) or ""
+            lines[#lines + 1] = string.format("  %s '%s' (source: %s)%s",
+                inv.probeType, inv.typeName, inv.source, suffix)
+        end
+        local msg = table.concat(lines, "\n")
+        ctld.utils.log("WARN", msg)
+        trigger.action.outText(msg, 30)
+    else
+        ctld.utils.log("INFO",
+            "CTLDModValidator: all %d probed type(s) present in DCS", #entries)
+    end
+end
+
+-- ============================================================
+-- TypeName collection
+-- ============================================================
+
+function CTLDModValidator:_collectTypeNames()
+    local entries = {}
+    local seen    = {}
+
+    local function add(typeName, probeType, category, source, role)
+        if not typeName or typeName == "" then return end
+        local key = probeType .. ":" .. typeName
+        if seen[key] then return end
+        seen[key] = true
+        entries[#entries + 1] = {
+            typeName  = typeName,
+            probeType = probeType,
+            category  = category,
+            source    = source,
+            role      = role,
+        }
+    end
+
+    -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
+    for regKey, desc in pairs(CTLDObjectRegistry._db) do
+        if desc.groupType == "STATIC" and desc.type then
+            add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil)
+        elseif desc.groupType == "GROUND" and desc.units then
+            for _, u in ipairs(desc.units) do
+                if u.unitType then
+                    for _, cid in ipairs({ 1, 2 }) do
+                        local ok, tn = pcall(u.unitType, cid)
+                        if ok and tn then
+                            add(tn, "GROUND", nil, "Registry[" .. regKey .. "]", nil)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- 2. buildableGroups (Combat Vehicles and other sections) ────────────────
+    local buildable = ctld.gs("buildableGroups") or {}
+    for sectionName, items in pairs(buildable) do
+        if type(items) == "table" then
+            for _, item in ipairs(items) do
+                if item.unit and item.unit ~= "FOB" then
+                    add(item.unit, "GROUND", nil,
+                        "buildableGroups[" .. tostring(sectionName) .. "]", nil)
+                end
+            end
+        end
+    end
+
+    -- 3. CTLDCrateAssemblyManager.TEMPLATES (AA systems) ────────────────────
+    local aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
+        and CTLDCrateAssemblyManager.TEMPLATES or {}
+    for _, tmpl in ipairs(aaTmpls) do
+        if tmpl.parts then
+            for _, part in ipairs(tmpl.parts) do
+                if part.DCSTypename then
+                    add(part.DCSTypename, "GROUND", nil,
+                        "AASystem[" .. tostring(tmpl.name) .. "]", nil)
+                end
+            end
+        end
+        if tmpl.repair then
+            add(tmpl.repair, "GROUND", nil,
+                "AASystem[" .. tostring(tmpl.name) .. "].repair", nil)
+        end
+    end
+
+    -- 4. loadableGroups[].componentTypes (custom troop roles) ────────────────
+    local loadable = ctld.gs("loadableGroups") or {}
+    for _, tmpl in ipairs(loadable) do
+        local ct = tmpl.componentTypes
+        if type(ct) == "table" then
+            for role, coaTable in pairs(ct) do
+                if type(coaTable) == "table" then
+                    for _, tn in pairs(coaTable) do
+                        add(tn, "GROUND", nil,
+                            "loadableGroups[" .. tostring(tmpl.name) .. "]", role)
+                    end
+                end
+            end
+        end
+    end
+
+    return entries
+end
+
+-- ============================================================
+-- Probe helpers
+-- ============================================================
+
+function CTLDModValidator:_getProbePos()
+    for _, coa in ipairs({ coalition.side.BLUE, coalition.side.RED }) do
+        local ok, groups = pcall(coalition.getGroups, coa)
+        if ok and groups and #groups > 0 then
+            local units = groups[1]:getUnits()
+            if units and #units > 0 then
+                local pt = units[1]:getPoint()
+                return { x = pt.x, z = pt.z }
+            end
+        end
+    end
+    return { x = 0, z = 0 }
+end
+
+function CTLDModValidator:_nextIdx()
+    self._probeIdx = self._probeIdx + 1
+    return self._probeIdx
+end
+
+function CTLDModValidator:_probeGround(typeName)
+    local cacheKey = "G:" .. typeName
+    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
+
+    local idx = self:_nextIdx()
+    local pos = self._probePos
+    local groupData = {
+        task  = "Ground Nothing",
+        name  = "CTLD_MVP_G" .. idx,
+        units = {{
+            type    = typeName,
+            name    = "CTLD_MVP_G" .. idx .. "_u1",
+            x       = pos.x + idx * 3,
+            y       = pos.z + idx * 3,
+            heading = 0,
+            skill   = "Average",
+        }}
+    }
+
+    local ok, grp = pcall(coalition.addGroup, country.id.USA, Group.Category.GROUND, groupData)
+    local valid = false
+    if ok and grp then
+        local units = grp:getUnits()
+        if #units > 0 then
+            local okT, actual = pcall(function() return units[1]:getTypeName() end)
+            valid = okT and (actual == typeName)
+        end
+        pcall(function() grp:destroy() end)
+    end
+
+    self._cache[cacheKey] = valid
+    ctld.utils.log("INFO", "ModValidator GROUND '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
+    return valid
+end
+
+function CTLDModValidator:_probeStatic(typeName, category)
+    local cacheKey = "S:" .. typeName
+    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
+
+    local idx = self:_nextIdx()
+    local pos = self._probePos
+    local staticData = {
+        name     = "CTLD_MVP_S" .. idx,
+        type     = typeName,
+        category = category or "Fortifications",
+        x        = pos.x + idx * 3,
+        y        = pos.z + idx * 3,
+        heading  = 0,
+        dead     = false,
+    }
+
+    local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
+    local valid = ok and (obj ~= nil)
+    if ok and obj then pcall(function() obj:destroy() end) end
+
+    self._cache[cacheKey] = valid
+    ctld.utils.log("INFO", "ModValidator STATIC '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
+    return valid
+end
+
+-- End : lib/CTLD_modValidator.lua
+-- ====================================================================================================
 -- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
 -- CTLD_sceneManager.lua
@@ -8387,13 +8664,17 @@ CTLDTroopManager._instance = nil
 -- Unit types per role per coalition
 -- ============================================================
 
-CTLDTroopManager._UNIT_TYPES = {
+-- Default DCS typeNames per role, indexed by coalition (1=RED, 2=BLUE).
+-- MMs can override per-template via tmpl.componentTypes = { roleName = {[1]=tn,[2]=tn} }.
+-- Custom role names (e.g. civ1, civ2) are also supported via componentTypes.
+CTLDTroopManager._ROLE_TYPENAMES = {
     inf    = { [1] = "Infantry AK",        [2] = "Soldier M4 GRG"    },
     mg     = { [1] = "Paratrooper AKS-74", [2] = "Soldier M249"      },
     at     = { [1] = "Paratrooper RPG-16", [2] = "Paratrooper RPG-16"},
     aa     = { [1] = "SA-18 Igla manpad",  [2] = "Soldier stinger"   },
     mortar = { [1] = "2B11 mortar",        [2] = "2B11 mortar"       },
     jtac   = { [1] = "Infantry AK",        [2] = "Soldier M4 GRG"    },  -- same model, name prefix = "JTAC"
+    civ    = { [1] = "Civilian",           [2] = "Civilian"           },  -- generic civilian (no weapon weight)
 }
 
 -- Equipment-only weight (kg) per role, used as additive on top of base+kit.
@@ -8405,10 +8686,12 @@ CTLDTroopManager._ROLE_EQUIP_WEIGHTS = {
     aa     = 18,   -- MANPAD_WEIGHT
     mortar = 26,   -- MORTAR_WEIGHT
     jtac   = 20,   -- JTAC_WEIGHT + RIFLE_WEIGHT
+    civ    = 2,    -- CIV_WEIGHT (light personal items)
 }
 
--- Processing order matches ctld.generateTroopTypes in source
-CTLDTroopManager._ROLE_ORDER = { "aa", "inf", "mg", "at", "mortar", "jtac" }
+-- Processing order for standard roles. Custom roles declared in componentTypes are
+-- appended dynamically per template in _registerOneTemplate.
+CTLDTroopManager._ROLE_ORDER = { "aa", "inf", "mg", "at", "mortar", "jtac", "civ" }
 
 -- ============================================================
 -- Singleton
@@ -8475,7 +8758,27 @@ end
 
 -- Computes total/hasJtac, assigns _dbKey, and inserts a GROUND descriptor into CTLDObjectRegistry.
 -- Safe to call at init or at runtime (createLoadableGroup).
+-- Supports tmpl.componentTypes = { roleName = {[1]=typeName,[2]=typeName} } to override
+-- DCS typeNames per role. Custom role names not in _ROLE_ORDER (e.g. civ1, civ2) are also
+-- supported: their quantities come from tmpl[roleName] and their typeNames from componentTypes.
 function CTLDTroopManager:_registerOneTemplate(tmpl)
+    local ct = type(tmpl.componentTypes) == "table" and tmpl.componentTypes or nil
+
+    -- Build set of standard roles for fast lookup
+    local standardRoles = {}
+    for _, r in ipairs(CTLDTroopManager._ROLE_ORDER) do standardRoles[r] = true end
+
+    -- Collect custom roles: declared in componentTypes but not in _ROLE_ORDER
+    local customRoles = {}
+    if ct then
+        for role, _ in pairs(ct) do
+            if not standardRoles[role] then
+                customRoles[#customRoles + 1] = role
+            end
+        end
+        table.sort(customRoles)  -- deterministic order
+    end
+
     local total   = 0
     local hasJtac = false
     for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
@@ -8483,39 +8786,74 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
         total   = total + n
         if role == "jtac" and n > 0 then hasJtac = true end
     end
+    for _, role in ipairs(customRoles) do
+        total = total + (tmpl[role] or 0)
+    end
     tmpl.total   = total
     tmpl.hasJtac = hasJtac
+
+    -- Resolve typeName for a role/coalition, with componentTypes override and mod fallback.
+    local function resolveTypeName(role, componentTypes)
+        return function(cid)
+            -- componentTypes override (per-template)
+            local desired = componentTypes and componentTypes[role]
+                and componentTypes[role][cid]
+            if desired then
+                local validator = CTLDModValidator._instance
+                if validator and validator:isGroundInvalid(desired) then
+                    ctld.utils.log("WARN",
+                        "_registerOneTemplate: typeName '%s' (role=%s) not in DCS — fallback to standard soldier",
+                        desired, role)
+                    return CTLDTroopManager._ROLE_TYPENAMES["inf"][cid]
+                        or CTLDTroopManager._ROLE_TYPENAMES["inf"][2]
+                end
+                return desired
+            end
+            -- Standard table fallback
+            local roleTypes = CTLDTroopManager._ROLE_TYPENAMES[role]
+            if roleTypes then
+                return roleTypes[cid] or roleTypes[2]
+            end
+            -- Last-resort: standard soldier for unknown custom roles with no componentTypes entry
+            return CTLDTroopManager._ROLE_TYPENAMES["inf"][cid]
+                or CTLDTroopManager._ROLE_TYPENAMES["inf"][2]
+        end
+    end
 
     -- Build the units array (no dx/dz: circle formation computes them at spawn time)
     -- Each mortar system spawns an additional servant soldier (crew member).
     -- The servant does not count toward tmpl.total or weight.
     local units = {}
+
+    -- Standard roles (with special behaviors for mortar/jtac)
     for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
         local n      = tmpl[role] or 0
         local isJtac = (role == "jtac")
         for _ = 1, n do
-            local capturedRole = role
             table.insert(units, {
-                namePrefix = isJtac and "JTAC" or string.upper(capturedRole),
-                unitType   = (function(r)
-                    return function(cid)
-                        return CTLDTroopManager._UNIT_TYPES[r][cid]
-                            or CTLDTroopManager._UNIT_TYPES[r][2]
-                    end
-                end)(capturedRole),
+                namePrefix = isJtac and "JTAC" or string.upper(role),
+                unitType   = resolveTypeName(role, ct),
             })
-            if capturedRole == "mortar" then
+            if role == "mortar" then
                 -- svntOf = true: spawnObject anchors this unit 1 m from the preceding mortar
                 -- instead of placing it in the circle; it does not count toward the circle spread.
                 table.insert(units, {
                     namePrefix = "SVNT",
                     svntOf     = true,
-                    unitType   = function(cid)
-                        return CTLDTroopManager._UNIT_TYPES["inf"][cid]
-                            or CTLDTroopManager._UNIT_TYPES["inf"][2]
-                    end,
+                    unitType   = resolveTypeName("inf", nil),
                 })
             end
+        end
+    end
+
+    -- Custom roles (no special spawn behavior)
+    for _, role in ipairs(customRoles) do
+        local n = tmpl[role] or 0
+        for _ = 1, n do
+            table.insert(units, {
+                namePrefix = string.upper(role),
+                unitType   = resolveTypeName(role, ct),
+            })
         end
     end
 
@@ -8548,6 +8886,7 @@ function CTLDTroopManager:_initWeightConfig()
         aa     = ctld.gs("MANPAD_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.aa,
         mortar = ctld.gs("MORTAR_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.mortar,
         jtac   = (ctld.gs("JTAC_WEIGHT") or 15) + (ctld.gs("RIFLE_WEIGHT") or 5),
+        civ    = ctld.gs("CIV_WEIGHT")     or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.civ,
     }
 end
 
@@ -8557,17 +8896,40 @@ end
 -- @param template  table  group template with role count fields (inf, mg, at, aa, mortar, jtac)
 -- @return number  total weight in kg
 function CTLDTroopManager:_weightForGroup(template)
-    local sw   = self._soldierWeight   or 80
-    local kit  = self._kitWeight       or 20
+    local sw    = self._soldierWeight   or 80
+    local kit   = self._kitWeight       or 20
     local equip = self._roleEquipWeights or CTLDTroopManager._ROLE_EQUIP_WEIGHTS
+    local civW  = ctld.gs("CIV_WEIGHT") or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.civ
     local total = 0
-    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
-        local n = template[role] or 0
+
+    local function addRoleWeight(role, n)
+        local w = equip[role]
+        if not w then
+            -- Custom role: civ* → CIV_WEIGHT, others → RIFLE_WEIGHT
+            w = (role:sub(1, 3) == "civ") and civW or (equip.inf or 5)
+        end
         for _ = 1, n do
             local base = sw * (0.9 + math.random() * 0.3)
-            total = total + base + kit + (equip[role] or 5)
+            total = total + base + kit + w
         end
     end
+
+    for _, role in ipairs(CTLDTroopManager._ROLE_ORDER) do
+        addRoleWeight(role, template[role] or 0)
+    end
+
+    -- Custom roles from componentTypes
+    local ct = template.componentTypes
+    if type(ct) == "table" then
+        local standardRoles = {}
+        for _, r in ipairs(CTLDTroopManager._ROLE_ORDER) do standardRoles[r] = true end
+        for role, _ in pairs(ct) do
+            if not standardRoles[role] then
+                addRoleWeight(role, template[role] or 0)
+            end
+        end
+    end
+
     return total
 end
 
@@ -20636,10 +20998,13 @@ function CTLDCoreManager:init()
     -- INIT-E: register MM pre-placed groups as extractable
     self:_initExtractableGroups()
 
+    -- INIT-MOD: probe all DCS typeNames declared in config — detect missing mods
+    CTLDModValidator.getInstance():run()
+
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E + INIT-MOD)")
 end
 
 -- INIT-B -----------------------------------------------------------

@@ -592,6 +592,7 @@ function CTLDConfig:load()
     self.settings["MG_WEIGHT"] = 10      -- kg
     self.settings["MORTAR_WEIGHT"] = 26  -- kg
     self.settings["JTAC_WEIGHT"] = 15    -- kg
+    self.settings["CIV_WEIGHT"] = 2      -- kg — light personal items for civilian role
 
     -- ************** INFANTRY GROUPS FOR PICKUP ******************
     -- Unit Types
@@ -627,6 +628,20 @@ function CTLDConfig:load()
         --   specificParams = { task = "AttackNearestEnemyOnLos" } },
         -- { name = ctld.tr("Advance Guard"), inf = 4, at = 2,
         --   specificParams = { task = "gotoNearestWPZ" } },
+        --
+        -- componentTypes example: custom DCS typeNames per role (including mod units).
+        -- Roles not in the standard set (inf/mg/at/aa/mortar/jtac/civ) are supported as
+        -- custom roles (e.g. civ1, civ2, civ3) — each maps to a distinct 3D model.
+        -- CTLDModValidator probes each typeName at mission start and logs missing mods.
+        -- If a typeName is not found in DCS, CTLD falls back to the standard soldier model.
+        --
+        -- { name = "Civilian Crowd", civ1 = 3, civ2 = 2, civ3 = 1,
+        --   componentTypes = {
+        --     civ1 = { [1] = "CivilianMod_Worker", [2] = "CivilianMod_Worker" },
+        --     civ2 = { [1] = "CivilianMod_Farmer", [2] = "CivilianMod_Farmer" },
+        --     civ3 = { [1] = "CivilianMod_Vendor", [2] = "CivilianMod_Vendor" },
+        --   }
+        -- },
     }
 
     -- ************** SPAWNABLE CRATES ******************

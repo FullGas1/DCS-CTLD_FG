@@ -10,6 +10,7 @@ CTLD_utils.lua
 CTLD_menu.lua
 lib/CTLD_objectRegistry.lua
 lib/CTLDParachuteEffect.lua
+lib/CTLD_modValidator.lua
 -- Business domain managers
 CTLD_sceneManager.lua
 CTLD_zone.lua
