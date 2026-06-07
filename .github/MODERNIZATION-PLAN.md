@@ -1226,7 +1226,44 @@ Minor cleanups identified — low priority, no functional impact.
   **MT-14 ✅ PASS live DCS [2026-06-07]** — pickup HAWK isAASystem=true, dropoff spawnSystemAt 10 unités, stock 1→0 ; bugfix `computeSafeDropPos` rearSector + i18n "loaded/unloaded/delivered" sans "vehicle".
   **TODO [6] ✅ [2026-06-07]** — FARP Alpha scene : Cargo06 + ammo_cargo×2 pivotés à 90° (orientation correcte) + repositionnés (d+3m extérieur, angle+1.2° droite pour Cargo06).
 
-- **Templates de troupes paramétriques (composants configurables)** : actuellement les composants de templates (`inf`, `mg`, `at`, `aa`, `mortar`) sont mappés à des DCS typeNames fixes hardcodés dans `CTLD_config.lua`. Rendre cette correspondance configurable via une table `troopComponentTypes` dans userConfig, permettant au MM d'associer n'importe quel DCS typeName (y compris mods : civils, unités custom) à un composant nommé. Objectif : composer un template avec des civils (mod), des unités non-standard, ou tout groupe DCS arbitraire, sans modifier le code source.
+- **Templates de troupes paramétriques (composants configurables)** ✅ IMPLÉMENTÉ [2026-06-07]
+  `_UNIT_TYPES` → `_ROLE_TYPENAMES` + rôle `civ` (Civilian, CIV_WEIGHT=2kg).
+  `componentTypes` par template : override DCS typeName par rôle/coalition.
+  Rôles custom libres (civ1/civ2/civ3…) via componentTypes — processés après `_ROLE_ORDER`.
+  Fallback : typeName invalide (mod absent) → soldat standard coalition + WARN log.
+  `_weightForGroup` : rôles custom `civ*` → CIV_WEIGHT, autres → RIFLE_WEIGHT.
+  `CTLDModValidator` probing couvre les typeNames de componentTypes au INIT-MOD.
+  Exemple "Civilian Crowd" commenté dans `CTLD_config.lua`. Commit ec8cf6a.
+
+- **CTLDModValidator** ✅ IMPLÉMENTÉ [2026-06-07]
+  Sonde tous les DCS typeNames déclarés dans CTLD au INIT-MOD, avant tout spawn joueur.
+  GROUND : `coalition.addGroup` + `unit:getTypeName() != requested` (DCS substitue Leopard-2 si inconnu).
+  STATIC : `coalition.addStaticObject` → nil = inconnu. Passe tous les champs du descriptor (shape_name, livery_id…).
+  Sources couvertes : CTLDObjectRegistry._db, spawnableCrates (filtre _repairFor et spawnAs), TEMPLATES parts.DCSTypename, loadableGroups componentTypes.
+  77 types sondés, 0 NOT FOUND sur config standard. Rapport WARN in-game si type manquant.
+  Commits : ec8cf6a, be54adf, f7eb611, d459120, b48a5a3.
+
+- **Refactor repair crates AA + TEMPLATES source unique** ✅ IMPLÉMENTÉ [2026-06-07]
+  `buildableGroups` ne contient plus de sentinelles `"HAWK Repair"` etc. — ces entrées étaient des identifiants internes CTLD, non des DCS typeNames.
+  `TEMPLATES.repair` : string → struct `{ desc, weight }` (side hérité du template).
+  `TEMPLATES` déplacé dans `CTLD_config.lua` (après spawnableCrates) — source unique MM pour décrire un système AA (assembly + caisses menu + repair).
+  `injectAACrates(spawnableCrates)` : injecte parts (avec weight), mixedSet auto, repair — appelé depuis `CTLDCrateManager._processSpawnableCrates()`.
+  Sections "SAM mid range"/"SAM long range" supprimées de spawnableCrates.
+  `getTemplateForUnit(unitName, repairFor)` : détection repair via `_repairFor` flag.
+  Clé config corrigée : `"buildableGroups"` → `"spawnableCrates"` (bug pré-existant).
+  Commits : d459120, b48a5a3.
+
+- **Feature V — Repack de scène (Countryside FARP / FARP Alpha)** ⬜ BACKLOG
+  Permettre au joueur de "repacker" une scène déployée en recréant la caisse d'origine dans l'inventaire logistique.
+  Prérequis techniques :
+  1. `CTLDSceneManager` doit conserver les références des objets spawned après `_execute()` terminé (purger `_active` seulement sur repack/destroy, pas après la dernière step).
+  2. Implémenter `CTLDSceneManager:destroyScene(name)` : détruire tous les `_spawnedObjs` et nettoyer `_active`.
+  3. **Bloquant : l'Invisible FARP (Heliport)** est non destructible via DCS scripting (`StaticObject:destroy()` et `Airbase:destroy()` silencieux). Deux options :
+     a. Remplacer l'Invisible FARP par un static de catégorie non-Heliport (FARP ne fonctionne plus en refuelling, mais le pad visuel reste) → repack possible.
+     b. Attendre une future API DCS permettant la destruction des Heliport statics.
+  4. Ajouter un menu F10 "Pack [nom scène]" visible quand le joueur est au sol dans le rayon des objets de scène.
+  5. Respawner la caisse d'origine (descriptor identique à l'entrée spawnableCrates) à la position du joueur.
+  Note : les Black_Tyre de marquage (coins) sont des Fortifications → destructibles sans problème.
 
 ## Risks and mitigations
 
