@@ -114,7 +114,11 @@ function CTLDModValidator:_collectTypeNames()
 
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
-        if desc.groupType == "STATIC" and desc.type then
+        if desc.groupType == "STATIC" and desc.type
+            -- Skip Heliports (FARP, SINGLE_HELIPAD…): DCS native types, always present.
+            -- Probing them spawns a persistent FARP airbase record that survives obj:destroy().
+            and desc.category ~= "Heliports"
+        then
             -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
             local extras = {}
             for k, v in pairs(desc) do
