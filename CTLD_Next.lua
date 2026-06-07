@@ -20320,8 +20320,10 @@ function CTLDPlayerManager:init()
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
 
---- Build menus for any players already occupying slots when CTLD loads.
--- Called once at init(); uses coalition.getPlayers() to enumerate connected players.
+--- Build menus for any players occupying slots not yet tracked.
+-- Called once at the end of ctld.initialize() (after all sections are registered),
+-- then rescheduled every 30 s for 3 min as a safety net for S_EVENT_PLAYER_ENTER_UNIT
+-- missed in multiplayer (e.g. player joins while CTLD is still booting).
 function CTLDPlayerManager:_scanExistingPlayers()
     local count = 0
     for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
@@ -20330,7 +20332,6 @@ function CTLDPlayerManager:_scanExistingPlayers()
             if unit:isExist() and unit:getPlayerName() then
                 local unitName = unit:getName()
                 if not self._players[unitName] then
-                    -- Simulate the enter-unit event
                     self:onPlayerEnterUnit({ initiator = unit })
                     count = count + 1
                 end
@@ -20338,7 +20339,19 @@ function CTLDPlayerManager:_scanExistingPlayers()
         end
     end
     if count > 0 then
-        ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d pre-existing player(s)", count)
+        ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d player(s) via scan", count)
+    end
+
+    -- Schedule repeated scans for 3 min to recover missed S_EVENT_PLAYER_ENTER_UNIT.
+    -- startTime is stored on first call; subsequent calls reuse it.
+    if not self._scanStartTime then
+        self._scanStartTime = timer.getTime()
+    end
+    if timer.getTime() - self._scanStartTime < 180 then
+        local self_ref = self
+        timer.scheduleFunction(function()
+            self_ref:_scanExistingPlayers()
+        end, nil, timer.getTime() + 30)
     end
 end
 
