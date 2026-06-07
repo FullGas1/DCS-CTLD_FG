@@ -109,7 +109,12 @@ function CTLDModValidator:_collectTypeNames()
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
         if desc.groupType == "STATIC" and desc.type then
-            add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil)
+            if desc.probeSkip then
+                ctld.utils.log("INFO",
+                    "ModValidator STATIC '%s' → skipped (probeSkip — surface-constrained)", desc.type)
+            else
+                add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil)
+            end
         elseif desc.groupType == "GROUND" and desc.units then
             for _, u in ipairs(desc.units) do
                 if u.unitType then
