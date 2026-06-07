@@ -722,7 +722,6 @@ function CTLDConfig:load()
             { weight = 1004.03,                         desc = ctld.tr("HAWK Track Radar"),          unit = "Hawk tr",              side = 2 },
             { weight = 1004.04,                         desc = ctld.tr("HAWK PCP"),                  unit = "Hawk pcp",             side = 2 },
             { weight = 1004.05,                         desc = ctld.tr("HAWK CWAR"),                 unit = "Hawk cwar",            side = 2 },
-            { weight = 1004.06,                         desc = ctld.tr("HAWK Repair"),               unit = "HAWK Repair",          side = 2 },
             { mixedSet = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
             -- End of HAWK
 
@@ -730,7 +729,6 @@ function CTLDConfig:load()
             { weight = 1004.11,                         desc = ctld.tr("NASAMS Launcher 120C"),      unit = "NASAMS_LN_C",          side = 2 },
             { weight = 1004.12,                         desc = ctld.tr("NASAMS Search/Track Radar"), unit = "NASAMS_Radar_MPQ64F1", side = 2 },
             { weight = 1004.13,                         desc = ctld.tr("NASAMS Command Post"),       unit = "NASAMS_Command_Post",  side = 2 },
-            { weight = 1004.14,                         desc = ctld.tr("NASAMS Repair"),             unit = "NASAMS Repair",        side = 2 },
             { mixedSet = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
             -- End of NASAMS
 
@@ -738,7 +736,6 @@ function CTLDConfig:load()
             -- KUB SYSTEM
             { weight = 1004.21,                         desc = ctld.tr("KUB Launcher"),              unit = "Kub 2P25 ln",          side = 1 },
             { weight = 1004.22,                         desc = ctld.tr("KUB Radar"),                 unit = "Kub 1S91 str",         side = 1 },
-            { weight = 1004.23,                         desc = ctld.tr("KUB Repair"),                unit = "KUB Repair",           side = 1 },
             { mixedSet = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
             -- End of KUB
 
@@ -746,7 +743,6 @@ function CTLDConfig:load()
             { weight = 1004.31,                         desc = ctld.tr("BUK Launcher"),              unit = "SA-11 Buk LN 9A310M1", side = 1 },
             { weight = 1004.32,                         desc = ctld.tr("BUK Search Radar"),          unit = "SA-11 Buk SR 9S18M1",  side = 1 },
             { weight = 1004.33,                         desc = ctld.tr("BUK CC Radar"),              unit = "SA-11 Buk CC 9S470M1", side = 1 },
-            { weight = 1004.34,                         desc = ctld.tr("BUK Repair"),                unit = "BUK Repair",           side = 1 },
             { mixedSet = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
             -- END of BUK
         },
@@ -759,7 +755,6 @@ function CTLDConfig:load()
             -- { weight = 1005.04, desc = ctld.tr("Patriot ICC"), unit = "Patriot cp", side = 2 },
             -- { weight = 1005.05, desc = ctld.tr("Patriot EPP"), unit = "Patriot EPP", side = 2 },
             { weight = 1005.06,                                           desc = ctld.tr("Patriot AMG (optional)"),      unit = "Patriot AMG",       side = 2 },
-            { weight = 1005.07,                                           desc = ctld.tr("Patriot Repair"),              unit = "Patriot Repair",    side = 2 },
             { mixedSet = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
             -- End of Patriot
 
@@ -769,7 +764,6 @@ function CTLDConfig:load()
             { weight = 1005.13,                                           desc = ctld.tr("S-300 Grumble Clam Shell SR"), unit = "S-300PS 40B6MD sr", side = 1 },
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
-            { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
             { mixedSet = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },

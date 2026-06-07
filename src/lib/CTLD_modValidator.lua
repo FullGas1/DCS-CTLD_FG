@@ -92,15 +92,6 @@ function CTLDModValidator:_collectTypeNames()
     local entries = {}
     local seen    = {}
 
-    -- Build AA repair sentinel set upfront (used to exclude non-DCS entries in buildableGroups).
-    -- tmpl.repair values are CTLD-internal routing identifiers, not real DCS unit typeNames.
-    local _repairSentinels = {}
-    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
-        and CTLDCrateAssemblyManager.TEMPLATES or {}
-    for _, tmpl in ipairs(_aaTmpls) do
-        if tmpl.repair then _repairSentinels[tmpl.repair] = true end
-    end
-
     -- Reserved keys not forwarded to addStaticObject
     local _skipDescKeys = {
         groupType=true, namePrefix=true, type=true, category=true, probeSkip=true,
@@ -144,25 +135,28 @@ function CTLDModValidator:_collectTypeNames()
         end
     end
 
-    -- 2. buildableGroups (Combat Vehicles and other sections) ────────────────
-    -- Skip "FOB" (scene trigger) and AA repair sentinels (CTLD-internal routing, not DCS typeNames).
-    local buildable = ctld.gs("buildableGroups") or {}
+    -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
+    -- Skip "FOB" (scene trigger) and repair entries (_repairFor flag = internal, not a DCS typeName).
+    local buildable = ctld.gs("spawnableCrates") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
             for _, item in ipairs(items) do
                 if item.unit and item.unit ~= "FOB"
-                    and not _repairSentinels[item.unit]
+                    and not item._repairFor
+                    and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then
                     add(item.unit, "GROUND", nil,
-                        "buildableGroups[" .. tostring(sectionName) .. "]", nil)
+                        "spawnableCrates[" .. tostring(sectionName) .. "]", nil)
                 end
             end
         end
     end
 
     -- 3. CTLDCrateAssemblyManager.TEMPLATES (AA systems) ────────────────────
-    -- Only probe part.DCSTypename — these are real DCS unit types spawned by spawnSystemAt.
-    -- tmpl.repair is a CTLD-internal routing sentinel, already excluded via _repairSentinels.
+    -- Only probe part.DCSTypename — real DCS unit types spawned by spawnSystemAt.
+    -- tmpl.repair is a struct {desc,weight,side}, not a DCS typeName — never probed.
+    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
+        and CTLDCrateAssemblyManager.TEMPLATES or {}
     for _, tmpl in ipairs(_aaTmpls) do
         if tmpl.parts then
             for _, part in ipairs(tmpl.parts) do

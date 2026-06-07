@@ -312,6 +312,9 @@ end
 -- Results stored in self._processedCrates[category] and self._weightIndex[weight].
 function CTLDCrateManager:_processSpawnableCrates()
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
+    -- Inject AA repair crate entries from CTLDCrateAssemblyManager.TEMPLATES
+    -- before processing, so they appear in menus and weight-index like any other crate.
+    CTLDCrateAssemblyManager.injectRepairCrates(spawnableCrates)
     local showCrateSets   = ctld.gs("enableAllCrates") ~= false
     local allSuffix       = " - " .. ctld.tr("All crates")
 

@@ -767,7 +767,6 @@ function CTLDConfig:load()
             { weight = 1004.03,                         desc = ctld.tr("HAWK Track Radar"),          unit = "Hawk tr",              side = 2 },
             { weight = 1004.04,                         desc = ctld.tr("HAWK PCP"),                  unit = "Hawk pcp",             side = 2 },
             { weight = 1004.05,                         desc = ctld.tr("HAWK CWAR"),                 unit = "Hawk cwar",            side = 2 },
-            { weight = 1004.06,                         desc = ctld.tr("HAWK Repair"),               unit = "HAWK Repair",          side = 2 },
             { mixedSet = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
             -- End of HAWK
 
@@ -775,7 +774,6 @@ function CTLDConfig:load()
             { weight = 1004.11,                         desc = ctld.tr("NASAMS Launcher 120C"),      unit = "NASAMS_LN_C",          side = 2 },
             { weight = 1004.12,                         desc = ctld.tr("NASAMS Search/Track Radar"), unit = "NASAMS_Radar_MPQ64F1", side = 2 },
             { weight = 1004.13,                         desc = ctld.tr("NASAMS Command Post"),       unit = "NASAMS_Command_Post",  side = 2 },
-            { weight = 1004.14,                         desc = ctld.tr("NASAMS Repair"),             unit = "NASAMS Repair",        side = 2 },
             { mixedSet = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
             -- End of NASAMS
 
@@ -783,7 +781,6 @@ function CTLDConfig:load()
             -- KUB SYSTEM
             { weight = 1004.21,                         desc = ctld.tr("KUB Launcher"),              unit = "Kub 2P25 ln",          side = 1 },
             { weight = 1004.22,                         desc = ctld.tr("KUB Radar"),                 unit = "Kub 1S91 str",         side = 1 },
-            { weight = 1004.23,                         desc = ctld.tr("KUB Repair"),                unit = "KUB Repair",           side = 1 },
             { mixedSet = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
             -- End of KUB
 
@@ -791,7 +788,6 @@ function CTLDConfig:load()
             { weight = 1004.31,                         desc = ctld.tr("BUK Launcher"),              unit = "SA-11 Buk LN 9A310M1", side = 1 },
             { weight = 1004.32,                         desc = ctld.tr("BUK Search Radar"),          unit = "SA-11 Buk SR 9S18M1",  side = 1 },
             { weight = 1004.33,                         desc = ctld.tr("BUK CC Radar"),              unit = "SA-11 Buk CC 9S470M1", side = 1 },
-            { weight = 1004.34,                         desc = ctld.tr("BUK Repair"),                unit = "BUK Repair",           side = 1 },
             { mixedSet = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
             -- END of BUK
         },
@@ -804,7 +800,6 @@ function CTLDConfig:load()
             -- { weight = 1005.04, desc = ctld.tr("Patriot ICC"), unit = "Patriot cp", side = 2 },
             -- { weight = 1005.05, desc = ctld.tr("Patriot EPP"), unit = "Patriot EPP", side = 2 },
             { weight = 1005.06,                                           desc = ctld.tr("Patriot AMG (optional)"),      unit = "Patriot AMG",       side = 2 },
-            { weight = 1005.07,                                           desc = ctld.tr("Patriot Repair"),              unit = "Patriot Repair",    side = 2 },
             { mixedSet = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
             -- End of Patriot
 
@@ -814,7 +809,6 @@ function CTLDConfig:load()
             { weight = 1005.13,                                           desc = ctld.tr("S-300 Grumble Clam Shell SR"), unit = "S-300PS 40B6MD sr", side = 1 },
             { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
             { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
-            { weight = 1005.16,                                           desc = ctld.tr("S-300 Repair"),                unit = "S-300 Repair",      side = 1 },
             { mixedSet = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
             -- End of S-300
         },
@@ -6342,15 +6336,6 @@ function CTLDModValidator:_collectTypeNames()
     local entries = {}
     local seen    = {}
 
-    -- Build AA repair sentinel set upfront (used to exclude non-DCS entries in buildableGroups).
-    -- tmpl.repair values are CTLD-internal routing identifiers, not real DCS unit typeNames.
-    local _repairSentinels = {}
-    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
-        and CTLDCrateAssemblyManager.TEMPLATES or {}
-    for _, tmpl in ipairs(_aaTmpls) do
-        if tmpl.repair then _repairSentinels[tmpl.repair] = true end
-    end
-
     -- Reserved keys not forwarded to addStaticObject
     local _skipDescKeys = {
         groupType=true, namePrefix=true, type=true, category=true, probeSkip=true,
@@ -6394,25 +6379,28 @@ function CTLDModValidator:_collectTypeNames()
         end
     end
 
-    -- 2. buildableGroups (Combat Vehicles and other sections) ────────────────
-    -- Skip "FOB" (scene trigger) and AA repair sentinels (CTLD-internal routing, not DCS typeNames).
-    local buildable = ctld.gs("buildableGroups") or {}
+    -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
+    -- Skip "FOB" (scene trigger) and repair entries (_repairFor flag = internal, not a DCS typeName).
+    local buildable = ctld.gs("spawnableCrates") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
             for _, item in ipairs(items) do
                 if item.unit and item.unit ~= "FOB"
-                    and not _repairSentinels[item.unit]
+                    and not item._repairFor
+                    and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then
                     add(item.unit, "GROUND", nil,
-                        "buildableGroups[" .. tostring(sectionName) .. "]", nil)
+                        "spawnableCrates[" .. tostring(sectionName) .. "]", nil)
                 end
             end
         end
     end
 
     -- 3. CTLDCrateAssemblyManager.TEMPLATES (AA systems) ────────────────────
-    -- Only probe part.DCSTypename — these are real DCS unit types spawned by spawnSystemAt.
-    -- tmpl.repair is a CTLD-internal routing sentinel, already excluded via _repairSentinels.
+    -- Only probe part.DCSTypename — real DCS unit types spawned by spawnSystemAt.
+    -- tmpl.repair is a struct {desc,weight,side}, not a DCS typeName — never probed.
+    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
+        and CTLDCrateAssemblyManager.TEMPLATES or {}
     for _, tmpl in ipairs(_aaTmpls) do
         if tmpl.parts then
             for _, part in ipairs(tmpl.parts) do
@@ -11189,6 +11177,9 @@ end
 -- Results stored in self._processedCrates[category] and self._weightIndex[weight].
 function CTLDCrateManager:_processSpawnableCrates()
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
+    -- Inject AA repair crate entries from CTLDCrateAssemblyManager.TEMPLATES
+    -- before processing, so they appear in menus and weight-index like any other crate.
+    CTLDCrateAssemblyManager.injectRepairCrates(spawnableCrates)
     local showCrateSets   = ctld.gs("enableAllCrates") ~= false
     local allSuffix       = " - " .. ctld.tr("All crates")
 
@@ -15722,7 +15713,10 @@ CTLDCrateAssemblyManager._instance = nil
 --     launcher true   → this part is the "launcher" (used for rearm detection)
 --     amount   number → override spawn count per template (default 1, or aaLaunchers for launchers)
 --     NoCrate  true   → part is spawned without a crate (always found)
---   repair  string   DCS type name of the repair crate unit for this system
+--   repair  table    repair crate metadata { desc, weight, side }
+--     desc   string  translated display label (used in crate menu)
+--     weight number  unique weight identifier (same slot as other crates in buildableGroups)
+--     side   number  coalition.side (1=RED, 2=BLUE)
 CTLDCrateAssemblyManager.TEMPLATES = {
     {
         name  = "HAWK AA System",
@@ -15734,7 +15728,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true },
             { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true },
         },
-        repair = "HAWK Repair",
+        repair = { desc = ctld.tr("HAWK Repair"),    weight = 1004.06, side = 2 },
     },
     {
         name  = "Patriot AA System",
@@ -15745,7 +15739,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Patriot str", desc = "Patriot Search and Track Radar", amount = 2 },
             { DCSTypename = "Patriot AMG", desc = "Patriot AMG DL relay",           NoCrate = true },
         },
-        repair = "Patriot Repair",
+        repair = { desc = ctld.tr("Patriot Repair"), weight = 1005.07, side = 2 },
     },
     {
         name  = "NASAMS AA System",
@@ -15755,7 +15749,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar" },
             { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post" },
         },
-        repair = "NASAMS Repair",
+        repair = { desc = ctld.tr("NASAMS Repair"),  weight = 1004.14, side = 2 },
     },
     {
         name  = "BUK AA System",
@@ -15765,7 +15759,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar" },
             { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar" },
         },
-        repair = "BUK Repair",
+        repair = { desc = ctld.tr("BUK Repair"),     weight = 1004.34, side = 1 },
     },
     {
         name  = "KUB AA System",
@@ -15774,7 +15768,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true },
             { DCSTypename = "Kub 1S91 str", desc = "KUB Radar" },
         },
-        repair = "KUB Repair",
+        repair = { desc = ctld.tr("KUB Repair"),     weight = 1004.23, side = 1 },
     },
     {
         name  = "S-300 AA System",
@@ -15787,7 +15781,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "S-300PS 64H6E sr", desc = "S-300 Grumble Big Bird SR" },
             { DCSTypename = "S-300PS 54K6 cp",  desc = "S-300 Grumble C2" },
         },
-        repair = "S-300 Repair",
+        repair = { desc = ctld.tr("S-300 Repair"),   weight = 1005.16, side = 1 },
     },
 }
 
@@ -15808,6 +15802,49 @@ function CTLDCrateAssemblyManager:init()
     -- groupName → { details = [{point,unit,name,hdg}], template = template }
     self._completeSystems = {}
     ctld.utils.log("INFO", "CTLDCrateAssemblyManager: init complete")
+end
+
+--- Inject AA repair crate entries into the spawnableCrates table.
+-- Called by CTLDCrateManager._processSpawnableCrates() before its main loop,
+-- so the table is already in hand and config is guaranteed to be loaded.
+-- Each repair entry carries _repairFor = tmpl.name (internal flag, not a DCS typeName).
+-- The target section is the one that already contains the template's first part type.
+-- @param spawnableCrates table  the live spawnableCrates config table (passed by reference)
+function CTLDCrateAssemblyManager.injectRepairCrates(spawnableCrates)
+    if type(spawnableCrates) ~= "table" then return end
+    for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+        if tmpl.repair and tmpl.parts and #tmpl.parts > 0 then
+            local r             = tmpl.repair
+            local firstPartType = tmpl.parts[1].DCSTypename
+            local targetSection = nil
+            for sectionName, items in pairs(spawnableCrates) do
+                if type(items) == "table" then
+                    for _, item in ipairs(items) do
+                        if item.unit == firstPartType then
+                            targetSection = sectionName
+                            break
+                        end
+                    end
+                end
+                if targetSection then break end
+            end
+            if targetSection then
+                table.insert(spawnableCrates[targetSection], {
+                    weight         = r.weight,
+                    desc           = r.desc,
+                    side           = r.side,
+                    cratesRequired = 1,
+                    _repairFor     = tmpl.name,
+                })
+                ctld.utils.log("INFO",
+                    "CTLDCrateAssemblyManager: repair crate '%s' injected in section '%s'",
+                    r.desc, targetSection)
+            else
+                ctld.utils.log("WARN",
+                    "CTLDCrateAssemblyManager: no section found for repair crate of '%s'", tmpl.name)
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -15841,19 +15878,20 @@ end
 -- Public helpers
 -- ============================================================
 
---- Find the AA template that owns a given DCS unit type name.
--- Checks both part names and the repair unit name.
--- @param unitName string   DCS type name (from crate descriptor.unit)
--- @return table|nil        template entry from TEMPLATES, or nil
-function CTLDCrateAssemblyManager:getTemplateForUnit(unitName)
-    if not unitName then return nil end
+--- Find the AA template that owns a given unit type or repair marker.
+-- @param unitName  string|nil  DCS type name (from crate descriptor.unit), or nil
+-- @param repairFor string|nil  template name (from crate descriptor._repairFor), or nil
+-- @return table|nil, boolean   template entry (or nil), isRepair flag
+function CTLDCrateAssemblyManager:getTemplateForUnit(unitName, repairFor)
     for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-        if tmpl.repair == unitName then return tmpl end
-        for _, part in ipairs(tmpl.parts) do
-            if part.DCSTypename == unitName then return tmpl end
+        if repairFor and tmpl.name == repairFor then return tmpl, true end
+        if unitName then
+            for _, part in ipairs(tmpl.parts) do
+                if part.DCSTypename == unitName then return tmpl, false end
+            end
         end
     end
-    return nil
+    return nil, false
 end
 
 --- Count complete active AA systems for a given coalition.
@@ -16019,11 +16057,12 @@ end
 function CTLDCrateAssemblyManager:tryUnpackOrRepair(heli, crate, allCrates, radius)
     if not crate or not crate.descriptor then return false end
 
-    local unitName = crate.descriptor.unit
-    local template = self:getTemplateForUnit(unitName)
+    local unitName  = crate.descriptor.unit
+    local repairFor = crate.descriptor._repairFor
+    local template, isRepair = self:getTemplateForUnit(unitName, repairFor)
     if not template then return false end
 
-    if unitName == template.repair then
+    if isRepair then
         self:_repair(heli, crate, template)
     else
         self:_assemble(heli, crate, allCrates, template, radius or _ASSEMBLY_DIST)

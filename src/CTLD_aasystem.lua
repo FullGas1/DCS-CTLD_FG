@@ -51,7 +51,10 @@ CTLDCrateAssemblyManager._instance = nil
 --     launcher true   → this part is the "launcher" (used for rearm detection)
 --     amount   number → override spawn count per template (default 1, or aaLaunchers for launchers)
 --     NoCrate  true   → part is spawned without a crate (always found)
---   repair  string   DCS type name of the repair crate unit for this system
+--   repair  table    repair crate metadata { desc, weight, side }
+--     desc   string  translated display label (used in crate menu)
+--     weight number  unique weight identifier (same slot as other crates in buildableGroups)
+--     side   number  coalition.side (1=RED, 2=BLUE)
 CTLDCrateAssemblyManager.TEMPLATES = {
     {
         name  = "HAWK AA System",
@@ -63,7 +66,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true },
             { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true },
         },
-        repair = "HAWK Repair",
+        repair = { desc = ctld.tr("HAWK Repair"),    weight = 1004.06, side = 2 },
     },
     {
         name  = "Patriot AA System",
@@ -74,7 +77,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Patriot str", desc = "Patriot Search and Track Radar", amount = 2 },
             { DCSTypename = "Patriot AMG", desc = "Patriot AMG DL relay",           NoCrate = true },
         },
-        repair = "Patriot Repair",
+        repair = { desc = ctld.tr("Patriot Repair"), weight = 1005.07, side = 2 },
     },
     {
         name  = "NASAMS AA System",
@@ -84,7 +87,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar" },
             { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post" },
         },
-        repair = "NASAMS Repair",
+        repair = { desc = ctld.tr("NASAMS Repair"),  weight = 1004.14, side = 2 },
     },
     {
         name  = "BUK AA System",
@@ -94,7 +97,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar" },
             { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar" },
         },
-        repair = "BUK Repair",
+        repair = { desc = ctld.tr("BUK Repair"),     weight = 1004.34, side = 1 },
     },
     {
         name  = "KUB AA System",
@@ -103,7 +106,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true },
             { DCSTypename = "Kub 1S91 str", desc = "KUB Radar" },
         },
-        repair = "KUB Repair",
+        repair = { desc = ctld.tr("KUB Repair"),     weight = 1004.23, side = 1 },
     },
     {
         name  = "S-300 AA System",
@@ -116,7 +119,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
             { DCSTypename = "S-300PS 64H6E sr", desc = "S-300 Grumble Big Bird SR" },
             { DCSTypename = "S-300PS 54K6 cp",  desc = "S-300 Grumble C2" },
         },
-        repair = "S-300 Repair",
+        repair = { desc = ctld.tr("S-300 Repair"),   weight = 1005.16, side = 1 },
     },
 }
 
@@ -137,6 +140,49 @@ function CTLDCrateAssemblyManager:init()
     -- groupName → { details = [{point,unit,name,hdg}], template = template }
     self._completeSystems = {}
     ctld.utils.log("INFO", "CTLDCrateAssemblyManager: init complete")
+end
+
+--- Inject AA repair crate entries into the spawnableCrates table.
+-- Called by CTLDCrateManager._processSpawnableCrates() before its main loop,
+-- so the table is already in hand and config is guaranteed to be loaded.
+-- Each repair entry carries _repairFor = tmpl.name (internal flag, not a DCS typeName).
+-- The target section is the one that already contains the template's first part type.
+-- @param spawnableCrates table  the live spawnableCrates config table (passed by reference)
+function CTLDCrateAssemblyManager.injectRepairCrates(spawnableCrates)
+    if type(spawnableCrates) ~= "table" then return end
+    for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+        if tmpl.repair and tmpl.parts and #tmpl.parts > 0 then
+            local r             = tmpl.repair
+            local firstPartType = tmpl.parts[1].DCSTypename
+            local targetSection = nil
+            for sectionName, items in pairs(spawnableCrates) do
+                if type(items) == "table" then
+                    for _, item in ipairs(items) do
+                        if item.unit == firstPartType then
+                            targetSection = sectionName
+                            break
+                        end
+                    end
+                end
+                if targetSection then break end
+            end
+            if targetSection then
+                table.insert(spawnableCrates[targetSection], {
+                    weight         = r.weight,
+                    desc           = r.desc,
+                    side           = r.side,
+                    cratesRequired = 1,
+                    _repairFor     = tmpl.name,
+                })
+                ctld.utils.log("INFO",
+                    "CTLDCrateAssemblyManager: repair crate '%s' injected in section '%s'",
+                    r.desc, targetSection)
+            else
+                ctld.utils.log("WARN",
+                    "CTLDCrateAssemblyManager: no section found for repair crate of '%s'", tmpl.name)
+            end
+        end
+    end
 end
 
 -- ============================================================
@@ -170,19 +216,20 @@ end
 -- Public helpers
 -- ============================================================
 
---- Find the AA template that owns a given DCS unit type name.
--- Checks both part names and the repair unit name.
--- @param unitName string   DCS type name (from crate descriptor.unit)
--- @return table|nil        template entry from TEMPLATES, or nil
-function CTLDCrateAssemblyManager:getTemplateForUnit(unitName)
-    if not unitName then return nil end
+--- Find the AA template that owns a given unit type or repair marker.
+-- @param unitName  string|nil  DCS type name (from crate descriptor.unit), or nil
+-- @param repairFor string|nil  template name (from crate descriptor._repairFor), or nil
+-- @return table|nil, boolean   template entry (or nil), isRepair flag
+function CTLDCrateAssemblyManager:getTemplateForUnit(unitName, repairFor)
     for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-        if tmpl.repair == unitName then return tmpl end
-        for _, part in ipairs(tmpl.parts) do
-            if part.DCSTypename == unitName then return tmpl end
+        if repairFor and tmpl.name == repairFor then return tmpl, true end
+        if unitName then
+            for _, part in ipairs(tmpl.parts) do
+                if part.DCSTypename == unitName then return tmpl, false end
+            end
         end
     end
-    return nil
+    return nil, false
 end
 
 --- Count complete active AA systems for a given coalition.
@@ -348,11 +395,12 @@ end
 function CTLDCrateAssemblyManager:tryUnpackOrRepair(heli, crate, allCrates, radius)
     if not crate or not crate.descriptor then return false end
 
-    local unitName = crate.descriptor.unit
-    local template = self:getTemplateForUnit(unitName)
+    local unitName  = crate.descriptor.unit
+    local repairFor = crate.descriptor._repairFor
+    local template, isRepair = self:getTemplateForUnit(unitName, repairFor)
     if not template then return false end
 
-    if unitName == template.repair then
+    if isRepair then
         self:_repair(heli, crate, template)
     else
         self:_assemble(heli, crate, allCrates, template, radius or _ASSEMBLY_DIST)
