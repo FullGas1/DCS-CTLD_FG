@@ -42,86 +42,10 @@ ctld = ctld or {}
 CTLDCrateAssemblyManager = class()
 CTLDCrateAssemblyManager._instance = nil
 
---- Static template table.  Each entry:
---   name    string   system display name
---   count   number   unique part types required for a complete system
---   parts   array    { name, desc, launcher?, amount?, NoCrate? }
---     name     DCS type name of the ground unit
---     desc     human-readable label (for "missing" messages)
---     launcher true   → this part is the "launcher" (used for rearm detection)
---     amount   number → override spawn count per template (default 1, or aaLaunchers for launchers)
---     NoCrate  true   → part is spawned without a crate (always found)
---   repair  table    repair crate metadata { desc, weight, side }
---     desc   string  translated display label (used in crate menu)
---     weight number  unique weight identifier (same slot as other crates in buildableGroups)
---     side   number  coalition.side (1=RED, 2=BLUE)
-CTLDCrateAssemblyManager.TEMPLATES = {
-    {
-        name  = "HAWK AA System",
-        count = 5,
-        parts = {
-            { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",     launcher = true },
-            { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2 },
-            { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar", amount = 2 },
-            { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true },
-            { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true },
-        },
-        repair = { desc = ctld.tr("HAWK Repair"),    weight = 1004.06, side = 2 },
-    },
-    {
-        name  = "Patriot AA System",
-        count = 4,
-        parts = {
-            { DCSTypename = "Patriot ln",  desc = "Patriot Launcher",               launcher = true, amount = 8 },
-            { DCSTypename = "Patriot ECS", desc = "Patriot Control Unit" },
-            { DCSTypename = "Patriot str", desc = "Patriot Search and Track Radar", amount = 2 },
-            { DCSTypename = "Patriot AMG", desc = "Patriot AMG DL relay",           NoCrate = true },
-        },
-        repair = { desc = ctld.tr("Patriot Repair"), weight = 1005.07, side = 2 },
-    },
-    {
-        name  = "NASAMS AA System",
-        count = 3,
-        parts = {
-            { DCSTypename = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true },
-            { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar" },
-            { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post" },
-        },
-        repair = { desc = ctld.tr("NASAMS Repair"),  weight = 1004.14, side = 2 },
-    },
-    {
-        name  = "BUK AA System",
-        count = 3,
-        parts = {
-            { DCSTypename = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",    launcher = true },
-            { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar" },
-            { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar" },
-        },
-        repair = { desc = ctld.tr("BUK Repair"),     weight = 1004.34, side = 1 },
-    },
-    {
-        name  = "KUB AA System",
-        count = 2,
-        parts = {
-            { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true },
-            { DCSTypename = "Kub 1S91 str", desc = "KUB Radar" },
-        },
-        repair = { desc = ctld.tr("KUB Repair"),     weight = 1004.23, side = 1 },
-    },
-    {
-        name  = "S-300 AA System",
-        count = 6,
-        parts = {
-            { DCSTypename = "S-300PS 5P85C ln", desc = "S-300 Grumble TEL C",         launcher = true, amount = 1 },
-            { DCSTypename = "S-300PS 5P85D ln", desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },
-            { DCSTypename = "S-300PS 40B6M tr", desc = "S-300 Grumble Flap Lid-A TR" },
-            { DCSTypename = "S-300PS 40B6MD sr",desc = "S-300 Grumble Clam Shell SR" },
-            { DCSTypename = "S-300PS 64H6E sr", desc = "S-300 Grumble Big Bird SR" },
-            { DCSTypename = "S-300PS 54K6 cp",  desc = "S-300 Grumble C2" },
-        },
-        repair = { desc = ctld.tr("S-300 Repair"),   weight = 1005.16, side = 1 },
-    },
-}
+-- AA system templates are declared in CTLD_config.lua (CTLDConfig:load), after spawnableCrates.
+-- This placeholder is overwritten at config load time, before any manager init runs.
+-- See CTLDCrateAssemblyManager.injectAACrates() for how templates populate spawnableCrates.
+CTLDCrateAssemblyManager.TEMPLATES = {}
 
 -- ============================================================
 -- Singleton
@@ -142,45 +66,75 @@ function CTLDCrateAssemblyManager:init()
     ctld.utils.log("INFO", "CTLDCrateAssemblyManager: init complete")
 end
 
---- Inject AA repair crate entries into the spawnableCrates table.
+--- Inject all AA system crate entries (parts + repair) into spawnableCrates.
 -- Called by CTLDCrateManager._processSpawnableCrates() before its main loop,
--- so the table is already in hand and config is guaranteed to be loaded.
--- Each repair entry carries _repairFor = tmpl.name (internal flag, not a DCS typeName).
--- The target section is the one that already contains the template's first part type.
--- @param spawnableCrates table  the live spawnableCrates config table (passed by reference)
-function CTLDCrateAssemblyManager.injectRepairCrates(spawnableCrates)
+-- so the table is in hand and CTLDConfig:load() has already populated TEMPLATES.
+--
+-- For each template:
+--   - Creates the target section (tmpl.sectionName) if it does not exist yet.
+--   - Injects one entry per part that carries a weight field (NoCrate parts with weight
+--     get a menu entry but are NOT counted in the auto-generated mixedSet).
+--   - Auto-generates a mixedSet entry from all non-NoCrate parts (if allCratesLabel set).
+--   - Injects the repair crate entry (_repairFor flag marks it as internal, not a DCS typeName).
+--
+-- DESIGN NOTE (Option A): a section may contain both manually declared entries (from
+-- spawnableCrates above) and injected AA entries. This is intentional and documented.
+-- Do NOT manually add AA part entries in spawnableCrates — they will appear twice.
+--
+-- @param spawnableCrates table  live spawnableCrates config table (modified in place)
+function CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)
     if type(spawnableCrates) ~= "table" then return end
     for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-        if tmpl.repair and tmpl.parts and #tmpl.parts > 0 then
-            local r             = tmpl.repair
-            local firstPartType = tmpl.parts[1].DCSTypename
-            local targetSection = nil
-            for sectionName, items in pairs(spawnableCrates) do
-                if type(items) == "table" then
-                    for _, item in ipairs(items) do
-                        if item.unit == firstPartType then
-                            targetSection = sectionName
-                            break
-                        end
+        local section = tmpl.sectionName
+        if not section then
+            ctld.utils.log("WARN",
+                "CTLDCrateAssemblyManager: template '%s' missing sectionName — skipped", tmpl.name)
+        else
+            if not spawnableCrates[section] then
+                spawnableCrates[section] = {}
+            end
+
+            local mixedWeights = {}
+            for _, part in ipairs(tmpl.parts or {}) do
+                if part.weight then
+                    table.insert(spawnableCrates[section], {
+                        weight         = part.weight,
+                        desc           = ctld.tr(part.desc),
+                        unit           = part.DCSTypename,
+                        side           = tmpl.side,
+                        cratesRequired = part.cratesRequired or 1,
+                    })
+                    -- Only required parts (non-NoCrate) go into the All-crates set
+                    if not part.NoCrate then
+                        table.insert(mixedWeights, part.weight)
                     end
                 end
-                if targetSection then break end
             end
-            if targetSection then
-                table.insert(spawnableCrates[targetSection], {
+
+            -- Auto-generate "All crates" mixedSet when multiple required parts exist
+            if tmpl.allCratesLabel and #mixedWeights > 1 then
+                table.insert(spawnableCrates[section], {
+                    mixedSet = mixedWeights,
+                    desc     = ctld.tr(tmpl.allCratesLabel),
+                    side     = tmpl.side,
+                })
+            end
+
+            -- Repair crate — _repairFor is an internal flag, not a DCS typeName
+            if tmpl.repair then
+                local r = tmpl.repair
+                table.insert(spawnableCrates[section], {
                     weight         = r.weight,
-                    desc           = r.desc,
-                    side           = r.side,
+                    desc           = ctld.tr(r.desc),
+                    side           = tmpl.side,
                     cratesRequired = 1,
                     _repairFor     = tmpl.name,
                 })
-                ctld.utils.log("INFO",
-                    "CTLDCrateAssemblyManager: repair crate '%s' injected in section '%s'",
-                    r.desc, targetSection)
-            else
-                ctld.utils.log("WARN",
-                    "CTLDCrateAssemblyManager: no section found for repair crate of '%s'", tmpl.name)
             end
+
+            ctld.utils.log("INFO",
+                "CTLDCrateAssemblyManager: injected AA crates for '%s' into section '%s'",
+                tmpl.name, section)
         end
     end
 end

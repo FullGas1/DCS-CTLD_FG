@@ -714,59 +714,13 @@ function CTLDConfig:load()
             { weight = 1003.14, desc = ctld.tr("9K331 Tor"),       unit = "Tor 9A331",           side = 1, cratesRequired = 3 },
             { weight = 1003.15, desc = ctld.tr("2K22 Tunguska"),   unit = "2S6 Tunguska",        side = 1, cratesRequired = 3 },
         },
-        ["SAM mid range"] = {
-            --- BLUE
-            -- HAWK System
-            { weight = 1004.01,                         desc = ctld.tr("HAWK Launcher"),             unit = "Hawk ln",              side = 2 },
-            { weight = 1004.02,                         desc = ctld.tr("HAWK Search Radar"),         unit = "Hawk sr",              side = 2 },
-            { weight = 1004.03,                         desc = ctld.tr("HAWK Track Radar"),          unit = "Hawk tr",              side = 2 },
-            { weight = 1004.04,                         desc = ctld.tr("HAWK PCP"),                  unit = "Hawk pcp",             side = 2 },
-            { weight = 1004.05,                         desc = ctld.tr("HAWK CWAR"),                 unit = "Hawk cwar",            side = 2 },
-            { mixedSet = { 1004.01, 1004.02, 1004.03 }, desc = ctld.tr("HAWK - All crates"),         side = 2 },
-            -- End of HAWK
-
-            -- NASAMS Sysyem
-            { weight = 1004.11,                         desc = ctld.tr("NASAMS Launcher 120C"),      unit = "NASAMS_LN_C",          side = 2 },
-            { weight = 1004.12,                         desc = ctld.tr("NASAMS Search/Track Radar"), unit = "NASAMS_Radar_MPQ64F1", side = 2 },
-            { weight = 1004.13,                         desc = ctld.tr("NASAMS Command Post"),       unit = "NASAMS_Command_Post",  side = 2 },
-            { mixedSet = { 1004.11, 1004.12, 1004.13 }, desc = ctld.tr("NASAMS - All crates"),       side = 2 },
-            -- End of NASAMS
-
-            --- RED
-            -- KUB SYSTEM
-            { weight = 1004.21,                         desc = ctld.tr("KUB Launcher"),              unit = "Kub 2P25 ln",          side = 1 },
-            { weight = 1004.22,                         desc = ctld.tr("KUB Radar"),                 unit = "Kub 1S91 str",         side = 1 },
-            { mixedSet = { 1004.21, 1004.22 },          desc = ctld.tr("KUB - All crates"),          side = 1 },
-            -- End of KUB
-
-            -- BUK System
-            { weight = 1004.31,                         desc = ctld.tr("BUK Launcher"),              unit = "SA-11 Buk LN 9A310M1", side = 1 },
-            { weight = 1004.32,                         desc = ctld.tr("BUK Search Radar"),          unit = "SA-11 Buk SR 9S18M1",  side = 1 },
-            { weight = 1004.33,                         desc = ctld.tr("BUK CC Radar"),              unit = "SA-11 Buk CC 9S470M1", side = 1 },
-            { mixedSet = { 1004.31, 1004.32, 1004.33 }, desc = ctld.tr("BUK - All crates"),          side = 1 },
-            -- END of BUK
-        },
-        ["SAM long range"] = {
-            --- BLUE
-            -- Patriot System
-            { weight = 1005.01,                                           desc = ctld.tr("Patriot Launcher"),            unit = "Patriot ln",        side = 2 },
-            { weight = 1005.02,                                           desc = ctld.tr("Patriot Radar"),               unit = "Patriot str",       side = 2 },
-            { weight = 1005.03,                                           desc = ctld.tr("Patriot ECS"),                 unit = "Patriot ECS",       side = 2 },
-            -- { weight = 1005.04, desc = ctld.tr("Patriot ICC"), unit = "Patriot cp", side = 2 },
-            -- { weight = 1005.05, desc = ctld.tr("Patriot EPP"), unit = "Patriot EPP", side = 2 },
-            { weight = 1005.06,                                           desc = ctld.tr("Patriot AMG (optional)"),      unit = "Patriot AMG",       side = 2 },
-            { mixedSet = { 1005.01, 1005.02, 1005.03 },                   desc = ctld.tr("Patriot - All crates"),        side = 2 },
-            -- End of Patriot
-
-            -- S-300 SYSTEM
-            { weight = 1005.11,                                           desc = ctld.tr("S-300 Grumble TEL C"),         unit = "S-300PS 5P85C ln",  side = 1 },
-            { weight = 1005.12,                                           desc = ctld.tr("S-300 Grumble Flap Lid-A TR"), unit = "S-300PS 40B6M tr",  side = 1 },
-            { weight = 1005.13,                                           desc = ctld.tr("S-300 Grumble Clam Shell SR"), unit = "S-300PS 40B6MD sr", side = 1 },
-            { weight = 1005.14,                                           desc = ctld.tr("S-300 Grumble Big Bird SR"),   unit = "S-300PS 64H6E sr",  side = 1 },
-            { weight = 1005.15,                                           desc = ctld.tr("S-300 Grumble C2"),            unit = "S-300PS 54K6 cp",   side = 1 },
-            { mixedSet = { 1005.11, 1005.12, 1005.13, 1005.14, 1005.15 }, desc = ctld.tr("S-300 - All crates"),          side = 1 },
-            -- End of S-300
-        },
+        -- NOTE: AA system crate entries (SAM mid range, SAM long range) are NOT declared here.
+        -- They are injected automatically from CTLDCrateAssemblyManager.TEMPLATES at init
+        -- (via injectAACrates called from CTLDCrateManager._processSpawnableCrates).
+        -- To add or modify AA system crates, edit the TEMPLATES declaration below.
+        -- DESIGN NOTE (Option A): if you add non-AA entries to a section whose name matches
+        -- a template sectionName (e.g. "SAM mid range"), both sources coexist in that section.
+        -- This is intentional — do NOT manually declare AA part entries here (they will duplicate).
         ["Drone"] = {
             --- BLUE MQ-9 Repear
             {
@@ -857,6 +811,119 @@ function CTLDConfig:load()
         ["shape_name"] = "trunks_small_cargo",
         ["type"] = "trunks_small_cargo",
 ]] --
+
+    -- ************** AA SYSTEM ASSEMBLY TEMPLATES **********************
+    -- Single source of truth for deployable AA systems: parts, assembly rules, AND menu crates.
+    -- At init, CTLDCrateAssemblyManager.injectAACrates() reads this table and populates the
+    -- spawnableCrates sections automatically — no manual duplication needed.
+    --
+    -- Field reference:
+    --   name           string   display name of the system (used in messages and event data)
+    --   count          number   number of unique part types required for a complete system
+    --   side           number   coalition owning this system (1=RED, 2=BLUE)
+    --   sectionName    string   spawnableCrates section where crate entries will be injected
+    --   allCratesLabel string   i18n key for the auto-generated "All crates" mixedSet entry
+    --                           (optional — omit to suppress the mixedSet)
+    --   parts          array:
+    --     DCSTypename  string   DCS type name of the ground unit spawned at assembly
+    --     desc         string   i18n key — used for crate menu label AND "Missing X" messages
+    --     weight       number   crate weight (kg). Dual role: DCS slingload mass AND unique
+    --                           lookup key. MUST be globally unique across all spawnableCrates.
+    --                           Omit for NoCrate parts that have no standalone crate at all.
+    --     launcher     bool     true = this part triggers rearm detection
+    --     amount       number   units spawned per template (default 1; launchers use aaLaunchers)
+    --     NoCrate      bool     true = part always present at assembly, not counted in mixedSet.
+    --                           Can still carry a weight (spawnable as a standalone crate).
+    --     cratesRequired number number of crates of this type needed to unlock the part (default 1)
+    --   repair         table:
+    --     desc         string   i18n key for repair crate menu label
+    --     weight       number   unique crate weight for the repair crate (side = tmpl.side)
+    --
+    CTLDCrateAssemblyManager.TEMPLATES = {
+        {
+            name           = "HAWK AA System",
+            count          = 5,
+            side           = 2,
+            sectionName    = "SAM mid range",
+            allCratesLabel = "HAWK - All crates",
+            parts = {
+                { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",     launcher = true, weight = 1004.01 },
+                { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar", amount = 2,      weight = 1004.02 },
+                { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2,      weight = 1004.03 },
+                { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true,  weight = 1004.04 },
+                { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true, weight = 1004.05 },
+            },
+            repair = { desc = "HAWK Repair", weight = 1004.06 },
+        },
+        {
+            name           = "NASAMS AA System",
+            count          = 3,
+            side           = 2,
+            sectionName    = "SAM mid range",
+            allCratesLabel = "NASAMS - All crates",
+            parts = {
+                { DCSTypename = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true, weight = 1004.11 },
+                { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar",                 weight = 1004.12 },
+                { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post",                       weight = 1004.13 },
+            },
+            repair = { desc = "NASAMS Repair", weight = 1004.14 },
+        },
+        {
+            name           = "BUK AA System",
+            count          = 3,
+            side           = 1,
+            sectionName    = "SAM mid range",
+            allCratesLabel = "BUK - All crates",
+            parts = {
+                { DCSTypename = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",     launcher = true, weight = 1004.31 },
+                { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar",                  weight = 1004.32 },
+                { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar",                      weight = 1004.33 },
+            },
+            repair = { desc = "BUK Repair", weight = 1004.34 },
+        },
+        {
+            name           = "KUB AA System",
+            count          = 2,
+            side           = 1,
+            sectionName    = "SAM mid range",
+            allCratesLabel = "KUB - All crates",
+            parts = {
+                { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true, weight = 1004.21 },
+                { DCSTypename = "Kub 1S91 str", desc = "KUB Radar",                     weight = 1004.22 },
+            },
+            repair = { desc = "KUB Repair", weight = 1004.23 },
+        },
+        {
+            name           = "Patriot AA System",
+            count          = 4,
+            side           = 2,
+            sectionName    = "SAM long range",
+            allCratesLabel = "Patriot - All crates",
+            parts = {
+                { DCSTypename = "Patriot ln",  desc = "Patriot Launcher",        launcher = true, amount = 8, weight = 1005.01 },
+                { DCSTypename = "Patriot str", desc = "Patriot Radar",           amount = 2,                  weight = 1005.02 },
+                { DCSTypename = "Patriot ECS", desc = "Patriot ECS",                                          weight = 1005.03 },
+                { DCSTypename = "Patriot AMG", desc = "Patriot AMG (optional)",  NoCrate = true,              weight = 1005.06 },
+            },
+            repair = { desc = "Patriot Repair", weight = 1005.07 },
+        },
+        {
+            name           = "S-300 AA System",
+            count          = 6,
+            side           = 1,
+            sectionName    = "SAM long range",
+            allCratesLabel = "S-300 - All crates",
+            parts = {
+                { DCSTypename = "S-300PS 5P85C ln",  desc = "S-300 Grumble TEL C",         launcher = true, amount = 1, weight = 1005.11 },
+                { DCSTypename = "S-300PS 5P85D ln",  desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },   -- no standalone crate
+                { DCSTypename = "S-300PS 40B6M tr",  desc = "S-300 Grumble Flap Lid-A TR",                             weight = 1005.12 },
+                { DCSTypename = "S-300PS 40B6MD sr", desc = "S-300 Grumble Clam Shell SR",                             weight = 1005.13 },
+                { DCSTypename = "S-300PS 64H6E sr",  desc = "S-300 Grumble Big Bird SR",                               weight = 1005.14 },
+                { DCSTypename = "S-300PS 54K6 cp",   desc = "S-300 Grumble C2",                                        weight = 1005.15 },
+            },
+            repair = { desc = "S-300 Repair", weight = 1005.16 },
+        },
+    }
 
     -- ******************************************************************
     -- ****************** END OF CONFIGURATION AREA *********************
