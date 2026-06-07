@@ -6425,11 +6425,7 @@ function CTLDModValidator:_collectTypeNames()
 
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
-        if desc.groupType == "STATIC" and desc.type
-            -- Skip Heliports (FARP, SINGLE_HELIPAD…): DCS native types, always present.
-            -- Probing them spawns a persistent FARP airbase record that survives obj:destroy().
-            and desc.category ~= "Heliports"
-        then
+        if desc.groupType == "STATIC" and desc.type then
             -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
             local extras = {}
             for k, v in pairs(desc) do
@@ -6586,7 +6582,18 @@ function CTLDModValidator:_probeStatic(typeName, category, extras)
 
     local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
     local valid = ok and (obj ~= nil)
-    if ok and obj then pcall(function() obj:destroy() end) end
+    if ok and obj then
+        local staticName = obj:getName()
+        pcall(function() obj:destroy() end)
+        -- Heliport-category statics (FARP, SINGLE_HELIPAD…) register a DCS Airbase
+        -- record that survives StaticObject:destroy(). Explicitly destroy it.
+        if category == "Heliports" then
+            pcall(function()
+                local ab = Airbase.getByName(staticName)
+                if ab then ab:destroy() end
+            end)
+        end
+    end
 
     self._cache[cacheKey] = valid
     ctld.utils.log("INFO", "ModValidator STATIC '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
