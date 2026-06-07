@@ -115,12 +115,22 @@ function CTLDModValidator:_collectTypeNames()
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
         if desc.groupType == "STATIC" and desc.type then
-            -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
-            local extras = {}
-            for k, v in pairs(desc) do
-                if not _skipDescKeys[k] then extras[k] = v end
+            -- Heliport-category statics (FARP, SINGLE_HELIPAD…) cannot be removed via any DCS
+            -- scripting API: StaticObject:destroy() and Airbase:destroy() both silently fail.
+            -- Probing them would leave permanent ghost FARPs on the map.  Emit a warning and skip.
+            if desc.category == "Heliports" then
+                ctld.utils.log("WARN",
+                    "ModValidator: skipping Heliport type '%s' (source: Registry[%s]) — " ..
+                    "DCS scripting cannot destroy spawned helipad statics; verify this type manually.",
+                    desc.type, regKey)
+            else
+                -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
+                local extras = {}
+                for k, v in pairs(desc) do
+                    if not _skipDescKeys[k] then extras[k] = v end
+                end
+                add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil, extras)
             end
-            add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil, extras)
         elseif desc.groupType == "GROUND" and desc.units then
             for _, u in ipairs(desc.units) do
                 if u.unitType then
@@ -272,16 +282,7 @@ function CTLDModValidator:_probeStatic(typeName, category, extras)
     local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
     local valid = ok and (obj ~= nil)
     if ok and obj then
-        local staticName = obj:getName()
         pcall(function() obj:destroy() end)
-        -- Heliport-category statics (FARP, SINGLE_HELIPAD…) register a DCS Airbase
-        -- record that survives StaticObject:destroy(). Explicitly destroy it.
-        if category == "Heliports" then
-            pcall(function()
-                local ab = Airbase.getByName(staticName)
-                if ab then ab:destroy() end
-            end)
-        end
     end
 
     self._cache[cacheKey] = valid
