@@ -92,6 +92,15 @@ function CTLDModValidator:_collectTypeNames()
     local entries = {}
     local seen    = {}
 
+    -- Build AA repair sentinel set upfront (used to exclude non-DCS entries in buildableGroups).
+    -- tmpl.repair values are CTLD-internal routing identifiers, not real DCS unit typeNames.
+    local _repairSentinels = {}
+    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
+        and CTLDCrateAssemblyManager.TEMPLATES or {}
+    for _, tmpl in ipairs(_aaTmpls) do
+        if tmpl.repair then _repairSentinels[tmpl.repair] = true end
+    end
+
     -- Reserved keys not forwarded to addStaticObject
     local _skipDescKeys = {
         groupType=true, namePrefix=true, type=true, category=true, probeSkip=true,
@@ -136,11 +145,14 @@ function CTLDModValidator:_collectTypeNames()
     end
 
     -- 2. buildableGroups (Combat Vehicles and other sections) ────────────────
+    -- Skip "FOB" (scene trigger) and AA repair sentinels (CTLD-internal routing, not DCS typeNames).
     local buildable = ctld.gs("buildableGroups") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
             for _, item in ipairs(items) do
-                if item.unit and item.unit ~= "FOB" then
+                if item.unit and item.unit ~= "FOB"
+                    and not _repairSentinels[item.unit]
+                then
                     add(item.unit, "GROUND", nil,
                         "buildableGroups[" .. tostring(sectionName) .. "]", nil)
                 end
@@ -149,9 +161,9 @@ function CTLDModValidator:_collectTypeNames()
     end
 
     -- 3. CTLDCrateAssemblyManager.TEMPLATES (AA systems) ────────────────────
-    local aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
-        and CTLDCrateAssemblyManager.TEMPLATES or {}
-    for _, tmpl in ipairs(aaTmpls) do
+    -- Only probe part.DCSTypename — these are real DCS unit types spawned by spawnSystemAt.
+    -- tmpl.repair is a CTLD-internal routing sentinel, already excluded via _repairSentinels.
+    for _, tmpl in ipairs(_aaTmpls) do
         if tmpl.parts then
             for _, part in ipairs(tmpl.parts) do
                 if part.DCSTypename then
@@ -159,10 +171,6 @@ function CTLDModValidator:_collectTypeNames()
                         "AASystem[" .. tostring(tmpl.name) .. "]", nil)
                 end
             end
-        end
-        if tmpl.repair then
-            add(tmpl.repair, "GROUND", nil,
-                "AASystem[" .. tostring(tmpl.name) .. "].repair", nil)
         end
     end
 
