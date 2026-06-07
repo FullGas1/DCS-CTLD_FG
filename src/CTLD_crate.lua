@@ -551,13 +551,14 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
     local FOB_SENTINELS = { ["FOB"] = true }
     -- Scene sentinels (unit = scene model name): handled by CTLDSceneManager, not spawned as vehicles.
-    local SCENE_SENTINELS = { ["FARP Alpha"] = true }
+    local SCENE_SENTINELS = { ["FARP Alpha"] = true, ["Countryside FARP"] = true }
 
     -- Group ground crates by descriptor.unit. FOB and scene sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local fobCount       = 0
-    local farpAlphaCount = 0
+    local fobCount         = 0
+    local farpAlphaCount   = 0
+    local csFarpCount      = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
@@ -566,7 +567,8 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
             if FOB_SENTINELS[ut] then
                 fobCount = fobCount + 1
             elseif SCENE_SENTINELS[ut] then
-                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1 end
+                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1
+                elseif ut == "Countryside FARP" then csFarpCount = csFarpCount + 1 end
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -711,6 +713,46 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
             { unitName = playerObj.unitName, cratesRequired = farpRequired })
     end
 
+    -- Countryside FARP scene unpack entry: delegate to CTLDSceneManager
+    if csFarpCount > 0 then
+        hasAny = true
+        local csDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("Countryside FARP")
+        local csRequired = (csDesc and csDesc.cratesRequired) or 1
+        local csLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy Countryside FARP"), csFarpCount, csRequired)
+        menu:addCommand({ root, cratesSub, unpackSub }, csLabel,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local gid = t:getGroup():getID()
+                if ctld.utils.inAir(t) then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
+                    return
+                end
+                -- Consume one Countryside FARP crate from nearby
+                local mgr   = CTLDCrateManager.getInstance()
+                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                local consumed = 0
+                for _, c in ipairs(nearC) do
+                    if c:isOnGround() and c.canBeUnpacked
+                        and c.descriptor and c.descriptor.unit == "Countryside FARP"
+                        and consumed < arg.cratesRequired
+                    then
+                        mgr:unpackCrate(c.crateName, t)
+                        consumed = consumed + 1
+                    end
+                end
+                if consumed < arg.cratesRequired then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("Not enough crates nearby to unpack!"), 10)
+                    mgr:refreshUnpackSectionForUnit(arg.unitName)
+                    return
+                end
+                CTLDSceneManager.getInstance():playScene(t, "Countryside FARP", nil, nil)
+            end,
+            { unitName = playerObj.unitName, cratesRequired = csRequired })
+    end
+
     if not hasAny then
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("No complete crate sets nearby"), function() end, {})
@@ -847,6 +889,7 @@ function CTLDCrateManager:checkHoverStatus()
                                 and crate.descriptor
                                 and crate.descriptor.unit ~= "FOB"
                                 and crate.descriptor.unit ~= "FARP Alpha"
+                                and crate.descriptor.unit ~= "Countryside FARP"
                             then
                                 local cratePos = (crate.dcsStatic and crate.dcsStatic:isExist())
                                     and crate.dcsStatic:getPoint()

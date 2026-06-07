@@ -271,6 +271,7 @@ end
 
 function CTLDSceneManager:_registerBuiltins()
     self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
+    self:registerSceneModel(CTLDSceneManager._COUNTRYSIDE_FARP_SCENE)
     -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
 
@@ -419,6 +420,164 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             func = function(ctx)
                 trigger.action.outText(
                     ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+                return true
+            end,
+        },
+    },
+}
+
+-- ====================================================================================================
+-- Built-in scene: Countryside FARP
+-- Lightweight forward arming/refueling point using an Invisible FARP.
+-- 1 ammo crate, 1 tent (trucks hidden underneath), 1 infantry + 1 MANPAD, M92 light.
+-- Warehouse resources are zeroed in the final step (no fuel/supplies stocked).
+-- Total construction time: ~30 s.
+-- ====================================================================================================
+
+CTLDSceneManager._COUNTRYSIDE_FARP_SCENE = {
+    name  = "Countryside FARP",
+    steps = {
+
+        -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid double-count on first step).
+        -- Saves the spawned airbase name in ctx.scene._params for the zeroing step.
+        {
+            polar                    = { distance = 0, angle = 0 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Invisible_FARP",
+            func = function(ctx)
+                if not ctx.spawnedObj then return false end
+                ctx.scene._params.farpName = ctx.spawnedObj:getName()
+                return true
+            end,
+        },
+
+        -- Step 2: 4 Black Tyres at the corners of the FARP square (t0 + 0 s — same as FARP).
+        -- Marks the landing zone boundary immediately.
+        {
+            delayAfterPreviousStep = 0,
+            func = function(ctx)
+                local halfSide = 30
+                local h    = ctx.scene._refHdgRad
+                local cx   = ctx.scene._refX
+                local cz   = ctx.scene._refZ
+                local cosH = math.cos(h)
+                local sinH = math.sin(h)
+                local cid  = ctx.scene._countryId
+
+                local corners = {
+                    {  halfSide,  halfSide },
+                    {  halfSide, -halfSide },
+                    { -halfSide,  halfSide },
+                    { -halfSide, -halfSide },
+                }
+                for i, c in ipairs(corners) do
+                    local fwd, right = c[1], c[2]
+                    local wx = cx + fwd * cosH - right * sinH
+                    local wz = cz + fwd * sinH + right * cosH
+                    local sd = {
+                        name          = "CS_FARP_Flag_" .. i,
+                        type          = "Black_Tyre",
+                        shape_name    = "H-tyre_B",
+                        category      = "Fortifications",
+                        x             = wx,
+                        y             = wz,
+                        heading       = 0,
+                        start_time    = 0,
+                        dead          = false,
+                        transportable = { randomTransportable = false },
+                    }
+                    local ok, obj = pcall(coalition.addStaticObject, cid, sd)
+                    if ok and obj then
+                        ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
+                    end
+                end
+                return true
+            end,
+        },
+
+        -- Step 3: Fuel truck — under tent (t0 + 5 s).
+        {
+            polar                    = { distance = 40, angle = 8 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Fuel_Truck",
+        },
+
+        -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
+        {
+            polar                    = { distance = 40, angle = 11 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "repare_Truck",
+        },
+
+        -- Step 5: Tent — over both trucks, 0.5 s later (t0 + 5.5 s).
+        {
+            polar                    = { distance = 40, angle = 10 },
+            delayAfterPreviousStep   = 0.5,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "FARP_Tent",
+        },
+
+        -- Step 6: Ammo cargo (t0 + 15 s).
+        {
+            polar                    = { distance = 35, angle = 340 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "ammo_cargo",
+        },
+
+        -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
+        {
+            polar                    = { distance = 32, angle = 21 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "CS_FARP_Guards",
+        },
+
+        -- Step 8: M92 light panel at tent height (t0 + 25 s).
+        {
+            polar                    = { distance = 35, angle = 349 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 310,
+            relativeAltitudeInMeters = 4,
+            registryKey = "NF-2_LightOn",
+        },
+
+        -- Step 9: Windsock near the light, same timing (t0 + 25 s).
+        {
+            polar                    = { distance = 31, angle = 357 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 220,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Windsock",
+        },
+
+        -- Step 10: Zero warehouse liquids + completion message (t0 + 30 s).
+        -- Removes all fuel (jet, avgas, MW50, diesel) from the invisible FARP warehouse
+        -- so it acts as a landing pad only — no resupply resources.
+        {
+            delayAfterPreviousStep = 5,
+            func = function(ctx)
+                local farpName = ctx.scene._params and ctx.scene._params.farpName
+                if farpName then
+                    local ab = Airbase.getByName(farpName)
+                    if ab then
+                        local w = ab:getWarehouse()
+                        for ltype = 0, 3 do
+                            pcall(function() w:removeLiquid(ltype, 999999) end)
+                        end
+                    end
+                end
+                trigger.action.outText(
+                    ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
                 return true
             end,
         },

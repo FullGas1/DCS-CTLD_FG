@@ -62,6 +62,17 @@ CTLDObjectRegistry._db = {
         heliport_modulation  = 0,
     },
 
+    ["Invisible_FARP"] = {  -- invisible DCS heliport marker — type "Invisible FARP" + shape_name "invisiblefarp" confirmed from mission file
+        groupType            = "STATIC",
+        namePrefix           = "CS_FARP",
+        type                 = "Invisible FARP",
+        shape_name           = "invisiblefarp",
+        category             = "Heliports",
+        heliport_frequency   = "127.5",
+        heliport_callsign_id = 1,
+        heliport_modulation  = 0,
+    },
+
     ["Farp_FG_Petit_Helipad"] = {  -- specific mod
         groupType            = "STATIC",
         namePrefix           = "FARP_Helipad",
@@ -222,6 +233,31 @@ CTLDObjectRegistry._db = {
         },
     },
 
+    ["CS_FARP_Guards"] = {  -- Countryside FARP: 1 infantry + 1 MANPAD
+        groupType  = "GROUND",
+        namePrefix = "CS_FARP_Guard_Grp",
+        task       = "Ground Nothing",
+        category   = Unit.Category.GROUND_UNIT,
+        units = {
+            {
+                namePrefix     = "CS_Guard_Infantry",
+                unitType       = function(cid)
+                    return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+                end,
+                playerCanDrive = false,
+                dx = 0, dz = 0, dh = 0,
+            },
+            {
+                namePrefix     = "CS_Guard_Manpad",
+                unitType       = function(cid)
+                    return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
+                end,
+                playerCanDrive = false,
+                dx = 3, dz = 0, dh = 0,
+            },
+        },
+    },
+
     ["FARP_Security_Guard"] = {
         groupType  = "GROUND",
         namePrefix = "FARP_Guard_Grp",
@@ -254,6 +290,7 @@ CTLDObjectRegistry._db = {
             },
         },
     },
+
 }
 
 -- ====================================================================================================

@@ -731,7 +731,8 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
             { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
-            { weight = 1001.23, desc = ctld.tr("FARP Alpha Crate"),   unit = "FARP Alpha",        side = nil,        cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (FARP Alpha scene), not a DCS unit type
+            { weight = 1001.23, desc = ctld.tr("FARP Alpha Crate"),      unit = "FARP Alpha",        side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (FARP Alpha scene), not a DCS unit type
+            { weight = 1001.24, desc = ctld.tr("Countryside FARP Crate"), unit = "Countryside FARP", side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (Countryside FARP scene), not a DCS unit type
 
         },
         ["Artillery"] = {
@@ -1443,6 +1444,7 @@ ctld.i18n["en"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Ammo Truck - All crate
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
 ctld.i18n["en"]["FOB Crate"] = "FOB Crate"
 ctld.i18n["en"]["FARP Alpha Crate"] = "FARP Alpha Crate"
+ctld.i18n["en"]["Countryside FARP Crate"] = "Countryside FARP Crate"
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
 ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
@@ -1741,6 +1743,8 @@ ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
 ctld.i18n["en"]["Build FOB"] = "Build FOB"
 ctld.i18n["en"]["Deploy FARP Alpha"] = "Deploy FARP Alpha"
+ctld.i18n["en"]["Deploy Countryside FARP"] = "Deploy Countryside FARP"
+ctld.i18n["en"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Countryside FARP Deployment by %1 : Complete! ---"
 ctld.i18n["en"]["You must be on the ground to deploy a FARP."] = "You must be on the ground to deploy a FARP."
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
@@ -1914,6 +1918,7 @@ ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Camion de munitions - 
 ctld.i18n["fr"]["EWR Radar"] = "Radar de détection TEL"
 ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
 ctld.i18n["fr"]["FARP Alpha Crate"] = "Caisse FARP Alpha"
+ctld.i18n["fr"]["Countryside FARP Crate"] = "Caisse FARP Campagne"
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
 ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
@@ -2214,6 +2219,8 @@ ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
 ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
 ctld.i18n["fr"]["Build FOB"] = "Construire un FOB"
 ctld.i18n["fr"]["Deploy FARP Alpha"] = "Déployer FARP Alpha"
+ctld.i18n["fr"]["Deploy Countryside FARP"] = "Déployer FARP Campagne"
+ctld.i18n["fr"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Déploiement FARP Campagne par %1 : Terminé ! ---"
 ctld.i18n["fr"]["You must be on the ground to deploy a FARP."] = "Vous devez être au sol pour déployer un FARP."
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
@@ -2388,6 +2395,7 @@ ctld.i18n["es"]["KAMAZ Ammo Truck - All crates"] = "Camión KAMAZ de municiones 
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
 ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
 ctld.i18n["es"]["FARP Alpha Crate"] = "Caja FARP Alpha"
+ctld.i18n["es"]["Countryside FARP Crate"] = "Caja FARP Campo"
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
 ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
@@ -2688,6 +2696,8 @@ ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["Build FOB"] = "Construir FOB"
 ctld.i18n["es"]["Deploy FARP Alpha"] = "Desplegar FARP Alpha"
+ctld.i18n["es"]["Deploy Countryside FARP"] = "Desplegar FARP Campo"
+ctld.i18n["es"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Despliegue FARP Campo por %1 : ¡Completo! ---"
 ctld.i18n["es"]["You must be on the ground to deploy a FARP."] = "Debes estar en el suelo para desplegar un FARP."
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
@@ -2862,6 +2872,7 @@ ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ 탄약 차량 - 전체
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
 ctld.i18n["ko"]["FARP Alpha Crate"] = "FARP 알파 화물"
+ctld.i18n["ko"]["Countryside FARP Crate"] = "야외 FARP 화물"
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
@@ -3018,6 +3029,8 @@ ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
 ctld.i18n["ko"]["Build FOB"] = "FOB 건설"
 ctld.i18n["ko"]["Deploy FARP Alpha"] = "FARP 알파 배치"
+ctld.i18n["ko"]["Deploy Countryside FARP"] = "야외 FARP 배치"
+ctld.i18n["ko"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- %1에 의한 야외 FARP 배치 완료! ---"
 ctld.i18n["ko"]["You must be on the ground to deploy a FARP."] = "FARP를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
@@ -5882,6 +5895,17 @@ CTLDObjectRegistry._db = {
         heliport_modulation  = 0,
     },
 
+    ["Invisible_FARP"] = {  -- invisible DCS heliport marker — type "Invisible FARP" + shape_name "invisiblefarp" confirmed from mission file
+        groupType            = "STATIC",
+        namePrefix           = "CS_FARP",
+        type                 = "Invisible FARP",
+        shape_name           = "invisiblefarp",
+        category             = "Heliports",
+        heliport_frequency   = "127.5",
+        heliport_callsign_id = 1,
+        heliport_modulation  = 0,
+    },
+
     ["Farp_FG_Petit_Helipad"] = {  -- specific mod
         groupType            = "STATIC",
         namePrefix           = "FARP_Helipad",
@@ -6042,6 +6066,31 @@ CTLDObjectRegistry._db = {
         },
     },
 
+    ["CS_FARP_Guards"] = {  -- Countryside FARP: 1 infantry + 1 MANPAD
+        groupType  = "GROUND",
+        namePrefix = "CS_FARP_Guard_Grp",
+        task       = "Ground Nothing",
+        category   = Unit.Category.GROUND_UNIT,
+        units = {
+            {
+                namePrefix     = "CS_Guard_Infantry",
+                unitType       = function(cid)
+                    return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+                end,
+                playerCanDrive = false,
+                dx = 0, dz = 0, dh = 0,
+            },
+            {
+                namePrefix     = "CS_Guard_Manpad",
+                unitType       = function(cid)
+                    return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
+                end,
+                playerCanDrive = false,
+                dx = 3, dz = 0, dh = 0,
+            },
+        },
+    },
+
     ["FARP_Security_Guard"] = {
         groupType  = "GROUND",
         namePrefix = "FARP_Guard_Grp",
@@ -6074,6 +6123,7 @@ CTLDObjectRegistry._db = {
             },
         },
     },
+
 }
 
 -- ====================================================================================================
@@ -6469,7 +6519,7 @@ function CTLDModValidator:_collectTypeNames()
 
     -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
     -- Skip sentinels (FOB, FARP Alpha) and repair entries — not DCS unit typeNames.
-    local _spawnableSentinels = { ["FOB"] = true, ["FARP Alpha"] = true }
+    local _spawnableSentinels = { ["FOB"] = true, ["FARP Alpha"] = true, ["Countryside FARP"] = true }
     local buildable = ctld.gs("spawnableCrates") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
@@ -6889,6 +6939,7 @@ end
 
 function CTLDSceneManager:_registerBuiltins()
     self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
+    self:registerSceneModel(CTLDSceneManager._COUNTRYSIDE_FARP_SCENE)
     -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
 
@@ -7037,6 +7088,164 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
             func = function(ctx)
                 trigger.action.outText(
                     ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+                return true
+            end,
+        },
+    },
+}
+
+-- ====================================================================================================
+-- Built-in scene: Countryside FARP
+-- Lightweight forward arming/refueling point using an Invisible FARP.
+-- 1 ammo crate, 1 tent (trucks hidden underneath), 1 infantry + 1 MANPAD, M92 light.
+-- Warehouse resources are zeroed in the final step (no fuel/supplies stocked).
+-- Total construction time: ~30 s.
+-- ====================================================================================================
+
+CTLDSceneManager._COUNTRYSIDE_FARP_SCENE = {
+    name  = "Countryside FARP",
+    steps = {
+
+        -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid double-count on first step).
+        -- Saves the spawned airbase name in ctx.scene._params for the zeroing step.
+        {
+            polar                    = { distance = 0, angle = 0 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Invisible_FARP",
+            func = function(ctx)
+                if not ctx.spawnedObj then return false end
+                ctx.scene._params.farpName = ctx.spawnedObj:getName()
+                return true
+            end,
+        },
+
+        -- Step 2: 4 Black Tyres at the corners of the FARP square (t0 + 0 s — same as FARP).
+        -- Marks the landing zone boundary immediately.
+        {
+            delayAfterPreviousStep = 0,
+            func = function(ctx)
+                local halfSide = 30
+                local h    = ctx.scene._refHdgRad
+                local cx   = ctx.scene._refX
+                local cz   = ctx.scene._refZ
+                local cosH = math.cos(h)
+                local sinH = math.sin(h)
+                local cid  = ctx.scene._countryId
+
+                local corners = {
+                    {  halfSide,  halfSide },
+                    {  halfSide, -halfSide },
+                    { -halfSide,  halfSide },
+                    { -halfSide, -halfSide },
+                }
+                for i, c in ipairs(corners) do
+                    local fwd, right = c[1], c[2]
+                    local wx = cx + fwd * cosH - right * sinH
+                    local wz = cz + fwd * sinH + right * cosH
+                    local sd = {
+                        name          = "CS_FARP_Flag_" .. i,
+                        type          = "Black_Tyre",
+                        shape_name    = "H-tyre_B",
+                        category      = "Fortifications",
+                        x             = wx,
+                        y             = wz,
+                        heading       = 0,
+                        start_time    = 0,
+                        dead          = false,
+                        transportable = { randomTransportable = false },
+                    }
+                    local ok, obj = pcall(coalition.addStaticObject, cid, sd)
+                    if ok and obj then
+                        ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
+                    end
+                end
+                return true
+            end,
+        },
+
+        -- Step 3: Fuel truck — under tent (t0 + 5 s).
+        {
+            polar                    = { distance = 40, angle = 8 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Fuel_Truck",
+        },
+
+        -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
+        {
+            polar                    = { distance = 40, angle = 11 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "repare_Truck",
+        },
+
+        -- Step 5: Tent — over both trucks, 0.5 s later (t0 + 5.5 s).
+        {
+            polar                    = { distance = 40, angle = 10 },
+            delayAfterPreviousStep   = 0.5,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "FARP_Tent",
+        },
+
+        -- Step 6: Ammo cargo (t0 + 15 s).
+        {
+            polar                    = { distance = 35, angle = 340 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "ammo_cargo",
+        },
+
+        -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
+        {
+            polar                    = { distance = 32, angle = 21 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "CS_FARP_Guards",
+        },
+
+        -- Step 8: M92 light panel at tent height (t0 + 25 s).
+        {
+            polar                    = { distance = 35, angle = 349 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 310,
+            relativeAltitudeInMeters = 4,
+            registryKey = "NF-2_LightOn",
+        },
+
+        -- Step 9: Windsock near the light, same timing (t0 + 25 s).
+        {
+            polar                    = { distance = 31, angle = 357 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 220,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Windsock",
+        },
+
+        -- Step 10: Zero warehouse liquids + completion message (t0 + 30 s).
+        -- Removes all fuel (jet, avgas, MW50, diesel) from the invisible FARP warehouse
+        -- so it acts as a landing pad only — no resupply resources.
+        {
+            delayAfterPreviousStep = 5,
+            func = function(ctx)
+                local farpName = ctx.scene._params and ctx.scene._params.farpName
+                if farpName then
+                    local ab = Airbase.getByName(farpName)
+                    if ab then
+                        local w = ab:getWarehouse()
+                        for ltype = 0, 3 do
+                            pcall(function() w:removeLiquid(ltype, 999999) end)
+                        end
+                    end
+                end
+                trigger.action.outText(
+                    ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
                 return true
             end,
         },
@@ -11507,13 +11716,14 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
     local FOB_SENTINELS = { ["FOB"] = true }
     -- Scene sentinels (unit = scene model name): handled by CTLDSceneManager, not spawned as vehicles.
-    local SCENE_SENTINELS = { ["FARP Alpha"] = true }
+    local SCENE_SENTINELS = { ["FARP Alpha"] = true, ["Countryside FARP"] = true }
 
     -- Group ground crates by descriptor.unit. FOB and scene sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local fobCount       = 0
-    local farpAlphaCount = 0
+    local fobCount         = 0
+    local farpAlphaCount   = 0
+    local csFarpCount      = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
@@ -11522,7 +11732,8 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
             if FOB_SENTINELS[ut] then
                 fobCount = fobCount + 1
             elseif SCENE_SENTINELS[ut] then
-                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1 end
+                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1
+                elseif ut == "Countryside FARP" then csFarpCount = csFarpCount + 1 end
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -11667,6 +11878,46 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
             { unitName = playerObj.unitName, cratesRequired = farpRequired })
     end
 
+    -- Countryside FARP scene unpack entry: delegate to CTLDSceneManager
+    if csFarpCount > 0 then
+        hasAny = true
+        local csDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("Countryside FARP")
+        local csRequired = (csDesc and csDesc.cratesRequired) or 1
+        local csLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy Countryside FARP"), csFarpCount, csRequired)
+        menu:addCommand({ root, cratesSub, unpackSub }, csLabel,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local gid = t:getGroup():getID()
+                if ctld.utils.inAir(t) then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
+                    return
+                end
+                -- Consume one Countryside FARP crate from nearby
+                local mgr   = CTLDCrateManager.getInstance()
+                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                local consumed = 0
+                for _, c in ipairs(nearC) do
+                    if c:isOnGround() and c.canBeUnpacked
+                        and c.descriptor and c.descriptor.unit == "Countryside FARP"
+                        and consumed < arg.cratesRequired
+                    then
+                        mgr:unpackCrate(c.crateName, t)
+                        consumed = consumed + 1
+                    end
+                end
+                if consumed < arg.cratesRequired then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("Not enough crates nearby to unpack!"), 10)
+                    mgr:refreshUnpackSectionForUnit(arg.unitName)
+                    return
+                end
+                CTLDSceneManager.getInstance():playScene(t, "Countryside FARP", nil, nil)
+            end,
+            { unitName = playerObj.unitName, cratesRequired = csRequired })
+    end
+
     if not hasAny then
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("No complete crate sets nearby"), function() end, {})
@@ -11803,6 +12054,7 @@ function CTLDCrateManager:checkHoverStatus()
                                 and crate.descriptor
                                 and crate.descriptor.unit ~= "FOB"
                                 and crate.descriptor.unit ~= "FARP Alpha"
+                                and crate.descriptor.unit ~= "Countryside FARP"
                             then
                                 local cratePos = (crate.dcsStatic and crate.dcsStatic:isExist())
                                     and crate.dcsStatic:getPoint()
