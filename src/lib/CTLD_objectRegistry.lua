@@ -183,7 +183,6 @@ CTLDObjectRegistry._db = {
         shape_name = "carrier_shooter",
         livery_id  = "blue",
         rate       = 20,
-        probeSkip  = true,  -- surface-constrained: only spawnable on carrier deck, not on terrain
     },
 
     -- ------------------------------------------------------------------

@@ -5931,7 +5931,6 @@ CTLDObjectRegistry._db = {
         shape_name = "carrier_shooter",
         livery_id  = "blue",
         rate       = 20,
-        probeSkip  = true,  -- surface-constrained: only spawnable on carrier deck, not on terrain
     },
 
     -- ------------------------------------------------------------------
@@ -6312,7 +6311,7 @@ function CTLDModValidator:run()
         if entry.probeType == "GROUND" then
             valid = self:_probeGround(entry.typeName)
         else
-            valid = self:_probeStatic(entry.typeName, entry.category)
+            valid = self:_probeStatic(entry.typeName, entry.category, entry.extras)
         end
         if not valid then
             invalids[#invalids + 1] = entry
@@ -6343,7 +6342,12 @@ function CTLDModValidator:_collectTypeNames()
     local entries = {}
     local seen    = {}
 
-    local function add(typeName, probeType, category, source, role)
+    -- Reserved keys not forwarded to addStaticObject
+    local _skipDescKeys = {
+        groupType=true, namePrefix=true, type=true, category=true, probeSkip=true,
+    }
+
+    local function add(typeName, probeType, category, source, role, extras)
         if not typeName or typeName == "" then return end
         local key = probeType .. ":" .. typeName
         if seen[key] then return end
@@ -6354,18 +6358,19 @@ function CTLDModValidator:_collectTypeNames()
             category  = category,
             source    = source,
             role      = role,
+            extras    = extras,   -- optional: extra descriptor fields for static spawn
         }
     end
 
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
         if desc.groupType == "STATIC" and desc.type then
-            if desc.probeSkip then
-                ctld.utils.log("INFO",
-                    "ModValidator STATIC '%s' → skipped (probeSkip — surface-constrained)", desc.type)
-            else
-                add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil)
+            -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
+            local extras = {}
+            for k, v in pairs(desc) do
+                if not _skipDescKeys[k] then extras[k] = v end
             end
+            add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil, extras)
         elseif desc.groupType == "GROUND" and desc.units then
             for _, u in ipairs(desc.units) do
                 if u.unitType then
@@ -6488,21 +6493,29 @@ function CTLDModValidator:_probeGround(typeName)
     return valid
 end
 
-function CTLDModValidator:_probeStatic(typeName, category)
+function CTLDModValidator:_probeStatic(typeName, category, extras)
     local cacheKey = "S:" .. typeName
     if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
 
     local idx = self:_nextIdx()
     local pos = self._probePos
+
+    -- Base fields
     local staticData = {
-        name     = "CTLD_MVP_S" .. idx,
-        type     = typeName,
-        category = category or "Fortifications",
-        x        = pos.x + idx * 3,
-        y        = pos.z + idx * 3,
-        heading  = 0,
-        dead     = false,
+        name          = "CTLD_MVP_S" .. idx,
+        type          = typeName,
+        category      = category or "Fortifications",
+        x             = pos.x + idx * 3,
+        y             = pos.z + idx * 3,
+        heading       = 0,
+        start_time    = 0,
+        transportable = { randomTransportable = false },
+        dead          = false,
     }
+    -- Forward extra descriptor fields (shape_name, livery_id, rate, …)
+    if extras then
+        for k, v in pairs(extras) do staticData[k] = v end
+    end
 
     local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
     local valid = ok and (obj ~= nil)
