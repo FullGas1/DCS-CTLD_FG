@@ -731,6 +731,7 @@ function CTLDConfig:load()
             --- Both
             { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
             { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
+            { weight = 1001.23, desc = ctld.tr("FARP Alpha Crate"),   unit = "FARP Alpha",        side = nil,        cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (FARP Alpha scene), not a DCS unit type
 
         },
         ["Artillery"] = {
@@ -1441,6 +1442,7 @@ ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
 ctld.i18n["en"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Ammo Truck - All crates"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
 ctld.i18n["en"]["FOB Crate"] = "FOB Crate"
+ctld.i18n["en"]["FARP Alpha Crate"] = "FARP Alpha Crate"
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
 ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
@@ -1738,6 +1740,8 @@ ctld.i18n["en"]["Unpack Crate"] = "Unpack Crate"
 ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
 ctld.i18n["en"]["Build FOB"] = "Build FOB"
+ctld.i18n["en"]["Deploy FARP Alpha"] = "Deploy FARP Alpha"
+ctld.i18n["en"]["You must be on the ground to deploy a FARP."] = "You must be on the ground to deploy a FARP."
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
@@ -1909,6 +1913,7 @@ ctld.i18n["fr"]["KAMAZ Ammo Truck"] = "KAMAZ Camion de munitions"
 ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Camion de munitions - Toutes les caisses"
 ctld.i18n["fr"]["EWR Radar"] = "Radar de détection TEL"
 ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
+ctld.i18n["fr"]["FARP Alpha Crate"] = "Caisse FARP Alpha"
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
 ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
@@ -2208,6 +2213,8 @@ ctld.i18n["fr"]["Unpack Crate"] = "Déballer caisses"
 ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
 ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
 ctld.i18n["fr"]["Build FOB"] = "Construire un FOB"
+ctld.i18n["fr"]["Deploy FARP Alpha"] = "Déployer FARP Alpha"
+ctld.i18n["fr"]["You must be on the ground to deploy a FARP."] = "Vous devez être au sol pour déployer un FARP."
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
@@ -2380,6 +2387,7 @@ ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck - All crates"] = "Camión KAMAZ de municiones - Todas las cajas"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
 ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
+ctld.i18n["es"]["FARP Alpha Crate"] = "Caja FARP Alpha"
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
 ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
@@ -2679,6 +2687,8 @@ ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
 ctld.i18n["es"]["Build FOB"] = "Construir FOB"
+ctld.i18n["es"]["Deploy FARP Alpha"] = "Desplegar FARP Alpha"
+ctld.i18n["es"]["You must be on the ground to deploy a FARP."] = "Debes estar en el suelo para desplegar un FARP."
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
@@ -2851,6 +2861,7 @@ ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ 탄약 차량 - 전체 화물"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
+ctld.i18n["ko"]["FARP Alpha Crate"] = "FARP 알파 화물"
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
@@ -3006,6 +3017,8 @@ ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
 ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
 ctld.i18n["ko"]["Build FOB"] = "FOB 건설"
+ctld.i18n["ko"]["Deploy FARP Alpha"] = "FARP 알파 배치"
+ctld.i18n["ko"]["You must be on the ground to deploy a FARP."] = "FARP를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
 ctld.i18n["ko"]["%1 unpacked successfully!"] = "%1 풀기 완료!"
@@ -6455,12 +6468,13 @@ function CTLDModValidator:_collectTypeNames()
     end
 
     -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
-    -- Skip "FOB" (scene trigger) and repair entries (_repairFor flag = internal, not a DCS typeName).
+    -- Skip sentinels (FOB, FARP Alpha) and repair entries — not DCS unit typeNames.
+    local _spawnableSentinels = { ["FOB"] = true, ["FARP Alpha"] = true }
     local buildable = ctld.gs("spawnableCrates") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
             for _, item in ipairs(items) do
-                if item.unit and item.unit ~= "FOB"
+                if item.unit and not _spawnableSentinels[item.unit]
                     and not item._repairFor
                     and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then
@@ -11492,11 +11506,14 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
     local FOB_SENTINELS = { ["FOB"] = true }
+    -- Scene sentinels (unit = scene model name): handled by CTLDSceneManager, not spawned as vehicles.
+    local SCENE_SENTINELS = { ["FARP Alpha"] = true }
 
-    -- Group ground crates by descriptor.unit. FOB sentinels are excluded from this table.
+    -- Group ground crates by descriptor.unit. FOB and scene sentinels are excluded from this table.
     local byUnit    = {}   -- [unitType] = { count, descriptor }
     local unitOrder = {}
-    local fobCount  = 0
+    local fobCount       = 0
+    local farpAlphaCount = 0
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
@@ -11504,6 +11521,8 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
             local ut = crate.descriptor.unit
             if FOB_SENTINELS[ut] then
                 fobCount = fobCount + 1
+            elseif SCENE_SENTINELS[ut] then
+                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1 end
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -11606,6 +11625,46 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                 CTLDFOBManager.getInstance():unpackFOBCrates(t, arg.unitName)
             end,
             { unitName = playerObj.unitName })
+    end
+
+    -- FARP Alpha scene unpack entry: delegate to CTLDSceneManager
+    if farpAlphaCount > 0 then
+        hasAny = true
+        local farpDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FARP Alpha")
+        local farpRequired = (farpDesc and farpDesc.cratesRequired) or 1
+        local farpLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy FARP Alpha"), farpAlphaCount, farpRequired)
+        menu:addCommand({ root, cratesSub, unpackSub }, farpLabel,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local gid = t:getGroup():getID()
+                if ctld.utils.inAir(t) then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
+                    return
+                end
+                -- Consume one FARP Alpha crate from nearby
+                local mgr   = CTLDCrateManager.getInstance()
+                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                local consumed = 0
+                for _, c in ipairs(nearC) do
+                    if c:isOnGround() and c.canBeUnpacked
+                        and c.descriptor and c.descriptor.unit == "FARP Alpha"
+                        and consumed < arg.cratesRequired
+                    then
+                        mgr:unpackCrate(c.crateName, t)
+                        consumed = consumed + 1
+                    end
+                end
+                if consumed < arg.cratesRequired then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("Not enough crates nearby to unpack!"), 10)
+                    mgr:refreshUnpackSectionForUnit(arg.unitName)
+                    return
+                end
+                CTLDSceneManager.getInstance():playScene(t, "FARP Alpha", nil, nil)
+            end,
+            { unitName = playerObj.unitName, cratesRequired = farpRequired })
     end
 
     if not hasAny then
@@ -11743,6 +11802,7 @@ function CTLDCrateManager:checkHoverStatus()
                             if crate:isOnGround()
                                 and crate.descriptor
                                 and crate.descriptor.unit ~= "FOB"
+                                and crate.descriptor.unit ~= "FARP Alpha"
                             then
                                 local cratePos = (crate.dcsStatic and crate.dcsStatic:isExist())
                                     and crate.dcsStatic:getPoint()

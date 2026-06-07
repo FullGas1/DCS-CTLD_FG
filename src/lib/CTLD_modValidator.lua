@@ -146,12 +146,13 @@ function CTLDModValidator:_collectTypeNames()
     end
 
     -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
-    -- Skip "FOB" (scene trigger) and repair entries (_repairFor flag = internal, not a DCS typeName).
+    -- Skip sentinels (FOB, FARP Alpha) and repair entries — not DCS unit typeNames.
+    local _spawnableSentinels = { ["FOB"] = true, ["FARP Alpha"] = true }
     local buildable = ctld.gs("spawnableCrates") or {}
     for sectionName, items in pairs(buildable) do
         if type(items) == "table" then
             for _, item in ipairs(items) do
-                if item.unit and item.unit ~= "FOB"
+                if item.unit and not _spawnableSentinels[item.unit]
                     and not item._repairFor
                     and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then
