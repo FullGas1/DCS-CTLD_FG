@@ -166,29 +166,18 @@ metalFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 2: Tent — spawns first so trucks appear underneath (t0 + 5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 61, angle = 341 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "FARP_Tent",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 3: Fuel truck — right side under tent (t0 + 5 s).
+    -- Step 2: Fuel truck — right side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
         polar                    = { distance = 60, angle = 342 },
-        delayAfterPreviousStep   = 0,
+        delayAfterPreviousStep   = 5,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "Fuel_Truck",
     },
 
     -- ----------------------------------------------------------------
-    -- Step 4: Repair truck — left side under tent (t0 + 5 s).
+    -- Step 3: Repair truck — left side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
         polar                    = { distance = 61, angle = 340 },
@@ -196,6 +185,17 @@ metalFarpScene.steps = {
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "repare_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 4: Tent — over both trucks (t0 + 5.5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 61, angle = 341 },
+        delayAfterPreviousStep   = 0.5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
     },
 
     -- ----------------------------------------------------------------
