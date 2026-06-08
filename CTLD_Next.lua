@@ -21832,11 +21832,12 @@ CTLDPlayerManager.deferMenuSection({
 --   Guards (infantry+MANPAD)— 32 m / 21°              (t+20 s)
 --   M92 light panel         — 35 m / 349° alt+4 m    (t+25 s)
 --   Windsock                — 31 m / 357°             (t+25 s)
---   Warehouse stocking      — FARP warehouse fueled on completion (t+30 s)
+--   Carrier Seaman          — 20 m / 0°   heading 180° (t+25 s)
+--   Warehouse zeroed        — FARP warehouse emptied on completion (t+30 s)
 --
 -- Objects used (all in CTLDObjectRegistry):
 --   Invisible_FARP, Fuel_Truck, repare_Truck, FARP_Tent,
---   ammo_cargo, CS_FARP_Guards, NF-2_LightOn, Windsock
+--   ammo_cargo, CS_FARP_Guards, NF-2_LightOn, Windsock, us carrier shooter
 --
 -- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
 -- ====================================================================================================
@@ -21946,11 +21947,11 @@ countrysideFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 5: Tent — over both trucks (t0 + 5.5 s).
+    -- Step 5: Tent — over both trucks (t0 + 5.1 s).
     -- ----------------------------------------------------------------
     {
         polar                    = { distance = 40, angle = 10 },
-        delayAfterPreviousStep   = 0.5,
+        delayAfterPreviousStep   = 0.1,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "FARP_Tent",
@@ -22001,7 +22002,18 @@ countrysideFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 10: Stock warehouse + completion message (t0 + 30 s).
+    -- Step 10: Carrier Seaman on the landing zone (t0 + 25 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 20, angle = 0 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "us carrier shooter",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 11: Stock warehouse + completion message (t0 + 30 s).
     -- Fills all fuel types in the FARP warehouse so aircraft can
     -- refuel/rearm at this forward point.
     -- ----------------------------------------------------------------
@@ -22013,10 +22025,12 @@ countrysideFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
+                    -- Invisible FARP spawns with default DCS fuel levels — zero them out
+                    -- so aircraft cannot refuel here (visual FARP only, no fuel service).
+                    w:setLiquidAmount(0, 0)   -- jet fuel
+                    w:setLiquidAmount(1, 0)   -- aviation gasoline
+                    w:setLiquidAmount(2, 0)   -- MW50
+                    w:setLiquidAmount(3, 0)   -- diesel
                 end
             end
             trigger.action.outText(

@@ -1290,8 +1290,10 @@ Minor cleanups identified — low priority, no functional impact.
   Note : les Black_Tyre de marquage (coins) sont des Fortifications → destructibles sans problème.
   **TODO [A] ✅ DONE [2026-06-08]** — Countryside FARP migré dans `src/scenes/CTLD_countrysideFarpScene.lua`
     (self-registration + déclarations registry via `CTLDObjectRegistry.registerIfAbsent()`).
-    Validé live DCS MT-16 [2026-06-08] : crate→unpack→Invisible FARP airbase OK, warehouse fueled,
-    formation complète (trucks+tent+gardes+lumière+windsock). Délai F10 label = comportement DCS normal.
+    Validé live DCS MT-16 [2026-06-08] : crate→unpack→Invisible FARP airbase OK, warehouse zeroed (4×0L),
+    formation complète (trucks+tent+gardes+lumière+windsock+us carrier shooter). Délai F10 label = comportement DCS normal.
+    Layout finalisé [2026-06-08] : trucks t+5s, tente t+5.1s (délai minimum 0.1s), shooter 20m/0°/hdg90°,
+    warehouse vidé via setLiquidAmount(i,0) (Invisible FARP démarre avec carburant DCS par défaut).
   **TODO [A2] ✅ DONE [2026-06-08]** — FARP Alpha migré dans `src/scenes/CTLD_farpAlphaScene.lua`.
     _registerBuiltins() vidé. Toutes les scènes self-contained dans src/scenes/.
   **TODO [B] ✅ DONE [2026-06-08]** — `Farp_FG_Petit_Helipad` utilisé par la scène Metal FARP.
