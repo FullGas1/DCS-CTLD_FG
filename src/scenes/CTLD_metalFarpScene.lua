@@ -8,7 +8,7 @@
 -- (DCS getDesc().life == 0 whether the mod is installed or not).
 --
 -- Layout (all offsets from trigger unit position):
---   Farp_FG_Petit_Helipad heliport — at unit position (distance=0)
+--   Farp_FG_Petit_Helipad heliport — 58 m ahead of trigger unit
 --   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
 --   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
 --   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
@@ -126,6 +126,8 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
     rate       = 3,
 })
 
+-- "us carrier shooter" is already registered in the global CTLDObjectRegistry default entries.
+
 -- ====================================================================================================
 -- BLOC 3 : scene model + crate descriptor
 -- ====================================================================================================
@@ -147,10 +149,11 @@ metalFarpScene.steps = {
 
     -- ----------------------------------------------------------------
     -- Step 1: Farp_FG_Petit_Helipad heliport (delay=0).
+    -- Spawned 50 m ahead of the trigger unit to avoid overlapping it.
     -- Saves the spawned airbase name for the warehouse-stocking step.
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 0, angle = 0 },
+        polar                    = { distance = 58, angle = 0 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
@@ -163,36 +166,36 @@ metalFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 2: Fuel truck — under tent (t0 + 5 s).
+    -- Step 2: Tent — spawns first so trucks appear underneath (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 35, angle = 8 },
+        polar                    = { distance = 61, angle = 341 },
         delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Fuel truck — right side under tent (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 60, angle = 342 },
+        delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "Fuel_Truck",
     },
 
     -- ----------------------------------------------------------------
-    -- Step 3: Repair truck — under tent, same tick (t0 + 5 s).
+    -- Step 4: Repair truck — left side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 35, angle = 11 },
+        polar                    = { distance = 61, angle = 340 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "repare_Truck",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 4: Tent — over both trucks (t0 + 5.5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 35, angle = 10 },
-        delayAfterPreviousStep   = 0.5,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "FARP_Tent",
     },
 
     -- ----------------------------------------------------------------
@@ -221,7 +224,7 @@ metalFarpScene.steps = {
     -- Step 7: Windsock near the light, same timing (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 26, angle = 357 },
+        polar                    = { distance = 28, angle = 340 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 220,
         relativeAltitudeInMeters = 0,
@@ -229,7 +232,18 @@ metalFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 8: Stock warehouse + completion message (t0 + 20 s).
+    -- Step 8: Carrier Seaman on the helipad (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 67, angle = 2 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "us carrier shooter",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 9: Stock warehouse + completion message (t0 + 20 s).
     -- Fills all fuel types so aircraft can refuel/rearm at this point.
     -- ----------------------------------------------------------------
     {

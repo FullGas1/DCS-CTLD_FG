@@ -20376,6 +20376,19 @@ end
 CTLDPlayerManager = class()
 CTLDPlayerManager._instance = nil
 
+-- Pre-init queue for menu sections registered before getInstance() is called
+-- (e.g. by scene files loaded before CTLDCoreManager runs).
+-- Flushed into _menuSections during init().
+CTLDPlayerManager._deferredSections = {}
+
+--- Queue a menu section definition for registration at init time.
+-- Safe to call from module top-level code before CTLDPlayerManager.getInstance().
+-- @param sectionDef table  same format as registerMenuSection()
+function CTLDPlayerManager.deferMenuSection(sectionDef)
+    if not sectionDef or not sectionDef.key then return end
+    CTLDPlayerManager._deferredSections[#CTLDPlayerManager._deferredSections + 1] = sectionDef
+end
+
 --- Return (or create) the singleton instance.
 function CTLDPlayerManager.getInstance()
     if not CTLDPlayerManager._instance then
@@ -20441,6 +20454,12 @@ function CTLDPlayerManager:init()
             end
         end
     end)
+
+    -- Flush pre-init deferred sections (registered by scene files before getInstance()).
+    for _, s in ipairs(CTLDPlayerManager._deferredSections) do
+        self:registerMenuSection(s)
+    end
+    CTLDPlayerManager._deferredSections = {}
 
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
@@ -21783,8 +21802,9 @@ end
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
 
 -- Register the demine menu section so it appears in F10 CTLD menus.
+-- Uses deferMenuSection (class-level) so this is safe to call before CTLDCoreManager init.
 -- refreshMethod is called by CTLDPlayerManager:onLand to update proximity-based content.
-CTLDPlayerManager.getInstance():registerMenuSection({
+CTLDPlayerManager.deferMenuSection({
     key           = "minefield_demine",
     manager       = mineFieldScene,
     method        = "buildDemineSection",
@@ -22524,7 +22544,7 @@ CTLDSceneManager.getInstance():registerSceneModel(farpAlphaScene)
 -- (DCS getDesc().life == 0 whether the mod is installed or not).
 --
 -- Layout (all offsets from trigger unit position):
---   Farp_FG_Petit_Helipad heliport — 50 m ahead of trigger unit
+--   Farp_FG_Petit_Helipad heliport — 58 m ahead of trigger unit
 --   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
 --   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
 --   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
@@ -22642,6 +22662,8 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
     rate       = 3,
 })
 
+-- "us carrier shooter" is already registered in the global CTLDObjectRegistry default entries.
+
 -- ====================================================================================================
 -- BLOC 3 : scene model + crate descriptor
 -- ====================================================================================================
@@ -22667,7 +22689,7 @@ metalFarpScene.steps = {
     -- Saves the spawned airbase name for the warehouse-stocking step.
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 50, angle = 0 },
+        polar                    = { distance = 58, angle = 0 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
@@ -22680,36 +22702,36 @@ metalFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 2: Fuel truck — under tent (t0 + 5 s).
+    -- Step 2: Tent — spawns first so trucks appear underneath (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 35, angle = 8 },
+        polar                    = { distance = 61, angle = 341 },
         delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Fuel truck — right side under tent (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 60, angle = 342 },
+        delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "Fuel_Truck",
     },
 
     -- ----------------------------------------------------------------
-    -- Step 3: Repair truck — under tent, same tick (t0 + 5 s).
+    -- Step 4: Repair truck — left side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 35, angle = 11 },
+        polar                    = { distance = 61, angle = 340 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
         registryKey = "repare_Truck",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 4: Tent — over both trucks (t0 + 5.5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 35, angle = 10 },
-        delayAfterPreviousStep   = 0.5,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "FARP_Tent",
     },
 
     -- ----------------------------------------------------------------
@@ -22738,7 +22760,7 @@ metalFarpScene.steps = {
     -- Step 7: Windsock near the light, same timing (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 26, angle = 357 },
+        polar                    = { distance = 28, angle = 340 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 220,
         relativeAltitudeInMeters = 0,
@@ -22746,7 +22768,18 @@ metalFarpScene.steps = {
     },
 
     -- ----------------------------------------------------------------
-    -- Step 8: Stock warehouse + completion message (t0 + 20 s).
+    -- Step 8: Carrier Seaman on the helipad (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 67, angle = 2 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "us carrier shooter",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 9: Stock warehouse + completion message (t0 + 20 s).
     -- Fills all fuel types so aircraft can refuel/rearm at this point.
     -- ----------------------------------------------------------------
     {

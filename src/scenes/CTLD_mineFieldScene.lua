@@ -463,8 +463,9 @@ end
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
 
 -- Register the demine menu section so it appears in F10 CTLD menus.
+-- Uses deferMenuSection (class-level) so this is safe to call before CTLDCoreManager init.
 -- refreshMethod is called by CTLDPlayerManager:onLand to update proximity-based content.
-CTLDPlayerManager.getInstance():registerMenuSection({
+CTLDPlayerManager.deferMenuSection({
     key           = "minefield_demine",
     manager       = mineFieldScene,
     method        = "buildDemineSection",

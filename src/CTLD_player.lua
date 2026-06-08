@@ -93,6 +93,19 @@ end
 CTLDPlayerManager = class()
 CTLDPlayerManager._instance = nil
 
+-- Pre-init queue for menu sections registered before getInstance() is called
+-- (e.g. by scene files loaded before CTLDCoreManager runs).
+-- Flushed into _menuSections during init().
+CTLDPlayerManager._deferredSections = {}
+
+--- Queue a menu section definition for registration at init time.
+-- Safe to call from module top-level code before CTLDPlayerManager.getInstance().
+-- @param sectionDef table  same format as registerMenuSection()
+function CTLDPlayerManager.deferMenuSection(sectionDef)
+    if not sectionDef or not sectionDef.key then return end
+    CTLDPlayerManager._deferredSections[#CTLDPlayerManager._deferredSections + 1] = sectionDef
+end
+
 --- Return (or create) the singleton instance.
 function CTLDPlayerManager.getInstance()
     if not CTLDPlayerManager._instance then
@@ -158,6 +171,12 @@ function CTLDPlayerManager:init()
             end
         end
     end)
+
+    -- Flush pre-init deferred sections (registered by scene files before getInstance()).
+    for _, s in ipairs(CTLDPlayerManager._deferredSections) do
+        self:registerMenuSection(s)
+    end
+    CTLDPlayerManager._deferredSections = {}
 
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
