@@ -343,7 +343,8 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [M10] MINEFIELD — Landmine deployment options
     -- ═══════════════════════════════════════════════════════════
-    self.settings["showMinefieldOnF10Map"]                = true -- if true, draws a bounding quad on the F10 map when a minefield is deployed
+    self.settings["showMinefieldOnF10Map"]                = true  -- if true, draws a bounding quad on the F10 map when a minefield is deployed
+    self.settings["demineRadius"]                         = 150   -- max distance (m) from player to minefield center for the "Clear Mine Field" menu to appear
 
     -- ═══════════════════════════════════════════════════════════
     -- [11] ZONES — Pickup, drop-off and waypoint zones

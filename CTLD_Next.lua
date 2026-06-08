@@ -388,7 +388,8 @@ function CTLDConfig:load()
     -- ═══════════════════════════════════════════════════════════
     -- [M10] MINEFIELD — Landmine deployment options
     -- ═══════════════════════════════════════════════════════════
-    self.settings["showMinefieldOnF10Map"]                = true -- if true, draws a bounding quad on the F10 map when a minefield is deployed
+    self.settings["showMinefieldOnF10Map"]                = true  -- if true, draws a bounding quad on the F10 map when a minefield is deployed
+    self.settings["demineRadius"]                         = 150   -- max distance (m) from player to minefield center for the "Clear Mine Field" menu to appear
 
     -- ═══════════════════════════════════════════════════════════
     -- [11] ZONES — Pickup, drop-off and waypoint zones
@@ -3184,6 +3185,7 @@ local vec3StartPoint = triggerUnitObj:getPosition().p
 local vec3EndPoint = {x = vec3StartPoint.x+1000,z=vec3StartPoint.z+1000,y=vec3StartPoint.y}
 ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
 ]] --
+    return markId
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -20575,6 +20577,18 @@ function CTLDPlayerManager:onLand(event)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
         CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
+        -- Generic refresh for sections that registered a refreshMethod
+        -- (e.g. mine field demine section — proximity-dependent content).
+        for _, s in ipairs(self._menuSections) do
+            if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
+                local ok, err = pcall(s.manager[s.refreshMethod], s.manager, captured)
+                if not ok then
+                    ctld.utils.log("WARN",
+                        "CTLDPlayerManager:onLand refreshMethod '%s' error: %s",
+                        tostring(s.refreshMethod), tostring(err))
+                end
+            end
+        end
     end, nil, timer.getTime() + 1)
 end
 
@@ -21312,20 +21326,35 @@ CTLDSceneManager.getInstance():registerSceneModel(fobScene)
 -- BLOC 1 : i18n — 4 langues obligatoires
 -- ====================================================================================================
 
-ctld.i18n["en"]["Mine Field Crate"]                   = "Mine Field Crate"
-ctld.i18n["fr"]["Mine Field Crate"]                   = "Caisse Champ de Mines"
-ctld.i18n["es"]["Mine Field Crate"]                   = "Caja Campo de Minas"
-ctld.i18n["ko"]["Mine Field Crate"]                   = "지뢰밭 화물"
+ctld.i18n["en"]["Mine Field Crate"]                        = "Mine Field Crate"
+ctld.i18n["fr"]["Mine Field Crate"]                        = "Caisse Champ de Mines"
+ctld.i18n["es"]["Mine Field Crate"]                        = "Caja Campo de Minas"
+ctld.i18n["ko"]["Mine Field Crate"]                        = "지뢰밭 화물"
 
-ctld.i18n["en"]["Deploy Mine Field"]                  = "Deploy Mine Field"
-ctld.i18n["fr"]["Deploy Mine Field"]                  = "Déployer le Champ de Mines"
-ctld.i18n["es"]["Deploy Mine Field"]                  = "Desplegar Campo de Minas"
-ctld.i18n["ko"]["Deploy Mine Field"]                  = "지뢰밭 배치"
+ctld.i18n["en"]["Deploy Mine Field"]                       = "Deploy Mine Field"
+ctld.i18n["fr"]["Deploy Mine Field"]                       = "Déployer le Champ de Mines"
+ctld.i18n["es"]["Deploy Mine Field"]                       = "Desplegar Campo de Minas"
+ctld.i18n["ko"]["Deploy Mine Field"]                       = "지뢰밭 배치"
 
-ctld.i18n["en"]["--- mineField Deployed by %1 ---"]   = "--- Mine Field deployed by %1 ---"
-ctld.i18n["fr"]["--- mineField Deployed by %1 ---"]   = "--- Champ de Mines déployé par %1 ---"
-ctld.i18n["es"]["--- mineField Deployed by %1 ---"]   = "--- Campo de Minas desplegado por %1 ---"
-ctld.i18n["ko"]["--- mineField Deployed by %1 ---"]   = "--- %1에 의해 지뢰밭이 배치되었습니다 ---"
+ctld.i18n["en"]["--- mineField Deployed by %1 ---"]        = "--- Mine Field deployed by %1 ---"
+ctld.i18n["fr"]["--- mineField Deployed by %1 ---"]        = "--- Champ de Mines déployé par %1 ---"
+ctld.i18n["es"]["--- mineField Deployed by %1 ---"]        = "--- Campo de Minas desplegado por %1 ---"
+ctld.i18n["ko"]["--- mineField Deployed by %1 ---"]        = "--- %1에 의해 지뢰밭이 배치되었습니다 ---"
+
+ctld.i18n["en"]["Mine Field"]                              = "Mine Field"
+ctld.i18n["fr"]["Mine Field"]                              = "Champ de Mines"
+ctld.i18n["es"]["Mine Field"]                              = "Campo de Minas"
+ctld.i18n["ko"]["Mine Field"]                              = "지뢰밭"
+
+ctld.i18n["en"]["Clear Mine Field (%1 mines, ~%2 m)"]      = "Clear Mine Field (%1 mines, ~%2 m)"
+ctld.i18n["fr"]["Clear Mine Field (%1 mines, ~%2 m)"]      = "Déminer (%1 mines, ~%2 m)"
+ctld.i18n["es"]["Clear Mine Field (%1 mines, ~%2 m)"]      = "Desactivar Campo (%1 minas, ~%2 m)"
+ctld.i18n["ko"]["Clear Mine Field (%1 mines, ~%2 m)"]      = "지뢰밭 제거 (%1개, ~%2 m)"
+
+ctld.i18n["en"]["Mine Field cleared by %1."]               = "Mine Field cleared by %1."
+ctld.i18n["fr"]["Mine Field cleared by %1."]               = "Champ de mines déminé par %1."
+ctld.i18n["es"]["Mine Field cleared by %1."]               = "Campo de minas despejado por %1."
+ctld.i18n["ko"]["Mine Field cleared by %1."]               = "%1이(가) 지뢰밭을 제거했습니다."
 
 -- ====================================================================================================
 -- CTLD_mineFieldScene.lua (suite)
@@ -21358,7 +21387,12 @@ CTLDObjectRegistry.registerIfAbsent("Landmine", {
 -- ====================================================================================================
 
 local mineFieldScene = {}
-mineFieldScene.name = "mineField"
+mineFieldScene.name  = "mineField"
+
+-- Registry of deployed minefield sets.
+-- Each entry: { mines={[DCS static obj, ...]}, center={x, z}, markId=N|nil, coalitionId=N }
+-- Populated by setLandMine; consumed by clearSet + refreshDemineSection.
+mineFieldScene._sets = {}
 
 -- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
 mineFieldScene.crate = {
@@ -21531,11 +21565,25 @@ function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInM
         vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
     end
 
-    -- Draw bounding quadrilateral on the F10 map (unless disabled in config)
+    -- Draw bounding quadrilateral on the F10 map (unless disabled in config).
+    -- drawQuad returns the markId so the set can be removed later.
     local lastSpawned = spawnedObjs[#spawnedObjs]
+    local markId = nil
     if lastSpawned and ctld.gs("showMinefieldOnF10Map") ~= false then
-        ctld.utils.drawQuad(coalitionId, vec3Points1To4, lastSpawned:getName())
+        markId = ctld.utils.drawQuad(coalitionId, vec3Points1To4, lastSpawned:getName())
     end
+
+    -- Register the deployed set for demine tracking.
+    local centerX = (vec3Points1To4[1].x + vec3Points1To4[2].x
+                   + vec3Points1To4[3].x + vec3Points1To4[4].x) / 4
+    local centerZ = (vec3Points1To4[1].z + vec3Points1To4[2].z
+                   + vec3Points1To4[3].z + vec3Points1To4[4].z) / 4
+    mineFieldScene._sets[#mineFieldScene._sets + 1] = {
+        mines       = spawnedObjs,
+        center      = { x = centerX, z = centerZ },
+        markId      = markId,
+        coalitionId = coalitionId,
+    }
 
     return true, spawnedObjs
 end
@@ -21611,10 +21659,138 @@ function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeter
 end
 
 -- ====================================================================================================
+-- mineFieldScene.clearSet
+-- Destroys all mines in a tracked set and removes its F10 marker.
+-- After clearing, the set is removed from mineFieldScene._sets.
+--
+-- @param idx  number  index in mineFieldScene._sets
+-- ====================================================================================================
+function mineFieldScene.clearSet(idx)
+    local s = mineFieldScene._sets[idx]
+    if not s then return end
+
+    for _, obj in ipairs(s.mines) do
+        local ok, exists = pcall(function() return obj:isExist() end)
+        if ok and exists then
+            obj:destroy()
+        end
+    end
+
+    if s.markId then
+        trigger.action.removeMark(s.markId)
+        ctld.utils.marks[s.markId] = nil
+    end
+
+    table.remove(mineFieldScene._sets, idx)
+end
+
+-- ====================================================================================================
+-- mineFieldScene:refreshDemineSection
+-- Rebuilds the "Mine Field" submenu for playerObj.
+-- Lists each deployed set within demineRadius with a "Clear Mine Field (N mines, ~Xm)" command.
+-- Called on S_EVENT_LAND and whenever a set is cleared.
+--
+-- @param playerObj CTLDPlayer
+-- ====================================================================================================
+function mineFieldScene:refreshDemineSection(playerObj)
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root    = ctld.tr("CTLD")
+    local mineSub = ctld.tr("Mine Field")
+    menu:clearBranch({ root, mineSub })
+
+    local unit = Unit.getByName(playerObj.unitName)
+    if not unit or not unit:isExist() then return end
+    if unit:inAir() then return end
+
+    local pt     = unit:getPoint()
+    local radius = ctld.gs("demineRadius") or 150
+
+    for idx, s in ipairs(mineFieldScene._sets) do
+        -- Count alive mines in this set.
+        local aliveCount = 0
+        for _, obj in ipairs(s.mines) do
+            local ok, exists = pcall(function() return obj:isExist() end)
+            if ok and exists then aliveCount = aliveCount + 1 end
+        end
+
+        if aliveCount > 0 then
+            local dist = ctld.utils.getDistance(
+                "mineFieldScene:refreshDemineSection",
+                { x = pt.x, z = pt.z },
+                { x = s.center.x, z = s.center.z }
+            )
+            if dist <= radius then
+                local label = ctld.tr("Clear Mine Field (%1 mines, ~%2 m)",
+                    aliveCount, math.floor(dist))
+                -- Capture center coords to find the set robustly at click time
+                -- (index may shift if another set was cleared in the meantime).
+                local cx, cz = s.center.x, s.center.z
+                menu:addCommand({ root, mineSub }, label,
+                    function(arg)
+                        local t = Unit.getByName(arg.unitName)
+                        if not (t and t:isExist()) then return end
+                        if t:inAir() then return end
+
+                        -- Find set by center match.
+                        local foundIdx = nil
+                        for i, ss in ipairs(mineFieldScene._sets) do
+                            if math.abs(ss.center.x - arg.cx) < 1
+                            and math.abs(ss.center.z - arg.cz) < 1 then
+                                foundIdx = i
+                                break
+                            end
+                        end
+                        if not foundIdx then return end
+
+                        mineFieldScene.clearSet(foundIdx)
+                        trigger.action.outText(
+                            ctld.tr("Mine Field cleared by %1.", t:getName()), 10)
+
+                        -- Refresh the demine section for all tracked players.
+                        local pm = CTLDPlayerManager.getInstance()
+                        for _, pObj in pairs(pm._players) do
+                            mineFieldScene:refreshDemineSection(pObj)
+                        end
+                    end,
+                    { unitName = playerObj.unitName, cx = cx, cz = cz })
+            end
+        end
+    end
+end
+
+-- ====================================================================================================
+-- mineFieldScene:buildDemineSection
+-- Creates the "Mine Field" submenu container and populates it via refreshDemineSection.
+-- Registered with CTLDPlayerManager as a menu section (called once per player on menu build).
+--
+-- @param playerObj CTLDPlayer
+-- @param menu      ctld.Menu
+-- ====================================================================================================
+function mineFieldScene:buildDemineSection(playerObj, menu)
+    local root    = ctld.tr("CTLD")
+    local mineSub = ctld.tr("Mine Field")
+    menu:addSubMenu({ root }, mineSub, { order = 75 })
+    self:refreshDemineSection(playerObj)
+end
+
+-- ====================================================================================================
 -- BLOC 4 : self-registration (toujours en dernier)
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+
+-- Register the demine menu section so it appears in F10 CTLD menus.
+-- refreshMethod is called by CTLDPlayerManager:onLand to update proximity-based content.
+CTLDPlayerManager.getInstance():registerMenuSection({
+    key           = "minefield_demine",
+    manager       = mineFieldScene,
+    method        = "buildDemineSection",
+    refreshMethod = "refreshDemineSection",
+    order         = 75,
+})
 
 -- End : scenes/CTLD_mineFieldScene.lua
 -- ====================================================================================================
@@ -22348,7 +22524,7 @@ CTLDSceneManager.getInstance():registerSceneModel(farpAlphaScene)
 -- (DCS getDesc().life == 0 whether the mod is installed or not).
 --
 -- Layout (all offsets from trigger unit position):
---   Farp_FG_Petit_Helipad heliport — at unit position (distance=0)
+--   Farp_FG_Petit_Helipad heliport — 50 m ahead of trigger unit
 --   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
 --   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
 --   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
@@ -22487,10 +22663,11 @@ metalFarpScene.steps = {
 
     -- ----------------------------------------------------------------
     -- Step 1: Farp_FG_Petit_Helipad heliport (delay=0).
+    -- Spawned 50 m ahead of the trigger unit to avoid overlapping it.
     -- Saves the spawned airbase name for the warehouse-stocking step.
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 0, angle = 0 },
+        polar                    = { distance = 50, angle = 0 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,

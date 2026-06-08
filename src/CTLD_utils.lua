@@ -50,6 +50,7 @@ local vec3StartPoint = triggerUnitObj:getPosition().p
 local vec3EndPoint = {x = vec3StartPoint.x+1000,z=vec3StartPoint.z+1000,y=vec3StartPoint.y}
 ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
 ]] --
+    return markId
 end
 
 --------------------------------------------------------------------------------------------------------

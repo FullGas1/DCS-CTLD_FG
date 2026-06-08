@@ -294,6 +294,18 @@ function CTLDPlayerManager:onLand(event)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
         CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
+        -- Generic refresh for sections that registered a refreshMethod
+        -- (e.g. mine field demine section — proximity-dependent content).
+        for _, s in ipairs(self._menuSections) do
+            if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
+                local ok, err = pcall(s.manager[s.refreshMethod], s.manager, captured)
+                if not ok then
+                    ctld.utils.log("WARN",
+                        "CTLDPlayerManager:onLand refreshMethod '%s' error: %s",
+                        tostring(s.refreshMethod), tostring(err))
+                end
+            end
+        end
     end, nil, timer.getTime() + 1)
 end
 
