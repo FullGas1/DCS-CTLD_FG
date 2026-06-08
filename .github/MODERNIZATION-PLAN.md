@@ -1292,18 +1292,17 @@ Minor cleanups identified — low priority, no functional impact.
     (self-registration + déclarations registry via `CTLDObjectRegistry.registerIfAbsent()`).
     Validé live DCS MT-16 [2026-06-08] : crate→unpack→Invisible FARP airbase OK, warehouse fueled,
     formation complète (trucks+tent+gardes+lumière+windsock). Délai F10 label = comportement DCS normal.
-    Reste FARP Alpha (toujours dans CTLD_sceneManager.lua via _registerBuiltins — TODO [A2]).
-  **TODO [A2]** — Migrer FARP Alpha dans `src/scenes/CTLD_farpAlphaScene.lua` (même pattern que Countryside).
-  **TODO [B]** — `Farp_FG_Petit_Helipad` dans CTLDObjectRegistry mais aucune scène ne l'utilise.
-    → Créer scène "Metalic FARP" utilisant ce mod + crate sentinel + menu (voir TODO [C/D/E] ci-dessous).
-  **TODO [C]** — Créer `src/scenes/CTLD_metallicFarpScene.lua` utilisant `Farp_FG_Petit_Helipad`
-    comme heliport principal. Tester en debug (deploy + fonctionnalité FARP). Recette interactive.
-  **TODO [D]** — **Généralisation auto-menu scènes + auto-crate** : actuellement SCENE_SENTINELS est
-    hardcodé dans `CTLD_crate.lua` avec un bloc menu dédié par scène (~35 lignes chacun). Objectif :
-    (1) toute crate dont `unit` correspond à un nom de scène enregistrée dans CTLDSceneManager génère
-    automatiquement son entrée menu "Deploy [scene name]" sans modification de CTLD_crate.lua ;
-    (2) le fichier de scène déclare lui-même la définition de sa crate (poids, i18n, cratesRequired),
-    ainsi créer une nouvelle scène ne nécessite qu'un seul fichier.
+  **TODO [A2] ✅ DONE [2026-06-08]** — FARP Alpha migré dans `src/scenes/CTLD_farpAlphaScene.lua`.
+    _registerBuiltins() vidé. Toutes les scènes self-contained dans src/scenes/.
+  **TODO [B] ✅ DONE [2026-06-08]** — `Farp_FG_Petit_Helipad` utilisé par la scène Metal FARP.
+  **TODO [C] ✅ DONE [2026-06-08]** — `src/scenes/CTLD_metalFarpScene.lua` créé.
+    Farp_FG_Petit_Helipad (probeSkip=true) + 10 000L × 4 types de carburant. Validé late-injection.
+  **TODO [D] ✅ DONE [2026-06-08]** — **Généralisation auto-menu scènes + auto-crate** implémentée.
+  `refreshUnpackSection` : boucle générique `sm_ref:getModel(ut)` (remplace SCENE_SENTINELS + blocs dédiés).
+  `CTLDCrateManager:_injectSceneCrate()` : injection idempotente, résolution collision de poids.
+  `CTLDCrateManager._instance` exposé : callback dans `registerSceneModel()` → registration order-independent.
+  Chaque scène dans un seul fichier (i18n + registry + model + self-registration).
+  Validé live DCS : 4 scènes initiales PASS + late injection Metal FARP via Witchcraft PASS.
   **TODO [E]** — **Debug test mod absent/présent** : créer un script de recette qui vérifie le
     comportement d'unpack d'une crate de scène utilisant un mod heliport (Farp_FG_Petit_Helipad)
     dans les deux cas : mod présent (spawn OK) et mod absent (comportement dégradé à documenter).
