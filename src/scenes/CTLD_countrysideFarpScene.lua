@@ -27,6 +27,17 @@
 local countrysideFarpScene = {}
 countrysideFarpScene.name  = "Countryside FARP"
 
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
+countrysideFarpScene.crate = {
+    weight         = 1001.24,
+    i18nKey        = "Countryside FARP Crate",
+    deployKey      = "Deploy Countryside FARP",
+    groundKey      = "You must be on the ground to deploy a FARP.",
+    cratesRequired = 1,
+    side           = nil,
+    showSets       = false,
+}
+
 countrysideFarpScene.steps = {
 
     -- ----------------------------------------------------------------
@@ -199,7 +210,26 @@ countrysideFarpScene.steps = {
 }
 
 -- ====================================================================================================
--- Registry entries required by this scene.
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["Countryside FARP Crate"]                                        = "Countryside FARP Crate"
+ctld.i18n["fr"]["Countryside FARP Crate"]                                        = "Caisse FARP Campagne"
+ctld.i18n["es"]["Countryside FARP Crate"]                                        = "Caja FARP Campo"
+ctld.i18n["ko"]["Countryside FARP Crate"]                                        = "야외 FARP 화물"
+
+ctld.i18n["en"]["Deploy Countryside FARP"]                                       = "Deploy Countryside FARP"
+ctld.i18n["fr"]["Deploy Countryside FARP"]                                       = "Déployer FARP Campagne"
+ctld.i18n["es"]["Deploy Countryside FARP"]                                       = "Desplegar FARP Campo"
+ctld.i18n["ko"]["Deploy Countryside FARP"]                                       = "야외 FARP 배치"
+
+ctld.i18n["en"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Countryside FARP Deployment by %1 : Complete! ---"
+ctld.i18n["fr"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Déploiement FARP Campagne par %1 : Terminé ! ---"
+ctld.i18n["es"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Despliegue FARP Campo por %1 : ¡Completo! ---"
+ctld.i18n["ko"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- %1에 의한 야외 FARP 배치 완료! ---"
+
+-- ====================================================================================================
+-- BLOC 2 : Registry entries required by this scene.
 -- registerIfAbsent() is a no-op when the key already exists, so multiple scenes
 -- can safely declare the same shared entry (FARP, Fuel_Truck, etc.) without conflict.
 -- ====================================================================================================

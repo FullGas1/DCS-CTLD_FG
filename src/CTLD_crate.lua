@@ -298,8 +298,67 @@ function CTLDCrateManager.getInstance()
         end
         -- Pre-process spawnableCrates config (two-pass: singleCrates + auto singleTypeSets + mixedSets validation)
         _cmInstance:_processSpawnableCrates()
+        -- Expose singleton reference so CTLDSceneManager can inject late-registered scene crates.
+        CTLDCrateManager._instance = _cmInstance
     end
     return _cmInstance
+end
+
+--- Inject a single scene model's crate descriptor into _weightIndex and _processedCrates.
+-- Called by _processSpawnableCrates (batch, at init) and by CTLDSceneManager:registerSceneModel
+-- (incremental, for scenes registered after CTLDCrateManager is already initialized).
+-- Weight collision resolution: if the declared weight is taken by a different unit, the next
+-- free slot in the same 1001.xx range is used and a WARN is logged.
+-- No-op if the scene is already present in _weightIndex (idempotent).
+-- @param sceneName  string  model.name
+-- @param model      table   scene model with model.crate set
+function CTLDCrateManager:_injectSceneCrate(sceneName, model)
+    local cd       = model.crate
+    local w        = cd.weight
+    local existing = self._weightIndex[w]
+    if existing then
+        if existing.unit ~= sceneName then
+            local base = math.floor(w)
+            local frac = math.floor((w - base) * 100 + 0.5)
+            repeat
+                frac = frac + 1
+                w    = base + frac / 100
+            until not self._weightIndex[w]
+            ctld.utils.log("WARN",
+                "_injectSceneCrate: scene '%s' weight %.2f taken by '%s' — reassigned to %.2f",
+                sceneName, cd.weight, existing.unit, w)
+        else
+            return  -- same unit already registered — idempotent, skip
+        end
+    end
+    if self._weightIndex[w] then return end  -- still taken after reassign (shouldn't happen)
+
+    local entry = {
+        weight         = w,
+        desc           = ctld.tr(cd.i18nKey or sceneName),
+        unit           = sceneName,
+        side           = cd.side,
+        cratesRequired = cd.cratesRequired or 1,
+        showSets       = cd.showSets or false,
+    }
+    self._weightIndex[w] = entry
+
+    local cat = (cd.side == "blue") and "BLUE"
+             or (cd.side == "red")  and "RED"
+             or "Both"
+    if not self._processedCrates[cat] then
+        self._processedCrates[cat] = { singleCrates = {}, mixedSets = {} }
+    end
+    local already = false
+    for _, pe in ipairs(self._processedCrates[cat].singleCrates) do
+        if pe.singleCrate and pe.singleCrate.unit == sceneName then
+            already = true; break
+        end
+    end
+    if not already then
+        table.insert(self._processedCrates[cat].singleCrates, { singleCrate = entry })
+    end
+    ctld.utils.log("INFO", "_injectSceneCrate: injected '%s' weight=%.2f", sceneName, w)
 end
 
 --- Pre-process spawnableCrates config into an internal structure used by the menu builder.
@@ -386,6 +445,15 @@ function CTLDCrateManager:_processSpawnableCrates()
             singleCrates = processedSingle,
             mixedSets    = processedMixed,
         }
+    end
+
+    -- Auto-inject all scene crates registered so far (scenes loaded before CTLDCoreManager init).
+    -- Scenes registered afterwards are handled by the callback in CTLDSceneManager:registerSceneModel.
+    local sm_auto = CTLDSceneManager.getInstance()
+    for sceneName, model in pairs(sm_auto._models) do
+        if model.crate then
+            self:_injectSceneCrate(sceneName, model)
+        end
     end
 
     -- Display MM startup warnings if any validation errors found
@@ -548,27 +616,19 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
-    -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
-    local FOB_SENTINELS = { ["FOB"] = true }
-    -- Scene sentinels (unit = scene model name): handled by CTLDSceneManager, not spawned as vehicles.
-    local SCENE_SENTINELS = { ["FARP Alpha"] = true, ["Countryside FARP"] = true }
-
-    -- Group ground crates by descriptor.unit. FOB and scene sentinels are excluded from this table.
-    local byUnit    = {}   -- [unitType] = { count, descriptor }
-    local unitOrder = {}
-    local fobCount         = 0
-    local farpAlphaCount   = 0
-    local csFarpCount      = 0
+    -- Group ground crates by descriptor.unit.
+    -- Scene crates (unit matches a registered CTLDSceneManager model) are counted separately.
+    local byUnit      = {}   -- [unitType] = { count, descriptor }
+    local unitOrder   = {}
+    local sceneCounts = {}   -- [sceneName] = count
+    local sm_ref      = CTLDSceneManager.getInstance()
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
-            if FOB_SENTINELS[ut] then
-                fobCount = fobCount + 1
-            elseif SCENE_SENTINELS[ut] then
-                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1
-                elseif ut == "Countryside FARP" then csFarpCount = csFarpCount + 1 end
+            if sm_ref:getModel(ut) then
+                sceneCounts[ut] = (sceneCounts[ut] or 0) + 1
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -658,99 +718,79 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
         end
     end
 
-    -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
-    if fobCount > 0 then
-        hasAny = true
-        local fobDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
-        local fobRequired = (fobDesc and fobDesc.cratesRequired) or 3
-        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobCount, fobRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                CTLDFOBManager.getInstance():unpackFOBCrates(t, arg.unitName)
-            end,
-            { unitName = playerObj.unitName })
+    -- Generic scene unpack entries: one per registered scene model with enough nearby crates.
+    -- Sorted by crate weight for deterministic menu order.
+    -- If model.crate.unpack exists, it handles the unpack directly (e.g. FOB → CTLDFOBManager).
+    -- Otherwise: ground check + consume cratesRequired crates + CTLDSceneManager:playScene().
+    local sortedScenes = {}
+    for sceneName, count in pairs(sceneCounts) do
+        local model = sm_ref:getModel(sceneName)
+        if model and model.crate then
+            local cd       = model.crate
+            local required = cd.cratesRequired or 1
+            if count >= required then
+                table.insert(sortedScenes, { name = sceneName, count = count, cd = cd, model = model })
+            end
+        end
     end
+    table.sort(sortedScenes, function(a, b) return (a.cd.weight or 0) < (b.cd.weight or 0) end)
 
-    -- FARP Alpha scene unpack entry: delegate to CTLDSceneManager
-    if farpAlphaCount > 0 then
+    for _, entry in ipairs(sortedScenes) do
         hasAny = true
-        local farpDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FARP Alpha")
-        local farpRequired = (farpDesc and farpDesc.cratesRequired) or 1
-        local farpLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy FARP Alpha"), farpAlphaCount, farpRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, farpLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                local gid = t:getGroup():getID()
-                if ctld.utils.inAir(t) then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
-                    return
-                end
-                -- Consume one FARP Alpha crate from nearby
-                local mgr   = CTLDCrateManager.getInstance()
-                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
-                local consumed = 0
-                for _, c in ipairs(nearC) do
-                    if c:isOnGround() and c.canBeUnpacked
-                        and c.descriptor and c.descriptor.unit == "FARP Alpha"
-                        and consumed < arg.cratesRequired
-                    then
-                        mgr:unpackCrate(c.crateName, t)
-                        consumed = consumed + 1
-                    end
-                end
-                if consumed < arg.cratesRequired then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("Not enough crates nearby to unpack!"), 10)
-                    mgr:refreshUnpackSectionForUnit(arg.unitName)
-                    return
-                end
-                CTLDSceneManager.getInstance():playScene(t, "FARP Alpha", nil, nil)
-            end,
-            { unitName = playerObj.unitName, cratesRequired = farpRequired })
-    end
+        local sceneName = entry.name
+        local cd        = entry.cd
+        local required  = cd.cratesRequired or 1
+        local label     = string.format("%s (%d/%d)", ctld.tr(cd.deployKey or ("Deploy " .. sceneName)), entry.count, required)
 
-    -- Countryside FARP scene unpack entry: delegate to CTLDSceneManager
-    if csFarpCount > 0 then
-        hasAny = true
-        local csDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("Countryside FARP")
-        local csRequired = (csDesc and csDesc.cratesRequired) or 1
-        local csLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy Countryside FARP"), csFarpCount, csRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, csLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                local gid = t:getGroup():getID()
-                if ctld.utils.inAir(t) then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
-                    return
-                end
-                -- Consume one Countryside FARP crate from nearby
-                local mgr   = CTLDCrateManager.getInstance()
-                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
-                local consumed = 0
-                for _, c in ipairs(nearC) do
-                    if c:isOnGround() and c.canBeUnpacked
-                        and c.descriptor and c.descriptor.unit == "Countryside FARP"
-                        and consumed < arg.cratesRequired
-                    then
-                        mgr:unpackCrate(c.crateName, t)
-                        consumed = consumed + 1
+        if cd.unpack then
+            -- Custom unpack path (e.g. FOB): delegate entirely to the model's unpack function.
+            -- sceneName is passed so the handler can filter crates by exact type (multi-FOB support).
+            menu:addCommand({ root, cratesSub, unpackSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    arg.cd.unpack(t, arg.unitName, arg.sceneName)
+                end,
+                { unitName = playerObj.unitName, cd = cd, sceneName = sceneName })
+        else
+            -- Generic scene path: ground check + consume crates + playScene.
+            local groundErrKey = cd.groundKey or "You must land before unpacking crates!"
+            menu:addCommand({ root, cratesSub, unpackSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local gid = t:getGroup():getID()
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(gid, ctld.tr(arg.groundErrKey), 10)
+                        return
                     end
-                end
-                if consumed < arg.cratesRequired then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("Not enough crates nearby to unpack!"), 10)
-                    mgr:refreshUnpackSectionForUnit(arg.unitName)
-                    return
-                end
-                CTLDSceneManager.getInstance():playScene(t, "Countryside FARP", nil, nil)
-            end,
-            { unitName = playerObj.unitName, cratesRequired = csRequired })
+                    local mgr      = CTLDCrateManager.getInstance()
+                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
+                    local consumed = 0
+                    for _, c in ipairs(nearC) do
+                        if c:isOnGround() and c.canBeUnpacked
+                            and c.descriptor and c.descriptor.unit == arg.sceneName
+                            and consumed < arg.cratesRequired
+                        then
+                            mgr:unpackCrate(c.crateName, t)
+                            consumed = consumed + 1
+                        end
+                    end
+                    if consumed < arg.cratesRequired then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("Not enough crates nearby to unpack!"), 10)
+                        mgr:refreshUnpackSectionForUnit(arg.unitName)
+                        return
+                    end
+                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName, nil, nil)
+                end,
+                {
+                    unitName      = playerObj.unitName,
+                    sceneName     = sceneName,
+                    cratesRequired = required,
+                    groundErrKey  = groundErrKey,
+                })
+        end
     end
 
     if not hasAny then
@@ -884,12 +924,12 @@ function CTLDCrateManager:checkHoverStatus()
                         local warnTooLow    = false
                         local warnTooHigh   = false
 
+                        local _sm_sling = CTLDSceneManager.getInstance()
                         for _, crate in pairs(self.crates) do
+                            local _unit = crate.descriptor and crate.descriptor.unit
                             if crate:isOnGround()
                                 and crate.descriptor
-                                and crate.descriptor.unit ~= "FOB"
-                                and crate.descriptor.unit ~= "FARP Alpha"
-                                and crate.descriptor.unit ~= "Countryside FARP"
+                                and not (_unit and _sm_sling:getModel(_unit))
                             then
                                 local cratePos = (crate.dcsStatic and crate.dcsStatic:isExist())
                                     and crate.dcsStatic:getPoint()

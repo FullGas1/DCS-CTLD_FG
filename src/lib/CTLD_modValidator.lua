@@ -166,8 +166,7 @@ function CTLDModValidator:_collectTypeNames()
         if type(items) == "table" then
             for _, item in ipairs(items) do
                 local isSceneSentinel = _sm and (_sm:getModel(item.unit) ~= nil)
-                if item.unit and item.unit ~= "FOB"
-                    and not isSceneSentinel
+                if item.unit and not isSceneSentinel
                     and not item._repairFor
                     and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then

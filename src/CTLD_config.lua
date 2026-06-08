@@ -685,9 +685,7 @@ function CTLDConfig:load()
 
             --- Both
             { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
-            { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
-            { weight = 1001.23, desc = ctld.tr("FARP Alpha Crate"),      unit = "FARP Alpha",        side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (FARP Alpha scene), not a DCS unit type
-            { weight = 1001.24, desc = ctld.tr("Countryside FARP Crate"), unit = "Countryside FARP", side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (Countryside FARP scene), not a DCS unit type
+            -- FOB, FARP Alpha, Countryside FARP: auto-injected from scene files via CTLDSceneManager (model.crate).
 
         },
         ["Artillery"] = {

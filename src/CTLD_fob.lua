@@ -118,18 +118,27 @@ local function _computeCentroid(transport)
     return { x = fx, y = land.getHeight({ x = fx, y = fz }), z = fz }
 end
 
---- Collect FOB crates on the ground within radius metres of position.
--- The FOB sentinel value is unit = "FOB" (set in spawnableCrates descriptor).
+--- Collect FOB-type crates on the ground within radius metres of position.
+-- A crate qualifies if its scene model declares fobCompatible=true AND its
+-- descriptor.unit matches sceneName (so FOB and FOB Heavy are never mixed).
 -- Returns { crates=[], total }.
-local function _collectFOBCrates(position, coalitionId, radius)
+-- @param position   vec3
+-- @param coalitionId number
+-- @param radius     number  metres
+-- @param sceneName  string  exact scene name to match (e.g. "FOB", "FOB Heavy")
+local function _collectFOBCrates(position, coalitionId, radius, sceneName)
     local cm     = CTLDCrateManager.getInstance()
     local nearby = cm:getCratesInRange(position, radius)
+    local sm     = CTLDSceneManager.getInstance()
     local result = { crates = {}, total = 0 }
 
     for _, crate in ipairs(nearby) do
         if crate.coalition == coalitionId then
-            local unit = crate.descriptor and crate.descriptor.unit
-            if unit == "FOB" then
+            local unit  = crate.descriptor and crate.descriptor.unit
+            local model = unit and sm:getModel(unit)
+            if model and model.crate and model.crate.fobCompatible
+                and unit == sceneName
+            then
                 result.total = result.total + 1
                 result.crates[#result.crates + 1] = crate
             end
@@ -162,9 +171,12 @@ end
 -- ============================================================
 
 --- Called from F10 menu when a player attempts to unpack FOB crates.
+-- sceneName identifies the exact FOB variant (e.g. "FOB", "FOB Heavy") so
+-- cratesRequired and crate collection are always consistent with the scene model.
 -- @param transport DCS Unit
 -- @param player    string  player name (display only)
-function CTLDFOBManager:unpackFOBCrates(transport, player)
+-- @param sceneName string  registered scene model name (from model.name)
+function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     if not ctld.gs("enabledFOBBuilding") then return end
 
     local gid = transport:getGroup():getID()
@@ -179,10 +191,11 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local pos         = transport:getPoint()
     local coalitionId = transport:getCoalition()
 
-    -- Guard: not enough crates (checked first for clearer feedback)
-    local fobDesc    = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
-    local required   = (fobDesc and fobDesc.cratesRequired) or 3
-    local collected  = _collectFOBCrates(pos, coalitionId, 750)
+    -- Derive required count from the scene model (works for any FOB variant).
+    local sn       = sceneName or "FOB"
+    local model    = CTLDSceneManager.getInstance():getModel(sn)
+    local required = (model and model.crate and model.crate.cratesRequired) or 3
+    local collected  = _collectFOBCrates(pos, coalitionId, 750, sn)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
             ctld.tr("FOB needs %1 crate(s) within 750 m - only %2 found.",
@@ -231,7 +244,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Start scene immediately — no pre-timer needed
     CTLDSceneManager.getInstance():playScene(
         transport,
-        "fobScene",
+        sn,
         { player = player, centroid = centroid },
         function(scene)
             self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)

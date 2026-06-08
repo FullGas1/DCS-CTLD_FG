@@ -46,15 +46,13 @@ ctld.i18n["es"]["Ural-375 Ammo Truck"] = "Camión Ural-375 de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck - All crates"] = "Camión KAMAZ de municiones - Todas las cajas"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
-ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
-ctld.i18n["es"]["FARP Alpha Crate"] = "Caja FARP Alpha"
-ctld.i18n["es"]["Countryside FARP Crate"] = "Caja FARP Campo"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
 ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
 ctld.i18n["es"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Despliegue de FOB bloqueado: alejate al menos %1 m de una zona logistica."
 ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 comenzo a construir un FOB (%2 caja(s)). Construccion en curso."
-ctld.i18n["es"]["FOB established by %1 - logistics hub now active."] = "FOB establecido por %1 - centro logístico activo."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["es"]["MQ-9 Repear - JTAC"] = "JTAC MQ-9 Repear"
 ctld.i18n["es"]["RQ-1A Predator - JTAC"] = "JTAC RQ-1A Predator"
 ctld.i18n["es"]["MLRS"] = "MLRS - Artilleria de cohetes"
@@ -347,10 +345,9 @@ ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(
 ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
-ctld.i18n["es"]["Build FOB"] = "Construir FOB"
-ctld.i18n["es"]["Deploy FARP Alpha"] = "Desplegar FARP Alpha"
-ctld.i18n["es"]["Deploy Countryside FARP"] = "Desplegar FARP Campo"
-ctld.i18n["es"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Despliegue FARP Campo por %1 : ¡Completo! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["es"]["You must be on the ground to deploy a FARP."] = "Debes estar en el suelo para desplegar un FARP."
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"

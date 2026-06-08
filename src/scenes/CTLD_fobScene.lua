@@ -1,6 +1,38 @@
 ---@diagnostic disable
 -- ============================================================
 -- CTLD_fobScene.lua
+--
+-- ============================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ============================================================
+
+ctld.i18n["en"]["FOB Crate"]                                              = "FOB Crate"
+ctld.i18n["fr"]["FOB Crate"]                                              = "Caisse FOB"
+ctld.i18n["es"]["FOB Crate"]                                              = "Caja FOB"
+ctld.i18n["ko"]["FOB Crate"]                                              = "FOB 화물"
+
+ctld.i18n["en"]["Build FOB"]                                              = "Build FOB"
+ctld.i18n["fr"]["Build FOB"]                                              = "Construire un FOB"
+ctld.i18n["es"]["Build FOB"]                                              = "Construir FOB"
+ctld.i18n["ko"]["Build FOB"]                                              = "FOB 건설"
+
+ctld.i18n["en"]["FOB construction started by %1."]                        = "FOB construction started by %1."
+ctld.i18n["fr"]["FOB construction started by %1."]                        = "Construction du FOB démarrée par %1."
+ctld.i18n["es"]["FOB construction started by %1."]                        = "%1 inició la construcción del FOB."
+ctld.i18n["ko"]["FOB construction started by %1."]                        = "%1(이)가 FOB 건설을 시작했습니다."
+
+ctld.i18n["en"]["FOB 90% complete - final installation in progress..."]   = "FOB 90% complete - final installation in progress..."
+ctld.i18n["fr"]["FOB 90% complete - final installation in progress..."]   = "FOB à 90 % — installation finale en cours..."
+ctld.i18n["es"]["FOB 90% complete - final installation in progress..."]   = "FOB al 90% — instalación final en progreso..."
+ctld.i18n["ko"]["FOB 90% complete - final installation in progress..."]   = "FOB 90% 완료 - 최종 설치 진행 중..."
+
+ctld.i18n["en"]["FOB established by %1 - logistics hub now active."]      = "FOB established by %1 - logistics hub now active."
+ctld.i18n["fr"]["FOB established by %1 - logistics hub now active."]      = "FOB établi par %1 - hub logistique opérationnel."
+ctld.i18n["es"]["FOB established by %1 - logistics hub now active."]      = "FOB establecido por %1 - hub logístico ahora activo."
+ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."]      = "%1에 의해 FOB가 건설되었습니다 - 보급 기지가 활성화됩니다."
+
+-- ============================================================
+-- CTLD_fobScene.lua (suite)
 -- FOB deployment scene — animated construction site (120 s).
 --
 -- The scene is self-timed: starts immediately when the FOB
@@ -52,8 +84,54 @@
 --          land.getHeight, trigger.action.outTextForCoalition
 -- ============================================================
 
+-- ============================================================
+-- BLOC 2 : entrées ObjectRegistry requises par cette scène
+-- ============================================================
+
+CTLDObjectRegistry.registerIfAbsent("FOB_container", {
+    groupType  = "STATIC",
+    namePrefix = "FOB_Outpost",
+    type       = "outpost",
+    category   = "Fortifications",
+    canCargo   = false,
+})
+
+CTLDObjectRegistry.registerIfAbsent("FOB_watchtower", {
+    groupType  = "STATIC",
+    namePrefix = "FOB_Watchtower",
+    type       = "house2arm",
+    category   = "Fortifications",
+    canCargo   = false,
+    rate       = 100,
+})
+
+-- ============================================================
+-- BLOC 3 : définition de la scène + attributs crate
+-- ============================================================
+
 local fobScene = {}
-fobScene.name = "fobScene"
+fobScene.name = "FOB"
+
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex.
+-- L'action unpack délègue à CTLDFOBManager:unpackFOBCrates() qui gère les
+-- gardes (zone logistique, distance, nombre de caisses) et la callback onComplete.
+fobScene.crate = {
+    weight         = 1001.22,
+    i18nKey        = "FOB Crate",
+    deployKey      = "Build FOB",
+    cratesRequired = 3,
+    side           = nil,
+    showSets       = false,
+    -- fobCompatible: marks this scene as a FOB-type deployment.
+    -- CTLDFOBManager._collectFOBCrates() collects any crate whose scene model
+    -- has fobCompatible=true, so future FOB variants are recognised automatically.
+    fobCompatible  = true,
+    -- Unpack custom : délègue intégralement à CTLDFOBManager (gardes + consommation crates + playScene).
+    -- sceneName identifies this specific FOB variant so multi-FOB missions work correctly.
+    unpack = function(unit, unitName, sceneName)
+        CTLDFOBManager.getInstance():unpackFOBCrates(unit, unitName, sceneName)
+    end,
+}
 
 -- ----------------------------------------------------------------
 -- Some DCS types require an explicit shape_name for coalition.addStaticObject
@@ -330,7 +408,7 @@ fobScene.steps = {
 }
 
 -- ============================================================
--- Self-registration
+-- BLOC 4 : self-registration (toujours en dernier)
 -- ============================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(fobScene)

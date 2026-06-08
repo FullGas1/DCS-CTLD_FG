@@ -23,13 +23,15 @@ CTLD_beacon.lua
 CTLD_recon.lua
 CTLD_jtac.lua
 CTLD_player.lua
--- Orchestrator
-CTLD_core.lua
--- Scene data (after CTLDSceneManager registry is ready)
+-- Scene data (after all managers defined, before CTLDCoreManager init so model.crate auto-injection runs correctly)
 scenes/CTLD_farpScene.lua
 scenes/CTLD_fobScene.lua
 scenes/CTLD_mineFieldScene.lua
 scenes/CTLD_countrysideFarpScene.lua
+scenes/CTLD_farpAlphaScene.lua
+scenes/CTLD_metalFarpScene.lua
+-- Orchestrator (instantiates all managers, including CTLDCrateManager._processSpawnableCrates)
+CTLD_core.lua
 -- Legacy API compatibility (after all managers)
 compat/legacy_api.lua
 -- User configuration (always last)

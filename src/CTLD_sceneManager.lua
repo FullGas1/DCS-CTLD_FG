@@ -227,6 +227,11 @@ function CTLDSceneManager:registerSceneModel(model)
     end
     self._models[model.name] = model
     ctld.utils.log("INFO", "CTLDSceneManager: registered scene model '%s'", model.name)
+    -- If CTLDCrateManager is already initialized (late scene registration, e.g. Witchcraft injection),
+    -- inject the crate descriptor immediately so it appears in the Request Equipment menu.
+    if model.crate and CTLDCrateManager and CTLDCrateManager._instance then
+        CTLDCrateManager._instance:_injectSceneCrate(model.name, model)
+    end
     return true
 end
 
@@ -269,161 +274,9 @@ end
 -- Built-in scene registration
 -- ====================================================================================================
 
+-- All scenes are defined in their own files under scenes/ and self-register via
+-- CTLDSceneManager.getInstance():registerSceneModel(). No built-in registration needed.
 function CTLDSceneManager:_registerBuiltins()
-    self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
-    -- Countryside FARP scene is defined in scenes/CTLD_countrysideFarpScene.lua (self-registering)
-    -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
-
--- ====================================================================================================
--- Built-in scene: FARP Alpha
--- Migrated from source_scene_ini/farpSceneDatas.lua.
--- 13 object steps + 1 completion func.
--- ====================================================================================================
-
-CTLDSceneManager._FARP_ALPHA_SCENE = {
-    name  = "FARP Alpha",
-    steps = {
-
-        -- Step 1: FARP helipad (STATIC) — warehouse stocked with all fuel types after spawn.
-        {
-            polar                    = { distance = 100, angle = 0 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 180,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "SINGLE_HELIPAD",
-            func = function(ctx)
-                if not ctx.spawnedObj then return false end
-                local ab = Airbase.getByName(ctx.spawnedObj:getName())
-                if ab then
-                    local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
-                end
-                return true
-            end,
-        },
-
-        -- Step 2: Command tent (STATIC)
-        {
-            polar                    = { distance = 130, angle = 5 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Tent",
-        },
-
-        -- Step 3: Ammo storage (STATIC)
-        {
-            polar                    = { distance = 110, angle = 340 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Ammo_Storage",
-        },
-
-        -- Step 4a: Fuel truck (GROUND)
-        {
-            polar                    = { distance = 110, angle = 15 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Fuel_Truck",
-        },
-
-        -- Step 4b: Repair truck (GROUND)
-        {
-            polar                    = { distance = 125, angle = 15 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "repare_Truck",
-        },
-
-        -- Step 5: Security guard group (GROUND)
-        {
-            polar                    = { distance = 90, angle = 15 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Security_Guard",
-        },
-
-        -- Step 6a: Barrels (STATIC)
-        {
-            polar                    = { distance = 100, angle = 350 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "barrels_cargo",
-        },
-
-        -- Step 6b1: Cargo box (STATIC)
-        {
-            polar                    = { distance = 98, angle = 350.2 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Cargo06",
-        },
-
-        -- Step 6b2: Ammo cargo (STATIC)
-        {
-            polar                    = { distance = 108, angle = 351.2 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "ammo_cargo",
-        },
-
-        -- Step 6c: Ammo cargo 2 (STATIC)
-        {
-            polar                    = { distance = 109.5, angle = 351.3 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 95,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "ammo_cargo",
-        },
-
-        -- Step 6d: Carrier shooter static (STATIC)
-        {
-            polar                    = { distance = 115, angle = 5 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "us carrier shooter",
-        },
-
-        -- Step 6e: Light panel (STATIC)
-        {
-            polar                    = { distance = 116.7, angle = 353 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "NF-2_LightOn",
-        },
-
-        -- Step 6f: Windsock (STATIC)
-        {
-            polar                    = { distance = 80, angle = 10 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Windsock",
-        },
-
-        -- Step 7: Completion message (func-only)
-        {
-            delayAfterPreviousStep = 0,
-            func = function(ctx)
-                trigger.action.outText(
-                    ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
-                return true
-            end,
-        },
-    },
-}
 
 

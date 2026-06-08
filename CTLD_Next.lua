@@ -730,9 +730,7 @@ function CTLDConfig:load()
 
             --- Both
             { weight = 1001.21, desc = ctld.tr("EWR Radar"),           unit = "FPS-117",           cratesRequired = 3 },
-            { weight = 1001.22, desc = ctld.tr("FOB Crate"),           unit = "FOB",               side = nil,        cratesRequired = 3, showSets = false }, -- Sentinel: triggers FOBManager, not a DCS unit type
-            { weight = 1001.23, desc = ctld.tr("FARP Alpha Crate"),      unit = "FARP Alpha",        side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (FARP Alpha scene), not a DCS unit type
-            { weight = 1001.24, desc = ctld.tr("Countryside FARP Crate"), unit = "Countryside FARP", side = nil, cratesRequired = 1, showSets = false }, -- Sentinel: triggers SceneManager (Countryside FARP scene), not a DCS unit type
+            -- FOB, FARP Alpha, Countryside FARP: auto-injected from scene files via CTLDSceneManager (model.crate).
 
         },
         ["Artillery"] = {
@@ -1442,15 +1440,13 @@ ctld.i18n["en"]["Ural-375 Ammo Truck"] = "Ural-375 Ammo Truck"
 ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
 ctld.i18n["en"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Ammo Truck - All crates"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
-ctld.i18n["en"]["FOB Crate"] = "FOB Crate"
-ctld.i18n["en"]["FARP Alpha Crate"] = "FARP Alpha Crate"
-ctld.i18n["en"]["Countryside FARP Crate"] = "Countryside FARP Crate"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
 ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
 ctld.i18n["en"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB deployment blocked: move at least %1 m away from existing logistic zone."
 ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 started building a FOB (%2 crate(s)). Construction in progress."
-ctld.i18n["en"]["FOB established by %1 - logistics hub now active."] = "FOB established by %1 - logistics hub now active."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["en"]["MQ-9 Repear - JTAC"] = "MQ-9 Repear - JTAC"
 ctld.i18n["en"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
 ctld.i18n["en"]["MLRS"] = "MLRS"
@@ -1741,10 +1737,9 @@ ctld.i18n["en"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 crate(s) dropped
 ctld.i18n["en"]["Unpack Crate"] = "Unpack Crate"
 ctld.i18n["en"]["Land to unpack crates"] = "Land to unpack crates"
 ctld.i18n["en"]["No complete crate sets nearby"] = "No complete crate sets nearby"
-ctld.i18n["en"]["Build FOB"] = "Build FOB"
-ctld.i18n["en"]["Deploy FARP Alpha"] = "Deploy FARP Alpha"
-ctld.i18n["en"]["Deploy Countryside FARP"] = "Deploy Countryside FARP"
-ctld.i18n["en"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Countryside FARP Deployment by %1 : Complete! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["en"]["You must be on the ground to deploy a FARP."] = "You must be on the ground to deploy a FARP."
 ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land before unpacking crates!"
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
@@ -1916,15 +1911,13 @@ ctld.i18n["fr"]["Ural-375 Ammo Truck"] = "Ural-375 Camion de munitions"
 ctld.i18n["fr"]["KAMAZ Ammo Truck"] = "KAMAZ Camion de munitions"
 ctld.i18n["fr"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ Camion de munitions - Toutes les caisses"
 ctld.i18n["fr"]["EWR Radar"] = "Radar de détection TEL"
-ctld.i18n["fr"]["FOB Crate"] = "Caisse FOB"
-ctld.i18n["fr"]["FARP Alpha Crate"] = "Caisse FARP Alpha"
-ctld.i18n["fr"]["Countryside FARP Crate"] = "Caisse FARP Campagne"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
 ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
 ctld.i18n["fr"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Deploiement FOB bloque : eloignez-vous d'au moins %1 m d'une zone logistique."
 ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Construction en cours."
-ctld.i18n["fr"]["FOB established by %1 - logistics hub now active."] = "FOB établi par %1 - hub logistique opérationnel."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["fr"]["MQ-9 Repear - JTAC"] = "MQ-9 Reaper - JTAC"
 ctld.i18n["fr"]["RQ-1A Predator - JTAC"] = "RQ-1A Predator - JTAC"
 ctld.i18n["fr"]["MLRS"] = "MLRS"
@@ -2217,10 +2210,9 @@ ctld.i18n["fr"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caisse(s) dépos
 ctld.i18n["fr"]["Unpack Crate"] = "Déballer caisses"
 ctld.i18n["fr"]["Land to unpack crates"] = "Atterrissez pour déballer"
 ctld.i18n["fr"]["No complete crate sets nearby"] = "Aucun lot complet de caisses à proximité"
-ctld.i18n["fr"]["Build FOB"] = "Construire un FOB"
-ctld.i18n["fr"]["Deploy FARP Alpha"] = "Déployer FARP Alpha"
-ctld.i18n["fr"]["Deploy Countryside FARP"] = "Déployer FARP Campagne"
-ctld.i18n["fr"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Déploiement FARP Campagne par %1 : Terminé ! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["fr"]["You must be on the ground to deploy a FARP."] = "Vous devez être au sol pour déployer un FARP."
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
@@ -2393,15 +2385,13 @@ ctld.i18n["es"]["Ural-375 Ammo Truck"] = "Camión Ural-375 de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
 ctld.i18n["es"]["KAMAZ Ammo Truck - All crates"] = "Camión KAMAZ de municiones - Todas las cajas"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
-ctld.i18n["es"]["FOB Crate"] = "Caja FOB"
-ctld.i18n["es"]["FARP Alpha Crate"] = "Caja FARP Alpha"
-ctld.i18n["es"]["Countryside FARP Crate"] = "Caja FARP Campo"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
 ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
 ctld.i18n["es"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Despliegue de FOB bloqueado: alejate al menos %1 m de una zona logistica."
 ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 comenzo a construir un FOB (%2 caja(s)). Construccion en curso."
-ctld.i18n["es"]["FOB established by %1 - logistics hub now active."] = "FOB establecido por %1 - centro logístico activo."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["es"]["MQ-9 Repear - JTAC"] = "JTAC MQ-9 Repear"
 ctld.i18n["es"]["RQ-1A Predator - JTAC"] = "JTAC RQ-1A Predator"
 ctld.i18n["es"]["MLRS"] = "MLRS - Artilleria de cohetes"
@@ -2694,10 +2684,9 @@ ctld.i18n["es"]["%1 crate(s) dropped at your %2 o'clock"] = "%1 caja(s) soltada(
 ctld.i18n["es"]["Unpack Crate"] = "Desempaquetar cajas"
 ctld.i18n["es"]["Land to unpack crates"] = "Aterriza para desempaquetar"
 ctld.i18n["es"]["No complete crate sets nearby"] = "No hay lotes de cajas completos cercanos"
-ctld.i18n["es"]["Build FOB"] = "Construir FOB"
-ctld.i18n["es"]["Deploy FARP Alpha"] = "Desplegar FARP Alpha"
-ctld.i18n["es"]["Deploy Countryside FARP"] = "Desplegar FARP Campo"
-ctld.i18n["es"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- Despliegue FARP Campo por %1 : ¡Completo! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["es"]["You must be on the ground to deploy a FARP."] = "Debes estar en el suelo para desplegar un FARP."
 ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar antes de desempaquetar las cajas!"
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
@@ -2870,15 +2859,13 @@ ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ 탄약 차량 - 전체 화물"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
-ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
-ctld.i18n["ko"]["FARP Alpha Crate"] = "FARP 알파 화물"
-ctld.i18n["ko"]["Countryside FARP Crate"] = "야외 FARP 화물"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). 건설 진행 중."
-ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."] = "%1이(가) FOB를 설립했습니다. 군수 거점 활성화."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = "MQ-9 리퍼 - JTAC"
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = "RQ-1A 프레데터 - JTAC"
 ctld.i18n["ko"]["MLRS"] = "MLRS"
@@ -3027,10 +3014,9 @@ ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2�
 ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
 ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
-ctld.i18n["ko"]["Build FOB"] = "FOB 건설"
-ctld.i18n["ko"]["Deploy FARP Alpha"] = "FARP 알파 배치"
-ctld.i18n["ko"]["Deploy Countryside FARP"] = "야외 FARP 배치"
-ctld.i18n["ko"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- %1에 의한 야외 FARP 배치 완료! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["ko"]["You must be on the ground to deploy a FARP."] = "FARP를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
@@ -6557,8 +6543,7 @@ function CTLDModValidator:_collectTypeNames()
         if type(items) == "table" then
             for _, item in ipairs(items) do
                 local isSceneSentinel = _sm and (_sm:getModel(item.unit) ~= nil)
-                if item.unit and item.unit ~= "FOB"
-                    and not isSceneSentinel
+                if item.unit and not isSceneSentinel
                     and not item._repairFor
                     and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
                 then
@@ -6974,6 +6959,11 @@ function CTLDSceneManager:registerSceneModel(model)
     end
     self._models[model.name] = model
     ctld.utils.log("INFO", "CTLDSceneManager: registered scene model '%s'", model.name)
+    -- If CTLDCrateManager is already initialized (late scene registration, e.g. Witchcraft injection),
+    -- inject the crate descriptor immediately so it appears in the Request Equipment menu.
+    if model.crate and CTLDCrateManager and CTLDCrateManager._instance then
+        CTLDCrateManager._instance:_injectSceneCrate(model.name, model)
+    end
     return true
 end
 
@@ -7016,162 +7006,10 @@ end
 -- Built-in scene registration
 -- ====================================================================================================
 
+-- All scenes are defined in their own files under scenes/ and self-register via
+-- CTLDSceneManager.getInstance():registerSceneModel(). No built-in registration needed.
 function CTLDSceneManager:_registerBuiltins()
-    self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
-    -- Countryside FARP scene is defined in scenes/CTLD_countrysideFarpScene.lua (self-registering)
-    -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
-
--- ====================================================================================================
--- Built-in scene: FARP Alpha
--- Migrated from source_scene_ini/farpSceneDatas.lua.
--- 13 object steps + 1 completion func.
--- ====================================================================================================
-
-CTLDSceneManager._FARP_ALPHA_SCENE = {
-    name  = "FARP Alpha",
-    steps = {
-
-        -- Step 1: FARP helipad (STATIC) — warehouse stocked with all fuel types after spawn.
-        {
-            polar                    = { distance = 100, angle = 0 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 180,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "SINGLE_HELIPAD",
-            func = function(ctx)
-                if not ctx.spawnedObj then return false end
-                local ab = Airbase.getByName(ctx.spawnedObj:getName())
-                if ab then
-                    local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
-                end
-                return true
-            end,
-        },
-
-        -- Step 2: Command tent (STATIC)
-        {
-            polar                    = { distance = 130, angle = 5 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Tent",
-        },
-
-        -- Step 3: Ammo storage (STATIC)
-        {
-            polar                    = { distance = 110, angle = 340 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Ammo_Storage",
-        },
-
-        -- Step 4a: Fuel truck (GROUND)
-        {
-            polar                    = { distance = 110, angle = 15 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Fuel_Truck",
-        },
-
-        -- Step 4b: Repair truck (GROUND)
-        {
-            polar                    = { distance = 125, angle = 15 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "repare_Truck",
-        },
-
-        -- Step 5: Security guard group (GROUND)
-        {
-            polar                    = { distance = 90, angle = 15 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "FARP_Security_Guard",
-        },
-
-        -- Step 6a: Barrels (STATIC)
-        {
-            polar                    = { distance = 100, angle = 350 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "barrels_cargo",
-        },
-
-        -- Step 6b1: Cargo box (STATIC)
-        {
-            polar                    = { distance = 98, angle = 350.2 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Cargo06",
-        },
-
-        -- Step 6b2: Ammo cargo (STATIC)
-        {
-            polar                    = { distance = 108, angle = 351.2 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "ammo_cargo",
-        },
-
-        -- Step 6c: Ammo cargo 2 (STATIC)
-        {
-            polar                    = { distance = 109.5, angle = 351.3 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 95,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "ammo_cargo",
-        },
-
-        -- Step 6d: Carrier shooter static (STATIC)
-        {
-            polar                    = { distance = 115, angle = 5 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "us carrier shooter",
-        },
-
-        -- Step 6e: Light panel (STATIC)
-        {
-            polar                    = { distance = 116.7, angle = 353 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "NF-2_LightOn",
-        },
-
-        -- Step 6f: Windsock (STATIC)
-        {
-            polar                    = { distance = 80, angle = 10 },
-            delayAfterPreviousStep   = 3,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey         = "Windsock",
-        },
-
-        -- Step 7: Completion message (func-only)
-        {
-            delayAfterPreviousStep = 0,
-            func = function(ctx)
-                trigger.action.outText(
-                    ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
-                return true
-            end,
-        },
-    },
-}
 
 
 
@@ -11385,8 +11223,67 @@ function CTLDCrateManager.getInstance()
         end
         -- Pre-process spawnableCrates config (two-pass: singleCrates + auto singleTypeSets + mixedSets validation)
         _cmInstance:_processSpawnableCrates()
+        -- Expose singleton reference so CTLDSceneManager can inject late-registered scene crates.
+        CTLDCrateManager._instance = _cmInstance
     end
     return _cmInstance
+end
+
+--- Inject a single scene model's crate descriptor into _weightIndex and _processedCrates.
+-- Called by _processSpawnableCrates (batch, at init) and by CTLDSceneManager:registerSceneModel
+-- (incremental, for scenes registered after CTLDCrateManager is already initialized).
+-- Weight collision resolution: if the declared weight is taken by a different unit, the next
+-- free slot in the same 1001.xx range is used and a WARN is logged.
+-- No-op if the scene is already present in _weightIndex (idempotent).
+-- @param sceneName  string  model.name
+-- @param model      table   scene model with model.crate set
+function CTLDCrateManager:_injectSceneCrate(sceneName, model)
+    local cd       = model.crate
+    local w        = cd.weight
+    local existing = self._weightIndex[w]
+    if existing then
+        if existing.unit ~= sceneName then
+            local base = math.floor(w)
+            local frac = math.floor((w - base) * 100 + 0.5)
+            repeat
+                frac = frac + 1
+                w    = base + frac / 100
+            until not self._weightIndex[w]
+            ctld.utils.log("WARN",
+                "_injectSceneCrate: scene '%s' weight %.2f taken by '%s' — reassigned to %.2f",
+                sceneName, cd.weight, existing.unit, w)
+        else
+            return  -- same unit already registered — idempotent, skip
+        end
+    end
+    if self._weightIndex[w] then return end  -- still taken after reassign (shouldn't happen)
+
+    local entry = {
+        weight         = w,
+        desc           = ctld.tr(cd.i18nKey or sceneName),
+        unit           = sceneName,
+        side           = cd.side,
+        cratesRequired = cd.cratesRequired or 1,
+        showSets       = cd.showSets or false,
+    }
+    self._weightIndex[w] = entry
+
+    local cat = (cd.side == "blue") and "BLUE"
+             or (cd.side == "red")  and "RED"
+             or "Both"
+    if not self._processedCrates[cat] then
+        self._processedCrates[cat] = { singleCrates = {}, mixedSets = {} }
+    end
+    local already = false
+    for _, pe in ipairs(self._processedCrates[cat].singleCrates) do
+        if pe.singleCrate and pe.singleCrate.unit == sceneName then
+            already = true; break
+        end
+    end
+    if not already then
+        table.insert(self._processedCrates[cat].singleCrates, { singleCrate = entry })
+    end
+    ctld.utils.log("INFO", "_injectSceneCrate: injected '%s' weight=%.2f", sceneName, w)
 end
 
 --- Pre-process spawnableCrates config into an internal structure used by the menu builder.
@@ -11473,6 +11370,15 @@ function CTLDCrateManager:_processSpawnableCrates()
             singleCrates = processedSingle,
             mixedSets    = processedMixed,
         }
+    end
+
+    -- Auto-inject all scene crates registered so far (scenes loaded before CTLDCoreManager init).
+    -- Scenes registered afterwards are handled by the callback in CTLDSceneManager:registerSceneModel.
+    local sm_auto = CTLDSceneManager.getInstance()
+    for sceneName, model in pairs(sm_auto._models) do
+        if model.crate then
+            self:_injectSceneCrate(sceneName, model)
+        end
     end
 
     -- Display MM startup warnings if any validation errors found
@@ -11635,27 +11541,19 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
 
     local nearby = self:getCratesInRange(transport:getPoint(), 300)
 
-    -- FOB sentinel (unit = "FOB"): handled by CTLDFOBManager, not spawned as vehicles.
-    local FOB_SENTINELS = { ["FOB"] = true }
-    -- Scene sentinels (unit = scene model name): handled by CTLDSceneManager, not spawned as vehicles.
-    local SCENE_SENTINELS = { ["FARP Alpha"] = true, ["Countryside FARP"] = true }
-
-    -- Group ground crates by descriptor.unit. FOB and scene sentinels are excluded from this table.
-    local byUnit    = {}   -- [unitType] = { count, descriptor }
-    local unitOrder = {}
-    local fobCount         = 0
-    local farpAlphaCount   = 0
-    local csFarpCount      = 0
+    -- Group ground crates by descriptor.unit.
+    -- Scene crates (unit matches a registered CTLDSceneManager model) are counted separately.
+    local byUnit      = {}   -- [unitType] = { count, descriptor }
+    local unitOrder   = {}
+    local sceneCounts = {}   -- [sceneName] = count
+    local sm_ref      = CTLDSceneManager.getInstance()
     for _, crate in ipairs(nearby) do
         if crate:isOnGround() and crate.canBeUnpacked
             and crate.descriptor and crate.descriptor.unit
         then
             local ut = crate.descriptor.unit
-            if FOB_SENTINELS[ut] then
-                fobCount = fobCount + 1
-            elseif SCENE_SENTINELS[ut] then
-                if ut == "FARP Alpha" then farpAlphaCount = farpAlphaCount + 1
-                elseif ut == "Countryside FARP" then csFarpCount = csFarpCount + 1 end
+            if sm_ref:getModel(ut) then
+                sceneCounts[ut] = (sceneCounts[ut] or 0) + 1
             else
                 if not byUnit[ut] then
                     byUnit[ut] = { count = 0, descriptor = crate.descriptor }
@@ -11745,99 +11643,79 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
         end
     end
 
-    -- FOB unpack entry: delegate to CTLDFOBManager (handles its own crate counting & guards)
-    if fobCount > 0 then
-        hasAny = true
-        local fobDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
-        local fobRequired = (fobDesc and fobDesc.cratesRequired) or 3
-        local fobLabel    = string.format("%s (%d/%d)", ctld.tr("Build FOB"), fobCount, fobRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, fobLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                CTLDFOBManager.getInstance():unpackFOBCrates(t, arg.unitName)
-            end,
-            { unitName = playerObj.unitName })
+    -- Generic scene unpack entries: one per registered scene model with enough nearby crates.
+    -- Sorted by crate weight for deterministic menu order.
+    -- If model.crate.unpack exists, it handles the unpack directly (e.g. FOB → CTLDFOBManager).
+    -- Otherwise: ground check + consume cratesRequired crates + CTLDSceneManager:playScene().
+    local sortedScenes = {}
+    for sceneName, count in pairs(sceneCounts) do
+        local model = sm_ref:getModel(sceneName)
+        if model and model.crate then
+            local cd       = model.crate
+            local required = cd.cratesRequired or 1
+            if count >= required then
+                table.insert(sortedScenes, { name = sceneName, count = count, cd = cd, model = model })
+            end
+        end
     end
+    table.sort(sortedScenes, function(a, b) return (a.cd.weight or 0) < (b.cd.weight or 0) end)
 
-    -- FARP Alpha scene unpack entry: delegate to CTLDSceneManager
-    if farpAlphaCount > 0 then
+    for _, entry in ipairs(sortedScenes) do
         hasAny = true
-        local farpDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("FARP Alpha")
-        local farpRequired = (farpDesc and farpDesc.cratesRequired) or 1
-        local farpLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy FARP Alpha"), farpAlphaCount, farpRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, farpLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                local gid = t:getGroup():getID()
-                if ctld.utils.inAir(t) then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
-                    return
-                end
-                -- Consume one FARP Alpha crate from nearby
-                local mgr   = CTLDCrateManager.getInstance()
-                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
-                local consumed = 0
-                for _, c in ipairs(nearC) do
-                    if c:isOnGround() and c.canBeUnpacked
-                        and c.descriptor and c.descriptor.unit == "FARP Alpha"
-                        and consumed < arg.cratesRequired
-                    then
-                        mgr:unpackCrate(c.crateName, t)
-                        consumed = consumed + 1
-                    end
-                end
-                if consumed < arg.cratesRequired then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("Not enough crates nearby to unpack!"), 10)
-                    mgr:refreshUnpackSectionForUnit(arg.unitName)
-                    return
-                end
-                CTLDSceneManager.getInstance():playScene(t, "FARP Alpha", nil, nil)
-            end,
-            { unitName = playerObj.unitName, cratesRequired = farpRequired })
-    end
+        local sceneName = entry.name
+        local cd        = entry.cd
+        local required  = cd.cratesRequired or 1
+        local label     = string.format("%s (%d/%d)", ctld.tr(cd.deployKey or ("Deploy " .. sceneName)), entry.count, required)
 
-    -- Countryside FARP scene unpack entry: delegate to CTLDSceneManager
-    if csFarpCount > 0 then
-        hasAny = true
-        local csDesc     = CTLDCrateManager.getInstance():findDescriptorByUnitType("Countryside FARP")
-        local csRequired = (csDesc and csDesc.cratesRequired) or 1
-        local csLabel    = string.format("%s (%d/%d)", ctld.tr("Deploy Countryside FARP"), csFarpCount, csRequired)
-        menu:addCommand({ root, cratesSub, unpackSub }, csLabel,
-            function(arg)
-                local t = Unit.getByName(arg.unitName)
-                if not (t and t:isExist()) then return end
-                local gid = t:getGroup():getID()
-                if ctld.utils.inAir(t) then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("You must be on the ground to deploy a FARP."), 10)
-                    return
-                end
-                -- Consume one Countryside FARP crate from nearby
-                local mgr   = CTLDCrateManager.getInstance()
-                local nearC = mgr:getCratesInRange(t:getPoint(), 300)
-                local consumed = 0
-                for _, c in ipairs(nearC) do
-                    if c:isOnGround() and c.canBeUnpacked
-                        and c.descriptor and c.descriptor.unit == "Countryside FARP"
-                        and consumed < arg.cratesRequired
-                    then
-                        mgr:unpackCrate(c.crateName, t)
-                        consumed = consumed + 1
+        if cd.unpack then
+            -- Custom unpack path (e.g. FOB): delegate entirely to the model's unpack function.
+            -- sceneName is passed so the handler can filter crates by exact type (multi-FOB support).
+            menu:addCommand({ root, cratesSub, unpackSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    arg.cd.unpack(t, arg.unitName, arg.sceneName)
+                end,
+                { unitName = playerObj.unitName, cd = cd, sceneName = sceneName })
+        else
+            -- Generic scene path: ground check + consume crates + playScene.
+            local groundErrKey = cd.groundKey or "You must land before unpacking crates!"
+            menu:addCommand({ root, cratesSub, unpackSub }, label,
+                function(arg)
+                    local t = Unit.getByName(arg.unitName)
+                    if not (t and t:isExist()) then return end
+                    local gid = t:getGroup():getID()
+                    if ctld.utils.inAir(t) then
+                        trigger.action.outTextForGroup(gid, ctld.tr(arg.groundErrKey), 10)
+                        return
                     end
-                end
-                if consumed < arg.cratesRequired then
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("Not enough crates nearby to unpack!"), 10)
-                    mgr:refreshUnpackSectionForUnit(arg.unitName)
-                    return
-                end
-                CTLDSceneManager.getInstance():playScene(t, "Countryside FARP", nil, nil)
-            end,
-            { unitName = playerObj.unitName, cratesRequired = csRequired })
+                    local mgr      = CTLDCrateManager.getInstance()
+                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
+                    local consumed = 0
+                    for _, c in ipairs(nearC) do
+                        if c:isOnGround() and c.canBeUnpacked
+                            and c.descriptor and c.descriptor.unit == arg.sceneName
+                            and consumed < arg.cratesRequired
+                        then
+                            mgr:unpackCrate(c.crateName, t)
+                            consumed = consumed + 1
+                        end
+                    end
+                    if consumed < arg.cratesRequired then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("Not enough crates nearby to unpack!"), 10)
+                        mgr:refreshUnpackSectionForUnit(arg.unitName)
+                        return
+                    end
+                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName, nil, nil)
+                end,
+                {
+                    unitName      = playerObj.unitName,
+                    sceneName     = sceneName,
+                    cratesRequired = required,
+                    groundErrKey  = groundErrKey,
+                })
+        end
     end
 
     if not hasAny then
@@ -11971,12 +11849,12 @@ function CTLDCrateManager:checkHoverStatus()
                         local warnTooLow    = false
                         local warnTooHigh   = false
 
+                        local _sm_sling = CTLDSceneManager.getInstance()
                         for _, crate in pairs(self.crates) do
+                            local _unit = crate.descriptor and crate.descriptor.unit
                             if crate:isOnGround()
                                 and crate.descriptor
-                                and crate.descriptor.unit ~= "FOB"
-                                and crate.descriptor.unit ~= "FARP Alpha"
-                                and crate.descriptor.unit ~= "Countryside FARP"
+                                and not (_unit and _sm_sling:getModel(_unit))
                             then
                                 local cratePos = (crate.dcsStatic and crate.dcsStatic:isExist())
                                     and crate.dcsStatic:getPoint()
@@ -15603,18 +15481,27 @@ local function _computeCentroid(transport)
     return { x = fx, y = land.getHeight({ x = fx, y = fz }), z = fz }
 end
 
---- Collect FOB crates on the ground within radius metres of position.
--- The FOB sentinel value is unit = "FOB" (set in spawnableCrates descriptor).
+--- Collect FOB-type crates on the ground within radius metres of position.
+-- A crate qualifies if its scene model declares fobCompatible=true AND its
+-- descriptor.unit matches sceneName (so FOB and FOB Heavy are never mixed).
 -- Returns { crates=[], total }.
-local function _collectFOBCrates(position, coalitionId, radius)
+-- @param position   vec3
+-- @param coalitionId number
+-- @param radius     number  metres
+-- @param sceneName  string  exact scene name to match (e.g. "FOB", "FOB Heavy")
+local function _collectFOBCrates(position, coalitionId, radius, sceneName)
     local cm     = CTLDCrateManager.getInstance()
     local nearby = cm:getCratesInRange(position, radius)
+    local sm     = CTLDSceneManager.getInstance()
     local result = { crates = {}, total = 0 }
 
     for _, crate in ipairs(nearby) do
         if crate.coalition == coalitionId then
-            local unit = crate.descriptor and crate.descriptor.unit
-            if unit == "FOB" then
+            local unit  = crate.descriptor and crate.descriptor.unit
+            local model = unit and sm:getModel(unit)
+            if model and model.crate and model.crate.fobCompatible
+                and unit == sceneName
+            then
                 result.total = result.total + 1
                 result.crates[#result.crates + 1] = crate
             end
@@ -15647,9 +15534,12 @@ end
 -- ============================================================
 
 --- Called from F10 menu when a player attempts to unpack FOB crates.
+-- sceneName identifies the exact FOB variant (e.g. "FOB", "FOB Heavy") so
+-- cratesRequired and crate collection are always consistent with the scene model.
 -- @param transport DCS Unit
 -- @param player    string  player name (display only)
-function CTLDFOBManager:unpackFOBCrates(transport, player)
+-- @param sceneName string  registered scene model name (from model.name)
+function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     if not ctld.gs("enabledFOBBuilding") then return end
 
     local gid = transport:getGroup():getID()
@@ -15664,10 +15554,11 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     local pos         = transport:getPoint()
     local coalitionId = transport:getCoalition()
 
-    -- Guard: not enough crates (checked first for clearer feedback)
-    local fobDesc    = CTLDCrateManager.getInstance():findDescriptorByUnitType("FOB")
-    local required   = (fobDesc and fobDesc.cratesRequired) or 3
-    local collected  = _collectFOBCrates(pos, coalitionId, 750)
+    -- Derive required count from the scene model (works for any FOB variant).
+    local sn       = sceneName or "FOB"
+    local model    = CTLDSceneManager.getInstance():getModel(sn)
+    local required = (model and model.crate and model.crate.cratesRequired) or 3
+    local collected  = _collectFOBCrates(pos, coalitionId, 750, sn)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
             ctld.tr("FOB needs %1 crate(s) within 750 m - only %2 found.",
@@ -15716,7 +15607,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player)
     -- Start scene immediately — no pre-timer needed
     CTLDSceneManager.getInstance():playScene(
         transport,
-        "fobScene",
+        sn,
         { player = player, centroid = centroid },
         function(scene)
             self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)
@@ -20890,6 +20781,1826 @@ end
 
 -- End : CTLD_player.lua
 -- ====================================================================================================
+-- Start : scenes/CTLD_farpScene.lua
+---@diagnostic disable
+-- CTLD_farpScene.lua
+-- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
+--
+-- Reference point: 50 m at 12 o'clock from the trigger unit (prescript step 0).
+-- All subsequent object offsets are relative to that reference point.
+--
+-- Objects registered (all in CTLDObjectRegistry):
+--   SINGLE_HELIPAD    — landing pad (logistic zone anchor)     at ref point
+--   FARP_Tent         — crew tent                              30 m / 90°
+--   FARP_Ammo_Storage — ammunition dump                        30 m / 135°
+--   Windsock          — wind indicator / logistic unit marker  15 m / 270°
+--   Fuel_Truck        — coalition-aware fuel truck             35 m / 225°
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- ====================================================================================================
+
+local farpScene = {}
+farpScene.name = "farpScene"
+
+farpScene.steps = {
+
+    -- ----------------------------------------------------------------
+    -- Step 0: prescript — move reference point 50 m ahead of the heli.
+    -- All subsequent polar offsets are relative to this new origin.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local hdg = ctld.utils.getHeadingInRadians("farpScene.prescript", ctx.unit, true)
+            local pt  = ctx.unit:getPoint()
+            local fx  = pt.x + math.cos(hdg) * 50
+            local fz  = pt.z + math.sin(hdg) * 50
+            ctx.scene._refX   = fx
+            ctx.scene._refZ   = fz
+            ctx.scene._refAlt = land.getHeight({ x = fx, y = fz })
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 1: FARP helipad — at the reference point.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "SINGLE_HELIPAD",
+        polar                    = { distance = 0, angle = 0 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 2: Command tent — 30 m right of helipad.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "FARP_Tent",
+        polar                    = { distance = 30, angle = 90 },
+        delayAfterPreviousStep   = 1,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Ammo storage — 30 m at 135° from helipad.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "FARP_Ammo_Storage",
+        polar                    = { distance = 30, angle = 135 },
+        delayAfterPreviousStep   = 1,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 4: Windsock — 15 m left of helipad.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "Windsock",
+        polar                    = { distance = 15, angle = 270 },
+        delayAfterPreviousStep   = 1,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 5: Fuel truck — 35 m at 225° from helipad.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "Fuel_Truck",
+        polar                    = { distance = 35, angle = 225 },
+        delayAfterPreviousStep   = 1,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+}
+
+-- ====================================================================================================
+-- Self-registration
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(farpScene)
+
+-- End : scenes/CTLD_farpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_fobScene.lua
+---@diagnostic disable
+-- ============================================================
+-- CTLD_fobScene.lua
+--
+-- ============================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ============================================================
+
+ctld.i18n["en"]["FOB Crate"]                                              = "FOB Crate"
+ctld.i18n["fr"]["FOB Crate"]                                              = "Caisse FOB"
+ctld.i18n["es"]["FOB Crate"]                                              = "Caja FOB"
+ctld.i18n["ko"]["FOB Crate"]                                              = "FOB 화물"
+
+ctld.i18n["en"]["Build FOB"]                                              = "Build FOB"
+ctld.i18n["fr"]["Build FOB"]                                              = "Construire un FOB"
+ctld.i18n["es"]["Build FOB"]                                              = "Construir FOB"
+ctld.i18n["ko"]["Build FOB"]                                              = "FOB 건설"
+
+ctld.i18n["en"]["FOB construction started by %1."]                        = "FOB construction started by %1."
+ctld.i18n["fr"]["FOB construction started by %1."]                        = "Construction du FOB démarrée par %1."
+ctld.i18n["es"]["FOB construction started by %1."]                        = "%1 inició la construcción del FOB."
+ctld.i18n["ko"]["FOB construction started by %1."]                        = "%1(이)가 FOB 건설을 시작했습니다."
+
+ctld.i18n["en"]["FOB 90% complete - final installation in progress..."]   = "FOB 90% complete - final installation in progress..."
+ctld.i18n["fr"]["FOB 90% complete - final installation in progress..."]   = "FOB à 90 % — installation finale en cours..."
+ctld.i18n["es"]["FOB 90% complete - final installation in progress..."]   = "FOB al 90% — instalación final en progreso..."
+ctld.i18n["ko"]["FOB 90% complete - final installation in progress..."]   = "FOB 90% 완료 - 최종 설치 진행 중..."
+
+ctld.i18n["en"]["FOB established by %1 - logistics hub now active."]      = "FOB established by %1 - logistics hub now active."
+ctld.i18n["fr"]["FOB established by %1 - logistics hub now active."]      = "FOB établi par %1 - hub logistique opérationnel."
+ctld.i18n["es"]["FOB established by %1 - logistics hub now active."]      = "FOB establecido por %1 - hub logístico ahora activo."
+ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."]      = "%1에 의해 FOB가 건설되었습니다 - 보급 기지가 활성화됩니다."
+
+-- ============================================================
+-- CTLD_fobScene.lua (suite)
+-- FOB deployment scene — animated construction site (120 s).
+--
+-- The scene is self-timed: starts immediately when the FOB
+-- manager calls playScene and completes in exactly 120 seconds.
+-- No external buildTimeFOB pre-timer is required.
+--
+-- Construction statics (f1–f7, fh1–fh3) are mission-defined
+-- TYPE REFERENCES placed anywhere in the test mission.
+-- Their positions are ignored; only getTypeName() is used.
+-- Each static is spawned at a fixed polar offset around the
+-- FOB reference point defined in _STATIC_LAYOUT below.
+-- If a type-ref static is absent the step is silently skipped.
+--
+-- Phase 1 (T+0 … T+63): 10 construction objects appear
+--   progressively (f1–f7 materials, fh1–fh3 workers).
+-- Phase 2 (T+77 … T+90): permanent FOB objects spawn
+--   (container + watchtower).
+-- Phase 3 (T+90 … T+120): construction statics removed in 5
+--   pairs; completion message at exactly T+120.
+--
+-- Step timing (delayAfterPreviousStep = delay before NEXT step):
+--   Step  1 (T+  0)  prescript — ref point + type-ref scan
+--   Step  2 (T+  0)  spawn f1
+--   Step  3 (T+  7)  spawn fh1
+--   Step  4 (T+ 14)  spawn f2
+--   Step  5 (T+ 21)  spawn f3
+--   Step  6 (T+ 28)  spawn fh2
+--   Step  7 (T+ 35)  spawn f4
+--   Step  8 (T+ 42)  spawn f5
+--   Step  9 (T+ 49)  spawn fh3
+--   Step 10 (T+ 56)  spawn f6
+--   Step 11 (T+ 63)  spawn f7
+--   Step 12 (T+ 70)  progress message "90% complete"
+--   Step 13 (T+ 77)  FOB container (permanent)
+--   Step 14 (T+ 85)  FOB watchtower (permanent)
+--   Step 15 (T+ 90)  cleanup group 1: f1 + fh1
+--   Step 16 (T+ 95)  cleanup group 2: f2 + fh2
+--   Step 17 (T+100)  cleanup group 3: f3 + f4
+--   Step 18 (T+105)  cleanup group 4: f5 + fh3
+--   Step 19 (T+110)  cleanup group 5: f6 + f7
+--   Step 20 (T+120)  completion message — scene ends
+--
+-- ctx.scene._params expected keys (all optional):
+--   centroid   vec3   pre-computed FOB reference position
+--   player     string display name in messages
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- DCS API: coalition.addStaticObject, StaticObject.getByName,
+--          land.getHeight, trigger.action.outTextForCoalition
+-- ============================================================
+
+-- ============================================================
+-- BLOC 2 : entrées ObjectRegistry requises par cette scène
+-- ============================================================
+
+CTLDObjectRegistry.registerIfAbsent("FOB_container", {
+    groupType  = "STATIC",
+    namePrefix = "FOB_Outpost",
+    type       = "outpost",
+    category   = "Fortifications",
+    canCargo   = false,
+})
+
+CTLDObjectRegistry.registerIfAbsent("FOB_watchtower", {
+    groupType  = "STATIC",
+    namePrefix = "FOB_Watchtower",
+    type       = "house2arm",
+    category   = "Fortifications",
+    canCargo   = false,
+    rate       = 100,
+})
+
+-- ============================================================
+-- BLOC 3 : définition de la scène + attributs crate
+-- ============================================================
+
+local fobScene = {}
+fobScene.name = "FOB"
+
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex.
+-- L'action unpack délègue à CTLDFOBManager:unpackFOBCrates() qui gère les
+-- gardes (zone logistique, distance, nombre de caisses) et la callback onComplete.
+fobScene.crate = {
+    weight         = 1001.22,
+    i18nKey        = "FOB Crate",
+    deployKey      = "Build FOB",
+    cratesRequired = 3,
+    side           = nil,
+    showSets       = false,
+    -- fobCompatible: marks this scene as a FOB-type deployment.
+    -- CTLDFOBManager._collectFOBCrates() collects any crate whose scene model
+    -- has fobCompatible=true, so future FOB variants are recognised automatically.
+    fobCompatible  = true,
+    -- Unpack custom : délègue intégralement à CTLDFOBManager (gardes + consommation crates + playScene).
+    -- sceneName identifies this specific FOB variant so multi-FOB missions work correctly.
+    unpack = function(unit, unitName, sceneName)
+        CTLDFOBManager.getInstance():unpackFOBCrates(unit, unitName, sceneName)
+    end,
+}
+
+-- ----------------------------------------------------------------
+-- Some DCS types require an explicit shape_name for coalition.addStaticObject
+-- (e.g. carrier personnel). getDesc() does not expose it at runtime,
+-- so known shapes are listed here as a fallback.
+-- ----------------------------------------------------------------
+local _SHAPE_NAME = {
+    ["Carrier Seaman"]           = "carrier_seaman_USA",
+    ["Carrier LSO Personell 1"]  = "carrier_lso1_usa",
+    ["Carrier LSO Personell 2"]  = "carrier_lso2_usa",
+}
+
+-- ----------------------------------------------------------------
+-- Polar layout of construction statics around the FOB centre.
+-- angle_deg : 0° = 12 o'clock (heading forward), CW.
+-- dist_m    : metres from FOB reference point.
+-- ----------------------------------------------------------------
+local _STATIC_LAYOUT = {
+    f1  = { angle =   0, dist = 28 },   -- 12 o'clock — landmark (crane / tower)
+    fh1 = { angle =  90, dist = 22 },   -- E — worker near Tower Crane (f3)
+    f2  = { angle =  60, dist = 22 },   -- NE — materials
+    f3  = { angle =  90, dist = 28 },   -- 3 o'clock — Tower Crane
+    fh2 = { angle = 210, dist = 24 },   -- SSW — worker near Camouflage06 (f5)
+    f4  = { angle = 180, dist = 25 },   -- 6 o'clock — materials
+    f5  = { angle = 205, dist = 31 },   -- SSW — Camouflage06 tent (shifted 15 m toward helo)
+    fh3 = { angle = 265, dist = 22 },   -- W — worker near Cargo05 (f6)
+    f6  = { angle = 270, dist = 28 },   -- 9 o'clock — materials
+    f7  = { angle = 315, dist = 20 },   -- NW — materials
+}
+
+-- Ordered scan list (only for prescript type-read loop)
+local _STATIC_NAMES = {"f1","f2","f3","f4","f5","f6","f7","fh1","fh2","fh3"}
+
+-- ----------------------------------------------------------------
+-- Prescript helper: read getTypeName() from each mission type-ref
+-- static.  Position is irrelevant — only the type is stored.
+-- ----------------------------------------------------------------
+local function _initMissionStatics(ctx)
+    ctx.scene._staticTypes  = {}
+    ctx.scene._staticShapes = {}
+    ctx.scene._namedTempObjs = {}
+    for _, name in ipairs(_STATIC_NAMES) do
+        -- Type-refs may be placed as StaticObjects or as Units (group members).
+        local s = StaticObject.getByName(name)
+        if not (s and s:isExist()) then
+            s = Unit.getByName(name)
+        end
+        if s and s:isExist() then
+            ctx.scene._staticTypes[name] = s:getTypeName()
+            -- shape_name: try getDesc() first, fall back to known-type table.
+            local ok_d, desc = pcall(function() return s:getDesc() end)
+            local shapeName = (ok_d and desc) and (desc.shapeName or desc.shape_name) or nil
+            ctx.scene._staticShapes[name] = shapeName or _SHAPE_NAME[ctx.scene._staticTypes[name]]
+            ctld.utils.log("INFO", "fobScene: type-ref '%s' → '%s' shape=%s",
+                name, ctx.scene._staticTypes[name],
+                tostring(ctx.scene._staticShapes[name]))
+        else
+            ctld.utils.log("WARN",
+                "fobScene: type-ref '%s' not found (static nor unit) — step skipped", name)
+        end
+    end
+end
+
+-- ----------------------------------------------------------------
+-- Spawn a construction static at its polar position around the
+-- FOB reference point, using the type read from the mission.
+-- Tracked by name in _namedTempObjs for targeted cleanup.
+-- ----------------------------------------------------------------
+local function _spawnMissionStatic(ctx, name)
+    local typeName = ctx.scene._staticTypes and ctx.scene._staticTypes[name]
+    local layout   = _STATIC_LAYOUT[name]
+    if not typeName or not layout then return end
+
+    local absAngle   = ctx.scene._refHdgRad + math.rad(layout.angle)
+    local nx         = ctx.scene._refX + math.cos(absAngle) * layout.dist
+    local ez         = ctx.scene._refZ + math.sin(absAngle) * layout.dist
+    local uid        = ctld.utils.getNextUniqId()
+    local shapeName  = ctx.scene._staticShapes and ctx.scene._staticShapes[name]
+    local descriptor = {
+        name          = "FOB_tmp_" .. uid,
+        type          = typeName,
+        x             = nx,
+        y             = ez,
+        heading       = ctx.scene._refHdgRad,
+        start_time    = 0,
+        transportable = { randomTransportable = false },
+    }
+    if shapeName then descriptor.shape_name = shapeName end
+    local ok, obj = ctld.utils.spawnAs("STATIC", ctx.scene._countryId, descriptor)
+    if ok and obj then
+        ctx.scene._namedTempObjs[name] = obj
+        ctld.utils.log("INFO",
+            "fobScene: spawned '%s' (%s) angle=%.0f dist=%.0f at (%.0f, %.0f)",
+            name, typeName, layout.angle, layout.dist, nx, ez)
+    else
+        ctld.utils.log("WARN",
+            "fobScene: spawn failed '%s' (%s): %s", name, typeName, tostring(obj))
+    end
+end
+
+-- ----------------------------------------------------------------
+-- Destroy one named temporary static (safe, no-throw).
+-- ----------------------------------------------------------------
+local function _destroyNamed(ctx, name)
+    local obj = ctx.scene._namedTempObjs and ctx.scene._namedTempObjs[name]
+    if obj then
+        pcall(function()
+            if obj:isExist() then obj:destroy() end
+        end)
+        ctx.scene._namedTempObjs[name] = nil
+    end
+end
+
+-- ============================================================
+-- Scene steps
+-- ============================================================
+
+fobScene.steps = {
+
+    -- ----------------------------------------------------------------
+    -- Step 1 (T+0): prescript — set reference point, scan type-ref
+    --   statics, announce construction start.
+    -- delay=0 → step 2 fires immediately at T+0.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local centroid = ctx.scene._params and ctx.scene._params.centroid
+            if centroid then
+                ctx.scene._refX   = centroid.x
+                ctx.scene._refZ   = centroid.z
+                ctx.scene._refAlt = centroid.y
+            else
+                local pt  = ctx.unit:getPoint()
+                local hdg = ctld.utils.getHeadingInRadians("fobScene.prescript", ctx.unit, true)
+                local fx  = pt.x + math.cos(hdg) * 100
+                local fz  = pt.z + math.sin(hdg) * 100
+                ctx.scene._refX   = fx
+                ctx.scene._refZ   = fz
+                ctx.scene._refAlt = land.getHeight({ x = fx, y = fz })
+            end
+
+            _initMissionStatics(ctx)
+
+            local player = (ctx.scene._params and ctx.scene._params.player)
+                           or ctx.unit:getName()
+            trigger.action.outTextForCoalition(
+                ctx.scene._coalitionId,
+                ctld.tr("FOB construction started by %1.", player), 10)
+        end,
+    },
+
+    -- Step 2 (T+0): f1 — Sandbag_09 (0° / 28 m).
+    -- delay=7 → T+7.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f1") end },
+
+    -- Step 3 (T+7): f2 — Pile of Woods (60° / 22 m).
+    -- delay=7 → T+14.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f2") end },
+
+    -- Step 4 (T+14): fh1 — worker, appears just before Tower Crane (90° / 22 m).
+    -- delay=7 → T+21.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "fh1") end },
+
+    -- Step 5 (T+21): f3 — Tower Crane (90° / 28 m).
+    -- delay=7 → T+28.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f3") end },
+
+    -- Step 6 (T+28): f4 — Oil Barrel (180° / 25 m).
+    -- delay=7 → T+35.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f4") end },
+
+    -- Step 7 (T+35): fh2 — worker, appears just before Camouflage06 (210° / 24 m).
+    -- delay=7 → T+42.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "fh2") end },
+
+    -- Step 8 (T+42): f5 — Camouflage06 tent (205° / 31 m).
+    -- delay=7 → T+49.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f5") end },
+
+    -- Step 9 (T+49): fh3 — worker, appears just before Cargo05 (265° / 22 m).
+    -- delay=7 → T+56.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "fh3") end },
+
+    -- Step 10 (T+56): f6 — Cargo05 (270° / 28 m).
+    -- delay=7 → T+63.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f6") end },
+
+    -- Step 11 (T+63): f7 — Sandbag_04 (315° / 20 m).
+    -- delay=7 → T+70.
+    { delayAfterPreviousStep = 7,
+      func = function(ctx) _spawnMissionStatic(ctx, "f7") end },
+
+    -- ----------------------------------------------------------------
+    -- Step 12 (T+70): Progress message — "90% complete".
+    -- delay=7 → FOB container at T+77.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 7,
+        func = function(ctx)
+            trigger.action.outTextForCoalition(
+                ctx.scene._coalitionId,
+                ctld.tr("FOB 90% complete - final installation in progress..."), 10)
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 13 (T+77): FOB outpost container (PERMANENT).
+    -- delay=8 → watchtower at T+85.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "FOB_container",
+        polar                    = { distance = 10, angle = 0 },
+        delayAfterPreviousStep   = 8,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 14 (T+85): FOB watchtower (PERMANENT).
+    -- delay=5 → first cleanup at T+90.
+    -- ----------------------------------------------------------------
+    {
+        registryKey              = "FOB_watchtower",
+        polar                    = { distance = 39, angle = 158 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+    },
+
+    -- Step 15 (T+90): Cleanup 1 — f1 + fh1. delay=5 → T+95.
+    { delayAfterPreviousStep = 5,
+      func = function(ctx) _destroyNamed(ctx,"f1") ; _destroyNamed(ctx,"fh1") end },
+
+    -- Step 16 (T+95): Cleanup 2 — f2 + fh2. delay=5 → T+100.
+    { delayAfterPreviousStep = 5,
+      func = function(ctx) _destroyNamed(ctx,"f2") ; _destroyNamed(ctx,"fh2") end },
+
+    -- Step 17 (T+100): Cleanup 3 — f3 + f4. delay=5 → T+105.
+    { delayAfterPreviousStep = 5,
+      func = function(ctx) _destroyNamed(ctx,"f3") ; _destroyNamed(ctx,"f4") end },
+
+    -- Step 18 (T+105): Cleanup 4 — f5 + fh3. delay=5 → T+110.
+    { delayAfterPreviousStep = 5,
+      func = function(ctx) _destroyNamed(ctx,"f5") ; _destroyNamed(ctx,"fh3") end },
+
+    -- Step 19 (T+110): Cleanup 5 — f6 + f7. delay=10 → T+120.
+    { delayAfterPreviousStep = 10,
+      func = function(ctx) _destroyNamed(ctx,"f6") ; _destroyNamed(ctx,"f7") end },
+
+    -- ----------------------------------------------------------------
+    -- Step 20 (T+120): Completion message — scene ends.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local player = (ctx.scene._params and ctx.scene._params.player)
+                           or ctx.unit:getName()
+            trigger.action.outTextForCoalition(
+                ctx.scene._coalitionId,
+                ctld.tr("FOB established by %1 - logistics hub now active.", player),
+                10)
+        end,
+    },
+}
+
+-- ============================================================
+-- BLOC 4 : self-registration (toujours en dernier)
+-- ============================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(fobScene)
+
+-- End : scenes/CTLD_fobScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_mineFieldScene.lua
+---@diagnostic disable
+-- CTLD_mineFieldScene.lua
+-- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
+--
+-- ====================================================================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["Mine Field Crate"]                   = "Mine Field Crate"
+ctld.i18n["fr"]["Mine Field Crate"]                   = "Caisse Champ de Mines"
+ctld.i18n["es"]["Mine Field Crate"]                   = "Caja Campo de Minas"
+ctld.i18n["ko"]["Mine Field Crate"]                   = "지뢰밭 화물"
+
+ctld.i18n["en"]["Deploy Mine Field"]                  = "Deploy Mine Field"
+ctld.i18n["fr"]["Deploy Mine Field"]                  = "Déployer le Champ de Mines"
+ctld.i18n["es"]["Deploy Mine Field"]                  = "Desplegar Campo de Minas"
+ctld.i18n["ko"]["Deploy Mine Field"]                  = "지뢰밭 배치"
+
+ctld.i18n["en"]["--- mineField Deployed by %1 ---"]   = "--- Mine Field deployed by %1 ---"
+ctld.i18n["fr"]["--- mineField Deployed by %1 ---"]   = "--- Champ de Mines déployé par %1 ---"
+ctld.i18n["es"]["--- mineField Deployed by %1 ---"]   = "--- Campo de Minas desplegado por %1 ---"
+ctld.i18n["ko"]["--- mineField Deployed by %1 ---"]   = "--- %1에 의해 지뢰밭이 배치되었습니다 ---"
+
+-- ====================================================================================================
+-- CTLD_mineFieldScene.lua (suite)
+--
+-- Changes vs. original:
+--   - mist.dynAddStatic()        → CTLDObjectRegistry.spawnObject("Landmine", ...)
+--   - coalitionId undefined bug  → triggerUnitObj:getCoalition()
+--   - _spawnedGroup global leak  → local variable
+--   - func step signature updated to (triggerUnitObj, spawnedObj, step)
+--   - Registration: CTLDSceneManager.getInstance():registerSceneModel(...)
+--   - Layout: quinconce (staggered) pattern — odd rows N mines, even rows N-1 mines offset cs/2
+--
+-- Dependencies: CTLDUtils, CTLDObjectRegistry, CTLDSceneManager
+-- DCS API: trigger.action.outText
+-- ====================================================================================================
+
+-- ====================================================================================================
+-- BLOC 2 : entrées ObjectRegistry requises par cette scène
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("Landmine", {
+    groupType  = "STATIC",
+    namePrefix = "Mine",
+    type       = "Landmine",
+    category   = "Fortifications",
+})
+
+-- ====================================================================================================
+-- BLOC 3 : définition de la scène + attributs crate
+-- ====================================================================================================
+
+local mineFieldScene = {}
+mineFieldScene.name = "mineField"
+
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
+mineFieldScene.crate = {
+    weight         = 1001.25,
+    i18nKey        = "Mine Field Crate",
+    deployKey      = "Deploy Mine Field",
+    cratesRequired = 1,
+    side           = nil,
+    showSets       = false,
+}
+
+mineFieldScene.steps = {
+    -- Step 1: deploy minefield (func-only — positions computed inside)
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local success, result = mineFieldScene.setLandMine(ctx.unit, 20, 5, 15, 6, 12)
+            if trigger and trigger.action and trigger.action.outText then
+                trigger.action.outText(
+                    ctld.tr("--- mineField Deployed by %1 ---", ctx.unit:getName()), 10)
+            end
+            return success, result
+        end,
+    },
+}
+
+-- ====================================================================================================
+-- mineFieldScene.setLandMine
+-- Computes a quinconce (staggered) grid of landmine positions relative to triggerUnitObj
+-- and spawns them.
+--
+-- Layout (nbMinesColumns >= 2):
+--   odd rows  : N mines,   centered
+--   even rows : N-1 mines, shifted laterally by colSpacing/2
+--
+-- Special cases:
+--   nbMines == 1                  → single mine, diamond F10 marker
+--   nbMinesColumns < 2            → straight forward column, no stagger
+--
+-- @param triggerUnitObj                   DCS Unit object
+-- @param distanceOf1stMineFromHeliInMeter number  distance from unit to first row (metres)
+-- @param nbMinesColumns                   number  mines per odd (full) row
+-- @param nbMinesPerColumns                number  total number of rows
+-- @param distanceBetweenColumnsInMeters   number  lateral spacing between adjacent mines (metres)
+-- @param distanceBetweenLinesInMeters     number  forward spacing between rows (metres)
+-- @return boolean, table|string  success flag + spawned object array or error message
+-- ====================================================================================================
+function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInMeter, nbMinesColumns, nbMinesPerColumns,
+                                    distanceBetweenColumnsInMeters, distanceBetweenLinesInMeters)
+    if not triggerUnitObj then
+        return false, "ERROR mineFieldScene.setLandMine(): no triggerUnitObj or nbLines <= 0"
+    end
+
+    local triggerUnitPosition     = triggerUnitObj:getPosition()
+    local triggerUnitHeadingInRad = ctld.utils.getHeadingInRadians(
+                                        "mineFieldScene.setLandMine", triggerUnitObj, true)
+    local coalitionId             = triggerUnitObj:getCoalition()
+    local countryId               = triggerUnitObj:getCountry()
+
+    local nbMines     = nbMinesColumns * nbMinesPerColumns
+    local spawnedObjs = {}
+
+    if nbMines <= 0 then
+        return false, "ERROR mineFieldScene.setLandMine(): no triggerUnitObj or nbLines <= 0"
+    end
+
+    distanceBetweenLinesInMeters = distanceBetweenLinesInMeters or 12
+
+    local vec3Points1To4 = {}
+    local unitVec2       = { x = triggerUnitPosition.p.x, y = triggerUnitPosition.p.z }
+
+    -- Spawn a single mine at a Vec2 position {x, y}
+    local function spawnAt(pos)
+        local obj = CTLDObjectRegistry.spawnObject(
+            "Landmine", coalitionId, countryId,
+            pos.x, pos.y, 0, nil)
+        if obj then
+            spawnedObjs[#spawnedObjs + 1] = obj
+        end
+    end
+
+    if nbMines == 1 then
+        -- ----------------------------------------------------------------
+        -- Single mine — diamond F10 marker
+        -- ----------------------------------------------------------------
+        local pt = ctld.utils.GetRelativeVec2Coords(
+            unitVec2, triggerUnitHeadingInRad,
+            distanceOf1stMineFromHeliInMeter, 0)
+        spawnAt(pt)
+        -- Square aligned with aircraft heading (3m half-side)
+        local half = 3
+        local fwd  = ctld.utils.GetRelativeVec2Coords(pt, triggerUnitHeadingInRad,  half,  0)
+        local bwd  = ctld.utils.GetRelativeVec2Coords(pt, triggerUnitHeadingInRad, -half,  0)
+        local tl   = ctld.utils.GetRelativeVec2Coords(fwd, triggerUnitHeadingInRad, -half, 90)
+        local tr   = ctld.utils.GetRelativeVec2Coords(fwd, triggerUnitHeadingInRad,  half, 90)
+        local br   = ctld.utils.GetRelativeVec2Coords(bwd, triggerUnitHeadingInRad,  half, 90)
+        local bl   = ctld.utils.GetRelativeVec2Coords(bwd, triggerUnitHeadingInRad, -half, 90)
+        vec3Points1To4[1] = { x = tl.x, y = 0, z = tl.y }
+        vec3Points1To4[2] = { x = tr.x, y = 0, z = tr.y }
+        vec3Points1To4[3] = { x = br.x, y = 0, z = br.y }
+        vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
+
+    elseif nbMinesColumns < 2 then
+        -- ----------------------------------------------------------------
+        -- Single column: straight forward line, no stagger
+        -- ----------------------------------------------------------------
+        local refPoint = ctld.utils.GetRelativeVec2Coords(
+            unitVec2, triggerUnitHeadingInRad,
+            distanceOf1stMineFromHeliInMeter, 0)
+        for r = 1, nbMinesPerColumns do
+            local pos = ctld.utils.GetRelativeVec2Coords(
+                refPoint, triggerUnitHeadingInRad,
+                (r - 1) * distanceBetweenLinesInMeters, 0)
+            spawnAt(pos)
+        end
+        local lastPos = ctld.utils.GetRelativeVec2Coords(
+            refPoint, triggerUnitHeadingInRad,
+            (nbMinesPerColumns - 1) * distanceBetweenLinesInMeters, 0)
+        vec3Points1To4[1] = { x = refPoint.x - 3, y = 0, z = refPoint.y }
+        vec3Points1To4[2] = { x = refPoint.x + 3, y = 0, z = refPoint.y }
+        vec3Points1To4[3] = { x = lastPos.x  + 3, y = 0, z = lastPos.y  }
+        vec3Points1To4[4] = { x = lastPos.x  - 3, y = 0, z = lastPos.y  }
+
+    else
+        -- ----------------------------------------------------------------
+        -- Quinconce (staggered) layout — nbMinesColumns >= 2
+        --   odd rows  (r=1,3,...) : N mines,   leftmost at -halfWidth
+        --   even rows (r=2,4,...) : N-1 mines, leftmost at -halfWidth + cs/2
+        -- ----------------------------------------------------------------
+        local refPoint  = ctld.utils.GetRelativeVec2Coords(
+            unitVec2, triggerUnitHeadingInRad,
+            distanceOf1stMineFromHeliInMeter, 0)
+        local halfWidth = ((nbMinesColumns - 1) / 2) * distanceBetweenColumnsInMeters
+
+        for r = 1, nbMinesPerColumns do
+            local rowCenter = ctld.utils.GetRelativeVec2Coords(
+                refPoint, triggerUnitHeadingInRad,
+                (r - 1) * distanceBetweenLinesInMeters, 0)
+
+            local minesInRow, leftmostLateral
+            if r % 2 == 1 then
+                -- Odd row: full width
+                minesInRow      = nbMinesColumns
+                leftmostLateral = -halfWidth
+            else
+                -- Even row: one mine less, shifted right by cs/2
+                minesInRow      = nbMinesColumns - 1
+                leftmostLateral = -halfWidth + distanceBetweenColumnsInMeters / 2
+            end
+
+            for col = 1, minesInRow do
+                local lateralOffset = leftmostLateral + (col - 1) * distanceBetweenColumnsInMeters
+                local pos = ctld.utils.GetRelativeVec2Coords(
+                    rowCenter, triggerUnitHeadingInRad, lateralOffset, 90)
+                spawnAt(pos)
+            end
+        end
+
+        -- Bounding rectangle corners (based on full-row lateral extent)
+        local lastRowCenter = ctld.utils.GetRelativeVec2Coords(
+            refPoint, triggerUnitHeadingInRad,
+            (nbMinesPerColumns - 1) * distanceBetweenLinesInMeters, 0)
+        local tl = ctld.utils.GetRelativeVec2Coords(refPoint,      triggerUnitHeadingInRad, -halfWidth, 90)
+        local tr = ctld.utils.GetRelativeVec2Coords(refPoint,      triggerUnitHeadingInRad,  halfWidth, 90)
+        local br = ctld.utils.GetRelativeVec2Coords(lastRowCenter, triggerUnitHeadingInRad,  halfWidth, 90)
+        local bl = ctld.utils.GetRelativeVec2Coords(lastRowCenter, triggerUnitHeadingInRad, -halfWidth, 90)
+        vec3Points1To4[1] = { x = tl.x, y = 0, z = tl.y }
+        vec3Points1To4[2] = { x = tr.x, y = 0, z = tr.y }
+        vec3Points1To4[3] = { x = br.x, y = 0, z = br.y }
+        vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
+    end
+
+    -- Draw bounding quadrilateral on the F10 map (unless disabled in config)
+    local lastSpawned = spawnedObjs[#spawnedObjs]
+    if lastSpawned and ctld.gs("showMinefieldOnF10Map") ~= false then
+        ctld.utils.drawQuad(coalitionId, vec3Points1To4, lastSpawned:getName())
+    end
+
+    return true, spawnedObjs
+end
+
+-- ====================================================================================================
+-- mineFieldScene.setLandMineAuto
+-- Parametric minefield: derives column count and row count automatically from a target area
+-- (width × length in metres) and a desired total mine count, then delegates to setLandMine.
+--
+-- The layout is always quinconce (staggered rows):
+--   odd rows  : N mines
+--   even rows : N-1 mines, laterally offset by colSpacing/2
+-- Total for N cols and R rows: T(N,R) = R*N - floor(R/2)
+--
+-- The algorithm finds the (N, R) pair whose T(N,R) is closest to nbMines while respecting
+-- the requested aspect ratio (width/length).  Column and line spacings are derived from the
+-- dimensions: cs = width/(N-1),  ls = length/(R-1).
+--
+-- @param triggerUnitObj  DCS Unit object — defines origin and heading
+-- @param distFromUnit    number  forward distance (m) from unit to first mine row
+-- @param widthMeters     number  lateral extent of the minefield (m)
+-- @param lengthMeters    number  forward extent of the minefield (m)
+-- @param nbMines         number  desired number of mines
+-- @return boolean, table|string  success flag + spawned object array or error message
+--
+-- Example (MM usage):
+--   local ok, result = mineFieldScene.setLandMineAuto(transport, 30, 50, 80, 40)
+--   -- lays ~40 mines in a 50 m wide × 80 m long staggered field starting 30 m ahead
+-- ====================================================================================================
+function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeters, lengthMeters, nbMines)
+    if not triggerUnitObj then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): triggerUnitObj is nil"
+    end
+    if not nbMines or nbMines < 1 then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): nbMines must be >= 1"
+    end
+    if not widthMeters or widthMeters <= 0 or not lengthMeters or lengthMeters <= 0 then
+        return false, "ERROR mineFieldScene.setLandMineAuto(): widthMeters and lengthMeters must be > 0"
+    end
+
+    -- Single mine: bypass layout computation
+    if nbMines == 1 then
+        return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, 1, 1, widthMeters, lengthMeters)
+    end
+
+    -- T(N,R) = R*N - floor(R/2)  →  R ≈ nbMines / (N - 0.5)
+    local function countForNR(N, R)
+        return R * N - math.floor(R / 2)
+    end
+
+    -- Estimate N from aspect ratio; clamp to [2, 50]
+    local N0 = math.max(2, math.min(50, math.floor(math.sqrt(nbMines * widthMeters / lengthMeters) + 0.5)))
+
+    local bestN, bestR, bestDiff = N0, 1, math.huge
+    for _, N in ipairs({ N0 - 1, N0, N0 + 1 }) do
+        if N >= 2 then
+            local R = math.max(1, math.min(200, math.floor(nbMines / (N - 0.5) + 0.5)))
+            for _, Rc in ipairs({ R - 1, R, R + 1 }) do
+                if Rc >= 1 then
+                    local diff = math.abs(countForNR(N, Rc) - nbMines)
+                    if diff < bestDiff then
+                        bestDiff, bestN, bestR = diff, N, Rc
+                    end
+                end
+            end
+        end
+    end
+
+    local cs = widthMeters  / (bestN - 1)
+    local ls = lengthMeters / math.max(1, bestR - 1)
+
+    return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, bestN, bestR, cs, ls)
+end
+
+-- ====================================================================================================
+-- BLOC 4 : self-registration (toujours en dernier)
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
+
+-- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_countrysideFarpScene.lua
+---@diagnostic disable
+-- CTLD_countrysideFarpScene.lua
+-- Countryside FARP deployment scene.
+-- Lightweight forward arming/refueling point using an Invisible FARP heliport.
+-- The Invisible FARP type creates a proper DCS airbase (warehouse, Airbase.getByName accessible)
+-- without any visible F10 map label or 3D model — fully functional but discreet.
+--
+-- Layout (all offsets from trigger unit position):
+--   Invisible FARP heliport — at unit position (distance=0)
+--   4 Black Tyres           — corners of a 60×60 m landing square (immediate)
+--   Fuel truck              — 40 m / 8°  heading 90° (under tent, t+5 s)
+--   Repair truck            — 40 m / 11° heading 90° (under tent, t+5 s)
+--   Tent                    — 40 m / 10° heading 90° (over trucks,  t+5.5 s)
+--   Ammo cargo              — 35 m / 340°             (t+15 s)
+--   Guards (infantry+MANPAD)— 32 m / 21°              (t+20 s)
+--   M92 light panel         — 35 m / 349° alt+4 m    (t+25 s)
+--   Windsock                — 31 m / 357°             (t+25 s)
+--   Warehouse stocking      — FARP warehouse fueled on completion (t+30 s)
+--
+-- Objects used (all in CTLDObjectRegistry):
+--   Invisible_FARP, Fuel_Truck, repare_Truck, FARP_Tent,
+--   ammo_cargo, CS_FARP_Guards, NF-2_LightOn, Windsock
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- ====================================================================================================
+
+local countrysideFarpScene = {}
+countrysideFarpScene.name  = "Countryside FARP"
+
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
+countrysideFarpScene.crate = {
+    weight         = 1001.24,
+    i18nKey        = "Countryside FARP Crate",
+    deployKey      = "Deploy Countryside FARP",
+    groundKey      = "You must be on the ground to deploy a FARP.",
+    cratesRequired = 1,
+    side           = nil,
+    showSets       = false,
+}
+
+countrysideFarpScene.steps = {
+
+    -- ----------------------------------------------------------------
+    -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid
+    -- double-count on first step).
+    -- Invisible FARP creates a proper DCS airbase (warehouse, accessible
+    -- via Airbase.getByName) without F10 label or 3D model.
+    -- Saves the spawned airbase name for the warehouse-stocking step.
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 0, angle = 0 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Invisible_FARP",
+        func = function(ctx)
+            if not ctx.spawnedObj then return false end
+            ctx.scene._params.farpName = ctx.spawnedObj:getName()
+            return true
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 2: 4 Black Tyres at the corners of the FARP landing square
+    -- (t0 + 0 s — same tick as FARP). Marks boundary immediately.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local halfSide = 30
+            local h    = ctx.scene._refHdgRad
+            local cx   = ctx.scene._refX
+            local cz   = ctx.scene._refZ
+            local cosH = math.cos(h)
+            local sinH = math.sin(h)
+            local cid  = ctx.scene._countryId
+
+            local corners = {
+                {  halfSide,  halfSide },
+                {  halfSide, -halfSide },
+                { -halfSide,  halfSide },
+                { -halfSide, -halfSide },
+            }
+            for i, c in ipairs(corners) do
+                local fwd, right = c[1], c[2]
+                local wx = cx + fwd * cosH - right * sinH
+                local wz = cz + fwd * sinH + right * cosH
+                local sd = {
+                    name          = "CS_FARP_Flag_" .. i,
+                    type          = "Black_Tyre",
+                    shape_name    = "H-tyre_B",
+                    category      = "Fortifications",
+                    x             = wx,
+                    y             = wz,
+                    heading       = 0,
+                    start_time    = 0,
+                    dead          = false,
+                    transportable = { randomTransportable = false },
+                }
+                local ok, obj = pcall(coalition.addStaticObject, cid, sd)
+                if ok and obj then
+                    ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
+                end
+            end
+            return true
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Fuel truck — under tent (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 8 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Fuel_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 11 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "repare_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 5: Tent — over both trucks (t0 + 5.5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 10 },
+        delayAfterPreviousStep   = 0.5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 6: Ammo cargo (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 340 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "ammo_cargo",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 32, angle = 21 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "CS_FARP_Guards",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 8: M92 light panel at tent height (t0 + 25 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 349 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 310,
+        relativeAltitudeInMeters = 4,
+        registryKey = "NF-2_LightOn",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 9: Windsock near the light, same timing (t0 + 25 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 31, angle = 357 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 220,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Windsock",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 10: Stock warehouse + completion message (t0 + 30 s).
+    -- Fills all fuel types in the FARP warehouse so aircraft can
+    -- refuel/rearm at this forward point.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 5,
+        func = function(ctx)
+            local farpName = ctx.scene._params and ctx.scene._params.farpName
+            if farpName then
+                local ab = Airbase.getByName(farpName)
+                if ab then
+                    local w = ab:getWarehouse()
+                    w:addLiquid(0, 10000)   -- jet fuel
+                    w:addLiquid(1, 10000)   -- aviation gasoline
+                    w:addLiquid(2, 10000)   -- MW50
+                    w:addLiquid(3, 10000)   -- diesel
+                end
+            end
+            trigger.action.outText(
+                ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+            return true
+        end,
+    },
+}
+
+-- ====================================================================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["Countryside FARP Crate"]                                        = "Countryside FARP Crate"
+ctld.i18n["fr"]["Countryside FARP Crate"]                                        = "Caisse FARP Campagne"
+ctld.i18n["es"]["Countryside FARP Crate"]                                        = "Caja FARP Campo"
+ctld.i18n["ko"]["Countryside FARP Crate"]                                        = "야외 FARP 화물"
+
+ctld.i18n["en"]["Deploy Countryside FARP"]                                       = "Deploy Countryside FARP"
+ctld.i18n["fr"]["Deploy Countryside FARP"]                                       = "Déployer FARP Campagne"
+ctld.i18n["es"]["Deploy Countryside FARP"]                                       = "Desplegar FARP Campo"
+ctld.i18n["ko"]["Deploy Countryside FARP"]                                       = "야외 FARP 배치"
+
+ctld.i18n["en"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Countryside FARP Deployment by %1 : Complete! ---"
+ctld.i18n["fr"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Déploiement FARP Campagne par %1 : Terminé ! ---"
+ctld.i18n["es"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- Despliegue FARP Campo por %1 : ¡Completo! ---"
+ctld.i18n["ko"]["--- Countryside FARP Deployment by %1 : Complete! ---"]         = "--- %1에 의한 야외 FARP 배치 완료! ---"
+
+-- ====================================================================================================
+-- BLOC 2 : Registry entries required by this scene.
+-- registerIfAbsent() is a no-op when the key already exists, so multiple scenes
+-- can safely declare the same shared entry (FARP, Fuel_Truck, etc.) without conflict.
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("Invisible_FARP", {
+    groupType            = "STATIC",
+    namePrefix           = "CS_FARP",
+    type                 = "Invisible FARP",
+    shape_name           = "invisiblefarp",
+    category             = "Heliports",
+    heliport_frequency   = "127.5",
+    heliport_callsign_id = 1,
+    heliport_modulation  = 0,
+    rate                 = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Fuel_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "Fuel_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "Fuel_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "ATZ-10" or "M978 HEMTT Tanker"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("repare_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "repare_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "repare_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Ural-375" or "M 818"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Tent", {
+    groupType  = "STATIC",
+    namePrefix = "FARP_Tent",
+    type       = "FARP Tent",
+    category   = "Fortifications",
+})
+
+CTLDObjectRegistry.registerIfAbsent("ammo_cargo", {
+    groupType  = "STATIC",
+    namePrefix = "ammo_box_cargo",
+    type       = "ammo_cargo",
+    category   = "Cargos",
+    shape_name = "ammo_box_cargo",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("CS_FARP_Guards", {
+    groupType  = "GROUND",
+    namePrefix = "CS_FARP_Guard_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "CS_Guard_Infantry",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+        {
+            namePrefix     = "CS_Guard_Manpad",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
+            end,
+            playerCanDrive = false,
+            dx = 3, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("NF-2_LightOn", {
+    groupType  = "STATIC",
+    namePrefix = "LightOn",
+    type       = "NF-2_LightOn",
+    category   = "Fortifications",
+    shape_name = "M92_NF-2_LightOn",
+    rate       = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Windsock", {
+    groupType  = "STATIC",
+    namePrefix = "Windsock",
+    type       = "Windsock",
+    category   = "Fortifications",
+    shape_name = "H-Windsock_RW",
+    rate       = 3,
+})
+
+-- ====================================================================================================
+-- Self-registration
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(countrysideFarpScene)
+
+-- End : scenes/CTLD_countrysideFarpScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_farpAlphaScene.lua
+---@diagnostic disable
+-- CTLD_farpAlphaScene.lua
+-- FARP Alpha deployment scene — standard forward arming/refueling point.
+-- Migrated from CTLDSceneManager._FARP_ALPHA_SCENE (was in CTLD_sceneManager.lua).
+--
+-- Layout (all offsets from trigger unit position):
+--   SINGLE_HELIPAD heliport — 100 m ahead at 0°
+--   Command tent            — 130 m / 5°   heading 90° (t+3 s)
+--   Ammo storage            — 110 m / 340°             (t+6 s)
+--   Fuel truck              — 110 m / 15°              (t+11 s)
+--   Repair truck            — 125 m / 15°              (t+16 s)
+--   Security guard group    — 90  m / 15°              (t+16 s)
+--   Barrels cargo           — 100 m / 350°             (t+19 s)
+--   Cargo box               — 98  m / 350.2°           (t+22 s)
+--   Ammo cargo              — 108 m / 351.2°           (t+25 s)
+--   Ammo cargo 2            — 109.5 m / 351.3°         (t+28 s)
+--   Carrier shooter static  — 115 m / 5°               (t+31 s)
+--   Light panel             — 116.7 m / 353°           (t+34 s)
+--   Windsock                — 80 m / 10°               (t+37 s)
+--   Completion message      — func-only                (t+37 s)
+--
+-- Objects used (all in CTLDObjectRegistry):
+--   SINGLE_HELIPAD, FARP_Tent, FARP_Ammo_Storage, Fuel_Truck, repare_Truck,
+--   FARP_Security_Guard, barrels_cargo, Cargo06, ammo_cargo,
+--   us carrier shooter, NF-2_LightOn, Windsock
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- ====================================================================================================
+
+-- ====================================================================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["FARP Alpha Crate"]                                  = "FARP Alpha Crate"
+ctld.i18n["fr"]["FARP Alpha Crate"]                                  = "Caisse FARP Alpha"
+ctld.i18n["es"]["FARP Alpha Crate"]                                  = "Caja FARP Alpha"
+ctld.i18n["ko"]["FARP Alpha Crate"]                                  = "FARP 알파 화물"
+
+ctld.i18n["en"]["Deploy FARP Alpha"]                                 = "Deploy FARP Alpha"
+ctld.i18n["fr"]["Deploy FARP Alpha"]                                 = "Déployer FARP Alpha"
+ctld.i18n["es"]["Deploy FARP Alpha"]                                 = "Desplegar FARP Alpha"
+ctld.i18n["ko"]["Deploy FARP Alpha"]                                 = "FARP 알파 배치"
+
+ctld.i18n["en"]["--- FARP Dynamic Deployment by %1 : Complete! ---"] = "--- FARP Dynamic Deployment by %1 : Complete! ---"
+ctld.i18n["fr"]["--- FARP Dynamic Deployment by %1 : Complete! ---"] = "--- Déploiement FARP Dynamique par %1 : Terminé ! ---"
+ctld.i18n["es"]["--- FARP Dynamic Deployment by %1 : Complete! ---"] = "--- Despliegue FARP Dinámico por %1 : ¡Completo! ---"
+ctld.i18n["ko"]["--- FARP Dynamic Deployment by %1 : Complete! ---"] = "--- %1에 의한 FARP 동적 배치 완료! ---"
+
+-- ====================================================================================================
+-- BLOC 2 : entrées ObjectRegistry requises par cette scène (registerIfAbsent = no-op si déjà présente)
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("SINGLE_HELIPAD", {
+    groupType            = "STATIC",
+    namePrefix           = "SINGLE_HELIPAD",
+    type                 = "SINGLE_HELIPAD",
+    category             = "Heliports",
+    shape_name           = "FARP",
+    heliport_frequency   = "127.5",
+    heliport_callsign_id = 1,
+    heliport_modulation  = 0,
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Tent", {
+    groupType  = "STATIC",
+    namePrefix = "FARP_Tent",
+    type       = "FARP Tent",
+    category   = "Fortifications",
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Ammo_Storage", {
+    groupType  = "STATIC",
+    namePrefix = "FARP_Ammo_Storage",
+    type       = "FARP Ammo Dump Coating",
+    category   = "Fortifications",
+})
+
+CTLDObjectRegistry.registerIfAbsent("Fuel_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "Fuel_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "Fuel_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "ATZ-10" or "M978 HEMTT Tanker"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("repare_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "repare_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "repare_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Ural-375" or "M 818"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Security_Guard", {
+    groupType  = "GROUND",
+    namePrefix = "FARP_Guard_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "Guard_Infantry",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+        {
+            namePrefix     = "Guard_Infantry",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+            end,
+            playerCanDrive = false,
+            dx = 3, dz = 1, dh = 0.610865,
+        },
+        {
+            namePrefix     = "Guard_Manpad",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
+            end,
+            playerCanDrive = false,
+            dx = -3, dz = -1, dh = -0.610865,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("barrels_cargo", {
+    groupType  = "STATIC",
+    namePrefix = "barrels_cargo",
+    type       = "barrels_cargo",
+    category   = "Cargos",
+    shape_name = "barrels_cargo",
+    rate       = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Cargo06", {
+    groupType  = "STATIC",
+    namePrefix = "ammo_box06",
+    type       = "Cargo06",
+    category   = "Cargos",
+    shape_name = "M92_Cargo06",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("ammo_cargo", {
+    groupType  = "STATIC",
+    namePrefix = "ammo_box_cargo",
+    type       = "ammo_cargo",
+    category   = "Cargos",
+    shape_name = "ammo_box_cargo",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("us carrier shooter", {
+    groupType  = "STATIC",
+    namePrefix = "carrier_shooter",
+    type       = "us carrier shooter",
+    category   = "Personnel",
+    shape_name = "carrier_shooter",
+    livery_id  = "blue",
+    rate       = 20,
+})
+
+CTLDObjectRegistry.registerIfAbsent("NF-2_LightOn", {
+    groupType  = "STATIC",
+    namePrefix = "LightOn",
+    type       = "NF-2_LightOn",
+    category   = "Fortifications",
+    shape_name = "M92_NF-2_LightOn",
+    rate       = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Windsock", {
+    groupType  = "STATIC",
+    namePrefix = "Windsock",
+    type       = "Windsock",
+    category   = "Fortifications",
+    shape_name = "H-Windsock_RW",
+    rate       = 3,
+})
+
+-- ====================================================================================================
+-- BLOC 3 : définition de la scène + attributs crate
+-- ====================================================================================================
+
+local farpAlphaScene = {
+    name = "FARP Alpha",
+
+    -- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
+    crate = {
+        weight         = 1001.23,
+        i18nKey        = "FARP Alpha Crate",
+        deployKey      = "Deploy FARP Alpha",
+        groundKey      = "You must be on the ground to deploy a FARP.",
+        cratesRequired = 1,
+        side           = nil,
+        showSets       = false,
+    },
+
+    steps = {
+
+        -- Step 1: FARP helipad (STATIC) — warehouse stocked with all fuel types after spawn.
+        {
+            polar                    = { distance = 100, angle = 0 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 180,
+            relativeAltitudeInMeters = 0,
+            registryKey = "SINGLE_HELIPAD",
+            func = function(ctx)
+                if not ctx.spawnedObj then return false end
+                local ab = Airbase.getByName(ctx.spawnedObj:getName())
+                if ab then
+                    local w = ab:getWarehouse()
+                    w:addLiquid(0, 10000)   -- jet fuel
+                    w:addLiquid(1, 10000)   -- aviation gasoline
+                    w:addLiquid(2, 10000)   -- MW50
+                    w:addLiquid(3, 10000)   -- diesel
+                end
+                return true
+            end,
+        },
+
+        -- Step 2: Command tent (STATIC)
+        {
+            polar                    = { distance = 130, angle = 5 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "FARP_Tent",
+        },
+
+        -- Step 3: Ammo storage (STATIC)
+        {
+            polar                    = { distance = 110, angle = 340 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "FARP_Ammo_Storage",
+        },
+
+        -- Step 4a: Fuel truck (GROUND)
+        {
+            polar                    = { distance = 110, angle = 15 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Fuel_Truck",
+        },
+
+        -- Step 4b: Repair truck (GROUND)
+        {
+            polar                    = { distance = 125, angle = 15 },
+            delayAfterPreviousStep   = 5,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "repare_Truck",
+        },
+
+        -- Step 5: Security guard group (GROUND)
+        {
+            polar                    = { distance = 90, angle = 15 },
+            delayAfterPreviousStep   = 0,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "FARP_Security_Guard",
+        },
+
+        -- Step 6a: Barrels (STATIC)
+        {
+            polar                    = { distance = 100, angle = 350 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 0,
+            relativeAltitudeInMeters = 0,
+            registryKey = "barrels_cargo",
+        },
+
+        -- Step 6b1: Cargo box (STATIC)
+        {
+            polar                    = { distance = 98, angle = 350.2 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Cargo06",
+        },
+
+        -- Step 6b2: Ammo cargo (STATIC)
+        {
+            polar                    = { distance = 108, angle = 351.2 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 90,
+            relativeAltitudeInMeters = 0,
+            registryKey = "ammo_cargo",
+        },
+
+        -- Step 6c: Ammo cargo 2 (STATIC)
+        {
+            polar                    = { distance = 109.5, angle = 351.3 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 95,
+            relativeAltitudeInMeters = 0,
+            registryKey = "ammo_cargo",
+        },
+
+        -- Step 6d: Carrier shooter static (STATIC)
+        {
+            polar                    = { distance = 115, angle = 5 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 220,
+            relativeAltitudeInMeters = 0,
+            registryKey = "us carrier shooter",
+        },
+
+        -- Step 6e: Light panel (STATIC)
+        {
+            polar                    = { distance = 116.7, angle = 353 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 220,
+            relativeAltitudeInMeters = 0,
+            registryKey = "NF-2_LightOn",
+        },
+
+        -- Step 6f: Windsock (STATIC)
+        {
+            polar                    = { distance = 80, angle = 10 },
+            delayAfterPreviousStep   = 3,
+            relativeHeadingInDegrees = 220,
+            relativeAltitudeInMeters = 0,
+            registryKey = "Windsock",
+        },
+
+        -- Step 7: Completion message (func-only)
+        {
+            delayAfterPreviousStep = 0,
+            func = function(ctx)
+                trigger.action.outText(
+                    ctld.tr("--- FARP Dynamic Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+                return true
+            end,
+        },
+    },
+}
+
+-- ====================================================================================================
+-- BLOC 4 : self-registration (toujours en dernier)
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(farpAlphaScene)
+
+-- End : scenes/CTLD_farpAlphaScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_metalFarpScene.lua
+---@diagnostic disable
+-- CTLD_metalFarpScene.lua
+-- Metal FARP deployment scene — compact forward arming/refueling point using the
+-- Farp_FG_Petit_Helipad mod (visible metallic helipad platform).
+--
+-- Requires the Farp_FG_Petit_Helipad mod to be installed on all clients.
+-- probeSkip=true is set on the registry entry — the mod cannot be validated at runtime
+-- (DCS getDesc().life == 0 whether the mod is installed or not).
+--
+-- Layout (all offsets from trigger unit position):
+--   Farp_FG_Petit_Helipad heliport — at unit position (distance=0)
+--   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
+--   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
+--   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
+--   Ammo cargo              — 30 m / 340°             (t+10 s)
+--   M92 light panel         — 30 m / 349° alt+4 m    (t+15 s)
+--   Windsock                — 26 m / 357°             (t+15 s)
+--   Warehouse stocking      — 10 000 L × 4 fuel types (t+20 s)
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- ====================================================================================================
+
+-- ====================================================================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["Metal FARP Crate"]                                        = "Metal FARP Crate"
+ctld.i18n["fr"]["Metal FARP Crate"]                                        = "Caisse FARP Métal"
+ctld.i18n["es"]["Metal FARP Crate"]                                        = "Caja FARP Metal"
+ctld.i18n["ko"]["Metal FARP Crate"]                                        = "메탈 FARP 화물"
+
+ctld.i18n["en"]["Deploy Metal FARP"]                                       = "Deploy Metal FARP"
+ctld.i18n["fr"]["Deploy Metal FARP"]                                       = "Déployer FARP Métal"
+ctld.i18n["es"]["Deploy Metal FARP"]                                       = "Desplegar FARP Metal"
+ctld.i18n["ko"]["Deploy Metal FARP"]                                       = "메탈 FARP 배치"
+
+ctld.i18n["en"]["--- Metal FARP Deployment by %1 : Complete! ---"]        = "--- Metal FARP Deployment by %1 : Complete! ---"
+ctld.i18n["fr"]["--- Metal FARP Deployment by %1 : Complete! ---"]        = "--- Déploiement FARP Métal par %1 : Terminé ! ---"
+ctld.i18n["es"]["--- Metal FARP Deployment by %1 : Complete! ---"]        = "--- Despliegue FARP Metal por %1 : ¡Completo! ---"
+ctld.i18n["ko"]["--- Metal FARP Deployment by %1 : Complete! ---"]        = "--- %1에 의한 메탈 FARP 배치 완료! ---"
+
+-- ====================================================================================================
+-- BLOC 2 : Registry entries required by this scene.
+-- registerIfAbsent() is a no-op when the key already exists.
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("Farp_FG_Petit_Helipad", {
+    groupType            = "STATIC",
+    namePrefix           = "FARP_Helipad",
+    type                 = "Farp_FG_Petit_Helipad",
+    category             = "Heliports",
+    shape_name           = "Farp_FG_Petit_Helipad.edm",
+    heliport_frequency   = "127.5",
+    heliport_callsign_id = 1,
+    heliport_modulation  = 0,
+    -- DCS scripting API limitation: getDesc().life == 0 whether the mod is installed or not.
+    -- probeSkip suppresses the false NOT FOUND alarm from CTLDModValidator.
+    probeSkip            = true,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Fuel_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "Fuel_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "Fuel_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "ATZ-10" or "M978 HEMTT Tanker"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("repare_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "repare_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "repare_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Ural-375" or "M 818"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Tent", {
+    groupType  = "STATIC",
+    namePrefix = "FARP_Tent",
+    type       = "FARP Tent",
+    category   = "Fortifications",
+})
+
+CTLDObjectRegistry.registerIfAbsent("ammo_cargo", {
+    groupType  = "STATIC",
+    namePrefix = "ammo_box_cargo",
+    type       = "ammo_cargo",
+    category   = "Cargos",
+    shape_name = "ammo_box_cargo",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("NF-2_LightOn", {
+    groupType  = "STATIC",
+    namePrefix = "LightOn",
+    type       = "NF-2_LightOn",
+    category   = "Fortifications",
+    shape_name = "M92_NF-2_LightOn",
+    rate       = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Windsock", {
+    groupType  = "STATIC",
+    namePrefix = "Windsock",
+    type       = "Windsock",
+    category   = "Fortifications",
+    shape_name = "H-Windsock_RW",
+    rate       = 3,
+})
+
+-- ====================================================================================================
+-- BLOC 3 : scene model + crate descriptor
+-- ====================================================================================================
+
+local metalFarpScene = {}
+metalFarpScene.name  = "Metal FARP"
+
+metalFarpScene.crate = {
+    weight         = 1001.26,
+    i18nKey        = "Metal FARP Crate",
+    deployKey      = "Deploy Metal FARP",
+    groundKey      = "You must be on the ground to deploy a FARP.",
+    cratesRequired = 1,
+    side           = nil,
+    showSets       = false,
+}
+
+metalFarpScene.steps = {
+
+    -- ----------------------------------------------------------------
+    -- Step 1: Farp_FG_Petit_Helipad heliport (delay=0).
+    -- Saves the spawned airbase name for the warehouse-stocking step.
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 0, angle = 0 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Farp_FG_Petit_Helipad",
+        func = function(ctx)
+            if not ctx.spawnedObj then return false end
+            ctx.scene._params.farpName = ctx.spawnedObj:getName()
+            return true
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 2: Fuel truck — under tent (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 8 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Fuel_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Repair truck — under tent, same tick (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 11 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "repare_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 4: Tent — over both trucks (t0 + 5.5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 10 },
+        delayAfterPreviousStep   = 0.5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 5: Ammo cargo (t0 + 10 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 30, angle = 340 },
+        delayAfterPreviousStep   = 4.5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "ammo_cargo",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 6: M92 light panel at tent height (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 30, angle = 349 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 310,
+        relativeAltitudeInMeters = 4,
+        registryKey = "NF-2_LightOn",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 7: Windsock near the light, same timing (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 26, angle = 357 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 220,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Windsock",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 8: Stock warehouse + completion message (t0 + 20 s).
+    -- Fills all fuel types so aircraft can refuel/rearm at this point.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 5,
+        func = function(ctx)
+            local farpName = ctx.scene._params and ctx.scene._params.farpName
+            if farpName then
+                local ab = Airbase.getByName(farpName)
+                if ab then
+                    local w = ab:getWarehouse()
+                    w:addLiquid(0, 10000)   -- jet fuel
+                    w:addLiquid(1, 10000)   -- aviation gasoline
+                    w:addLiquid(2, 10000)   -- MW50
+                    w:addLiquid(3, 10000)   -- diesel
+                end
+            end
+            trigger.action.outText(
+                ctld.tr("--- Metal FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+            return true
+        end,
+    },
+}
+
+-- ====================================================================================================
+-- BLOC 4 : self-registration
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(metalFarpScene)
+
+-- End : scenes/CTLD_metalFarpScene.lua
+-- ====================================================================================================
 -- Start : CTLD_core.lua
 -- ============================================================
 -- CTLD_core.lua
@@ -21732,1038 +23443,6 @@ function CTLDCoreManager:onAILand(event)
 end
 
 -- End : CTLD_core.lua
--- ====================================================================================================
--- Start : scenes/CTLD_farpScene.lua
----@diagnostic disable
--- CTLD_farpScene.lua
--- FARP deployment scene — spawns a functional Forward Arming and Refueling Point.
---
--- Reference point: 50 m at 12 o'clock from the trigger unit (prescript step 0).
--- All subsequent object offsets are relative to that reference point.
---
--- Objects registered (all in CTLDObjectRegistry):
---   SINGLE_HELIPAD    — landing pad (logistic zone anchor)     at ref point
---   FARP_Tent         — crew tent                              30 m / 90°
---   FARP_Ammo_Storage — ammunition dump                        30 m / 135°
---   Windsock          — wind indicator / logistic unit marker  15 m / 270°
---   Fuel_Truck        — coalition-aware fuel truck             35 m / 225°
---
--- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
--- ====================================================================================================
-
-local farpScene = {}
-farpScene.name = "farpScene"
-
-farpScene.steps = {
-
-    -- ----------------------------------------------------------------
-    -- Step 0: prescript — move reference point 50 m ahead of the heli.
-    -- All subsequent polar offsets are relative to this new origin.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 0,
-        func = function(ctx)
-            local hdg = ctld.utils.getHeadingInRadians("farpScene.prescript", ctx.unit, true)
-            local pt  = ctx.unit:getPoint()
-            local fx  = pt.x + math.cos(hdg) * 50
-            local fz  = pt.z + math.sin(hdg) * 50
-            ctx.scene._refX   = fx
-            ctx.scene._refZ   = fz
-            ctx.scene._refAlt = land.getHeight({ x = fx, y = fz })
-        end,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 1: FARP helipad — at the reference point.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "SINGLE_HELIPAD",
-        polar                    = { distance = 0, angle = 0 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 2: Command tent — 30 m right of helipad.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "FARP_Tent",
-        polar                    = { distance = 30, angle = 90 },
-        delayAfterPreviousStep   = 1,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 3: Ammo storage — 30 m at 135° from helipad.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "FARP_Ammo_Storage",
-        polar                    = { distance = 30, angle = 135 },
-        delayAfterPreviousStep   = 1,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 4: Windsock — 15 m left of helipad.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "Windsock",
-        polar                    = { distance = 15, angle = 270 },
-        delayAfterPreviousStep   = 1,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 5: Fuel truck — 35 m at 225° from helipad.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "Fuel_Truck",
-        polar                    = { distance = 35, angle = 225 },
-        delayAfterPreviousStep   = 1,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-}
-
--- ====================================================================================================
--- Self-registration
--- ====================================================================================================
-
-CTLDSceneManager.getInstance():registerSceneModel(farpScene)
-
--- End : scenes/CTLD_farpScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_fobScene.lua
----@diagnostic disable
--- ============================================================
--- CTLD_fobScene.lua
--- FOB deployment scene — animated construction site (120 s).
---
--- The scene is self-timed: starts immediately when the FOB
--- manager calls playScene and completes in exactly 120 seconds.
--- No external buildTimeFOB pre-timer is required.
---
--- Construction statics (f1–f7, fh1–fh3) are mission-defined
--- TYPE REFERENCES placed anywhere in the test mission.
--- Their positions are ignored; only getTypeName() is used.
--- Each static is spawned at a fixed polar offset around the
--- FOB reference point defined in _STATIC_LAYOUT below.
--- If a type-ref static is absent the step is silently skipped.
---
--- Phase 1 (T+0 … T+63): 10 construction objects appear
---   progressively (f1–f7 materials, fh1–fh3 workers).
--- Phase 2 (T+77 … T+90): permanent FOB objects spawn
---   (container + watchtower).
--- Phase 3 (T+90 … T+120): construction statics removed in 5
---   pairs; completion message at exactly T+120.
---
--- Step timing (delayAfterPreviousStep = delay before NEXT step):
---   Step  1 (T+  0)  prescript — ref point + type-ref scan
---   Step  2 (T+  0)  spawn f1
---   Step  3 (T+  7)  spawn fh1
---   Step  4 (T+ 14)  spawn f2
---   Step  5 (T+ 21)  spawn f3
---   Step  6 (T+ 28)  spawn fh2
---   Step  7 (T+ 35)  spawn f4
---   Step  8 (T+ 42)  spawn f5
---   Step  9 (T+ 49)  spawn fh3
---   Step 10 (T+ 56)  spawn f6
---   Step 11 (T+ 63)  spawn f7
---   Step 12 (T+ 70)  progress message "90% complete"
---   Step 13 (T+ 77)  FOB container (permanent)
---   Step 14 (T+ 85)  FOB watchtower (permanent)
---   Step 15 (T+ 90)  cleanup group 1: f1 + fh1
---   Step 16 (T+ 95)  cleanup group 2: f2 + fh2
---   Step 17 (T+100)  cleanup group 3: f3 + f4
---   Step 18 (T+105)  cleanup group 4: f5 + fh3
---   Step 19 (T+110)  cleanup group 5: f6 + f7
---   Step 20 (T+120)  completion message — scene ends
---
--- ctx.scene._params expected keys (all optional):
---   centroid   vec3   pre-computed FOB reference position
---   player     string display name in messages
---
--- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
--- DCS API: coalition.addStaticObject, StaticObject.getByName,
---          land.getHeight, trigger.action.outTextForCoalition
--- ============================================================
-
-local fobScene = {}
-fobScene.name = "fobScene"
-
--- ----------------------------------------------------------------
--- Some DCS types require an explicit shape_name for coalition.addStaticObject
--- (e.g. carrier personnel). getDesc() does not expose it at runtime,
--- so known shapes are listed here as a fallback.
--- ----------------------------------------------------------------
-local _SHAPE_NAME = {
-    ["Carrier Seaman"]           = "carrier_seaman_USA",
-    ["Carrier LSO Personell 1"]  = "carrier_lso1_usa",
-    ["Carrier LSO Personell 2"]  = "carrier_lso2_usa",
-}
-
--- ----------------------------------------------------------------
--- Polar layout of construction statics around the FOB centre.
--- angle_deg : 0° = 12 o'clock (heading forward), CW.
--- dist_m    : metres from FOB reference point.
--- ----------------------------------------------------------------
-local _STATIC_LAYOUT = {
-    f1  = { angle =   0, dist = 28 },   -- 12 o'clock — landmark (crane / tower)
-    fh1 = { angle =  90, dist = 22 },   -- E — worker near Tower Crane (f3)
-    f2  = { angle =  60, dist = 22 },   -- NE — materials
-    f3  = { angle =  90, dist = 28 },   -- 3 o'clock — Tower Crane
-    fh2 = { angle = 210, dist = 24 },   -- SSW — worker near Camouflage06 (f5)
-    f4  = { angle = 180, dist = 25 },   -- 6 o'clock — materials
-    f5  = { angle = 205, dist = 31 },   -- SSW — Camouflage06 tent (shifted 15 m toward helo)
-    fh3 = { angle = 265, dist = 22 },   -- W — worker near Cargo05 (f6)
-    f6  = { angle = 270, dist = 28 },   -- 9 o'clock — materials
-    f7  = { angle = 315, dist = 20 },   -- NW — materials
-}
-
--- Ordered scan list (only for prescript type-read loop)
-local _STATIC_NAMES = {"f1","f2","f3","f4","f5","f6","f7","fh1","fh2","fh3"}
-
--- ----------------------------------------------------------------
--- Prescript helper: read getTypeName() from each mission type-ref
--- static.  Position is irrelevant — only the type is stored.
--- ----------------------------------------------------------------
-local function _initMissionStatics(ctx)
-    ctx.scene._staticTypes  = {}
-    ctx.scene._staticShapes = {}
-    ctx.scene._namedTempObjs = {}
-    for _, name in ipairs(_STATIC_NAMES) do
-        -- Type-refs may be placed as StaticObjects or as Units (group members).
-        local s = StaticObject.getByName(name)
-        if not (s and s:isExist()) then
-            s = Unit.getByName(name)
-        end
-        if s and s:isExist() then
-            ctx.scene._staticTypes[name] = s:getTypeName()
-            -- shape_name: try getDesc() first, fall back to known-type table.
-            local ok_d, desc = pcall(function() return s:getDesc() end)
-            local shapeName = (ok_d and desc) and (desc.shapeName or desc.shape_name) or nil
-            ctx.scene._staticShapes[name] = shapeName or _SHAPE_NAME[ctx.scene._staticTypes[name]]
-            ctld.utils.log("INFO", "fobScene: type-ref '%s' → '%s' shape=%s",
-                name, ctx.scene._staticTypes[name],
-                tostring(ctx.scene._staticShapes[name]))
-        else
-            ctld.utils.log("WARN",
-                "fobScene: type-ref '%s' not found (static nor unit) — step skipped", name)
-        end
-    end
-end
-
--- ----------------------------------------------------------------
--- Spawn a construction static at its polar position around the
--- FOB reference point, using the type read from the mission.
--- Tracked by name in _namedTempObjs for targeted cleanup.
--- ----------------------------------------------------------------
-local function _spawnMissionStatic(ctx, name)
-    local typeName = ctx.scene._staticTypes and ctx.scene._staticTypes[name]
-    local layout   = _STATIC_LAYOUT[name]
-    if not typeName or not layout then return end
-
-    local absAngle   = ctx.scene._refHdgRad + math.rad(layout.angle)
-    local nx         = ctx.scene._refX + math.cos(absAngle) * layout.dist
-    local ez         = ctx.scene._refZ + math.sin(absAngle) * layout.dist
-    local uid        = ctld.utils.getNextUniqId()
-    local shapeName  = ctx.scene._staticShapes and ctx.scene._staticShapes[name]
-    local descriptor = {
-        name          = "FOB_tmp_" .. uid,
-        type          = typeName,
-        x             = nx,
-        y             = ez,
-        heading       = ctx.scene._refHdgRad,
-        start_time    = 0,
-        transportable = { randomTransportable = false },
-    }
-    if shapeName then descriptor.shape_name = shapeName end
-    local ok, obj = ctld.utils.spawnAs("STATIC", ctx.scene._countryId, descriptor)
-    if ok and obj then
-        ctx.scene._namedTempObjs[name] = obj
-        ctld.utils.log("INFO",
-            "fobScene: spawned '%s' (%s) angle=%.0f dist=%.0f at (%.0f, %.0f)",
-            name, typeName, layout.angle, layout.dist, nx, ez)
-    else
-        ctld.utils.log("WARN",
-            "fobScene: spawn failed '%s' (%s): %s", name, typeName, tostring(obj))
-    end
-end
-
--- ----------------------------------------------------------------
--- Destroy one named temporary static (safe, no-throw).
--- ----------------------------------------------------------------
-local function _destroyNamed(ctx, name)
-    local obj = ctx.scene._namedTempObjs and ctx.scene._namedTempObjs[name]
-    if obj then
-        pcall(function()
-            if obj:isExist() then obj:destroy() end
-        end)
-        ctx.scene._namedTempObjs[name] = nil
-    end
-end
-
--- ============================================================
--- Scene steps
--- ============================================================
-
-fobScene.steps = {
-
-    -- ----------------------------------------------------------------
-    -- Step 1 (T+0): prescript — set reference point, scan type-ref
-    --   statics, announce construction start.
-    -- delay=0 → step 2 fires immediately at T+0.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 0,
-        func = function(ctx)
-            local centroid = ctx.scene._params and ctx.scene._params.centroid
-            if centroid then
-                ctx.scene._refX   = centroid.x
-                ctx.scene._refZ   = centroid.z
-                ctx.scene._refAlt = centroid.y
-            else
-                local pt  = ctx.unit:getPoint()
-                local hdg = ctld.utils.getHeadingInRadians("fobScene.prescript", ctx.unit, true)
-                local fx  = pt.x + math.cos(hdg) * 100
-                local fz  = pt.z + math.sin(hdg) * 100
-                ctx.scene._refX   = fx
-                ctx.scene._refZ   = fz
-                ctx.scene._refAlt = land.getHeight({ x = fx, y = fz })
-            end
-
-            _initMissionStatics(ctx)
-
-            local player = (ctx.scene._params and ctx.scene._params.player)
-                           or ctx.unit:getName()
-            trigger.action.outTextForCoalition(
-                ctx.scene._coalitionId,
-                ctld.tr("FOB construction started by %1.", player), 10)
-        end,
-    },
-
-    -- Step 2 (T+0): f1 — Sandbag_09 (0° / 28 m).
-    -- delay=7 → T+7.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f1") end },
-
-    -- Step 3 (T+7): f2 — Pile of Woods (60° / 22 m).
-    -- delay=7 → T+14.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f2") end },
-
-    -- Step 4 (T+14): fh1 — worker, appears just before Tower Crane (90° / 22 m).
-    -- delay=7 → T+21.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "fh1") end },
-
-    -- Step 5 (T+21): f3 — Tower Crane (90° / 28 m).
-    -- delay=7 → T+28.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f3") end },
-
-    -- Step 6 (T+28): f4 — Oil Barrel (180° / 25 m).
-    -- delay=7 → T+35.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f4") end },
-
-    -- Step 7 (T+35): fh2 — worker, appears just before Camouflage06 (210° / 24 m).
-    -- delay=7 → T+42.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "fh2") end },
-
-    -- Step 8 (T+42): f5 — Camouflage06 tent (205° / 31 m).
-    -- delay=7 → T+49.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f5") end },
-
-    -- Step 9 (T+49): fh3 — worker, appears just before Cargo05 (265° / 22 m).
-    -- delay=7 → T+56.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "fh3") end },
-
-    -- Step 10 (T+56): f6 — Cargo05 (270° / 28 m).
-    -- delay=7 → T+63.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f6") end },
-
-    -- Step 11 (T+63): f7 — Sandbag_04 (315° / 20 m).
-    -- delay=7 → T+70.
-    { delayAfterPreviousStep = 7,
-      func = function(ctx) _spawnMissionStatic(ctx, "f7") end },
-
-    -- ----------------------------------------------------------------
-    -- Step 12 (T+70): Progress message — "90% complete".
-    -- delay=7 → FOB container at T+77.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 7,
-        func = function(ctx)
-            trigger.action.outTextForCoalition(
-                ctx.scene._coalitionId,
-                ctld.tr("FOB 90% complete - final installation in progress..."), 10)
-        end,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 13 (T+77): FOB outpost container (PERMANENT).
-    -- delay=8 → watchtower at T+85.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "FOB_container",
-        polar                    = { distance = 10, angle = 0 },
-        delayAfterPreviousStep   = 8,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 14 (T+85): FOB watchtower (PERMANENT).
-    -- delay=5 → first cleanup at T+90.
-    -- ----------------------------------------------------------------
-    {
-        registryKey              = "FOB_watchtower",
-        polar                    = { distance = 39, angle = 158 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-    },
-
-    -- Step 15 (T+90): Cleanup 1 — f1 + fh1. delay=5 → T+95.
-    { delayAfterPreviousStep = 5,
-      func = function(ctx) _destroyNamed(ctx,"f1") ; _destroyNamed(ctx,"fh1") end },
-
-    -- Step 16 (T+95): Cleanup 2 — f2 + fh2. delay=5 → T+100.
-    { delayAfterPreviousStep = 5,
-      func = function(ctx) _destroyNamed(ctx,"f2") ; _destroyNamed(ctx,"fh2") end },
-
-    -- Step 17 (T+100): Cleanup 3 — f3 + f4. delay=5 → T+105.
-    { delayAfterPreviousStep = 5,
-      func = function(ctx) _destroyNamed(ctx,"f3") ; _destroyNamed(ctx,"f4") end },
-
-    -- Step 18 (T+105): Cleanup 4 — f5 + fh3. delay=5 → T+110.
-    { delayAfterPreviousStep = 5,
-      func = function(ctx) _destroyNamed(ctx,"f5") ; _destroyNamed(ctx,"fh3") end },
-
-    -- Step 19 (T+110): Cleanup 5 — f6 + f7. delay=10 → T+120.
-    { delayAfterPreviousStep = 10,
-      func = function(ctx) _destroyNamed(ctx,"f6") ; _destroyNamed(ctx,"f7") end },
-
-    -- ----------------------------------------------------------------
-    -- Step 20 (T+120): Completion message — scene ends.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 0,
-        func = function(ctx)
-            local player = (ctx.scene._params and ctx.scene._params.player)
-                           or ctx.unit:getName()
-            trigger.action.outTextForCoalition(
-                ctx.scene._coalitionId,
-                ctld.tr("FOB established by %1 - logistics hub now active.", player),
-                10)
-        end,
-    },
-}
-
--- ============================================================
--- Self-registration
--- ============================================================
-
-CTLDSceneManager.getInstance():registerSceneModel(fobScene)
-
--- End : scenes/CTLD_fobScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_mineFieldScene.lua
----@diagnostic disable
--- CTLD_mineFieldScene.lua
--- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
---
--- Changes vs. original:
---   - mist.dynAddStatic()        → CTLDObjectRegistry.spawnObject("Landmine", ...)
---   - coalitionId undefined bug  → triggerUnitObj:getCoalition()
---   - _spawnedGroup global leak  → local variable
---   - func step signature updated to (triggerUnitObj, spawnedObj, step)
---   - Registration: CTLDSceneManager.getInstance():registerSceneModel(...)
---   - Layout: quinconce (staggered) pattern — odd rows N mines, even rows N-1 mines offset cs/2
---
--- Dependencies: CTLDUtils, CTLDObjectRegistry, CTLDSceneManager
--- DCS API: trigger.action.outText
--- ====================================================================================================
-
-local mineFieldScene = {}
-mineFieldScene.name = "mineField"
-
-mineFieldScene.stepsDatas = {
-    -- Step 1: deploy minefield (func-only — positions computed inside)
-    {
-        delayAfterPreviousStep = 0,
-        func = function(ctx)
-            local success, result = mineFieldScene.setLandMine(ctx.unit, 20, 5, 15, 6, 12)
-            if trigger and trigger.action and trigger.action.outText then
-                trigger.action.outText(
-                    ctld.tr("--- mineField Deployed by %1 ---", ctx.unit:getName()), 10)
-            end
-            return success, result
-        end,
-    },
-}
-
--- ====================================================================================================
--- mineFieldScene.setLandMine
--- Computes a quinconce (staggered) grid of landmine positions relative to triggerUnitObj
--- and spawns them.
---
--- Layout (nbMinesColumns >= 2):
---   odd rows  : N mines,   centered
---   even rows : N-1 mines, shifted laterally by colSpacing/2
---
--- Special cases:
---   nbMines == 1                  → single mine, diamond F10 marker
---   nbMinesColumns < 2            → straight forward column, no stagger
---
--- @param triggerUnitObj                   DCS Unit object
--- @param distanceOf1stMineFromHeliInMeter number  distance from unit to first row (metres)
--- @param nbMinesColumns                   number  mines per odd (full) row
--- @param nbMinesPerColumns                number  total number of rows
--- @param distanceBetweenColumnsInMeters   number  lateral spacing between adjacent mines (metres)
--- @param distanceBetweenLinesInMeters     number  forward spacing between rows (metres)
--- @return boolean, table|string  success flag + spawned object array or error message
--- ====================================================================================================
-function mineFieldScene.setLandMine(triggerUnitObj, distanceOf1stMineFromHeliInMeter, nbMinesColumns, nbMinesPerColumns,
-                                    distanceBetweenColumnsInMeters, distanceBetweenLinesInMeters)
-    if not triggerUnitObj then
-        return false, "ERROR mineFieldScene.setLandMine(): no triggerUnitObj or nbLines <= 0"
-    end
-
-    local triggerUnitPosition     = triggerUnitObj:getPosition()
-    local triggerUnitHeadingInRad = ctld.utils.getHeadingInRadians(
-                                        "mineFieldScene.setLandMine", triggerUnitObj, true)
-    local coalitionId             = triggerUnitObj:getCoalition()
-    local countryId               = triggerUnitObj:getCountry()
-
-    local nbMines     = nbMinesColumns * nbMinesPerColumns
-    local spawnedObjs = {}
-
-    if nbMines <= 0 then
-        return false, "ERROR mineFieldScene.setLandMine(): no triggerUnitObj or nbLines <= 0"
-    end
-
-    distanceBetweenLinesInMeters = distanceBetweenLinesInMeters or 12
-
-    local vec3Points1To4 = {}
-    local unitVec2       = { x = triggerUnitPosition.p.x, y = triggerUnitPosition.p.z }
-
-    -- Spawn a single mine at a Vec2 position {x, y}
-    local function spawnAt(pos)
-        local obj = CTLDObjectRegistry.spawnObject(
-            "Landmine", coalitionId, countryId,
-            pos.x, pos.y, 0, nil)
-        if obj then
-            spawnedObjs[#spawnedObjs + 1] = obj
-        end
-    end
-
-    if nbMines == 1 then
-        -- ----------------------------------------------------------------
-        -- Single mine — diamond F10 marker
-        -- ----------------------------------------------------------------
-        local pt = ctld.utils.GetRelativeVec2Coords(
-            unitVec2, triggerUnitHeadingInRad,
-            distanceOf1stMineFromHeliInMeter, 0)
-        spawnAt(pt)
-        -- Square aligned with aircraft heading (3m half-side)
-        local half = 3
-        local fwd  = ctld.utils.GetRelativeVec2Coords(pt, triggerUnitHeadingInRad,  half,  0)
-        local bwd  = ctld.utils.GetRelativeVec2Coords(pt, triggerUnitHeadingInRad, -half,  0)
-        local tl   = ctld.utils.GetRelativeVec2Coords(fwd, triggerUnitHeadingInRad, -half, 90)
-        local tr   = ctld.utils.GetRelativeVec2Coords(fwd, triggerUnitHeadingInRad,  half, 90)
-        local br   = ctld.utils.GetRelativeVec2Coords(bwd, triggerUnitHeadingInRad,  half, 90)
-        local bl   = ctld.utils.GetRelativeVec2Coords(bwd, triggerUnitHeadingInRad, -half, 90)
-        vec3Points1To4[1] = { x = tl.x, y = 0, z = tl.y }
-        vec3Points1To4[2] = { x = tr.x, y = 0, z = tr.y }
-        vec3Points1To4[3] = { x = br.x, y = 0, z = br.y }
-        vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
-
-    elseif nbMinesColumns < 2 then
-        -- ----------------------------------------------------------------
-        -- Single column: straight forward line, no stagger
-        -- ----------------------------------------------------------------
-        local refPoint = ctld.utils.GetRelativeVec2Coords(
-            unitVec2, triggerUnitHeadingInRad,
-            distanceOf1stMineFromHeliInMeter, 0)
-        for r = 1, nbMinesPerColumns do
-            local pos = ctld.utils.GetRelativeVec2Coords(
-                refPoint, triggerUnitHeadingInRad,
-                (r - 1) * distanceBetweenLinesInMeters, 0)
-            spawnAt(pos)
-        end
-        local lastPos = ctld.utils.GetRelativeVec2Coords(
-            refPoint, triggerUnitHeadingInRad,
-            (nbMinesPerColumns - 1) * distanceBetweenLinesInMeters, 0)
-        vec3Points1To4[1] = { x = refPoint.x - 3, y = 0, z = refPoint.y }
-        vec3Points1To4[2] = { x = refPoint.x + 3, y = 0, z = refPoint.y }
-        vec3Points1To4[3] = { x = lastPos.x  + 3, y = 0, z = lastPos.y  }
-        vec3Points1To4[4] = { x = lastPos.x  - 3, y = 0, z = lastPos.y  }
-
-    else
-        -- ----------------------------------------------------------------
-        -- Quinconce (staggered) layout — nbMinesColumns >= 2
-        --   odd rows  (r=1,3,...) : N mines,   leftmost at -halfWidth
-        --   even rows (r=2,4,...) : N-1 mines, leftmost at -halfWidth + cs/2
-        -- ----------------------------------------------------------------
-        local refPoint  = ctld.utils.GetRelativeVec2Coords(
-            unitVec2, triggerUnitHeadingInRad,
-            distanceOf1stMineFromHeliInMeter, 0)
-        local halfWidth = ((nbMinesColumns - 1) / 2) * distanceBetweenColumnsInMeters
-
-        for r = 1, nbMinesPerColumns do
-            local rowCenter = ctld.utils.GetRelativeVec2Coords(
-                refPoint, triggerUnitHeadingInRad,
-                (r - 1) * distanceBetweenLinesInMeters, 0)
-
-            local minesInRow, leftmostLateral
-            if r % 2 == 1 then
-                -- Odd row: full width
-                minesInRow      = nbMinesColumns
-                leftmostLateral = -halfWidth
-            else
-                -- Even row: one mine less, shifted right by cs/2
-                minesInRow      = nbMinesColumns - 1
-                leftmostLateral = -halfWidth + distanceBetweenColumnsInMeters / 2
-            end
-
-            for col = 1, minesInRow do
-                local lateralOffset = leftmostLateral + (col - 1) * distanceBetweenColumnsInMeters
-                local pos = ctld.utils.GetRelativeVec2Coords(
-                    rowCenter, triggerUnitHeadingInRad, lateralOffset, 90)
-                spawnAt(pos)
-            end
-        end
-
-        -- Bounding rectangle corners (based on full-row lateral extent)
-        local lastRowCenter = ctld.utils.GetRelativeVec2Coords(
-            refPoint, triggerUnitHeadingInRad,
-            (nbMinesPerColumns - 1) * distanceBetweenLinesInMeters, 0)
-        local tl = ctld.utils.GetRelativeVec2Coords(refPoint,      triggerUnitHeadingInRad, -halfWidth, 90)
-        local tr = ctld.utils.GetRelativeVec2Coords(refPoint,      triggerUnitHeadingInRad,  halfWidth, 90)
-        local br = ctld.utils.GetRelativeVec2Coords(lastRowCenter, triggerUnitHeadingInRad,  halfWidth, 90)
-        local bl = ctld.utils.GetRelativeVec2Coords(lastRowCenter, triggerUnitHeadingInRad, -halfWidth, 90)
-        vec3Points1To4[1] = { x = tl.x, y = 0, z = tl.y }
-        vec3Points1To4[2] = { x = tr.x, y = 0, z = tr.y }
-        vec3Points1To4[3] = { x = br.x, y = 0, z = br.y }
-        vec3Points1To4[4] = { x = bl.x, y = 0, z = bl.y }
-    end
-
-    -- Draw bounding quadrilateral on the F10 map (unless disabled in config)
-    local lastSpawned = spawnedObjs[#spawnedObjs]
-    if lastSpawned and ctld.gs("showMinefieldOnF10Map") ~= false then
-        ctld.utils.drawQuad(coalitionId, vec3Points1To4, lastSpawned:getName())
-    end
-
-    return true, spawnedObjs
-end
-
--- ====================================================================================================
--- mineFieldScene.setLandMineAuto
--- Parametric minefield: derives column count and row count automatically from a target area
--- (width × length in metres) and a desired total mine count, then delegates to setLandMine.
---
--- The layout is always quinconce (staggered rows):
---   odd rows  : N mines
---   even rows : N-1 mines, laterally offset by colSpacing/2
--- Total for N cols and R rows: T(N,R) = R*N - floor(R/2)
---
--- The algorithm finds the (N, R) pair whose T(N,R) is closest to nbMines while respecting
--- the requested aspect ratio (width/length).  Column and line spacings are derived from the
--- dimensions: cs = width/(N-1),  ls = length/(R-1).
---
--- @param triggerUnitObj  DCS Unit object — defines origin and heading
--- @param distFromUnit    number  forward distance (m) from unit to first mine row
--- @param widthMeters     number  lateral extent of the minefield (m)
--- @param lengthMeters    number  forward extent of the minefield (m)
--- @param nbMines         number  desired number of mines
--- @return boolean, table|string  success flag + spawned object array or error message
---
--- Example (MM usage):
---   local ok, result = mineFieldScene.setLandMineAuto(transport, 30, 50, 80, 40)
---   -- lays ~40 mines in a 50 m wide × 80 m long staggered field starting 30 m ahead
--- ====================================================================================================
-function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeters, lengthMeters, nbMines)
-    if not triggerUnitObj then
-        return false, "ERROR mineFieldScene.setLandMineAuto(): triggerUnitObj is nil"
-    end
-    if not nbMines or nbMines < 1 then
-        return false, "ERROR mineFieldScene.setLandMineAuto(): nbMines must be >= 1"
-    end
-    if not widthMeters or widthMeters <= 0 or not lengthMeters or lengthMeters <= 0 then
-        return false, "ERROR mineFieldScene.setLandMineAuto(): widthMeters and lengthMeters must be > 0"
-    end
-
-    -- Single mine: bypass layout computation
-    if nbMines == 1 then
-        return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, 1, 1, widthMeters, lengthMeters)
-    end
-
-    -- T(N,R) = R*N - floor(R/2)  →  R ≈ nbMines / (N - 0.5)
-    local function countForNR(N, R)
-        return R * N - math.floor(R / 2)
-    end
-
-    -- Estimate N from aspect ratio; clamp to [2, 50]
-    local N0 = math.max(2, math.min(50, math.floor(math.sqrt(nbMines * widthMeters / lengthMeters) + 0.5)))
-
-    local bestN, bestR, bestDiff = N0, 1, math.huge
-    for _, N in ipairs({ N0 - 1, N0, N0 + 1 }) do
-        if N >= 2 then
-            local R = math.max(1, math.min(200, math.floor(nbMines / (N - 0.5) + 0.5)))
-            for _, Rc in ipairs({ R - 1, R, R + 1 }) do
-                if Rc >= 1 then
-                    local diff = math.abs(countForNR(N, Rc) - nbMines)
-                    if diff < bestDiff then
-                        bestDiff, bestN, bestR = diff, N, Rc
-                    end
-                end
-            end
-        end
-    end
-
-    local cs = widthMeters  / (bestN - 1)
-    local ls = lengthMeters / math.max(1, bestR - 1)
-
-    return mineFieldScene.setLandMine(triggerUnitObj, distFromUnit, bestN, bestR, cs, ls)
-end
-
--- ====================================================================================================
--- Self-registration
--- ====================================================================================================
-
-CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
-
--- End : scenes/CTLD_mineFieldScene.lua
--- ====================================================================================================
--- Start : scenes/CTLD_countrysideFarpScene.lua
----@diagnostic disable
--- CTLD_countrysideFarpScene.lua
--- Countryside FARP deployment scene.
--- Lightweight forward arming/refueling point using an Invisible FARP heliport.
--- The Invisible FARP type creates a proper DCS airbase (warehouse, Airbase.getByName accessible)
--- without any visible F10 map label or 3D model — fully functional but discreet.
---
--- Layout (all offsets from trigger unit position):
---   Invisible FARP heliport — at unit position (distance=0)
---   4 Black Tyres           — corners of a 60×60 m landing square (immediate)
---   Fuel truck              — 40 m / 8°  heading 90° (under tent, t+5 s)
---   Repair truck            — 40 m / 11° heading 90° (under tent, t+5 s)
---   Tent                    — 40 m / 10° heading 90° (over trucks,  t+5.5 s)
---   Ammo cargo              — 35 m / 340°             (t+15 s)
---   Guards (infantry+MANPAD)— 32 m / 21°              (t+20 s)
---   M92 light panel         — 35 m / 349° alt+4 m    (t+25 s)
---   Windsock                — 31 m / 357°             (t+25 s)
---   Warehouse stocking      — FARP warehouse fueled on completion (t+30 s)
---
--- Objects used (all in CTLDObjectRegistry):
---   Invisible_FARP, Fuel_Truck, repare_Truck, FARP_Tent,
---   ammo_cargo, CS_FARP_Guards, NF-2_LightOn, Windsock
---
--- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
--- ====================================================================================================
-
-local countrysideFarpScene = {}
-countrysideFarpScene.name  = "Countryside FARP"
-
-countrysideFarpScene.steps = {
-
-    -- ----------------------------------------------------------------
-    -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid
-    -- double-count on first step).
-    -- Invisible FARP creates a proper DCS airbase (warehouse, accessible
-    -- via Airbase.getByName) without F10 label or 3D model.
-    -- Saves the spawned airbase name for the warehouse-stocking step.
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 0, angle = 0 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey = "Invisible_FARP",
-        func = function(ctx)
-            if not ctx.spawnedObj then return false end
-            ctx.scene._params.farpName = ctx.spawnedObj:getName()
-            return true
-        end,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 2: 4 Black Tyres at the corners of the FARP landing square
-    -- (t0 + 0 s — same tick as FARP). Marks boundary immediately.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 0,
-        func = function(ctx)
-            local halfSide = 30
-            local h    = ctx.scene._refHdgRad
-            local cx   = ctx.scene._refX
-            local cz   = ctx.scene._refZ
-            local cosH = math.cos(h)
-            local sinH = math.sin(h)
-            local cid  = ctx.scene._countryId
-
-            local corners = {
-                {  halfSide,  halfSide },
-                {  halfSide, -halfSide },
-                { -halfSide,  halfSide },
-                { -halfSide, -halfSide },
-            }
-            for i, c in ipairs(corners) do
-                local fwd, right = c[1], c[2]
-                local wx = cx + fwd * cosH - right * sinH
-                local wz = cz + fwd * sinH + right * cosH
-                local sd = {
-                    name          = "CS_FARP_Flag_" .. i,
-                    type          = "Black_Tyre",
-                    shape_name    = "H-tyre_B",
-                    category      = "Fortifications",
-                    x             = wx,
-                    y             = wz,
-                    heading       = 0,
-                    start_time    = 0,
-                    dead          = false,
-                    transportable = { randomTransportable = false },
-                }
-                local ok, obj = pcall(coalition.addStaticObject, cid, sd)
-                if ok and obj then
-                    ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
-                end
-            end
-            return true
-        end,
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 3: Fuel truck — under tent (t0 + 5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 40, angle = 8 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "Fuel_Truck",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 40, angle = 11 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "repare_Truck",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 5: Tent — over both trucks (t0 + 5.5 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 40, angle = 10 },
-        delayAfterPreviousStep   = 0.5,
-        relativeHeadingInDegrees = 90,
-        relativeAltitudeInMeters = 0,
-        registryKey = "FARP_Tent",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 6: Ammo cargo (t0 + 15 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 35, angle = 340 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey = "ammo_cargo",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 32, angle = 21 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey = "CS_FARP_Guards",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 8: M92 light panel at tent height (t0 + 25 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 35, angle = 349 },
-        delayAfterPreviousStep   = 5,
-        relativeHeadingInDegrees = 310,
-        relativeAltitudeInMeters = 4,
-        registryKey = "NF-2_LightOn",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 9: Windsock near the light, same timing (t0 + 25 s).
-    -- ----------------------------------------------------------------
-    {
-        polar                    = { distance = 31, angle = 357 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 220,
-        relativeAltitudeInMeters = 0,
-        registryKey = "Windsock",
-    },
-
-    -- ----------------------------------------------------------------
-    -- Step 10: Stock warehouse + completion message (t0 + 30 s).
-    -- Fills all fuel types in the FARP warehouse so aircraft can
-    -- refuel/rearm at this forward point.
-    -- ----------------------------------------------------------------
-    {
-        delayAfterPreviousStep = 5,
-        func = function(ctx)
-            local farpName = ctx.scene._params and ctx.scene._params.farpName
-            if farpName then
-                local ab = Airbase.getByName(farpName)
-                if ab then
-                    local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
-                end
-            end
-            trigger.action.outText(
-                ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
-            return true
-        end,
-    },
-}
-
--- ====================================================================================================
--- Registry entries required by this scene.
--- registerIfAbsent() is a no-op when the key already exists, so multiple scenes
--- can safely declare the same shared entry (FARP, Fuel_Truck, etc.) without conflict.
--- ====================================================================================================
-
-CTLDObjectRegistry.registerIfAbsent("Invisible_FARP", {
-    groupType            = "STATIC",
-    namePrefix           = "CS_FARP",
-    type                 = "Invisible FARP",
-    shape_name           = "invisiblefarp",
-    category             = "Heliports",
-    heliport_frequency   = "127.5",
-    heliport_callsign_id = 1,
-    heliport_modulation  = 0,
-    rate                 = 100,
-})
-
-CTLDObjectRegistry.registerIfAbsent("Fuel_Truck", {
-    groupType  = "GROUND",
-    namePrefix = "Fuel_Truck_Grp",
-    task       = "Ground Nothing",
-    category   = Unit.Category.GROUND_UNIT,
-    units = {
-        {
-            namePrefix     = "Fuel_Truck_Unit",
-            unitType       = function(cid)
-                return cid == coalition.side.RED and "ATZ-10" or "M978 HEMTT Tanker"
-            end,
-            playerCanDrive = false,
-            dx = 0, dz = 0, dh = 0,
-        },
-    },
-})
-
-CTLDObjectRegistry.registerIfAbsent("repare_Truck", {
-    groupType  = "GROUND",
-    namePrefix = "repare_Truck_Grp",
-    task       = "Ground Nothing",
-    category   = Unit.Category.GROUND_UNIT,
-    units = {
-        {
-            namePrefix     = "repare_Truck_Unit",
-            unitType       = function(cid)
-                return cid == coalition.side.RED and "Ural-375" or "M 818"
-            end,
-            playerCanDrive = false,
-            dx = 0, dz = 0, dh = 0,
-        },
-    },
-})
-
-CTLDObjectRegistry.registerIfAbsent("FARP_Tent", {
-    groupType  = "STATIC",
-    namePrefix = "FARP_Tent",
-    type       = "FARP Tent",
-    category   = "Fortifications",
-})
-
-CTLDObjectRegistry.registerIfAbsent("ammo_cargo", {
-    groupType  = "STATIC",
-    namePrefix = "ammo_box_cargo",
-    type       = "ammo_cargo",
-    category   = "Cargos",
-    shape_name = "ammo_box_cargo",
-    rate       = 1,
-})
-
-CTLDObjectRegistry.registerIfAbsent("CS_FARP_Guards", {
-    groupType  = "GROUND",
-    namePrefix = "CS_FARP_Guard_Grp",
-    task       = "Ground Nothing",
-    category   = Unit.Category.GROUND_UNIT,
-    units = {
-        {
-            namePrefix     = "CS_Guard_Infantry",
-            unitType       = function(cid)
-                return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
-            end,
-            playerCanDrive = false,
-            dx = 0, dz = 0, dh = 0,
-        },
-        {
-            namePrefix     = "CS_Guard_Manpad",
-            unitType       = function(cid)
-                return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
-            end,
-            playerCanDrive = false,
-            dx = 3, dz = 0, dh = 0,
-        },
-    },
-})
-
-CTLDObjectRegistry.registerIfAbsent("NF-2_LightOn", {
-    groupType  = "STATIC",
-    namePrefix = "LightOn",
-    type       = "NF-2_LightOn",
-    category   = "Fortifications",
-    shape_name = "M92_NF-2_LightOn",
-    rate       = 100,
-})
-
-CTLDObjectRegistry.registerIfAbsent("Windsock", {
-    groupType  = "STATIC",
-    namePrefix = "Windsock",
-    type       = "Windsock",
-    category   = "Fortifications",
-    shape_name = "H-Windsock_RW",
-    rate       = 3,
-})
-
--- ====================================================================================================
--- Self-registration
--- ====================================================================================================
-
-CTLDSceneManager.getInstance():registerSceneModel(countrysideFarpScene)
-
--- End : scenes/CTLD_countrysideFarpScene.lua
 -- ====================================================================================================
 -- Start : compat/legacy_api.lua
 -- ============================================================

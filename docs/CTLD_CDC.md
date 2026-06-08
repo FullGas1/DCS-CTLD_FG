@@ -751,50 +751,130 @@ périmètre   = 750 m
 
 ### 4.11 CtldScene / CTLDSceneManager
 
-**Responsabilité** : `CtldScene` représente l'exécution en cours d'une scène (instance d'un modèle). `CTLDSceneManager` est le singleton registre des modèles et point d'entrée pour déclencher une scène.
+**Responsabilité** : `CTLDSceneManager` est le registre des modèles de scènes. `CtldScene` représente une instance en cours d'exécution (un déploiement). Chaque scène est entièrement définie dans son propre fichier sous `src/scenes/`.
 
-**Fichier cible** : `src/CTLD_scene.lua`
-**Statut** : 🔄 Migration + correction depuis `source_scene_ini/CTLD_scene.lua`
+**Fichiers** : `src/CTLD_sceneManager.lua` + `src/scenes/CTLD_xxxScene.lua` (un par scène)
 
-**Corrections à apporter** :
-- Typo `spwanObject` → `spawnObject`
-- Casse incohérente `registersceneModel` → `registerSceneModel`
-- Remplacement `mist.dynAddStatic()` → `CTLDUtils.dynAddStatic()`
+---
 
-**Structure d'une étape de scène** :
+#### Workflow — Créer une nouvelle scène
+
+Chaque scène est un fichier unique `src/scenes/CTLD_xxxScene.lua` contenant **4 blocs obligatoires** :
+
+##### BLOC 1 — i18n (4 langues : en/fr/es/ko)
+
 ```lua
-{
-    objectsDescDbKey          = "FARP_Tent",  -- clé dans CTLDObjectsDescDb (nil si func seule)
-    polar                     = { distance = 80, angle = 10 },
-    relativeHeadingInDegrees  = 90,
-    delayAfterPreviousStep    = 5,
-    func = function(triggerUnit, stepData)     -- callback optionnel post-spawn
-        -- ...
-    end
+ctld.i18n["en"]["XXX Crate"]            = "XXX Crate"
+ctld.i18n["fr"]["XXX Crate"]            = "Caisse XXX"
+ctld.i18n["es"]["XXX Crate"]            = "Caja XXX"
+ctld.i18n["ko"]["XXX Crate"]            = "XXX 화물"
+ctld.i18n["en"]["Deploy XXX"]           = "Deploy XXX"
+-- ... (fr/es/ko idem)
+ctld.i18n["en"]["--- XXX deployed by %1 ---"] = "--- XXX deployed by %1 ---"
+-- ... (fr/es/ko idem)
+```
+
+##### BLOC 2 — Entrées CTLDObjectRegistry
+
+```lua
+CTLDObjectRegistry.registerIfAbsent("My_Object", { groupType="STATIC", ... })
+-- registerIfAbsent est un no-op si la clé existe déjà → partage sûr entre scènes
+```
+
+##### BLOC 3 — Modèle de scène + descripteur crate
+
+```lua
+local xxxScene = {}
+xxxScene.name = "XXX"   -- clé stable : utilisée partout, ne jamais hardcoder ailleurs
+
+xxxScene.crate = {
+    weight         = 1001.XX,   -- prochain slot libre dans la plage 1001.xx
+    i18nKey        = "XXX Crate",
+    deployKey      = "Deploy XXX",
+    groundKey      = "...",     -- optionnel : message si joueur en vol
+    cratesRequired = N,
+    side           = nil,       -- nil=Both | "blue" | "red"
+    showSets       = false,
+    -- fobCompatible = true,    -- UNIQUEMENT pour scènes de type FOB (CTLDFOBManager)
+    -- unpack = function(unit, unitName, sceneName) ... end,  -- UNIQUEMENT si logique custom
+}
+
+xxxScene.steps = {
+    -- Chaque step : objets spawned séquentiellement avec délai
+    { polar = { distance=0, angle=0 }, delayAfterPreviousStep=0,
+      relativeHeadingInDegrees=0, relativeAltitudeInMeters=0,
+      registryKey = "My_Object",
+      func = function(ctx) ... return true end },  -- func optionnel post-spawn
+    ...
 }
 ```
 
-**Propriétés CtldScene** :
+**Structure d'un step** :
 
-| Propriété | Type | Description |
+| Champ | Type | Description |
 |---|---|---|
-| `name` | `string` | Nom du modèle de scène |
-| `stepsDatas` | `table[]` | Liste ordonnée des étapes |
-| `currentStep` | `number` | Index de l'étape en cours |
-| `triggerUnit` | `Unit` | Hélicoptère déclencheur |
-| `spawnedObjects` | `table` | Objets DCS spawned par la scène |
+| `registryKey` | `string\|nil` | Clé dans CTLDObjectRegistry. Nil = step func-only |
+| `polar` | `{distance, angle}` | Position relative au trigger unit (mètres, degrés) |
+| `relativeHeadingInDegrees` | `number` | Cap de l'objet relatif au heading du trigger unit |
+| `relativeAltitudeInMeters` | `number` | Décalage vertical |
+| `delayAfterPreviousStep` | `number` | Délai en secondes après le step précédent |
+| `func` | `function(ctx)\|nil` | Callback post-spawn. `ctx` : `{unit, spawnedObj, scene, step}`. Retourne `true` pour valider |
 
-**Méthodes CTLDSceneManager** :
+**Contexte `ctx` disponible dans `func`** :
+
+| Champ | Description |
+|---|---|
+| `ctx.unit` | DCS Unit déclencheur |
+| `ctx.spawnedObj` | Objet DCS spawné par ce step (nil si func-only) |
+| `ctx.scene` | Instance CtldScene courante (`_params`, `_spawnedObjs`, `_refX`/`_refZ`/`_refHdgRad`) |
+| `ctx.step` | Table du step courant |
+
+##### BLOC 4 — Self-registration (toujours en dernier)
+
+```lua
+CTLDSceneManager.getInstance():registerSceneModel(xxxScene)
+```
+
+##### Checklist post-création
+
+1. Ajouter `scenes/CTLD_xxxScene.lua` dans `tools/merger_V2/listToMerge.txt` **avant** `CTLD_core.lua`
+2. Rebuild : `powershell -ExecutionPolicy Bypass -File "tools\merger_V2\merge_CTLD.ps1"`
+3. Aucune modification dans : `CTLD_config.lua`, `CTLD_i18n_*.lua`, `CTLD_sceneManager.lua`, `CTLD_crate.lua`
+
+---
+
+#### Scènes de type FOB
+
+Les scènes qui délèguent à `CTLDFOBManager` déclarent `fobCompatible = true` dans `model.crate` et une fonction `unpack` :
+
+```lua
+fobCompatible = true,
+unpack = function(unit, unitName, sceneName)
+    CTLDFOBManager.getInstance():unpackFOBCrates(unit, unitName, sceneName)
+end,
+```
+
+`CTLDFOBManager._collectFOBCrates()` détecte automatiquement toute scène avec `fobCompatible = true` + filtre par `sceneName` → plusieurs types FOB coexistent sans conflit.
+
+---
+
+#### Méthodes CTLDSceneManager
 
 | Signature | Description |
 |---|---|
 | `CTLDSceneManager.getInstance()` | Singleton |
-| `CTLDSceneManager:registerSceneModel(sceneModel)` | Enregistre un modèle de scène par son `name` |
-| `CTLDSceneManager:getSceneModel(name)` | Retourne le modèle ou nil |
-| `CTLDSceneManager:isSceneModel(name)` | Retourne true si `name` est un modèle enregistré |
-| `CTLDSceneManager:playScene(triggerUnit, sceneModel)` | Crée une instance `CtldScene` et déclenche l'exécution séquentielle |
+| `:registerSceneModel(model)` | Enregistre par `model.name` |
+| `:getModel(name)` | Retourne le modèle ou nil |
+| `:getScene(name)` | Alias de getModel |
+| `:playScene(unit, name, params, onComplete)` | Crée et démarre une instance CtldScene |
 
-**Dépendances** : CTLDObjectsDescDb, CTLDUtils
+#### Auto-injection dans CTLDCrateManager
+
+`CTLDCrateManager:_processSpawnableCrates()` itère `CTLDSceneManager._models` et injecte automatiquement chaque `model.crate` dans `_weightIndex` et `_processedCrates["Both"|"BLUE"|"RED"]`. Les scènes apparaissent ainsi dans le menu **Request Equipment** sans aucune entrée dans `CTLD_config.lua`.
+
+**Collision de poids** : si le weight déclaré est déjà pris par une autre unité, le slot `1001.xx` suivant libre est utilisé automatiquement (WARN loggé).
+
+**Dépendances** : CTLDObjectRegistry, CTLDUtils
 
 ---
 

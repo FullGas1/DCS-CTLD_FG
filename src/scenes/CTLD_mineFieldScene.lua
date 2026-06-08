@@ -2,6 +2,28 @@
 -- CTLD_mineFieldScene.lua
 -- Minefield scene model — migrated from source_scene_ini/mineFieldSceneDatas.lua.
 --
+-- ====================================================================================================
+-- BLOC 1 : i18n — 4 langues obligatoires
+-- ====================================================================================================
+
+ctld.i18n["en"]["Mine Field Crate"]                   = "Mine Field Crate"
+ctld.i18n["fr"]["Mine Field Crate"]                   = "Caisse Champ de Mines"
+ctld.i18n["es"]["Mine Field Crate"]                   = "Caja Campo de Minas"
+ctld.i18n["ko"]["Mine Field Crate"]                   = "지뢰밭 화물"
+
+ctld.i18n["en"]["Deploy Mine Field"]                  = "Deploy Mine Field"
+ctld.i18n["fr"]["Deploy Mine Field"]                  = "Déployer le Champ de Mines"
+ctld.i18n["es"]["Deploy Mine Field"]                  = "Desplegar Campo de Minas"
+ctld.i18n["ko"]["Deploy Mine Field"]                  = "지뢰밭 배치"
+
+ctld.i18n["en"]["--- mineField Deployed by %1 ---"]   = "--- Mine Field deployed by %1 ---"
+ctld.i18n["fr"]["--- mineField Deployed by %1 ---"]   = "--- Champ de Mines déployé par %1 ---"
+ctld.i18n["es"]["--- mineField Deployed by %1 ---"]   = "--- Campo de Minas desplegado por %1 ---"
+ctld.i18n["ko"]["--- mineField Deployed by %1 ---"]   = "--- %1에 의해 지뢰밭이 배치되었습니다 ---"
+
+-- ====================================================================================================
+-- CTLD_mineFieldScene.lua (suite)
+--
 -- Changes vs. original:
 --   - mist.dynAddStatic()        → CTLDObjectRegistry.spawnObject("Landmine", ...)
 --   - coalitionId undefined bug  → triggerUnitObj:getCoalition()
@@ -14,10 +36,35 @@
 -- DCS API: trigger.action.outText
 -- ====================================================================================================
 
+-- ====================================================================================================
+-- BLOC 2 : entrées ObjectRegistry requises par cette scène
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("Landmine", {
+    groupType  = "STATIC",
+    namePrefix = "Mine",
+    type       = "Landmine",
+    category   = "Fortifications",
+})
+
+-- ====================================================================================================
+-- BLOC 3 : définition de la scène + attributs crate
+-- ====================================================================================================
+
 local mineFieldScene = {}
 mineFieldScene.name = "mineField"
 
-mineFieldScene.stepsDatas = {
+-- Attributs crate — auto-injectés dans CTLDCrateManager._weightIndex par _processSpawnableCrates().
+mineFieldScene.crate = {
+    weight         = 1001.25,
+    i18nKey        = "Mine Field Crate",
+    deployKey      = "Deploy Mine Field",
+    cratesRequired = 1,
+    side           = nil,
+    showSets       = false,
+}
+
+mineFieldScene.steps = {
     -- Step 1: deploy minefield (func-only — positions computed inside)
     {
         delayAfterPreviousStep = 0,
@@ -258,7 +305,7 @@ function mineFieldScene.setLandMineAuto(triggerUnitObj, distFromUnit, widthMeter
 end
 
 -- ====================================================================================================
--- Self-registration
+-- BLOC 4 : self-registration (toujours en dernier)
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)

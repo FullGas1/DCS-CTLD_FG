@@ -46,15 +46,13 @@ ctld.i18n["ko"]["Ural-375 Ammo Truck"] = "Ural-375 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["KAMAZ Ammo Truck - All crates"] = "KAMAZ 탄약 차량 - 전체 화물"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
-ctld.i18n["ko"]["FOB Crate"] = "FOB 화물"
-ctld.i18n["ko"]["FARP Alpha Crate"] = "FARP 알파 화물"
-ctld.i18n["ko"]["Countryside FARP Crate"] = "야외 FARP 화물"
+-- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). 건설 진행 중."
-ctld.i18n["ko"]["FOB established by %1 - logistics hub now active."] = "%1이(가) FOB를 설립했습니다. 군수 거점 활성화."
+-- FOB established...: declared in CTLD_fobScene.lua.
 ctld.i18n["ko"]["MQ-9 Repear - JTAC"] = "MQ-9 리퍼 - JTAC"
 ctld.i18n["ko"]["RQ-1A Predator - JTAC"] = "RQ-1A 프레데터 - JTAC"
 ctld.i18n["ko"]["MLRS"] = "MLRS"
@@ -203,10 +201,9 @@ ctld.i18n["ko"]["%1 crate(s) dropped at your %2 o'clock"] = "%1개 화물이 %2�
 ctld.i18n["ko"]["Unpack Crate"] = "화물 풀기"
 ctld.i18n["ko"]["Land to unpack crates"] = "화물을 풀려면 착륙하세요"
 ctld.i18n["ko"]["No complete crate sets nearby"] = "근처에 완전한 화물 세트 없음"
-ctld.i18n["ko"]["Build FOB"] = "FOB 건설"
-ctld.i18n["ko"]["Deploy FARP Alpha"] = "FARP 알파 배치"
-ctld.i18n["ko"]["Deploy Countryside FARP"] = "야외 FARP 배치"
-ctld.i18n["ko"]["--- Countryside FARP Deployment by %1 : Complete! ---"] = "--- %1에 의한 야외 FARP 배치 완료! ---"
+-- Build FOB: declared in CTLD_fobScene.lua.
+-- Deploy FARP Alpha, --- FARP Dynamic Deployment...: declared in CTLD_farpAlphaScene.lua.
+-- Deploy Countryside FARP, --- Countryside FARP Deployment...: declared in CTLD_countrysideFarpScene.lua.
 ctld.i18n["ko"]["You must be on the ground to deploy a FARP."] = "FARP를 배치하려면 착륙해야 합니다."
 ctld.i18n["ko"]["You must land before unpacking crates!"] = "화물을 풀기 전에 먼저 착륙해야 합니다!"
 ctld.i18n["ko"]["Not enough crates nearby to unpack!"] = "풀기에 충분한 화물이 근처에 없습니다!"
