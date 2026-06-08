@@ -348,17 +348,17 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           • StaticObject.getCargoWeight() : lecture seule du type, pas setter → non utilisable
         Recette : scenario_weight_aggregation.lua — 4/4 PASS (320→2820→2500→0 kg) ✅
 
-⬜  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
+✅  FG  Spawn/load/drop direct de véhicule sans crate (use case Request Vehicle pur)
         Use case : spawn d'un véhicule via "Request Vehicle" (logistic zone) → load dans transport
         → drop à un autre endroit, sans aucune crate intermédiaire.
-        Points à valider :
-          • CTLDVehicleSpawner.spawnVehicleForTransport() → loadVehicle() → unloadVehicle() :
-            cycle complet sans passer par spawnableCrates / unpack
-          • Menu F10 "Load Vehicle" / "Unload Vehicle" : visibilité, déclenchement, guard zones
-          • État CTLDVehicle : WAITING → LOADED → DELIVERED (pas de WAITING_FOR_UNPACK)
-          • Recette end-to-end (Witchcraft ou sandbox) à créer
+        Recette : scenario_mt15_request_vehicle_pure.lua — MT-15 13/13 PASS live DCS [2026-06-07]
+          • spawnVehicleForTransport → WAITING, DCS unit alive ✅
+          • findLoadableVehicles → HMMWV trouvé ; loadVehicle → LOADED, DCS unit détruite ✅
+          • findLoadedVehicles → HMMWV trouvé ; unloadVehicle → WAITING, DCS unit respawnée ✅
+          • Visual F10 menu — diag_mt15_vehicle_menu_visual.lua ✅ PASS [2026-06-07]
+            Request Equipment→HMMWV spawn / Load Vehicle / Unload Vehicle confirmés joueur
 
-⬜  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
+✅  FG  Bibliothèque de recettes fonctionnelles avancées — scénarios joueur end-to-end
         Objectif : créer une bibliothèque de scripts Lua injectables via Witchcraft qui reproduisent
         des séquences d'actions joueur réelles et vérifient leur bon déroulement.
         Contrairement aux tests unitaires (mocks Lua standalone), ces scénarios tournent en mission
@@ -1235,12 +1235,17 @@ Minor cleanups identified — low priority, no functional impact.
   `CTLDModValidator` probing couvre les typeNames de componentTypes au INIT-MOD.
   Exemple "Civilian Crowd" commenté dans `CTLD_config.lua`. Commit ec8cf6a.
 
-- **CTLDModValidator** ✅ IMPLÉMENTÉ [2026-06-07]
+- **CTLDModValidator** ✅ IMPLÉMENTÉ ET RECETTÉ [2026-06-07]
   Sonde tous les DCS typeNames déclarés dans CTLD au INIT-MOD, avant tout spawn joueur.
   GROUND : `coalition.addGroup` + `unit:getTypeName() != requested` (DCS substitue Leopard-2 si inconnu).
   STATIC : `coalition.addStaticObject` → nil = inconnu. Passe tous les champs du descriptor (shape_name, livery_id…).
-  Sources couvertes : CTLDObjectRegistry._db, spawnableCrates (filtre _repairFor et spawnAs), TEMPLATES parts.DCSTypename, loadableGroups componentTypes.
+  HELIPORT : `StaticObject:getDesc().life` — valide → `life>0`, invalide → `life==0`. Spawn off-map +800km est
+    (ghost hors zone jouable). Confirmé empiriquement + visuellement [2026-06-07] :
+    type invalide → icône punaise F10 (vs T pour valide) + life==0 dans getDesc().
+    DCS substitue visuellement par SINGLE_HELIPAD mais `getTypeName()` conserve le nom demandé (anomalie DCS).
+  Sources couvertes : CTLDObjectRegistry._db, spawnableCrates (filtre `_repairFor` et `spawnAs`), TEMPLATES parts.DCSTypename, loadableGroups componentTypes.
   77 types sondés, 0 NOT FOUND sur config standard. Rapport WARN in-game si type manquant.
+  Recette : U-106/U-107/U-108 — 12/12 PASS [2026-06-07]
   Commits : ec8cf6a, be54adf, f7eb611, d459120, b48a5a3.
 
 - **Refactor repair crates AA + TEMPLATES source unique** ✅ IMPLÉMENTÉ [2026-06-07]
@@ -1258,12 +1263,50 @@ Minor cleanups identified — low priority, no functional impact.
   Prérequis techniques :
   1. `CTLDSceneManager` doit conserver les références des objets spawned après `_execute()` terminé (purger `_active` seulement sur repack/destroy, pas après la dernière step).
   2. Implémenter `CTLDSceneManager:destroyScene(name)` : détruire tous les `_spawnedObjs` et nettoyer `_active`.
-  3. **Bloquant : l'Invisible FARP (Heliport)** est non destructible via DCS scripting (`StaticObject:destroy()` et `Airbase:destroy()` silencieux). Deux options :
+  3. **Bloquant : l'Invisible FARP (Heliport)** est non destructible via DCS scripting — **confirmé empiriquement [2026-06-07]** via `diag_farp_destroy_test.lua` (spawn hors hélico, pleine nature) :
+     - `Airbase:destroy()` **fonctionne partiellement** [2026-06-07] — confirmé empiriquement :
+       · Après destroy() : `Airbase.getByName()` → nil ✓ (airbase retirée du registre DCS)
+       · Après destroy() : `world.getAirbases()` ne la liste plus ✓
+       · FARP non fonctionnel (ravitaillement/réarmement désactivé) ✓
+       · MAIS modèle 3D et pastille carte F10 restent comme artefacts visuels orphelins ✗
+     - `StaticObject:destroy()` → sans effet (ni registre ni visuel)
+     - `Airbase:getUnit(1)` → nil (pas d'objet sous-jacent exposé)
+     - `coalition.getStaticObjects()` n'énumère PAS les Heliport statics (uniquement via getByName/world.getAirbases)
+     - `coalition.addStaticObject` ne vérifie pas l'unicité du nom → chaque appel crée une entrée distincte.
+       `world.getAirbases()` liste TOUTES les entrées ; `Airbase.getByName()` n'en retourne qu'une.
+       Cleanup correct : itérer `world.getAirbases()`, filtrer par nom, destroy() sur chacune.
+     - Conclusion pour Feature V : repack fonctionnellement possible via Airbase:destroy() sur chaque instance.
+       Limitation résiduelle : ghost visuel (3D + F10) non suppressible par script.
+     - ✅ Piste ModValidator Heliport CLOSE [2026-06-08] : pour les mods custom heliport,
+       `getDesc().life == 0` ET `getLife() == 3600` (constante DCS) que le mod soit installé ou non —
+       aucun discriminant API existant. Solution finale : `probeSkip = true` dans ObjectRegistry +
+       skip dans `_collectTypeNames` (supprime le faux NOT FOUND). Seuls les types built-in
+       (SINGLE_HELIPAD, FARP : life=10000000) peuvent être validés par la probe.
+     Deux options :
      a. Remplacer l'Invisible FARP par un static de catégorie non-Heliport (FARP ne fonctionne plus en refuelling, mais le pad visuel reste) → repack possible.
      b. Attendre une future API DCS permettant la destruction des Heliport statics.
   4. Ajouter un menu F10 "Pack [nom scène]" visible quand le joueur est au sol dans le rayon des objets de scène.
   5. Respawner la caisse d'origine (descriptor identique à l'entrée spawnableCrates) à la position du joueur.
   Note : les Black_Tyre de marquage (coins) sont des Fortifications → destructibles sans problème.
+  **TODO [A] ✅ DONE [2026-06-08]** — Countryside FARP migré dans `src/scenes/CTLD_countrysideFarpScene.lua`
+    (self-registration + déclarations registry via `CTLDObjectRegistry.registerIfAbsent()`).
+    Validé live DCS MT-16 [2026-06-08] : crate→unpack→Invisible FARP airbase OK, warehouse fueled,
+    formation complète (trucks+tent+gardes+lumière+windsock). Délai F10 label = comportement DCS normal.
+    Reste FARP Alpha (toujours dans CTLD_sceneManager.lua via _registerBuiltins — TODO [A2]).
+  **TODO [A2]** — Migrer FARP Alpha dans `src/scenes/CTLD_farpAlphaScene.lua` (même pattern que Countryside).
+  **TODO [B]** — `Farp_FG_Petit_Helipad` dans CTLDObjectRegistry mais aucune scène ne l'utilise.
+    → Créer scène "Metalic FARP" utilisant ce mod + crate sentinel + menu (voir TODO [C/D/E] ci-dessous).
+  **TODO [C]** — Créer `src/scenes/CTLD_metallicFarpScene.lua` utilisant `Farp_FG_Petit_Helipad`
+    comme heliport principal. Tester en debug (deploy + fonctionnalité FARP). Recette interactive.
+  **TODO [D]** — **Généralisation auto-menu scènes + auto-crate** : actuellement SCENE_SENTINELS est
+    hardcodé dans `CTLD_crate.lua` avec un bloc menu dédié par scène (~35 lignes chacun). Objectif :
+    (1) toute crate dont `unit` correspond à un nom de scène enregistrée dans CTLDSceneManager génère
+    automatiquement son entrée menu "Deploy [scene name]" sans modification de CTLD_crate.lua ;
+    (2) le fichier de scène déclare lui-même la définition de sa crate (poids, i18n, cratesRequired),
+    ainsi créer une nouvelle scène ne nécessite qu'un seul fichier.
+  **TODO [E]** — **Debug test mod absent/présent** : créer un script de recette qui vérifie le
+    comportement d'unpack d'une crate de scène utilisant un mod heliport (Farp_FG_Petit_Helipad)
+    dans les deux cas : mod présent (spawn OK) et mod absent (comportement dégradé à documenter).
 
 ## Risks and mitigations
 

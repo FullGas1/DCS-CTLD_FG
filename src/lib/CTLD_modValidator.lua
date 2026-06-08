@@ -60,6 +60,8 @@ function CTLDModValidator:run()
         local valid
         if entry.probeType == "GROUND" then
             valid = self:_probeGround(entry.typeName)
+        elseif entry.probeType == "HELIPORT" then
+            valid = self:_probeHeliport(entry.typeName, entry.category, entry.extras)
         else
             valid = self:_probeStatic(entry.typeName, entry.category, entry.extras)
         end
@@ -115,14 +117,24 @@ function CTLDModValidator:_collectTypeNames()
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
         if desc.groupType == "STATIC" and desc.type then
-            -- Heliport-category statics (FARP, SINGLE_HELIPAD…) cannot be removed via any DCS
-            -- scripting API: StaticObject:destroy() and Airbase:destroy() both silently fail.
-            -- Probing them would leave permanent ghost FARPs on the map.  Emit a warning and skip.
+            -- Heliport detection: DCS substitutes unknown types with SINGLE_HELIPAD visually,
+            -- but getTypeName() returns the requested name (not the substitute).
+            -- Detection via StaticObject:getDesc().life: valid type → life>0, invalid → life==0.
+            -- Spawned off-map (+800 km east) to keep any ghost outside the visible play area.
             if desc.category == "Heliports" then
-                ctld.utils.log("WARN",
-                    "ModValidator: skipping Heliport type '%s' (source: Registry[%s]) — " ..
-                    "DCS scripting cannot destroy spawned helipad statics; verify this type manually.",
-                    desc.type, regKey)
+                if desc.probeSkip then
+                    -- Custom mod heliport: DCS scripting API cannot distinguish installed from missing
+                    -- (getDesc().life == 0 for both valid mod and invalid type). Skip to avoid false alarm.
+                    ctld.utils.log("INFO",
+                        "ModValidator HELIPORT '%s' skipped (probeSkip=true — custom mod, DCS API limitation)",
+                        desc.type)
+                else
+                    local extras = {}
+                    for k, v in pairs(desc) do
+                        if not _skipDescKeys[k] then extras[k] = v end
+                    end
+                    add(desc.type, "HELIPORT", desc.category, "Registry[" .. regKey .. "]", nil, extras)
+                end
             else
                 -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
                 local extras = {}
@@ -293,3 +305,48 @@ function CTLDModValidator:_probeStatic(typeName, category, extras)
     ctld.utils.log("INFO", "ModValidator STATIC '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
     return valid
 end
+
+function CTLDModValidator:_probeHeliport(typeName, category, extras)
+    local cacheKey = "S:" .. typeName
+    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
+
+    local idx  = self:_nextIdx()
+    local pos  = self._probePos
+    local name = "CTLD_MVP_H" .. idx
+
+    -- Spawn off-map (+800 km east) so the unavoidable ghost stays outside the visible play area.
+    local staticData = {
+        name          = name,
+        type          = typeName,
+        category      = category or "Heliports",
+        x             = pos.x + idx * 3,
+        y             = pos.z + 800000,
+        heading       = 0,
+        start_time    = 0,
+        transportable = { randomTransportable = false },
+        dead          = false,
+    }
+    if extras then
+        for k, v in pairs(extras) do staticData[k] = v end
+    end
+
+    local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
+    -- Detection: DCS substitutes unknown Heliport types visually but getTypeName() is unreliable.
+    -- getDesc().life == 0 when the type is unknown; valid types have life > 0.
+    local valid = false
+    if ok and obj ~= nil then
+        local so = StaticObject.getByName(name)
+        if so then
+            local okD, d = pcall(function() return so:getDesc() end)
+            valid = okD and type(d) == "table" and (d.life or 0) > 0
+        end
+        local ab = Airbase.getByName(name)
+        if ab then pcall(function() ab:destroy() end) end
+    end
+
+    self._cache[cacheKey] = valid
+    ctld.utils.log("INFO", "ModValidator HELIPORT '%s' → %s (off-map probe, life-check)",
+        typeName, valid and "OK" or "NOT FOUND")
+    return valid
+end
+

@@ -5895,7 +5895,7 @@ CTLDObjectRegistry._db = {
         heliport_modulation  = 0,
     },
 
-    ["Invisible_FARP"] = {  -- invisible DCS heliport marker — type "Invisible FARP" + shape_name "invisiblefarp" confirmed from mission file
+    ["Invisible_FARP"] = {  -- invisible DCS heliport — no 3D model but full airbase (F10 label + warehouse). Params from mission Farp Invisible-1.
         groupType            = "STATIC",
         namePrefix           = "CS_FARP",
         type                 = "Invisible FARP",
@@ -5904,6 +5904,7 @@ CTLDObjectRegistry._db = {
         heliport_frequency   = "127.5",
         heliport_callsign_id = 1,
         heliport_modulation  = 0,
+        rate                 = 100,
     },
 
     ["Farp_FG_Petit_Helipad"] = {  -- specific mod
@@ -5915,6 +5916,10 @@ CTLDObjectRegistry._db = {
         heliport_frequency   = "127.5",
         heliport_callsign_id = 1,
         heliport_modulation  = 0,
+        -- DCS scripting API limitation: for custom mod heliports, getDesc().life == 0 whether the mod
+        -- is installed or not (identical to an invalid type). No reliable discriminant exists.
+        -- probeSkip suppresses the false NOT FOUND alarm; the mod cannot be validated at runtime.
+        probeSkip            = true,
     },
 
     -- ------------------------------------------------------------------
@@ -6133,6 +6138,20 @@ CTLDObjectRegistry._db = {
 -- Returns a descriptor from the DB, or nil if not found.
 function CTLDObjectRegistry.get(objectKey)
     return CTLDObjectRegistry._db[objectKey]
+end
+
+-- Registers a descriptor only if the key is not already present.
+-- Used by scene files to declare their required entries in a self-contained way.
+-- If multiple scenes share the same registryKey, only the first registration wins.
+-- @param objectKey string   registry key (must be unique)
+-- @param desc      table    descriptor table (same format as _db entries)
+-- @return true if registered, false if key already existed
+function CTLDObjectRegistry.registerIfAbsent(objectKey, desc)
+    if CTLDObjectRegistry._db[objectKey] then
+        return false
+    end
+    CTLDObjectRegistry._db[objectKey] = desc
+    return true
 end
 
 --- Reverse lookup: find the registry key and descriptor whose `type` field
@@ -6432,6 +6451,8 @@ function CTLDModValidator:run()
         local valid
         if entry.probeType == "GROUND" then
             valid = self:_probeGround(entry.typeName)
+        elseif entry.probeType == "HELIPORT" then
+            valid = self:_probeHeliport(entry.typeName, entry.category, entry.extras)
         else
             valid = self:_probeStatic(entry.typeName, entry.category, entry.extras)
         end
@@ -6487,14 +6508,24 @@ function CTLDModValidator:_collectTypeNames()
     -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
     for regKey, desc in pairs(CTLDObjectRegistry._db) do
         if desc.groupType == "STATIC" and desc.type then
-            -- Heliport-category statics (FARP, SINGLE_HELIPAD…) cannot be removed via any DCS
-            -- scripting API: StaticObject:destroy() and Airbase:destroy() both silently fail.
-            -- Probing them would leave permanent ghost FARPs on the map.  Emit a warning and skip.
+            -- Heliport detection: DCS substitutes unknown types with SINGLE_HELIPAD visually,
+            -- but getTypeName() returns the requested name (not the substitute).
+            -- Detection via StaticObject:getDesc().life: valid type → life>0, invalid → life==0.
+            -- Spawned off-map (+800 km east) to keep any ghost outside the visible play area.
             if desc.category == "Heliports" then
-                ctld.utils.log("WARN",
-                    "ModValidator: skipping Heliport type '%s' (source: Registry[%s]) — " ..
-                    "DCS scripting cannot destroy spawned helipad statics; verify this type manually.",
-                    desc.type, regKey)
+                if desc.probeSkip then
+                    -- Custom mod heliport: DCS scripting API cannot distinguish installed from missing
+                    -- (getDesc().life == 0 for both valid mod and invalid type). Skip to avoid false alarm.
+                    ctld.utils.log("INFO",
+                        "ModValidator HELIPORT '%s' skipped (probeSkip=true — custom mod, DCS API limitation)",
+                        desc.type)
+                else
+                    local extras = {}
+                    for k, v in pairs(desc) do
+                        if not _skipDescKeys[k] then extras[k] = v end
+                    end
+                    add(desc.type, "HELIPORT", desc.category, "Registry[" .. regKey .. "]", nil, extras)
+                end
             else
                 -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
                 local extras = {}
@@ -6665,6 +6696,51 @@ function CTLDModValidator:_probeStatic(typeName, category, extras)
     ctld.utils.log("INFO", "ModValidator STATIC '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
     return valid
 end
+
+function CTLDModValidator:_probeHeliport(typeName, category, extras)
+    local cacheKey = "S:" .. typeName
+    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
+
+    local idx  = self:_nextIdx()
+    local pos  = self._probePos
+    local name = "CTLD_MVP_H" .. idx
+
+    -- Spawn off-map (+800 km east) so the unavoidable ghost stays outside the visible play area.
+    local staticData = {
+        name          = name,
+        type          = typeName,
+        category      = category or "Heliports",
+        x             = pos.x + idx * 3,
+        y             = pos.z + 800000,
+        heading       = 0,
+        start_time    = 0,
+        transportable = { randomTransportable = false },
+        dead          = false,
+    }
+    if extras then
+        for k, v in pairs(extras) do staticData[k] = v end
+    end
+
+    local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
+    -- Detection: DCS substitutes unknown Heliport types visually but getTypeName() is unreliable.
+    -- getDesc().life == 0 when the type is unknown; valid types have life > 0.
+    local valid = false
+    if ok and obj ~= nil then
+        local so = StaticObject.getByName(name)
+        if so then
+            local okD, d = pcall(function() return so:getDesc() end)
+            valid = okD and type(d) == "table" and (d.life or 0) > 0
+        end
+        local ab = Airbase.getByName(name)
+        if ab then pcall(function() ab:destroy() end) end
+    end
+
+    self._cache[cacheKey] = valid
+    ctld.utils.log("INFO", "ModValidator HELIPORT '%s' → %s (off-map probe, life-check)",
+        typeName, valid and "OK" or "NOT FOUND")
+    return valid
+end
+
 
 -- End : lib/CTLD_modValidator.lua
 -- ====================================================================================================
@@ -6942,7 +7018,7 @@ end
 
 function CTLDSceneManager:_registerBuiltins()
     self:registerSceneModel(CTLDSceneManager._FARP_ALPHA_SCENE)
-    self:registerSceneModel(CTLDSceneManager._COUNTRYSIDE_FARP_SCENE)
+    -- Countryside FARP scene is defined in scenes/CTLD_countrysideFarpScene.lua (self-registering)
     -- FOB scene is defined in scenes/CTLD_fobScene.lua (self-registering)
 end
 
@@ -7097,163 +7173,6 @@ CTLDSceneManager._FARP_ALPHA_SCENE = {
     },
 }
 
--- ====================================================================================================
--- Built-in scene: Countryside FARP
--- Lightweight forward arming/refueling point using an Invisible FARP.
--- 1 ammo crate, 1 tent (trucks hidden underneath), 1 infantry + 1 MANPAD, M92 light.
--- Warehouse resources are zeroed in the final step (no fuel/supplies stocked).
--- Total construction time: ~30 s.
--- ====================================================================================================
-
-CTLDSceneManager._COUNTRYSIDE_FARP_SCENE = {
-    name  = "Countryside FARP",
-    steps = {
-
-        -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid double-count on first step).
-        -- Saves the spawned airbase name in ctx.scene._params for the zeroing step.
-        {
-            polar                    = { distance = 0, angle = 0 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey = "Invisible_FARP",
-            func = function(ctx)
-                if not ctx.spawnedObj then return false end
-                ctx.scene._params.farpName = ctx.spawnedObj:getName()
-                return true
-            end,
-        },
-
-        -- Step 2: 4 Black Tyres at the corners of the FARP square (t0 + 0 s — same as FARP).
-        -- Marks the landing zone boundary immediately.
-        {
-            delayAfterPreviousStep = 0,
-            func = function(ctx)
-                local halfSide = 30
-                local h    = ctx.scene._refHdgRad
-                local cx   = ctx.scene._refX
-                local cz   = ctx.scene._refZ
-                local cosH = math.cos(h)
-                local sinH = math.sin(h)
-                local cid  = ctx.scene._countryId
-
-                local corners = {
-                    {  halfSide,  halfSide },
-                    {  halfSide, -halfSide },
-                    { -halfSide,  halfSide },
-                    { -halfSide, -halfSide },
-                }
-                for i, c in ipairs(corners) do
-                    local fwd, right = c[1], c[2]
-                    local wx = cx + fwd * cosH - right * sinH
-                    local wz = cz + fwd * sinH + right * cosH
-                    local sd = {
-                        name          = "CS_FARP_Flag_" .. i,
-                        type          = "Black_Tyre",
-                        shape_name    = "H-tyre_B",
-                        category      = "Fortifications",
-                        x             = wx,
-                        y             = wz,
-                        heading       = 0,
-                        start_time    = 0,
-                        dead          = false,
-                        transportable = { randomTransportable = false },
-                    }
-                    local ok, obj = pcall(coalition.addStaticObject, cid, sd)
-                    if ok and obj then
-                        ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
-                    end
-                end
-                return true
-            end,
-        },
-
-        -- Step 3: Fuel truck — under tent (t0 + 5 s).
-        {
-            polar                    = { distance = 40, angle = 8 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey = "Fuel_Truck",
-        },
-
-        -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
-        {
-            polar                    = { distance = 40, angle = 11 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey = "repare_Truck",
-        },
-
-        -- Step 5: Tent — over both trucks, 0.5 s later (t0 + 5.5 s).
-        {
-            polar                    = { distance = 40, angle = 10 },
-            delayAfterPreviousStep   = 0.5,
-            relativeHeadingInDegrees = 90,
-            relativeAltitudeInMeters = 0,
-            registryKey = "FARP_Tent",
-        },
-
-        -- Step 6: Ammo cargo (t0 + 15 s).
-        {
-            polar                    = { distance = 35, angle = 340 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey = "ammo_cargo",
-        },
-
-        -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
-        {
-            polar                    = { distance = 32, angle = 21 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 0,
-            relativeAltitudeInMeters = 0,
-            registryKey = "CS_FARP_Guards",
-        },
-
-        -- Step 8: M92 light panel at tent height (t0 + 25 s).
-        {
-            polar                    = { distance = 35, angle = 349 },
-            delayAfterPreviousStep   = 5,
-            relativeHeadingInDegrees = 310,
-            relativeAltitudeInMeters = 4,
-            registryKey = "NF-2_LightOn",
-        },
-
-        -- Step 9: Windsock near the light, same timing (t0 + 25 s).
-        {
-            polar                    = { distance = 31, angle = 357 },
-            delayAfterPreviousStep   = 0,
-            relativeHeadingInDegrees = 220,
-            relativeAltitudeInMeters = 0,
-            registryKey = "Windsock",
-        },
-
-        -- Step 10: Zero warehouse liquids + completion message (t0 + 30 s).
-        -- Removes all fuel (jet, avgas, MW50, diesel) from the invisible FARP warehouse
-        -- so it acts as a landing pad only — no resupply resources.
-        {
-            delayAfterPreviousStep = 5,
-            func = function(ctx)
-                local farpName = ctx.scene._params and ctx.scene._params.farpName
-                if farpName then
-                    local ab = Airbase.getByName(farpName)
-                    if ab then
-                        local w = ab:getWarehouse()
-                        for ltype = 0, 3 do
-                            pcall(function() w:removeLiquid(ltype, 999999) end)
-                        end
-                    end
-                end
-                trigger.action.outText(
-                    ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
-                return true
-            end,
-        },
-    },
-}
 
 
 -- End : CTLD_sceneManager.lua
@@ -22525,6 +22444,326 @@ end
 CTLDSceneManager.getInstance():registerSceneModel(mineFieldScene)
 
 -- End : scenes/CTLD_mineFieldScene.lua
+-- ====================================================================================================
+-- Start : scenes/CTLD_countrysideFarpScene.lua
+---@diagnostic disable
+-- CTLD_countrysideFarpScene.lua
+-- Countryside FARP deployment scene.
+-- Lightweight forward arming/refueling point using an Invisible FARP heliport.
+-- The Invisible FARP type creates a proper DCS airbase (warehouse, Airbase.getByName accessible)
+-- without any visible F10 map label or 3D model — fully functional but discreet.
+--
+-- Layout (all offsets from trigger unit position):
+--   Invisible FARP heliport — at unit position (distance=0)
+--   4 Black Tyres           — corners of a 60×60 m landing square (immediate)
+--   Fuel truck              — 40 m / 8°  heading 90° (under tent, t+5 s)
+--   Repair truck            — 40 m / 11° heading 90° (under tent, t+5 s)
+--   Tent                    — 40 m / 10° heading 90° (over trucks,  t+5.5 s)
+--   Ammo cargo              — 35 m / 340°             (t+15 s)
+--   Guards (infantry+MANPAD)— 32 m / 21°              (t+20 s)
+--   M92 light panel         — 35 m / 349° alt+4 m    (t+25 s)
+--   Windsock                — 31 m / 357°             (t+25 s)
+--   Warehouse stocking      — FARP warehouse fueled on completion (t+30 s)
+--
+-- Objects used (all in CTLDObjectRegistry):
+--   Invisible_FARP, Fuel_Truck, repare_Truck, FARP_Tent,
+--   ammo_cargo, CS_FARP_Guards, NF-2_LightOn, Windsock
+--
+-- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
+-- ====================================================================================================
+
+local countrysideFarpScene = {}
+countrysideFarpScene.name  = "Countryside FARP"
+
+countrysideFarpScene.steps = {
+
+    -- ----------------------------------------------------------------
+    -- Step 1: Invisible FARP heliport (delay=0 — must be 0 to avoid
+    -- double-count on first step).
+    -- Invisible FARP creates a proper DCS airbase (warehouse, accessible
+    -- via Airbase.getByName) without F10 label or 3D model.
+    -- Saves the spawned airbase name for the warehouse-stocking step.
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 0, angle = 0 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Invisible_FARP",
+        func = function(ctx)
+            if not ctx.spawnedObj then return false end
+            ctx.scene._params.farpName = ctx.spawnedObj:getName()
+            return true
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 2: 4 Black Tyres at the corners of the FARP landing square
+    -- (t0 + 0 s — same tick as FARP). Marks boundary immediately.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            local halfSide = 30
+            local h    = ctx.scene._refHdgRad
+            local cx   = ctx.scene._refX
+            local cz   = ctx.scene._refZ
+            local cosH = math.cos(h)
+            local sinH = math.sin(h)
+            local cid  = ctx.scene._countryId
+
+            local corners = {
+                {  halfSide,  halfSide },
+                {  halfSide, -halfSide },
+                { -halfSide,  halfSide },
+                { -halfSide, -halfSide },
+            }
+            for i, c in ipairs(corners) do
+                local fwd, right = c[1], c[2]
+                local wx = cx + fwd * cosH - right * sinH
+                local wz = cz + fwd * sinH + right * cosH
+                local sd = {
+                    name          = "CS_FARP_Flag_" .. i,
+                    type          = "Black_Tyre",
+                    shape_name    = "H-tyre_B",
+                    category      = "Fortifications",
+                    x             = wx,
+                    y             = wz,
+                    heading       = 0,
+                    start_time    = 0,
+                    dead          = false,
+                    transportable = { randomTransportable = false },
+                }
+                local ok, obj = pcall(coalition.addStaticObject, cid, sd)
+                if ok and obj then
+                    ctx.scene._spawnedObjs[#ctx.scene._spawnedObjs + 1] = obj
+                end
+            end
+            return true
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 3: Fuel truck — under tent (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 8 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Fuel_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 4: Repair truck — under tent, same tick (t0 + 5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 11 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "repare_Truck",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 5: Tent — over both trucks (t0 + 5.5 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 40, angle = 10 },
+        delayAfterPreviousStep   = 0.5,
+        relativeHeadingInDegrees = 90,
+        relativeAltitudeInMeters = 0,
+        registryKey = "FARP_Tent",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 6: Ammo cargo (t0 + 15 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 340 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "ammo_cargo",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 7: Guards — 1 infantry + 1 MANPAD (t0 + 20 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 32, angle = 21 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 0,
+        relativeAltitudeInMeters = 0,
+        registryKey = "CS_FARP_Guards",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 8: M92 light panel at tent height (t0 + 25 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 35, angle = 349 },
+        delayAfterPreviousStep   = 5,
+        relativeHeadingInDegrees = 310,
+        relativeAltitudeInMeters = 4,
+        registryKey = "NF-2_LightOn",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 9: Windsock near the light, same timing (t0 + 25 s).
+    -- ----------------------------------------------------------------
+    {
+        polar                    = { distance = 31, angle = 357 },
+        delayAfterPreviousStep   = 0,
+        relativeHeadingInDegrees = 220,
+        relativeAltitudeInMeters = 0,
+        registryKey = "Windsock",
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 10: Stock warehouse + completion message (t0 + 30 s).
+    -- Fills all fuel types in the FARP warehouse so aircraft can
+    -- refuel/rearm at this forward point.
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 5,
+        func = function(ctx)
+            local farpName = ctx.scene._params and ctx.scene._params.farpName
+            if farpName then
+                local ab = Airbase.getByName(farpName)
+                if ab then
+                    local w = ab:getWarehouse()
+                    w:addLiquid(0, 10000)   -- jet fuel
+                    w:addLiquid(1, 10000)   -- aviation gasoline
+                    w:addLiquid(2, 10000)   -- MW50
+                    w:addLiquid(3, 10000)   -- diesel
+                end
+            end
+            trigger.action.outText(
+                ctld.tr("--- Countryside FARP Deployment by %1 : Complete! ---", ctx.unit:getName()), 10)
+            return true
+        end,
+    },
+}
+
+-- ====================================================================================================
+-- Registry entries required by this scene.
+-- registerIfAbsent() is a no-op when the key already exists, so multiple scenes
+-- can safely declare the same shared entry (FARP, Fuel_Truck, etc.) without conflict.
+-- ====================================================================================================
+
+CTLDObjectRegistry.registerIfAbsent("Invisible_FARP", {
+    groupType            = "STATIC",
+    namePrefix           = "CS_FARP",
+    type                 = "Invisible FARP",
+    shape_name           = "invisiblefarp",
+    category             = "Heliports",
+    heliport_frequency   = "127.5",
+    heliport_callsign_id = 1,
+    heliport_modulation  = 0,
+    rate                 = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Fuel_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "Fuel_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "Fuel_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "ATZ-10" or "M978 HEMTT Tanker"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("repare_Truck", {
+    groupType  = "GROUND",
+    namePrefix = "repare_Truck_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "repare_Truck_Unit",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Ural-375" or "M 818"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("FARP_Tent", {
+    groupType  = "STATIC",
+    namePrefix = "FARP_Tent",
+    type       = "FARP Tent",
+    category   = "Fortifications",
+})
+
+CTLDObjectRegistry.registerIfAbsent("ammo_cargo", {
+    groupType  = "STATIC",
+    namePrefix = "ammo_box_cargo",
+    type       = "ammo_cargo",
+    category   = "Cargos",
+    shape_name = "ammo_box_cargo",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("CS_FARP_Guards", {
+    groupType  = "GROUND",
+    namePrefix = "CS_FARP_Guard_Grp",
+    task       = "Ground Nothing",
+    category   = Unit.Category.GROUND_UNIT,
+    units = {
+        {
+            namePrefix     = "CS_Guard_Infantry",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "Infantry AK" or "Soldier M4"
+            end,
+            playerCanDrive = false,
+            dx = 0, dz = 0, dh = 0,
+        },
+        {
+            namePrefix     = "CS_Guard_Manpad",
+            unitType       = function(cid)
+                return cid == coalition.side.RED and "SA-18 Igla manpad" or "Soldier stinger"
+            end,
+            playerCanDrive = false,
+            dx = 3, dz = 0, dh = 0,
+        },
+    },
+})
+
+CTLDObjectRegistry.registerIfAbsent("NF-2_LightOn", {
+    groupType  = "STATIC",
+    namePrefix = "LightOn",
+    type       = "NF-2_LightOn",
+    category   = "Fortifications",
+    shape_name = "M92_NF-2_LightOn",
+    rate       = 100,
+})
+
+CTLDObjectRegistry.registerIfAbsent("Windsock", {
+    groupType  = "STATIC",
+    namePrefix = "Windsock",
+    type       = "Windsock",
+    category   = "Fortifications",
+    shape_name = "H-Windsock_RW",
+    rate       = 3,
+})
+
+-- ====================================================================================================
+-- Self-registration
+-- ====================================================================================================
+
+CTLDSceneManager.getInstance():registerSceneModel(countrysideFarpScene)
+
+-- End : scenes/CTLD_countrysideFarpScene.lua
 -- ====================================================================================================
 -- Start : compat/legacy_api.lua
 -- ============================================================

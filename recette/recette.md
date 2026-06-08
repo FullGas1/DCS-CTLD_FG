@@ -149,6 +149,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 | U-103 | ctld.tr vehicle capacity key (%1/%2) | i18n | loaded=1/max=1 → contient "(1/1)" | ✅ PASS 1/1 | — |
 | U-104 | ctld.tr packed-into key (%1/%2) | i18n | nom véhicule + nb caisses substitués | ✅ PASS 2/2 | — |
 | U-105 | ctld.tr troop capacity key (%1/%2) | i18n | current=6/limit=8 → contient "(6/8" | ✅ PASS 1/1 | — |
+| U-106 | CTLDModValidator — _probeGround valid + invalid | ModValidator | BRDM-2→cache=true ; invalid→cache=false ; 2× cache hit sans re-probe | ✅ PASS 4/4 | — |
+| U-107 | CTLDModValidator — _probeStatic valid + invalid | ModValidator | outpost_road→cache=true ; invalid→cache=false ; 2× cache hit sans re-probe | ✅ PASS 4/4 | — |
+| U-108 | CTLDModValidator — Heliport probe via getDesc().life | ModValidator | SINGLE_HELIPAD→cache=true (life>0) ; invalid→cache=false (life==0) ; 2× cache hit sans re-probe | ✅ PASS 4/4 | — |
 
 ---
 
@@ -404,7 +407,9 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **MT-11 — AI troop stock pickup/dropoff** : ✅ PASS live DCS [2026-06-07] — pickup troopStock template, dropoff deploy troupes
 - **MT-12 — AI vehicle native pickup/dropoff** : ✅ PASS live DCS [2026-06-07] — pickup vehicleStock Hummer, dropoff computeSafeDropPos rearSector ~42m derrière hélico ; bugfix spawn sous hélico (spawnVehicleAt→computeSafeDropPos)
 - **MT-13 — AI vehicle scene pickup/dropoff** : ✅ PASS live DCS [2026-06-07] — pickup FARP Alpha isScene=true, dropoff playScene confirmé ; ⚠️ TODO [6] position caisses scène FARP à vérifier
-- **Total** : **545 cas** — 1489/1489 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS + MT-11 PASS + MT-12 PASS + MT-13 PASS + MT-14 PASS
+- **MT-15 — Request Vehicle pur (spawn/load/unload sans crate)** : 1 scénario = **13 checks** ✅ PASS live DCS [2026-06-07] — spawnVehicleForTransport→WAITING ; findLoadableVehicles→HMMWV ; loadVehicle→LOADED (DCS unit détruite) ; findLoadedVehicles→HMMWV ; unloadVehicle→WAITING (DCS unit respawnée). Config override UH-1H canTransportWholeVehicle sauvegardée/restaurée. Visual F10 menu ✅ PASS [2026-06-07] — Request Equipment→spawn / Load Vehicle / Unload Vehicle confirmés joueur (diag_mt15_vehicle_menu_visual.lua).
+- **MT-16 — Countryside FARP scène complète (load/unload/deploy)** : ✅ PASS live DCS [2026-06-08] — crate descriptor poids=1001.24 trouvé ; crate spawnée à portée ; unpack→CTLDSceneManager:playScene("Countryside FARP") ; Invisible FARP spawné→accessible Airbase.getByName() ✅ ; étiquette (T) F10 map après délai DCS normal ✅ ; warehouse fueled ; trucks+tent+gardes+lumière+windsock présents. Diag confirmé : coalition.addStaticObject type="Invisible FARP" catégorie=Heliports crée un vrai airbase DCS (liste airbases BLUE, warehouse accessible).
+- **Total** : **557 cas** — 1501/1501 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS + MT-11 PASS + MT-12 PASS + MT-13 PASS + MT-14 PASS + MT-15 13/13 PASS + MT-16 PASS + U-106/U-107/U-108 (ModValidator) 12/12 PASS
 
 ---
 

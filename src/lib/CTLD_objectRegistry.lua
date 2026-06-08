@@ -62,7 +62,7 @@ CTLDObjectRegistry._db = {
         heliport_modulation  = 0,
     },
 
-    ["Invisible_FARP"] = {  -- invisible DCS heliport marker — type "Invisible FARP" + shape_name "invisiblefarp" confirmed from mission file
+    ["Invisible_FARP"] = {  -- invisible DCS heliport — no 3D model but full airbase (F10 label + warehouse). Params from mission Farp Invisible-1.
         groupType            = "STATIC",
         namePrefix           = "CS_FARP",
         type                 = "Invisible FARP",
@@ -71,6 +71,7 @@ CTLDObjectRegistry._db = {
         heliport_frequency   = "127.5",
         heliport_callsign_id = 1,
         heliport_modulation  = 0,
+        rate                 = 100,
     },
 
     ["Farp_FG_Petit_Helipad"] = {  -- specific mod
@@ -82,6 +83,10 @@ CTLDObjectRegistry._db = {
         heliport_frequency   = "127.5",
         heliport_callsign_id = 1,
         heliport_modulation  = 0,
+        -- DCS scripting API limitation: for custom mod heliports, getDesc().life == 0 whether the mod
+        -- is installed or not (identical to an invalid type). No reliable discriminant exists.
+        -- probeSkip suppresses the false NOT FOUND alarm; the mod cannot be validated at runtime.
+        probeSkip            = true,
     },
 
     -- ------------------------------------------------------------------
@@ -300,6 +305,20 @@ CTLDObjectRegistry._db = {
 -- Returns a descriptor from the DB, or nil if not found.
 function CTLDObjectRegistry.get(objectKey)
     return CTLDObjectRegistry._db[objectKey]
+end
+
+-- Registers a descriptor only if the key is not already present.
+-- Used by scene files to declare their required entries in a self-contained way.
+-- If multiple scenes share the same registryKey, only the first registration wins.
+-- @param objectKey string   registry key (must be unique)
+-- @param desc      table    descriptor table (same format as _db entries)
+-- @return true if registered, false if key already existed
+function CTLDObjectRegistry.registerIfAbsent(objectKey, desc)
+    if CTLDObjectRegistry._db[objectKey] then
+        return false
+    end
+    CTLDObjectRegistry._db[objectKey] = desc
+    return true
 end
 
 --- Reverse lookup: find the registry key and descriptor whose `type` field

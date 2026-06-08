@@ -29,6 +29,7 @@ CTLD_core.lua
 scenes/CTLD_farpScene.lua
 scenes/CTLD_fobScene.lua
 scenes/CTLD_mineFieldScene.lua
+scenes/CTLD_countrysideFarpScene.lua
 -- Legacy API compatibility (after all managers)
 compat/legacy_api.lua
 -- User configuration (always last)
