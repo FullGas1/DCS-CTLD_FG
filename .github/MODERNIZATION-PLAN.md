@@ -1295,8 +1295,9 @@ Minor cleanups identified — low priority, no functional impact.
   **TODO [A2] ✅ DONE [2026-06-08]** — FARP Alpha migré dans `src/scenes/CTLD_farpAlphaScene.lua`.
     _registerBuiltins() vidé. Toutes les scènes self-contained dans src/scenes/.
   **TODO [B] ✅ DONE [2026-06-08]** — `Farp_FG_Petit_Helipad` utilisé par la scène Metal FARP.
-  **TODO [C] ✅ DONE [2026-06-08]** — `src/scenes/CTLD_metalFarpScene.lua` créé.
-    Farp_FG_Petit_Helipad (probeSkip=true) + 10 000L × 4 types de carburant. Validé late-injection.
+  **TODO [C] ✅ DONE [2026-06-08]** — `src/scenes/CTLD_metalFarpScene.lua` créé et validé live DCS.
+    Farp_FG_Petit_Helipad (probeSkip=true) + 10 000L × 4 types de carburant + us carrier shooter.
+    Layout : helipad 58m, camions sous tente (t+5/t+5.5s), windsock, lumière, ammo. Validé player.
   **TODO [D] ✅ DONE [2026-06-08]** — **Généralisation auto-menu scènes + auto-crate** implémentée.
   `refreshUnpackSection` : boucle générique `sm_ref:getModel(ut)` (remplace SCENE_SENTINELS + blocs dédiés).
   `CTLDCrateManager:_injectSceneCrate()` : injection idempotente, résolution collision de poids.
