@@ -5,16 +5,26 @@
 --
 -- Step types (fields in each step table):
 --   polar  : { polar={distance, angle}, relativeHeadingInDegrees, relativeAltitudeInMeters,
---              registryKey [, func] }
+--              registryKey [, preFunc] [, func] }
 --              Deterministic position relative to the trigger unit's snapshot position.
---   axis   : { axis={count, safeDistance, spacing}, registryKey [, func] }
+--   axis   : { axis={count, safeDistance, spacing}, registryKey [, preFunc] [, func] }
 --              Random single axis around the unit; N objects spread along it.
---   func   : { func=function(unit, spawnedObj, step) ... end }
---              No spawn; only executes the function.
+--   func   : { func=function(ctx) ... end }
+--              No spawn; only executes the function (post-spawn hook).
+--
+-- Each step supports two optional script hooks:
+--   preFunc(ctx) — runs BEFORE spawn. Return false to skip this step's spawn (scene continues).
+--                  Call ctx.scene:abort(reason) to stop the scene entirely.
+--   func(ctx)    — runs AFTER spawn (or after skipped spawn).
+--                  ctx.spawnedObj is the last DCS object spawned this step (nil if skipped).
 --
 -- All steps carry delayAfterPreviousStep (seconds).  After executing step N,
 -- the engine waits that many seconds before starting step N+1.  The same field
 -- is also used before step 1 (initial delay from mission start / scene trigger).
+--
+-- Scene models may define an onComplete field:
+--   model.onComplete = function(scene) ... end
+--   Called automatically when all steps finish. Overridden if playScene() passes its own callback.
 --
 -- Dependencies: CTLDUtils, CTLDObjectRegistry
 -- DCS API: timer.getTime, timer.scheduleFunction, Unit.*, Airbase.*,
@@ -46,7 +56,8 @@ function CtldScene:init(unit, model, params, onComplete)
     self._timeMarker  = 0
     self._spawnedObjs = {}
     self._params      = params     or {}
-    self._onComplete  = onComplete or nil
+    self._onComplete  = onComplete or model.onComplete or nil
+    self._aborted     = false
 
     -- Cache coalition/country at init so steps work even if the unit leaves mid-scene.
     self._coalitionId = unit:getCoalition()
@@ -79,8 +90,17 @@ function CtldScene:_execute()
     end
 end
 
+-- Aborts the scene: stops all further step scheduling and skips onComplete.
+-- Safe to call from within a preFunc or func.
+function CtldScene:abort(reason)
+    self._aborted = true
+    ctld.utils.log("WARN", "CtldScene '%s' aborted: %s", self._name, tostring(reason or "no reason"))
+end
+
 -- Executes the current step then schedules the next one.
 function CtldScene:_runNextStep()
+    if self._aborted then return end
+
     self._stepIndex = self._stepIndex + 1
     local step = self._steps[self._stepIndex]
     if not step then
@@ -93,9 +113,31 @@ function CtldScene:_runNextStep()
     local spawnedObj  = nil
 
     -- -----------------------------------------------------------------------
-    -- Spawn phase (skipped for func-only steps)
+    -- preFunc — executed before spawn.
+    -- Returning false skips the spawn of this step (scene continues).
+    -- Calling ctx.scene:abort() stops the scene entirely.
     -- -----------------------------------------------------------------------
-    if step.registryKey then
+    local skipSpawn = false
+    if step.preFunc then
+        local ctx = {
+            unit  = self._unit,
+            step  = step,
+            scene = self,
+        }
+        local ok, result = pcall(step.preFunc, ctx)
+        if not ok then
+            ctld.utils.log("ERROR", "CtldScene '%s' step %d preFunc error: %s",
+                self._name, self._stepIndex, tostring(result))
+        elseif result == false then
+            skipSpawn = true
+        end
+        if self._aborted then return end
+    end
+
+    -- -----------------------------------------------------------------------
+    -- Spawn phase (skipped for func-only steps or when preFunc returns false)
+    -- -----------------------------------------------------------------------
+    if step.registryKey and not skipSpawn then
         local desc = CTLDObjectRegistry.get(step.registryKey)
 
         -- Auto-inject circleRadius when the descriptor uses circle formation.
@@ -168,6 +210,7 @@ function CtldScene:_runNextStep()
     -- -----------------------------------------------------------------------
     -- Schedule next step, or fire onComplete when the last step finishes.
     -- -----------------------------------------------------------------------
+    if self._aborted then return end
     if self._steps[self._stepIndex + 1] then
         self._timeMarker = self._timeMarker + (tonumber(step.delayAfterPreviousStep) or 0)
         if self._timeMarker > timer.getTime() then
@@ -257,6 +300,34 @@ function CTLDSceneManager:playScene(unit, modelName, params, onComplete)
     ctld.utils.log("INFO", "CTLDSceneManager: started scene '%s' for unit '%s'",
         scene._name, unit:getName())
     return scene
+end
+
+--- Play a scene without a live DCS unit (e.g. parachute auto-unpack — no player context).
+-- Builds a minimal virtual unit table from pos + coalition/country so that CtldScene can
+-- compute reference position, heading (north, 0 rad), coalition and country.
+-- @param modelName   string  key in _models
+-- @param pos         vec3    reference position (centroid of landed crates)
+-- @param coalitionId number  coalition.side.RED / coalition.side.BLUE
+-- @param countryId   number  country.id.*
+-- @param params      table   optional — forwarded to scene._params (same as playScene)
+-- @return CtldScene instance, or nil on error
+function CTLDSceneManager:playSceneAtPos(modelName, pos, coalitionId, countryId, params)
+    if not pos then
+        ctld.utils.log("WARN", "CTLDSceneManager:playSceneAtPos: pos is nil")
+        return nil
+    end
+    -- North-facing direction vector (heading = 0).
+    local mockUnit = {
+        isExist     = function(_) return true end,
+        getName     = function(_) return "__auto_unpack__" end,
+        getCoalition= function(_) return coalitionId end,
+        getCountry  = function(_) return countryId end,
+        getPoint    = function(_) return pos end,
+        getPosition = function(_)
+            return { x = { x = 1, y = 0, z = 0 }, p = pos }
+        end,
+    }
+    return self:playScene(mockUnit, modelName, params, nil)
 end
 
 -- Returns a registered model table by name, or nil.

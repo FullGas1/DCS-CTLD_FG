@@ -166,6 +166,21 @@ local function _isTooCloseToZone(position, coalitionId)
     return false
 end
 
+--- Public guard check — used by scene prescript and _checkAutoUnpack before starting a FOB scene.
+-- Returns true if position is a valid FOB deployment site, or false + reason string.
+-- @param position   vec3
+-- @param coalitionId number
+-- @return boolean ok, string|nil reason ("inside_lgz" | "too_close")
+function CTLDFOBManager:checkSpatialGuards(position, coalitionId)
+    if _isInLogisticZone(position, coalitionId) then
+        return false, "inside_lgz"
+    end
+    if _isTooCloseToZone(position, coalitionId) then
+        return false, "too_close"
+    end
+    return true, nil
+end
+
 -- ============================================================
 -- Core action: unpack FOB crates → schedule build
 -- ============================================================
@@ -233,31 +248,45 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     -- Pre-compute centroid (100 m / 12 o'clock from transport NOW)
     local centroid  = _computeCentroid(transport)
     local countryId = transport:getCountry()
-    local transName = transport:getName()
-    local self_ref  = self
 
     -- Visual feedback — scene duration defines the 120 s build time
     trigger.action.outTextForCoalition(coalitionId,
         ctld.tr("%1 started building a FOB (%2 crate(s)). Construction in progress.",
             player, #cratesUsed), 10)
 
-    -- Start scene immediately — no pre-timer needed
+    -- Start scene immediately.
+    -- All post-scene registration (LGZ, beacon, event) is handled by fobScene's last step.
     CTLDSceneManager.getInstance():playScene(
         transport,
         sn,
-        { player = player, centroid = centroid },
-        function(scene)
-            self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)
-        end
+        {
+            centroid      = centroid,
+            player        = player,
+            transportName = transport:getName(),
+            coalitionId   = coalitionId,
+            countryId     = countryId,
+            cratesUsed    = cratesUsed,
+        },
+        nil   -- fobScene last step handles registration
     )
 end
 
 -- ============================================================
--- Post-scene callback
+-- Post-scene registration — called from fobScene's last step
 -- ============================================================
 
---- Called by fobScene's onComplete when all steps have finished.
-function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coalitionId, countryId, cratesUsed)
+--- Registers the deployed FOB: logistic zone, beacon, event.
+-- Called from fobScene's last step func via ctx.scene.
+-- All parameters are read from scene._params (populated by playScene / playSceneAtPos).
+-- @param scene CtldScene instance (completed)
+function CTLDFOBManager:_registerDeployedFOB(scene)
+    local params      = scene._params or {}
+    local centroid    = params.centroid    or { x = scene._refX, y = scene._refAlt, z = scene._refZ }
+    local coalitionId = params.coalitionId or scene._coalitionId
+    local countryId   = params.countryId   or scene._countryId
+    local player      = params.player      or "auto-unpack"
+    local cratesUsed  = params.cratesUsed  or {}
+
     self._fobCount = self._fobCount + 1
     local fobId    = string.format("fob_%03d", self._fobCount)
     local fobName  = string.format("Deployed FOB #%d", self._fobCount)
@@ -289,16 +318,20 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
     CTLDZoneManager.getInstance():registerFOBAsLogistic(fobName, centroid, logRadius, coalitionId)
 
     -- Drop FOB beacon (infinite battery) 5 m toward helicopter from centroid.
-    local transport = Unit.getByName(transportName)
-    if transport and transport:isExist() and CTLDBeaconManager then
-        local hdg = scene._refHdgRad or 0
-        local beaconPos  = {
-            x = centroid.x - math.cos(hdg) * 5,
-            y = centroid.y,
-            z = centroid.z - math.sin(hdg) * 5,
-        }
-        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
-        fob.beacon = beacon
+    -- Only when a real transport was involved (not auto-unpack).
+    local transportName = params.transportName
+    if transportName and CTLDBeaconManager then
+        local transport = Unit.getByName(transportName)
+        if transport and transport:isExist() then
+            local hdg = scene._refHdgRad or 0
+            local beaconPos = {
+                x = centroid.x - math.cos(hdg) * 5,
+                y = centroid.y,
+                z = centroid.z - math.sin(hdg) * 5,
+            }
+            local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
+            fob.beacon = beacon
+        end
     end
 
     -- Troop pickup at FOB

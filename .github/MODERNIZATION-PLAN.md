@@ -1306,9 +1306,75 @@ Minor cleanups identified — low priority, no functional impact.
   `CTLDCrateManager._instance` exposé : callback dans `registerSceneModel()` → registration order-independent.
   Chaque scène dans un seul fichier (i18n + registry + model + self-registration).
   Validé live DCS : 4 scènes initiales PASS + late injection Metal FARP via Witchcraft PASS.
-  **TODO [E]** — **Debug test mod absent/présent** : créer un script de recette qui vérifie le
-    comportement d'unpack d'une crate de scène utilisant un mod heliport (Farp_FG_Petit_Helipad)
-    dans les deux cas : mod présent (spawn OK) et mod absent (comportement dégradé à documenter).
+  **TODO [G] ✅ DONE [2026-06-09]** — **Menu register joueur déjà en vol — 3 sous-cas résolus** :
+    (1) `onLand` appelle déjà `refreshLoadCrateSection` (ligne 304) ; CH-47 correctement détecté
+    au sol depuis fix TODO [L] (groundAglThreshold + velocity). (2) `embarkFromTroopZone` appelle
+    `refreshMenuSection` (ligne 750) → parachutage visible après réembarcation. (3)
+    `CTLDTroopManager:buildMenu` jamais appelé hors PlayerManager → pas d'orphan submenu.
+
+  **TODO [L] ✅ DONE [2026-06-09]** — **`groundAglThreshold` global — détection sol universelle** :
+    `ctld.gs("groundAglThreshold")` (défaut 5.0 m) dans config section [3].
+    `ctld.utils.inAir()` : si `unit:inAir()=true` ET AGL < seuil ET vitesse < 0.5 m/s → posé.
+    Couvre tous les appareils à châssis haut sans config par type.
+    `CTLDTroopManager:_isInAir()` et 3 appels `u:inAir()` dans `CTLD_core.lua` alignés.
+
+  **TODO [K] ✅ DONE [2026-06-09]** — **Audit uniformité menus — pipeline déjà conforme** :
+    Audit complet : aucun `typeName == "..."` hardcodé dans `CTLD_player.lua`, `CTLD_troop.lua`,
+    `CTLD_crate.lua`. Pipeline uniforme : `onLand` refresh toutes sections ; `onTakeoff` refresh
+    sections in-flight. Toute logique conditionnelle passe par `capabilitiesByType`. No action needed.
+
+  **TODO [J]** — **Recette : menu parachutage CH-47** :
+    Valider live DCS que le menu `CTLD → Troop Commands → Parachute Troops` apparaît bien
+    pour un CH-47Fbl1 en vol avec troupes à bord (`canParachuteDrop=true` fixé 2026-06-08).
+    Scénario : poser CH-47 dans TRZ, embarquer ≥1 groupe, décoller, vérifier menu parachutage.
+    Valider aussi que `S_EVENT_TAKEOFF` rafraîchit bien la section (pas de rebuild manuel nécessaire).
+
+  **TODO [I]** — **Feature : repack FARP avec mémorisation du stock warehouse** :
+    Lors du repack d'une scène FARP (ex. Countryside FARP), mémoriser le stock courant de la
+    warehouse DCS (`getLiquidAmount` × 4 types + `getInventory` munitions) dans les métadonnées
+    des caisses packées, afin de le restaurer lors du prochain unpack du même jeu de caisses.
+    Questions de conception à résoudre :
+    (a) Lien inter-caisses : avec `cratesRequired=3`, les 3 caisses sont indépendantes —
+        une seule doit porter le stock mémorisé (crate "primaire" désignée à l'unpack, ex.
+        la première packée). Les 2 autres restent des porteuses sans données warehouse.
+    (b) Persistance du stock : stocker dans `CTLDCrate.metadata.warehouseSnapshot =
+        { liquid={[0]=v,[1]=v,[2]=v,[3]=v}, items={...} }` ; sérialisable si on implémente
+        la persistence mission plus tard.
+    (c) Détermination de la crate primaire : à l'unpack multi-crates, le `CTLDSceneManager`
+        reçoit le set complet — itérer et utiliser la première qui a un `warehouseSnapshot`.
+    (d) API warehouse : `setLiquidAmount` est disponible (confirmé empiriquement 2026-06-08) ;
+        `setItem` disponible pour munitions — vérifier limites API pour les items armement.
+    À analyser en détail avant implémentation.
+
+  **TODO [F] ✅ DONE [2026-06-09]** — **S_EVENT_PLAYER_ENTER/LEAVE_UNIT — comportement validé** :
+    Tests live DCS (2026-06-09) : LEAVE+ENTER se déclenchent sur tout changement réel de slot
+    (statique→statique, statique→dynamic, dynamic→dynamic). Seul cas aveugle : revalider le même
+    slot sans naviguer dans l'UI → sans conséquence (état CTLD intact). Scan 30 s conservé comme
+    filet de sécurité pour joiners tardifs MP.
+
+  **TODO [H] ✅ DONE [2026-06-09]** — **Broadcast refresh Load Crate — déjà implémenté** :
+    `CTLDCrateManager:_refreshNearbyPlayers(position)` (ligne 472) : broadcast `refreshLoadCrateSection`
+    + `refreshUnpackSection` à tous les joueurs dans 300 m. Appelée depuis `spawnCrate`,
+    `spawnCratesAligned`, event subscribers OnCrateSpawned. TODO obsolète.
+
+  **TODO [E] ✅ DONE [2026-06-09]** — **Debug test mod absent/présent** : comportement Metal FARP
+    validé live DCS dans les deux cas. Mod présent : scène complète (helipad + décor + warehouse
+    stockée). Mod absent : step 1 `Farp_FG_Petit_Helipad` échoue silencieusement (`spawnObject` → nil,
+    `farpName` non enregistré, step warehouse court-circuité) ; décor spawné (camions, tente, ammo,
+    lumière, windsock) ; réparation + réarmement disponibles via camions DCS natifs ; pas de
+    ravitaillement carburant ni d'airbase fonctionnelle. Aucun crash. Comportement conforme aux specs.
+
+  **TODO [N] ✅ DONE [2026-06-09]** — **Parachutage crates — auto-unpack scène validé** :
+    `_checkAutoUnpack` dispatche correctement : crate scène générique → `CTLDSceneManager:playSceneAtPos`
+    (mock unit centroïde) ; crate équipement → `_spawnUnpacked` ; scène `autoUnpack=false` (FOB) →
+    crates laissées au sol. `land.getHeight` bugfix (vec2 table). Validé live DCS :
+    `Countryside FARP#1` auto-unpacké en 11 steps après parachutage crate unique.
+
+  **TODO [O]** — **FOB scene : migrer gardes + LGZ vers prescript/onComplete** :
+    `CTLDFOBManager:unpackFOBCrates` (gardes inAir/LGZ overlap, collecte crates 750m, enregistrement LGZ)
+    à migrer en `prescript` (gardes + collecte) et `onComplete` (enregistrement LGZ) dans la scène FOB.
+    Permettrait de supprimer `cd.unpack` + `autoUnpack=false` et rendre le FOB auto-unpackable
+    comme toute autre scène.
 
 ## Risks and mitigations
 

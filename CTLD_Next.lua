@@ -228,6 +228,9 @@ function CTLDConfig:load()
     self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
     self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
+    self.settings["groundAglThreshold"]                 = 5.0  -- AGL (m) below which a stationary aircraft is considered on the ground.
+                                                                -- Handles high-chassis types (e.g. CH-47) whose unit:inAir() returns true
+                                                                -- even when fully at rest.  Combined with a near-zero velocity check.
     self.settings["crateSpacing"]                       = 5    -- spacing (m) between consecutive crate spawn positions along the drop axis
     self.settings["spawnDistanceInCircle"]              = 10   -- extra radius (m) added to safe-radius when placing units in circle formation on deploy
 
@@ -595,7 +598,7 @@ function CTLDConfig:load()
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["CH-47Fbl1"] = {
-            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true, canSlingload = true,
             canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
             maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
             maxVehicleWeight = 11000,
@@ -5107,12 +5110,29 @@ function ctld.utils.getSecureDistanceFromUnit(unitName)
     return math.max(math.abs(box.max.x), math.abs(box.min.x))
 end
 
---- Returns true if a unit is more than 2 m above ground level.
+--- Returns true if a unit is airborne.
+-- Primary check: unit:inAir() (DCS native).
+-- Secondary check: if inAir()=true but the unit is below groundAglThreshold (config)
+-- AND nearly stationary (speed < 0.5 m/s), it is treated as on the ground.
+-- This handles high-chassis aircraft (e.g. CH-47) whose fuselage centre sits above
+-- DCS's internal inAir threshold even when fully at rest on the ground.
 -- @param unit DCS Unit
 -- @return boolean
 function ctld.utils.inAir(unit)
     if not unit or not unit.inAir then return false end
-    return unit:inAir() == true
+    if not unit:inAir() then return false end
+
+    -- inAir()=true: validate with AGL + velocity to reject high-chassis aircraft at rest.
+    local aglThreshold = ctld.gs("groundAglThreshold") or 5.0
+    local pos = unit:getPoint()
+    local agl = pos.y - land.getHeight({ x = pos.x, y = pos.z })
+    if agl < aglThreshold then
+        local vel    = unit:getVelocity()
+        local speed2 = vel.x * vel.x + vel.y * vel.y + vel.z * vel.z
+        if speed2 < 0.25 then return false end   -- stationary + low AGL → on the ground
+    end
+
+    return true
 end
 
 --- Calculate the ground landing position for a single parachuting object.
@@ -6739,16 +6759,26 @@ end
 --
 -- Step types (fields in each step table):
 --   polar  : { polar={distance, angle}, relativeHeadingInDegrees, relativeAltitudeInMeters,
---              registryKey [, func] }
+--              registryKey [, preFunc] [, func] }
 --              Deterministic position relative to the trigger unit's snapshot position.
---   axis   : { axis={count, safeDistance, spacing}, registryKey [, func] }
+--   axis   : { axis={count, safeDistance, spacing}, registryKey [, preFunc] [, func] }
 --              Random single axis around the unit; N objects spread along it.
---   func   : { func=function(unit, spawnedObj, step) ... end }
---              No spawn; only executes the function.
+--   func   : { func=function(ctx) ... end }
+--              No spawn; only executes the function (post-spawn hook).
+--
+-- Each step supports two optional script hooks:
+--   preFunc(ctx) — runs BEFORE spawn. Return false to skip this step's spawn (scene continues).
+--                  Call ctx.scene:abort(reason) to stop the scene entirely.
+--   func(ctx)    — runs AFTER spawn (or after skipped spawn).
+--                  ctx.spawnedObj is the last DCS object spawned this step (nil if skipped).
 --
 -- All steps carry delayAfterPreviousStep (seconds).  After executing step N,
 -- the engine waits that many seconds before starting step N+1.  The same field
 -- is also used before step 1 (initial delay from mission start / scene trigger).
+--
+-- Scene models may define an onComplete field:
+--   model.onComplete = function(scene) ... end
+--   Called automatically when all steps finish. Overridden if playScene() passes its own callback.
 --
 -- Dependencies: CTLDUtils, CTLDObjectRegistry
 -- DCS API: timer.getTime, timer.scheduleFunction, Unit.*, Airbase.*,
@@ -6780,7 +6810,8 @@ function CtldScene:init(unit, model, params, onComplete)
     self._timeMarker  = 0
     self._spawnedObjs = {}
     self._params      = params     or {}
-    self._onComplete  = onComplete or nil
+    self._onComplete  = onComplete or model.onComplete or nil
+    self._aborted     = false
 
     -- Cache coalition/country at init so steps work even if the unit leaves mid-scene.
     self._coalitionId = unit:getCoalition()
@@ -6813,8 +6844,17 @@ function CtldScene:_execute()
     end
 end
 
+-- Aborts the scene: stops all further step scheduling and skips onComplete.
+-- Safe to call from within a preFunc or func.
+function CtldScene:abort(reason)
+    self._aborted = true
+    ctld.utils.log("WARN", "CtldScene '%s' aborted: %s", self._name, tostring(reason or "no reason"))
+end
+
 -- Executes the current step then schedules the next one.
 function CtldScene:_runNextStep()
+    if self._aborted then return end
+
     self._stepIndex = self._stepIndex + 1
     local step = self._steps[self._stepIndex]
     if not step then
@@ -6827,9 +6867,31 @@ function CtldScene:_runNextStep()
     local spawnedObj  = nil
 
     -- -----------------------------------------------------------------------
-    -- Spawn phase (skipped for func-only steps)
+    -- preFunc — executed before spawn.
+    -- Returning false skips the spawn of this step (scene continues).
+    -- Calling ctx.scene:abort() stops the scene entirely.
     -- -----------------------------------------------------------------------
-    if step.registryKey then
+    local skipSpawn = false
+    if step.preFunc then
+        local ctx = {
+            unit  = self._unit,
+            step  = step,
+            scene = self,
+        }
+        local ok, result = pcall(step.preFunc, ctx)
+        if not ok then
+            ctld.utils.log("ERROR", "CtldScene '%s' step %d preFunc error: %s",
+                self._name, self._stepIndex, tostring(result))
+        elseif result == false then
+            skipSpawn = true
+        end
+        if self._aborted then return end
+    end
+
+    -- -----------------------------------------------------------------------
+    -- Spawn phase (skipped for func-only steps or when preFunc returns false)
+    -- -----------------------------------------------------------------------
+    if step.registryKey and not skipSpawn then
         local desc = CTLDObjectRegistry.get(step.registryKey)
 
         -- Auto-inject circleRadius when the descriptor uses circle formation.
@@ -6902,6 +6964,7 @@ function CtldScene:_runNextStep()
     -- -----------------------------------------------------------------------
     -- Schedule next step, or fire onComplete when the last step finishes.
     -- -----------------------------------------------------------------------
+    if self._aborted then return end
     if self._steps[self._stepIndex + 1] then
         self._timeMarker = self._timeMarker + (tonumber(step.delayAfterPreviousStep) or 0)
         if self._timeMarker > timer.getTime() then
@@ -6991,6 +7054,34 @@ function CTLDSceneManager:playScene(unit, modelName, params, onComplete)
     ctld.utils.log("INFO", "CTLDSceneManager: started scene '%s' for unit '%s'",
         scene._name, unit:getName())
     return scene
+end
+
+--- Play a scene without a live DCS unit (e.g. parachute auto-unpack — no player context).
+-- Builds a minimal virtual unit table from pos + coalition/country so that CtldScene can
+-- compute reference position, heading (north, 0 rad), coalition and country.
+-- @param modelName   string  key in _models
+-- @param pos         vec3    reference position (centroid of landed crates)
+-- @param coalitionId number  coalition.side.RED / coalition.side.BLUE
+-- @param countryId   number  country.id.*
+-- @param params      table   optional — forwarded to scene._params (same as playScene)
+-- @return CtldScene instance, or nil on error
+function CTLDSceneManager:playSceneAtPos(modelName, pos, coalitionId, countryId, params)
+    if not pos then
+        ctld.utils.log("WARN", "CTLDSceneManager:playSceneAtPos: pos is nil")
+        return nil
+    end
+    -- North-facing direction vector (heading = 0).
+    local mockUnit = {
+        isExist     = function(_) return true end,
+        getName     = function(_) return "__auto_unpack__" end,
+        getCoalition= function(_) return coalitionId end,
+        getCountry  = function(_) return countryId end,
+        getPoint    = function(_) return pos end,
+        getPosition = function(_)
+            return { x = { x = 1, y = 0, z = 0 }, p = pos }
+        end,
+    }
+    return self:playScene(mockUnit, modelName, params, nil)
 end
 
 -- Returns a registered model table by name, or nil.
@@ -9894,11 +9985,10 @@ function CTLDTroopManager:_canEmbark(typeName, unitName, newTotal, newWeight)
     return true
 end
 
--- Returns true if unit is in the air (AGL > 2 m).
+-- Returns true if unit is airborne (delegates to ctld.utils.inAir for consistent
+-- high-chassis detection across all aircraft types).
 function CTLDTroopManager:_isInAir(unit)
-    local pt   = unit:getPoint()
-    local gndH = land.getHeight({ x = pt.x, y = pt.z })  -- vec2: y = world-Z
-    return (pt.y - gndH) > 2.0
+    return ctld.utils.inAir(unit)
 end
 
 -- Returns true if fast-rope conditions are met.
@@ -13045,6 +13135,14 @@ end
 function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     local desc = landedCrate.descriptor
     if not desc or not desc.unit then return end
+
+    -- Explicit opt-out: equipment descriptors with autoUnpack=false are skipped.
+    if desc.autoUnpack == false then return end
+    -- Scene opt-out: check model.crate.autoUnpack=false (e.g. FOB requires live player).
+    local _sm = CTLDSceneManager.getInstance()
+    local _m  = _sm:getModel(desc.unit)
+    if _m and _m.crate and _m.crate.autoUnpack == false then return end
+
     local required = desc.cratesRequired or 1
     local radius   = ctld.gs("autoUnpackRadiusParachute") or 1000
     local refPos   = landedCrate.position
@@ -13095,17 +13193,59 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     local coa = landedCrate.coalition
     local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
 
-    -- Unpack each crate (destroy static, publish OnCrateUnpacked + OnCrateCleared)
-    for _, c in ipairs(toUnpack) do
-        self:unpackCrate(c.crateName, nil)
+    -- Dispatch: scene crates → CTLDSceneManager:playSceneAtPos;
+    --           equipment crates (vehicle, static, JTAC) → _spawnUnpacked.
+    -- desc.unit is a registered scene name for scene crates, or a DCS type for equipment crates.
+    local sm    = CTLDSceneManager.getInstance()
+    local model = sm:getModel(desc.unit)
+    if model then
+        if model.crate and model.crate.fobCompatible then
+            -- FOB scene: run spatial guards BEFORE consuming crates.
+            local guardOk, guardReason = CTLDFOBManager.getInstance():checkSpatialGuards(centroid, coa)
+            if not guardOk then
+                ctld.utils.log("WARN",
+                    "CTLDCrateManager: auto-unpack (parachute) FOB blocked — %s centroid=(%.0f,%.0f)",
+                    tostring(guardReason), centroid.x, centroid.z)
+                return
+            end
+            -- Guards passed: collect cratesUsed, destroy crates, start scene with full params.
+            local cratesUsed = {}
+            for _, c in ipairs(toUnpack) do
+                cratesUsed[#cratesUsed + 1] = { crateName = c.crateName, descriptor = c.descriptor }
+            end
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId, {
+                centroid    = centroid,
+                player      = "auto-unpack",
+                coalitionId = coa,
+                countryId   = cId,
+                cratesUsed  = cratesUsed,
+            })
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) FOB — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+                desc.unit, required, centroid.x, centroid.y, centroid.z)
+        else
+            -- Generic scene (FARP, etc.): destroy crates then play at centroid, no player required.
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId, nil)
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) SCENE — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+                desc.unit, required, centroid.x, centroid.y, centroid.z)
+        end
+    else
+        -- Equipment crate (vehicle, static, JTAC): destroy crates then spawn.
+        for _, c in ipairs(toUnpack) do
+            self:unpackCrate(c.crateName, nil)
+        end
+        self:_spawnUnpacked(desc, centroid, coa, cId, nil)
+        ctld.utils.log("INFO",
+            "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+            desc.unit, required, centroid.x, centroid.y, centroid.z)
     end
-
-    -- Spawn vehicle at centroid (no player context)
-    self:_spawnUnpacked(desc, centroid, coa, cId, nil)
-
-    ctld.utils.log("INFO",
-        "CTLDCrateManager: auto-unpack (parachute) — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
-        desc.unit, required, centroid.x, centroid.y, centroid.z)
 end
 
 --- Returns true if a crate descriptor entry has the JTAC role.
@@ -15531,6 +15671,21 @@ local function _isTooCloseToZone(position, coalitionId)
     return false
 end
 
+--- Public guard check — used by scene prescript and _checkAutoUnpack before starting a FOB scene.
+-- Returns true if position is a valid FOB deployment site, or false + reason string.
+-- @param position   vec3
+-- @param coalitionId number
+-- @return boolean ok, string|nil reason ("inside_lgz" | "too_close")
+function CTLDFOBManager:checkSpatialGuards(position, coalitionId)
+    if _isInLogisticZone(position, coalitionId) then
+        return false, "inside_lgz"
+    end
+    if _isTooCloseToZone(position, coalitionId) then
+        return false, "too_close"
+    end
+    return true, nil
+end
+
 -- ============================================================
 -- Core action: unpack FOB crates → schedule build
 -- ============================================================
@@ -15598,31 +15753,45 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     -- Pre-compute centroid (100 m / 12 o'clock from transport NOW)
     local centroid  = _computeCentroid(transport)
     local countryId = transport:getCountry()
-    local transName = transport:getName()
-    local self_ref  = self
 
     -- Visual feedback — scene duration defines the 120 s build time
     trigger.action.outTextForCoalition(coalitionId,
         ctld.tr("%1 started building a FOB (%2 crate(s)). Construction in progress.",
             player, #cratesUsed), 10)
 
-    -- Start scene immediately — no pre-timer needed
+    -- Start scene immediately.
+    -- All post-scene registration (LGZ, beacon, event) is handled by fobScene's last step.
     CTLDSceneManager.getInstance():playScene(
         transport,
         sn,
-        { player = player, centroid = centroid },
-        function(scene)
-            self_ref:_onFOBBuilt(scene, transName, player, centroid, coalitionId, countryId, cratesUsed)
-        end
+        {
+            centroid      = centroid,
+            player        = player,
+            transportName = transport:getName(),
+            coalitionId   = coalitionId,
+            countryId     = countryId,
+            cratesUsed    = cratesUsed,
+        },
+        nil   -- fobScene last step handles registration
     )
 end
 
 -- ============================================================
--- Post-scene callback
+-- Post-scene registration — called from fobScene's last step
 -- ============================================================
 
---- Called by fobScene's onComplete when all steps have finished.
-function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coalitionId, countryId, cratesUsed)
+--- Registers the deployed FOB: logistic zone, beacon, event.
+-- Called from fobScene's last step func via ctx.scene.
+-- All parameters are read from scene._params (populated by playScene / playSceneAtPos).
+-- @param scene CtldScene instance (completed)
+function CTLDFOBManager:_registerDeployedFOB(scene)
+    local params      = scene._params or {}
+    local centroid    = params.centroid    or { x = scene._refX, y = scene._refAlt, z = scene._refZ }
+    local coalitionId = params.coalitionId or scene._coalitionId
+    local countryId   = params.countryId   or scene._countryId
+    local player      = params.player      or "auto-unpack"
+    local cratesUsed  = params.cratesUsed  or {}
+
     self._fobCount = self._fobCount + 1
     local fobId    = string.format("fob_%03d", self._fobCount)
     local fobName  = string.format("Deployed FOB #%d", self._fobCount)
@@ -15654,16 +15823,20 @@ function CTLDFOBManager:_onFOBBuilt(scene, transportName, player, centroid, coal
     CTLDZoneManager.getInstance():registerFOBAsLogistic(fobName, centroid, logRadius, coalitionId)
 
     -- Drop FOB beacon (infinite battery) 5 m toward helicopter from centroid.
-    local transport = Unit.getByName(transportName)
-    if transport and transport:isExist() and CTLDBeaconManager then
-        local hdg = scene._refHdgRad or 0
-        local beaconPos  = {
-            x = centroid.x - math.cos(hdg) * 5,
-            y = centroid.y,
-            z = centroid.z - math.sin(hdg) * 5,
-        }
-        local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
-        fob.beacon = beacon
+    -- Only when a real transport was involved (not auto-unpack).
+    local transportName = params.transportName
+    if transportName and CTLDBeaconManager then
+        local transport = Unit.getByName(transportName)
+        if transport and transport:isExist() then
+            local hdg = scene._refHdgRad or 0
+            local beaconPos = {
+                x = centroid.x - math.cos(hdg) * 5,
+                y = centroid.y,
+                z = centroid.z - math.sin(hdg) * 5,
+            }
+            local beacon = CTLDBeaconManager.getInstance():dropBeacon(transport, player, true, beaconPos)
+            fob.beacon = beacon
+        end
     end
 
     -- Troop pickup at FOB
@@ -20486,17 +20659,13 @@ function CTLDPlayerManager:_scanExistingPlayers()
         ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d player(s) via scan", count)
     end
 
-    -- Schedule repeated scans for 3 min to recover missed S_EVENT_PLAYER_ENTER_UNIT.
-    -- startTime is stored on first call; subsequent calls reuse it.
-    if not self._scanStartTime then
-        self._scanStartTime = timer.getTime()
-    end
-    if timer.getTime() - self._scanStartTime < 180 then
-        local self_ref = self
-        timer.scheduleFunction(function()
-            self_ref:_scanExistingPlayers()
-        end, nil, timer.getTime() + 30)
-    end
+    -- Schedule repeated scans indefinitely (every 30 s) to recover missed
+    -- S_EVENT_PLAYER_ENTER_UNIT events (slot switch without briefing screen,
+    -- AI takeover, late joiners in long missions).
+    local self_ref = self
+    timer.scheduleFunction(function()
+        self_ref:_scanExistingPlayers()
+    end, nil, timer.getTime() + 30)
 end
 
 --- DCS S_EVENT_PLAYER_ENTER_UNIT handler.
@@ -21313,7 +21482,7 @@ fobScene.steps = {
       func = function(ctx) _destroyNamed(ctx,"f6") ; _destroyNamed(ctx,"f7") end },
 
     -- ----------------------------------------------------------------
-    -- Step 20 (T+120): Completion message — scene ends.
+    -- Step 20 (T+120): Completion message.
     -- ----------------------------------------------------------------
     {
         delayAfterPreviousStep = 0,
@@ -21324,6 +21493,19 @@ fobScene.steps = {
                 ctx.scene._coalitionId,
                 ctld.tr("FOB established by %1 - logistics hub now active.", player),
                 10)
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 21 (T+120): Register FOB — logistic zone, beacon, event.
+    -- Runs immediately after step 20 (delay=0).
+    -- Works for both F10 player flow and parachute auto-unpack:
+    -- all required data is in ctx.scene._params (set by caller).
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            CTLDFOBManager.getInstance():_registerDeployedFOB(ctx.scene)
         end,
     },
 }
@@ -21851,7 +22033,7 @@ countrysideFarpScene.crate = {
     i18nKey        = "Countryside FARP Crate",
     deployKey      = "Deploy Countryside FARP",
     groundKey      = "You must be on the ground to deploy a FARP.",
-    cratesRequired = 1,
+    cratesRequired = 3,
     side           = nil,
     showSets       = false,
 }
@@ -23423,7 +23605,7 @@ function CTLDCoreManager:_initAITransports()
     timer.scheduleFunction(function()
         for unitName in pairs(selfRef._aiPilotNames) do
             local u = Unit.getByName(unitName)
-            if u and u:isExist() and not u:inAir() then
+            if u and u:isExist() and not ctld.utils.inAir(u) then
                 selfRef:onAILand({ id = world.event.S_EVENT_LAND, initiator = u })
             end
         end
@@ -23458,7 +23640,7 @@ function CTLDCoreManager:_checkAIStatus()
     -- Guards inside onAILand (hasTroops checks, zone checks) prevent double actions.
     for unitName in pairs(self._aiPilotNames) do
         local u = Unit.getByName(unitName)
-        if u and u:isExist() and not u:inAir() then
+        if u and u:isExist() and not ctld.utils.inAir(u) then
             self:onAILand({ id = world.event.S_EVENT_LAND, initiator = u, _aiRetried = true })
         end
     end
@@ -23563,7 +23745,7 @@ function CTLDCoreManager:onAILand(event)
     if not pickZone and not event._aiRetried then
         local selfRef = self
         timer.scheduleFunction(function()
-            if u and u:isExist() and not u:inAir() then
+            if u and u:isExist() and not ctld.utils.inAir(u) then
                 selfRef:onAILand({ id = event.id, initiator = u, _aiRetried = true })
             end
         end, nil, timer.getTime() + 1.5)

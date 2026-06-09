@@ -392,7 +392,7 @@ fobScene.steps = {
       func = function(ctx) _destroyNamed(ctx,"f6") ; _destroyNamed(ctx,"f7") end },
 
     -- ----------------------------------------------------------------
-    -- Step 20 (T+120): Completion message — scene ends.
+    -- Step 20 (T+120): Completion message.
     -- ----------------------------------------------------------------
     {
         delayAfterPreviousStep = 0,
@@ -403,6 +403,19 @@ fobScene.steps = {
                 ctx.scene._coalitionId,
                 ctld.tr("FOB established by %1 - logistics hub now active.", player),
                 10)
+        end,
+    },
+
+    -- ----------------------------------------------------------------
+    -- Step 21 (T+120): Register FOB — logistic zone, beacon, event.
+    -- Runs immediately after step 20 (delay=0).
+    -- Works for both F10 player flow and parachute auto-unpack:
+    -- all required data is in ctx.scene._params (set by caller).
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            CTLDFOBManager.getInstance():_registerDeployedFOB(ctx.scene)
         end,
     },
 }

@@ -2118,6 +2118,14 @@ end
 function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     local desc = landedCrate.descriptor
     if not desc or not desc.unit then return end
+
+    -- Explicit opt-out: equipment descriptors with autoUnpack=false are skipped.
+    if desc.autoUnpack == false then return end
+    -- Scene opt-out: check model.crate.autoUnpack=false (e.g. FOB requires live player).
+    local _sm = CTLDSceneManager.getInstance()
+    local _m  = _sm:getModel(desc.unit)
+    if _m and _m.crate and _m.crate.autoUnpack == false then return end
+
     local required = desc.cratesRequired or 1
     local radius   = ctld.gs("autoUnpackRadiusParachute") or 1000
     local refPos   = landedCrate.position
@@ -2168,17 +2176,59 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     local coa = landedCrate.coalition
     local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
 
-    -- Unpack each crate (destroy static, publish OnCrateUnpacked + OnCrateCleared)
-    for _, c in ipairs(toUnpack) do
-        self:unpackCrate(c.crateName, nil)
+    -- Dispatch: scene crates → CTLDSceneManager:playSceneAtPos;
+    --           equipment crates (vehicle, static, JTAC) → _spawnUnpacked.
+    -- desc.unit is a registered scene name for scene crates, or a DCS type for equipment crates.
+    local sm    = CTLDSceneManager.getInstance()
+    local model = sm:getModel(desc.unit)
+    if model then
+        if model.crate and model.crate.fobCompatible then
+            -- FOB scene: run spatial guards BEFORE consuming crates.
+            local guardOk, guardReason = CTLDFOBManager.getInstance():checkSpatialGuards(centroid, coa)
+            if not guardOk then
+                ctld.utils.log("WARN",
+                    "CTLDCrateManager: auto-unpack (parachute) FOB blocked — %s centroid=(%.0f,%.0f)",
+                    tostring(guardReason), centroid.x, centroid.z)
+                return
+            end
+            -- Guards passed: collect cratesUsed, destroy crates, start scene with full params.
+            local cratesUsed = {}
+            for _, c in ipairs(toUnpack) do
+                cratesUsed[#cratesUsed + 1] = { crateName = c.crateName, descriptor = c.descriptor }
+            end
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId, {
+                centroid    = centroid,
+                player      = "auto-unpack",
+                coalitionId = coa,
+                countryId   = cId,
+                cratesUsed  = cratesUsed,
+            })
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) FOB — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+                desc.unit, required, centroid.x, centroid.y, centroid.z)
+        else
+            -- Generic scene (FARP, etc.): destroy crates then play at centroid, no player required.
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId, nil)
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) SCENE — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+                desc.unit, required, centroid.x, centroid.y, centroid.z)
+        end
+    else
+        -- Equipment crate (vehicle, static, JTAC): destroy crates then spawn.
+        for _, c in ipairs(toUnpack) do
+            self:unpackCrate(c.crateName, nil)
+        end
+        self:_spawnUnpacked(desc, centroid, coa, cId, nil)
+        ctld.utils.log("INFO",
+            "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+            desc.unit, required, centroid.x, centroid.y, centroid.z)
     end
-
-    -- Spawn vehicle at centroid (no player context)
-    self:_spawnUnpacked(desc, centroid, coa, cId, nil)
-
-    ctld.utils.log("INFO",
-        "CTLDCrateManager: auto-unpack (parachute) — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
-        desc.unit, required, centroid.x, centroid.y, centroid.z)
 end
 
 --- Returns true if a crate descriptor entry has the JTAC role.
