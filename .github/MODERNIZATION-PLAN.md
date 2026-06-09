@@ -1370,11 +1370,35 @@ Minor cleanups identified — low priority, no functional impact.
     crates laissées au sol. `land.getHeight` bugfix (vec2 table). Validé live DCS :
     `Countryside FARP#1` auto-unpacké en 11 steps après parachutage crate unique.
 
-  **TODO [O]** — **FOB scene : migrer gardes + LGZ vers prescript/onComplete** :
-    `CTLDFOBManager:unpackFOBCrates` (gardes inAir/LGZ overlap, collecte crates 750m, enregistrement LGZ)
-    à migrer en `prescript` (gardes + collecte) et `onComplete` (enregistrement LGZ) dans la scène FOB.
-    Permettrait de supprimer `cd.unpack` + `autoUnpack=false` et rendre le FOB auto-unpackable
-    comme toute autre scène.
+  **TODO [O] ✅ DONE [2026-06-09]** — **FOB scene auto-unpack + CtldScene preFunc/abort** :
+    `CtldScene`: `abort(reason)` + `preFunc` hook par step (avant spawn, `false`=skip spawn,
+    `abort()`=stop scène) + `model.onComplete` fallback + `playSceneAtPos` accepte `params`.
+    `fobScene` : `autoUnpack=false` supprimé ; step 21 (func-only) appelle
+    `CTLDFOBManager:_registerDeployedFOB(scene)` (LGZ+beacon+event, self-contained).
+    `CTLDFOBManager` : `_registerDeployedFOB(scene)` lit tout depuis `scene._params` ;
+    `checkSpatialGuards()` public ; `unpackFOBCrates` passe params complets sans closure.
+    `_checkAutoUnpack` : guards spatiaux FOB avant destruction crates ; params `cratesUsed`+
+    `centroid` passés à `playSceneAtPos`. CS FARP + Metal FARP : compatibles sans modification.
+
+  **TODO [P]** — **Recette : scènes FOB + CS FARP + Metal FARP avec nouvelle logique CtldScene** :
+    Valider live DCS que les 3 scènes fonctionnent correctement avec `preFunc`/`abort`/`model.onComplete`
+    en place : (1) FOB F10 flow — step 21 enregistre bien LGZ+beacon+event ; (2) FOB parachute
+    auto-unpack — guards spatiaux bloquent si trop proche LGZ, scène se joue et LGZ enregistrée ;
+    (3) CS FARP parachute — comportement inchangé ; (4) Metal FARP F10 — warehouse stocking ok.
+    Scripts de recette : `diag_parachute_csfarp_setup.lua` existant + nouveau script FOB.
+
+  **TODO [Q]** — **Feature : _spawnedComponents + onRepack hook pour préservation état scène** :
+    (a) `CtldScene._spawnedComponents` : enrichir `_runStep` pour stocker par objet spawné
+        `{ registryKey, obj, x, z, hdgRad }` — position monde calculée à l'instant du spawn.
+        Complète `_spawnedObjs` (conservé pour rétrocompatibilité).
+    (b) `model.onRepack(scene, repackData)` : hook optionnel appelé par le flow de repack
+        avant destruction des objets de la scène. Lit l'état live (warehouse, etc.) et remplit
+        `repackData`. Stocké dans les métadonnées de la crate primaire (cf. TODO [I]).
+    (c) Restauration : `params.repackData` passé à `playScene`/`playSceneAtPos` ; step
+        prescript ou step dédié restaure l'état (ex. warehouse) si `repackData` présent.
+    (d) Exemple Metal FARP : `metalFarpScene.onRepack` lit les 4 niveaux liquide + inventaire
+        → stockés dans crate.metadata → restaurés au step warehouse lors du prochain unpack.
+    Dépend de TODO [I] (mécanisme de stockage dans la crate). À concevoir avant impl.
 
 ## Risks and mitigations
 
