@@ -1325,11 +1325,10 @@ function CTLDTroopManager:_canEmbark(typeName, unitName, newTotal, newWeight)
     return true
 end
 
--- Returns true if unit is in the air (AGL > 2 m).
+-- Returns true if unit is airborne (delegates to ctld.utils.inAir for consistent
+-- high-chassis detection across all aircraft types).
 function CTLDTroopManager:_isInAir(unit)
-    local pt   = unit:getPoint()
-    local gndH = land.getHeight({ x = pt.x, y = pt.z })  -- vec2: y = world-Z
-    return (pt.y - gndH) > 2.0
+    return ctld.utils.inAir(unit)
 end
 
 -- Returns true if fast-rope conditions are met.
@@ -1708,6 +1707,8 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     -- Unload first group from transport cargo
     table.remove(_list, 1)
     if #_list == 0 then self._inTransit[playerObj.unitName] = nil end
+    -- Rebuild menu immediately so remaining groups reflect the updated list.
+    self:refreshMenuSection(playerObj)
 
     local dropData = {
         type          = "troop",

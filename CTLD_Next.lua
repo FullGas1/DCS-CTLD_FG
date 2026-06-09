@@ -10367,6 +10367,8 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     -- Unload first group from transport cargo
     table.remove(_list, 1)
     if #_list == 0 then self._inTransit[playerObj.unitName] = nil end
+    -- Rebuild menu immediately so remaining groups reflect the updated list.
+    self:refreshMenuSection(playerObj)
 
     local dropData = {
         type          = "troop",
