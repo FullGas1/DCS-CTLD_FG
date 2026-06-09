@@ -1387,18 +1387,37 @@ Minor cleanups identified — low priority, no functional impact.
     (3) CS FARP parachute — comportement inchangé ; (4) Metal FARP F10 — warehouse stocking ok.
     Scripts de recette : `diag_parachute_csfarp_setup.lua` existant + nouveau script FOB.
 
-  **TODO [Q]** — **Feature : _spawnedComponents + onRepack hook pour préservation état scène** :
-    (a) `CtldScene._spawnedComponents` : enrichir `_runStep` pour stocker par objet spawné
-        `{ registryKey, obj, x, z, hdgRad }` — position monde calculée à l'instant du spawn.
-        Complète `_spawnedObjs` (conservé pour rétrocompatibilité).
-    (b) `model.onRepack(scene, repackData)` : hook optionnel appelé par le flow de repack
-        avant destruction des objets de la scène. Lit l'état live (warehouse, etc.) et remplit
-        `repackData`. Stocké dans les métadonnées de la crate primaire (cf. TODO [I]).
-    (c) Restauration : `params.repackData` passé à `playScene`/`playSceneAtPos` ; step
-        prescript ou step dédié restaure l'état (ex. warehouse) si `repackData` présent.
-    (d) Exemple Metal FARP : `metalFarpScene.onRepack` lit les 4 niveaux liquide + inventaire
-        → stockés dans crate.metadata → restaurés au step warehouse lors du prochain unpack.
-    Dépend de TODO [I] (mécanisme de stockage dans la crate). À concevoir avant impl.
+  **TODO [Q]** — **Feature : cycle de vie scène complet — composants, index inverse, onRepack, warehouse** :
+    Architecture validée 2026-06-09. Specs détaillées :
+
+    (a) `CtldScene._spawnedComponents` : enrichir `_runStep` — pour chaque spawn réussi (polar/axis),
+        stocker `{ registryKey, obj, x, z, hdgRad }` (position monde calculée). Complète `_spawnedObjs`.
+
+    (b) Index inverse `CTLDSceneManager._objectToScene[objName] = scene._name` : alimenté à chaque
+        spawn. Permet `findSceneByObject(objName)` → instance CtldScene. Nettoyé au repack.
+        Alternative : `findSceneAtPosition(pos, radius)` via `_spawnedComponents` si objet détruit.
+
+    (c) Robustesse repack avec objets détruits : `onRepack` itère `_spawnedComponents` avec
+        `pcall` + guard `if obj and obj:isExist() then` sur chaque accès. Pas de crash si partiellement
+        détruit. Règle : le prochain unpack rejoue la scène complète depuis le modèle (pas seulement
+        les composants survivants) — la liste `_spawnedComponents` sert uniquement à lire l'état,
+        pas à définir ce qui sera respawné.
+
+    (d) `model.onRepack(scene, repackData)` : hook optionnel déclaré dans le fichier de scène.
+        Appelé par le flow de repack avant destruction des objets. Remplit `repackData` (ex. stock
+        warehouse). Stocké dans `crate.metadata.sceneRepackData` de la crate primaire (cf. TODO [I]).
+
+    (e) Cycle de vie warehouse :
+        - 1er unpack : initialisé aux valeurs définies dans la scène (`scene.warehouseInit` ou inline
+          dans le step warehouse). Valeur par défaut configurable dans le fichier de scène.
+        - Repack : `onRepack` lit les niveaux courants (`w:getLiquid(i)`) avec guard `isExist`.
+        - Unpack suivant : `params.repackData.warehouseStock` présent → restauré en lieu et place
+          de l'init par défaut. Stock jamais perdu entre les cycles repack/unpack.
+
+    (f) Restauration : `params.repackData` passé à `playScene`/`playSceneAtPos`. Step warehouse
+        (ou prescript) lit `ctx.scene._params.repackData` si présent.
+
+    Dépend de TODO [I] (mécanisme `crate.metadata`). Concevoir TODO [I] en premier.
 
 ## Risks and mitigations
 
