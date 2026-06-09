@@ -14971,6 +14971,9 @@ function CTLDVehicleSpawner:_checkPackingLanding()
         if unit and unit:isExist() then
             local inAirNow = ctld.utils.inAir(unit)
             if self._prevInAir[unitName] == true and not inAirNow then
+                -- Rescan packable / loadable vehicles before rebuilding DCS menu.
+                self:refreshPackSectionForUnit(unitName)
+                self:refreshLoadSectionForUnit(unitName)
                 CTLDPlayerManager.getInstance():refreshForUnit(unitName)
             end
             self._prevInAir[unitName] = inAirNow
