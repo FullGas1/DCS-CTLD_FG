@@ -203,17 +203,13 @@ function CTLDPlayerManager:_scanExistingPlayers()
         ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d player(s) via scan", count)
     end
 
-    -- Schedule repeated scans for 3 min to recover missed S_EVENT_PLAYER_ENTER_UNIT.
-    -- startTime is stored on first call; subsequent calls reuse it.
-    if not self._scanStartTime then
-        self._scanStartTime = timer.getTime()
-    end
-    if timer.getTime() - self._scanStartTime < 180 then
-        local self_ref = self
-        timer.scheduleFunction(function()
-            self_ref:_scanExistingPlayers()
-        end, nil, timer.getTime() + 30)
-    end
+    -- Schedule repeated scans indefinitely (every 30 s) to recover missed
+    -- S_EVENT_PLAYER_ENTER_UNIT events (slot switch without briefing screen,
+    -- AI takeover, late joiners in long missions).
+    local self_ref = self
+    timer.scheduleFunction(function()
+        self_ref:_scanExistingPlayers()
+    end, nil, timer.getTime() + 30)
 end
 
 --- DCS S_EVENT_PLAYER_ENTER_UNIT handler.

@@ -12105,6 +12105,14 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                             lz = dx * up.z.x + dy * up.z.y + dz * up.z.z,
                         }
                         crate:load(entry.transport)
+                        -- Migrate to CTLD-managed: destroy the DCS static so that
+                        -- isLoadedByCTLD() returns true and the full CTLD pipeline
+                        -- (parachute, drop, unpack) applies to this crate from now on.
+                        if crate.dcsStatic and crate.dcsStatic:isExist() then
+                            crate.dcsStatic:destroy()
+                        end
+                        crate.dcsStatic = nil
+                        self._nativeCrateLink[crate.crateName] = nil  -- drift detection no longer needed
                         self:_publish("OnCrateLoaded", {
                             crate           = crate,
                             crateName       = crate.crateName,
@@ -12116,10 +12124,10 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                         })
                         pm:refreshForUnit(entry.unitName)
                         self:refreshUnpackSectionForUnit(entry.unitName)
-                        local ref = self._nativeCrateLink[crate.crateName]
+                        self:refreshCrateFlightSectionForUnit(entry.unitName)
                         ctld.utils.log("INFO",
-                            "CTLDCrateManager: DCS native LOAD — crate=%s carrier=%s lx=%.2f ly=%.2f lz=%.2f",
-                            crate.crateName, entry.unitName, ref.lx, ref.ly, ref.lz)
+                            "CTLDCrateManager: DCS native LOAD (migrated to CTLD-managed) — crate=%s carrier=%s",
+                            crate.crateName, entry.unitName)
                         local _descLabel = crate.descriptor and crate.descriptor.desc or crate.crateName
                         trigger.action.outTextForGroup(entry.playerObj.groupId,
                             string.format("[CTLD] Crate loaded (DCS native): %s", _descLabel), 8)
@@ -13128,6 +13136,10 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
             self:_checkAutoUnpack(_crate)
         end, {}, timer.getTime() + descentTime)
     end
+    -- All crates left the transport: update flight-state menu (disable Parachute Crates).
+    -- playerObj may be a raw arg table from the menu callback — fetch the real CTLDPlayer.
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(playerObj.unitName)
+    if _pObj then self:refreshCrateFlightSection(_pObj) end
 end
 
 --- Auto-unpack a set of parachuted crates when all required crates have landed.

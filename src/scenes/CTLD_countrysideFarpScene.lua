@@ -34,7 +34,7 @@ countrysideFarpScene.crate = {
     i18nKey        = "Countryside FARP Crate",
     deployKey      = "Deploy Countryside FARP",
     groundKey      = "You must be on the ground to deploy a FARP.",
-    cratesRequired = 1,
+    cratesRequired = 3,
     side           = nil,
     showSets       = false,
 }

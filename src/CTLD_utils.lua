@@ -1972,12 +1972,29 @@ function ctld.utils.getSecureDistanceFromUnit(unitName)
     return math.max(math.abs(box.max.x), math.abs(box.min.x))
 end
 
---- Returns true if a unit is more than 2 m above ground level.
+--- Returns true if a unit is airborne.
+-- Primary check: unit:inAir() (DCS native).
+-- Secondary check: if inAir()=true but the unit is below groundAglThreshold (config)
+-- AND nearly stationary (speed < 0.5 m/s), it is treated as on the ground.
+-- This handles high-chassis aircraft (e.g. CH-47) whose fuselage centre sits above
+-- DCS's internal inAir threshold even when fully at rest on the ground.
 -- @param unit DCS Unit
 -- @return boolean
 function ctld.utils.inAir(unit)
     if not unit or not unit.inAir then return false end
-    return unit:inAir() == true
+    if not unit:inAir() then return false end
+
+    -- inAir()=true: validate with AGL + velocity to reject high-chassis aircraft at rest.
+    local aglThreshold = ctld.gs("groundAglThreshold") or 5.0
+    local pos = unit:getPoint()
+    local agl = pos.y - land.getHeight({ x = pos.x, y = pos.z })
+    if agl < aglThreshold then
+        local vel    = unit:getVelocity()
+        local speed2 = vel.x * vel.x + vel.y * vel.y + vel.z * vel.z
+        if speed2 < 0.25 then return false end   -- stationary + low AGL → on the ground
+    end
+
+    return true
 end
 
 --- Calculate the ground landing position for a single parachuting object.

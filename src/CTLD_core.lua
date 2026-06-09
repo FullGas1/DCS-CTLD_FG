@@ -595,7 +595,7 @@ function CTLDCoreManager:_initAITransports()
     timer.scheduleFunction(function()
         for unitName in pairs(selfRef._aiPilotNames) do
             local u = Unit.getByName(unitName)
-            if u and u:isExist() and not u:inAir() then
+            if u and u:isExist() and not ctld.utils.inAir(u) then
                 selfRef:onAILand({ id = world.event.S_EVENT_LAND, initiator = u })
             end
         end
@@ -630,7 +630,7 @@ function CTLDCoreManager:_checkAIStatus()
     -- Guards inside onAILand (hasTroops checks, zone checks) prevent double actions.
     for unitName in pairs(self._aiPilotNames) do
         local u = Unit.getByName(unitName)
-        if u and u:isExist() and not u:inAir() then
+        if u and u:isExist() and not ctld.utils.inAir(u) then
             self:onAILand({ id = world.event.S_EVENT_LAND, initiator = u, _aiRetried = true })
         end
     end
@@ -735,7 +735,7 @@ function CTLDCoreManager:onAILand(event)
     if not pickZone and not event._aiRetried then
         local selfRef = self
         timer.scheduleFunction(function()
-            if u and u:isExist() and not u:inAir() then
+            if u and u:isExist() and not ctld.utils.inAir(u) then
                 selfRef:onAILand({ id = event.id, initiator = u, _aiRetried = true })
             end
         end, nil, timer.getTime() + 1.5)

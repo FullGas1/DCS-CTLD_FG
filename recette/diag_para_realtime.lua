@@ -2,7 +2,7 @@
 -- diag_para_realtime.lua
 -- Snapshot _inTransit + menu memory + inAir state for CH-47
 
-local SLOT = "Batumi_CH-47F_651-1"
+local SLOT = "Batumi_CH-47F_653-1"
 local pm   = CTLDPlayerManager.getInstance()
 local pObj = pm._players[SLOT]
 if not pObj then
