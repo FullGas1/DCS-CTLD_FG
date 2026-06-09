@@ -10664,9 +10664,6 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     if unit and inAir then
         local caps2 = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
         if caps2 and caps2.canParachuteDrop and hasTroops then
-            -- Remove any existing "Parachute Troops" branch (may be submenu or command)
-            -- before rebuilding so multi↔single transitions render correctly.
-            menu:removeMenuBranch({ root, troopSub, ctld.tr("Parachute Troops") })
             local inTransitList = self._inTransit[playerObj.unitName]
             if inTransitList and #inTransitList > 1 then
                 -- Multi-group: submenu per group + "Parachute All"
