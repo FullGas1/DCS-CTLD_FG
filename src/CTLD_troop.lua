@@ -1708,7 +1708,9 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     table.remove(_list, 1)
     if #_list == 0 then self._inTransit[playerObj.unitName] = nil end
     -- Rebuild menu immediately so remaining groups reflect the updated list.
-    self:refreshMenuSection(playerObj)
+    -- playerObj may be a raw arg table (from menu callback) — fetch the real CTLDPlayer.
+    local _pObj = CTLDPlayerManager.getInstance():getPlayer(playerObj.unitName)
+    if _pObj then self:refreshMenuSection(_pObj) end
 
     local dropData = {
         type          = "troop",
