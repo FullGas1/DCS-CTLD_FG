@@ -1323,11 +1323,11 @@ Minor cleanups identified — low priority, no functional impact.
     `CTLD_crate.lua`. Pipeline uniforme : `onLand` refresh toutes sections ; `onTakeoff` refresh
     sections in-flight. Toute logique conditionnelle passe par `capabilitiesByType`. No action needed.
 
-  **TODO [J]** — **Recette : menu parachutage CH-47** :
-    Valider live DCS que le menu `CTLD → Troop Commands → Parachute Troops` apparaît bien
-    pour un CH-47Fbl1 en vol avec troupes à bord (`canParachuteDrop=true` fixé 2026-06-08).
-    Scénario : poser CH-47 dans TRZ, embarquer ≥1 groupe, décoller, vérifier menu parachutage.
-    Valider aussi que `S_EVENT_TAKEOFF` rafraîchit bien la section (pas de rebuild manuel nécessaire).
+  **TODO [J]** ✅ DONE [2026-06-09] — **Recette : menu parachutage CH-47** :
+    Validé live DCS. Bug root cause identifié et corrigé : `refreshMenuSection` retournait
+    prématurément car `playerObj` passé depuis le callback menu était une table arg brute
+    (sans `isTransport`). Fix : récupération du vrai `CTLDPlayer` via `getPlayer(unitName)`.
+    Menu multi-groupe → 1 groupe → vide : comportement correct. commit e964eab.
 
   **TODO [I]** — **Feature : repack FARP avec mémorisation du stock warehouse** :
     Lors du repack d'une scène FARP (ex. Countryside FARP), mémoriser le stock courant de la
