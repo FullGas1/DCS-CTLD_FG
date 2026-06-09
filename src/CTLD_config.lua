@@ -183,6 +183,9 @@ function CTLDConfig:load()
     self.settings["smokeAutoResume"]                    = false -- Feature H: global default for smoke auto-resume (per-player toggle overrides)
     self.settings["smokeAutoResumeInterval"]            = 270  -- Feature H: seconds before a smoke is re-triggered (default 4min30, DCS smoke lasts ~5min)
     self.settings["maximumDistanceLogistic"]            = 200  -- max distance from vehicle to logistics to allow a loading or spawning operation
+    self.settings["groundAglThreshold"]                 = 5.0  -- AGL (m) below which a stationary aircraft is considered on the ground.
+                                                                -- Handles high-chassis types (e.g. CH-47) whose unit:inAir() returns true
+                                                                -- even when fully at rest.  Combined with a near-zero velocity check.
     self.settings["crateSpacing"]                       = 5    -- spacing (m) between consecutive crate spawn positions along the drop axis
     self.settings["spawnDistanceInCircle"]              = 10   -- extra radius (m) added to safe-radius when placing units in circle formation on deploy
 
@@ -550,9 +553,9 @@ function CTLDConfig:load()
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
         },
         ["CH-47Fbl1"] = {
-            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = false, canSlingload = true,
+            cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true, canSlingload = true,
             canTransportWholeVehicle = false, useNativeDcsCargoSystem = true,
-            maxTroopsOnboard = 33,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
+            maxTroopsOnboard = 40,  maxCratesOnboard = 8,   maxWholeVehiclesOnboard = 1,
             maxVehicleWeight = 11000,
             loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
             loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
