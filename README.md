@@ -56,7 +56,7 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - [JTAC Auto-Lase](#jtac-auto-lase)
 - [Recon and Target Marking](#recon-and-target-marking)
 - [AA System Construction](#aa-system-construction)
-- [Vehicle Pack](#vehicle-pack)
+- [Pack Equipt](#pack-equipt)
 - [Migration from v1](#migration-from-v1)
 - [Developer Guide](#developer-guide)
 
@@ -717,7 +717,7 @@ F10 Other / [Transport Name]
 │   ├── Unpack Crate         (on ground, assembles unit)
 │   ├── Slingload Release    (virtual sling: release in flight)
 │   ├── Slingload Cut        (virtual sling: emergency cut)
-│   └── Pack Vehicle         (pack a nearby ground vehicle into crates)
+│   └── Pack Equipt          (pack a nearby FARP or ground vehicle into crates; ground only)
 ├── JTAC Commands
 │   ├── Spawn JTAC           (at logistic zone)
 │   └── JTAC Status          (all active JTACs)
@@ -933,13 +933,17 @@ CTLDCrateAssemblyManager.TEMPLATES = {
 
 ---
 
-## Vehicle Pack
+## Pack Equipt
+
+The **Pack Equipt** submenu under **Crate Commands** lets players pack deployed equipment back into crates for relocation. It appears only when the helicopter is on the ground and at least one packable item is nearby. It is absent in flight.
+
+### Pack Vehicle
 
 Pack a ground vehicle into crates for air transport, then reassemble it on the other side.
 
 **Packing:**
 1. Land near a packable vehicle (within `ctld.maximumDistancePackableUnitsSearch` meters).
-2. The F10 menu shows **Pack Vehicle → [vehicle name]** under Crate Commands.
+2. The F10 menu shows **Pack Equipt → [vehicle name]** under Crate Commands.
 3. Selecting it destroys the vehicle and spawns the required number of crates around the helicopter.
 
 **Unpacking:**
@@ -947,6 +951,26 @@ Pack a ground vehicle into crates for air transport, then reassemble it on the o
 2. Land near them and select **Unpack Crate** — the vehicle reassembles.
 
 Event `OnVehiclePacked` fires on successful pack.
+
+**Enable:** `_cfg.settings["enablePackingVehicles"] = true`
+
+### Pack FARP
+
+Pack a deployed FARP scene back into crates to redeploy it elsewhere. The FARP warehouse fuel levels are snapshotted and restored when the crates are unpacked at the new location.
+
+**Packing:**
+
+1. Land near a deployed FARP (within 300 m).
+2. The F10 menu shows **Pack Equipt → Pack [FARP name]** under Crate Commands.
+3. Selecting it captures the current fuel levels, destroys the scene, and spawns crates around the helicopter carrying the fuel snapshot.
+
+**Redeploying:**
+
+1. Fly to the new site, land, and unpack the crates — the FARP respawns with its fuel levels restored.
+
+**Enable:** `_cfg.settings["enableFARPRepack"] = true` (default: `true`)
+
+**Supported scenes:** `Countryside FARP`, `Metal FARP`. Custom scenes can support repack by implementing an `onRepack(scene, repackData)` hook — see [MM guide §16](docs/missionmaker_guide.md).
 
 ---
 
