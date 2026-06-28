@@ -23,6 +23,9 @@
 14. [JTAC](#14-jtac)
 15. [Recon](#15-recon)
 16. [AA Systems](#16-aa-systems)
+17. [Smoke Drop](#17-smoke-drop)
+18. [Pack Equipt — Vehicle Repack & FARP Repack](#18-pack-equipt--vehicle-repack--farp-repack)
+19. [Beacon Layer](#19-beacon-layer)
 
 ---
 
@@ -520,7 +523,7 @@ myScene.onRepack = function(scene, repackData)
     if not ab then return end
     local w = ab:getWarehouse()
     repackData.warehouseSnapshot = {
-        liquid = { [0]=w:getLiquid(0), [1]=w:getLiquid(1), [2]=w:getLiquid(2), [3]=w:getLiquid(3) }
+        liquid = { [0]=w:getLiquidAmount(0), [1]=w:getLiquidAmount(1), [2]=w:getLiquidAmount(2), [3]=w:getLiquidAmount(3) }
     }
 end
 ```
@@ -1946,5 +1949,96 @@ Transport aircraft with `enableSmokeDrop = true` get a **Smoke** submenu in F10.
 | `disableAllSmoke` | `false` | Globally disable all CTLD smoke actions |
 | `smokeAutoResume` | `false` | Default auto-resume state at mission start (per-player toggle overrides this) |
 | `smokeAutoResumeInterval` | `270` | Seconds between smoke re-triggers (default 270 s ≈ 4 min 30 s, matching DCS smoke lifetime) |
+
+---
+
+## 18. Pack Equipt — Vehicle Repack & FARP Repack
+
+**Pack Equipt** is a unified F10 submenu under **Crate Commands** that lets players pack deployed equipment back into crates for relocation. It only appears when the helicopter is **on the ground** and at least one packable item is within range. The submenu is absent in flight.
+
+### 18.1 Pack Vehicle
+
+Packs a deployed ground vehicle back into crates so it can be air-transported to a new location.
+
+**Requirements:**
+- `enablePackingVehicles = true` (config)
+- Vehicle registered with CTLD (spawned from a crate unpack or from Request Equipment)
+- Player on the ground within `maximumDistancePackableUnitsSearch` metres of the vehicle
+
+**Workflow:**
+1. Land within range of the vehicle.
+2. Select **Crate Commands → Pack Equipt → [vehicle name]**.
+3. The vehicle is destroyed and its crates spawn around the helicopter.
+4. Load and fly the crates to the new destination, then unpack.
+
+**Event fired:** `OnVehiclePacked` — fields: `vehicleName`, `vehicleType`, `packedBy`
+
+**Config:**
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enablePackingVehicles` | `true` | Enable vehicle repack |
+| `maximumDistancePackableUnitsSearch` | `200` | Max distance (m) to search for packable vehicles |
+
+### 18.2 Pack FARP
+
+Packs a deployed FARP scene back into crates, snapshotting its warehouse fuel levels. When the crates are unpacked at a new site, the FARP respawns with the captured fuel quantities restored.
+
+**Requirements:**
+- `enableFARPRepack = true` (default)
+- A repackable FARP scene (Countryside FARP, Metal FARP, or custom scene with `onRepack` hook) deployed within 300 m
+
+**Workflow:**
+1. Land within 300 m of the deployed FARP.
+2. Select **Crate Commands → Pack Equipt → Pack [FARP name]**.
+3. Fuel levels are snapshotted, the scene is destroyed, and crates spawn around the helicopter.
+4. Fly the crates to the new site, unpack — the FARP redeploys with fuel restored.
+
+**Config:**
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enableFARPRepack` | `true` | Enable FARP repack |
+
+**Custom scene support:** add `onRepack(scene, repackData)` to your scene model. Read the warehouse and store in `repackData`. On re-deploy, check `ctx.scene._params.repackData` — see §3 FARP Repack for the full code example.
+
+---
+
+## 19. Beacon Layer
+
+When enabled, each deployed beacon is drawn as a coloured circle icon on the F10 map, independently of the text list shown by **List Beacons**.
+
+### 19.1 Enabling
+
+```lua
+-- CTLD_userConfig.lua (YAML block)
+ctld.yamlConfigDatas = [[
+  ctld.beaconLayerEnabled: true
+  ctld.beaconAutoRefreshLayer: true    -- auto-add new beacons to the active layer
+  ctld.beaconRefreshInterval: 60       -- seconds between layer refreshes
+  ctld.beaconIconRadius: 25            -- radius (m) of each circle icon
+  ctld.beaconTextSize: 12              -- font size of beacon label
+]]
+```
+
+Beacon icon colour (RGBA, Lua table — not a YAML line):
+
+```lua
+local _cfg = CTLDConfig.get()
+_cfg.settings["beaconIconColor"] = { 1.0, 0.5, 0.0, 1.0 }  -- orange (default)
+```
+
+### 19.2 Behaviour
+
+- Each beacon icon is drawn at the beacon's spawn position.
+- The label shows the beacon name (or its frequency if no name was set).
+- When a beacon expires (battery dead) or is manually removed, its icon is erased automatically.
+- **Auto-refresh:** if `beaconAutoRefreshLayer = true`, the layer is rebuilt every `beaconRefreshInterval` seconds to reflect battery expirations and new drops without requiring a manual F10 action.
+
+### 19.3 Layer toggle (F10)
+
+Players can show or hide the beacon layer via **Radio Beacons → Toggle Beacon Layer** in the F10 menu (available when `beaconLayerEnabled = true`).
+
+---
 
 *— End of missionmaker_guide.md —*

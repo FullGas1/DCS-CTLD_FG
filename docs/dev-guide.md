@@ -48,6 +48,8 @@ CTLDPlayerTracker        ← player connect/disconnect tracking (no MIST)
 Configuration is read-only via `ctld.gs("paramName")` — never call
 `config:getSetting()` directly.
 
+**Public API quick-reference** for all managers: [`docs/api-reference.md`](api-reference.md)
+
 > **Troop + JTAC lifecycle state machine** — complete diagram with all states, transitions, and JTAC instance management:
 > [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
 
@@ -117,7 +119,71 @@ Full event catalogue: `docs/specs/CTLD_Events.md`
 
 ---
 
-## 5. Crate spawn pipeline
+## 5. Scene engine
+
+`CTLDSceneManager` executes time-sequenced deployments of DCS statics and ground groups. It is the backend for all FARP, FOB, and minefield operations.
+
+### 5.1 Internal data model
+
+```
+CTLDScene (one per active deployment)
+  ├── _model    : scene model table (steps, name, fobCompatible, onRepack…)
+  ├── _params   : runtime context { unit, coalition, farpName, repackData, … }
+  ├── _spawnedObjects : [{ obj=DCSStatic, category=… }, …]  (all objects spawned so far)
+  └── _stepIndex : current step pointer
+
+CTLDSceneManager (singleton)
+  ├── _active[sceneName] : CTLDScene instances currently deployed
+  └── _models[sceneName] : registered model tables
+```
+
+`CTLDSceneManager._active` is reset on every CTLD re-injection (Witchcraft dev cycle). Scene instances only survive a full mission restart.
+
+### 5.2 Step execution
+
+The step machine runs via `timer.scheduleFunction`. Each step:
+
+1. Resolves position from `polar` or `axis` fields relative to the **snapshot** heading/position captured at unpack time.
+2. Spawns the DCS object via `coalition.addStaticObject` (for statics) or `coalition.addGroup`.
+3. Stores the spawned reference in `_spawnedObjects`.
+4. Calls the optional `func(ctx)` callback where `ctx = { unit, scene, step, spawnedObj }`.
+5. Schedules the next step after `step.delayAfterPreviousStep` seconds.
+
+### 5.3 FARP Repack flow
+
+```
+Player selects "Pack Equipt → Pack [FARP]"
+  └── CTLDCrateManager:refreshPackEquiptSection()
+        └── CTLDSceneManager:findNearbyRepackableScenes(pos, 300)
+              └── returns scenes where _model.onRepack ~= nil
+        └── per scene: CTLDSceneManager:packScene(scene, transport, playerObj)
+              1. scene._model.onRepack(scene, repackData)    ← snapshot warehouse
+              2. scene:destroy()                              ← remove all spawnedObjects
+              3. CTLDCrateManager:spawnCratesForScene(desc, pos)
+                    └── crate.metadata.repackData = repackData
+              4. CTLDSceneManager._active[name] = nil
+
+On crate unpack at new site:
+  └── CTLDCrateManager:_spawnUnpacked()
+        └── desc.unit matches a scene name → CTLDSceneManager:executeScene(model, unit, params)
+              └── params.repackData = crate.metadata.repackData  (carried from crate)
+              └── warehouse step reads ctx.scene._params.repackData to restore fuel
+```
+
+### 5.4 Adding a new scene (dev checklist)
+
+1. Create `src/scenes/CTLD_myScene.lua` — model table + `CTLDSceneManager.getInstance():registerSceneModel(myScene)` at the bottom.
+2. Add the file to `tools/merger_V2/listToMerge.txt` and `tools/CTLD_loader.lua`.
+3. Declare a crate in `CTLD_userConfig.lua` with `unit = "My Scene Name"`.
+4. If the scene deploys a DCS Invisible FARP: add a func-only step at the end to call `w:setLiquidAmount(type, qty)` using `getLiquidAmount` (not `getLiquid`).
+5. If repack support is needed: implement `myScene.onRepack(scene, repackData)` reading `w:getLiquidAmount(type)`.
+6. Add `fobCompatible = true` if the scene should also be spawnable as a FOB.
+
+See `src/scenes/CTLD_countrysideFarpScene.lua` for a complete reference implementation.
+
+---
+
+## 6. Crate spawn pipeline
 
 All crate unpack outcomes (ground vehicle, air JTAC, future static) go through a single three-step pipeline in `CTLDCrateManager`:
 
@@ -187,7 +253,7 @@ _spawnUnpacked(desc, pos, coa, cId, playerName)
 
 ---
 
-## 6. Build
+## 7. Build
 
 **Local (Windows):**
 ```
@@ -200,7 +266,7 @@ Output: `CTLD_Next.lua` at repo root (gitignored).
 
 ---
 
-## 7. Testing
+## 8. Testing
 
 **busted (unit, no DCS):**
 ```
@@ -216,7 +282,7 @@ Results in `recette/CTLD.log`.
 
 ---
 
-## 8. Migration v1 → v2
+## 9. Migration v1 → v2
 
 ### 7.1 Wrapper principle
 
@@ -323,7 +389,7 @@ lands near a packable vehicle.
 
 ---
 
-## 9. Internationalisation (i18n)
+## 10. Internationalisation (i18n)
 
 ### 8.1 How it works
 
@@ -409,7 +475,7 @@ Overrides are applied once at startup by `CTLDi18n:_init()`.
 
 ---
 
-## 9. Troop + JTAC lifecycle
+## 11. Troop + JTAC lifecycle
 
 ### 9.1 Troop group state machine
 
