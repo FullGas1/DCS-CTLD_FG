@@ -254,10 +254,19 @@ metalFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
+                    -- If this is a redeployed FARP, restore the snapshot; otherwise stock defaults.
+                    local snap = ctx.scene._params.repackData
+                              and ctx.scene._params.repackData.warehouseSnapshot
+                    if snap and snap.liquid then
+                        for fuelType = 0, 3 do
+                            w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                        end
+                    else
+                        w:addLiquid(0, 10000)   -- jet fuel
+                        w:addLiquid(1, 10000)   -- aviation gasoline
+                        w:addLiquid(2, 10000)   -- MW50
+                        w:addLiquid(3, 10000)   -- diesel
+                    end
                 end
             end
             trigger.action.outText(
@@ -268,7 +277,28 @@ metalFarpScene.steps = {
 }
 
 -- ====================================================================================================
--- BLOC 4 : self-registration
+-- BLOC 4 : onRepack — called by CTLDSceneManager:packScene before objects are destroyed.
+-- Captures the current warehouse fuel levels so they can be restored on next deployment.
+-- ====================================================================================================
+
+metalFarpScene.onRepack = function(scene, repackData)
+    local farpName = scene._params and scene._params.farpName
+    if not farpName then return end
+    local ab = Airbase.getByName(farpName)
+    if not ab then return end
+    local w = ab:getWarehouse()
+    repackData.warehouseSnapshot = {
+        liquid = {
+            [0] = w:getLiquid(0),   -- jet fuel
+            [1] = w:getLiquid(1),   -- aviation gasoline
+            [2] = w:getLiquid(2),   -- MW50
+            [3] = w:getLiquid(3),   -- diesel
+        }
+    }
+end
+
+-- ====================================================================================================
+-- BLOC 5 : self-registration
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(metalFarpScene)

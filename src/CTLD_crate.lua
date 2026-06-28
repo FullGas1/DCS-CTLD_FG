@@ -78,6 +78,7 @@ function CTLDCrate:init(data)
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
+    self.metadata               = {}   -- arbitrary key/value bag (e.g. warehouseSnapshot from repack)
 end
 
 --- Load the crate into a transport unit.
@@ -586,7 +587,10 @@ end
 -- @param unitName string
 function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
-    if playerObj then self:refreshUnpackSection(playerObj) end
+    if playerObj then
+        self:refreshUnpackSection(playerObj)
+        self:refreshPackSection(playerObj)
+    end
 end
 
 --- Rebuild the "Unpack Crate" dynamic submenu for playerObj.
@@ -767,24 +771,32 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                         return
                     end
                     local mgr      = CTLDCrateManager.getInstance()
-                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
-                    local consumed = 0
+                    local nearC     = mgr:getCratesInRange(t:getPoint(), 300)
+                    local toConsume = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
                             and c.descriptor and c.descriptor.unit == arg.sceneName
-                            and consumed < arg.cratesRequired
+                            and #toConsume < arg.cratesRequired
                         then
-                            mgr:unpackCrate(c.crateName, t)
-                            consumed = consumed + 1
+                            toConsume[#toConsume + 1] = c
                         end
                     end
-                    if consumed < arg.cratesRequired then
+                    if #toConsume < arg.cratesRequired then
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("Not enough crates nearby to unpack!"), 10)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
-                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName, nil, nil)
+                    -- Extract repackData from crates before unpacking (metadata survives the loop).
+                    local repackData = nil
+                    for _, c in ipairs(toConsume) do
+                        if c.metadata and c.metadata.warehouseSnapshot and not repackData then
+                            repackData = { warehouseSnapshot = c.metadata.warehouseSnapshot }
+                        end
+                        mgr:unpackCrate(c.crateName, t)
+                    end
+                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName,
+                        repackData and { repackData = repackData } or nil, nil)
                 end,
                 {
                     unitName      = playerObj.unitName,
@@ -798,6 +810,95 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     if not hasAny then
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("No complete crate sets nearby"), function() end, {})
+    end
+    menu:refresh()
+end
+
+--- Rebuild the "Pack FARP" dynamic submenu for playerObj.
+-- Appears only when enableFARPRepack = true.
+-- Lists repackable FARP scene instances within 300 m.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshPackSection(playerObj)
+    if ctld.gs("enableFARPRepack") ~= true then return end
+
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local packSub   = ctld.tr("Pack FARP")
+
+    menu:clearBranch({ root, cratesSub, packSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("Land to pack a FARP"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local sm     = CTLDSceneManager.getInstance()
+    local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+
+    local hasAny = false
+    for _, scene in ipairs(scenes) do
+        hasAny = true
+        local label = ctld.tr("Pack %1", scene._modelName)
+        menu:addCommand({ root, cratesSub, packSub }, label,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local gid = t:getGroup():getID()
+                if ctld.utils.inAir(t) then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("You must be on the ground to pack a FARP."), 10)
+                    return
+                end
+                local smgr = CTLDSceneManager.getInstance()
+                local sc   = smgr._active[arg.sceneName]
+                if not sc then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("FARP no longer deployed."), 10)
+                    return
+                end
+                local model = smgr:getModel(sc._modelName)
+                local cd    = model and model.crate
+                local mgr_c = CTLDCrateManager.getInstance()
+                local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
+                if not (cd and desc) then return end
+                -- Capture warehouse snapshot then destroy scene objects.
+                local repackData = smgr:packScene(sc)
+                -- Spawn N crates near the transport with repackData in metadata.
+                local required  = cd.cratesRequired or 1
+                local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                local spacing   = ctld.gs("crateSpacing") or 5
+                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, required, safeDist, spacing)
+                local modelKey  = mgr_c:_crateModelKey(t)
+                for i = 1, required do
+                    local spos = spawnInfo.positions[i]
+                    if spos then
+                        local crate = mgr_c:spawnCrate(
+                            desc, spos, t:getCoalition(), t:getName(),
+                            CTLDCrate.SPAWN_METHOD.CRATE_SPAWN, t:getCountry(), modelKey)
+                        if crate and repackData and repackData.warehouseSnapshot then
+                            crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
+                        end
+                    end
+                end
+                trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
+                mgr_c:refreshUnpackSectionForUnit(arg.unitName)
+            end,
+            { unitName = playerObj.unitName, sceneName = scene._name })
+    end
+
+    if not hasAny then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("No repackable FARP nearby"), function() end, {})
     end
     menu:refresh()
 end
@@ -2226,11 +2327,18 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
                 "CTLDCrateManager: auto-unpack (parachute) FOB — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
         else
-            -- Generic scene (FARP, etc.): destroy crates then play at centroid, no player required.
+            -- Generic scene (FARP, etc.): extract repackData, destroy crates, play at centroid.
+            local repackData = nil
+            for _, c in ipairs(toUnpack) do
+                if c.metadata and c.metadata.warehouseSnapshot and not repackData then
+                    repackData = { warehouseSnapshot = c.metadata.warehouseSnapshot }
+                end
+            end
             for _, c in ipairs(toUnpack) do
                 self:unpackCrate(c.crateName, nil)
             end
-            sm:playSceneAtPos(desc.unit, centroid, coa, cId, nil)
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId,
+                repackData and { repackData = repackData } or nil)
             ctld.utils.log("INFO",
                 "CTLDCrateManager: auto-unpack (parachute) SCENE — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
@@ -2458,6 +2566,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
+    if ctld.gs("enableFARPRepack") == true then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack FARP") }, not inAir)
+    end
     if ctld.gs("enablePackingVehicles") == true then
         menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
     end
@@ -2613,6 +2724,12 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
         end,
         { unitName = playerObj.unitName })
+
+    if ctld.gs("enableFARPRepack") == true then
+        local packFarpSub = ctld.tr("Pack FARP")
+        menu:addSubMenu({ root, cratesSub }, packFarpSub, { order = 25 })
+        self:refreshPackSection(playerObj)
+    end
 
     if ctld.gs("enablePackingVehicles") == true then
         local packSub   = ctld.tr("Pack Vehicle")

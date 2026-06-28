@@ -289,6 +289,7 @@ function CTLDConfig:load()
     self.settings["fobLogisticZoneRadius"]              = 150  -- radius (m) of the logistic zone created around a deployed FOB
     self.settings["fobDestructionThreshold"]            = 0.5  -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
     self.settings["fobTroopPickupRadius"]               = 150  -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
+    self.settings["enableFARPRepack"]                   = false -- if true, players can pack deployed FARP scenes back into crates to redeploy elsewhere
 
 
     -- ═══════════════════════════════════════════════════════════
@@ -1749,6 +1750,15 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
+--- Pack FARP submenu
+ctld.i18n["en"]["Pack FARP"]                                   = "Pack FARP"
+ctld.i18n["en"]["Pack %1"]                                     = "Pack %1"
+ctld.i18n["en"]["Land to pack a FARP"]                         = "Land to pack a FARP"
+ctld.i18n["en"]["No repackable FARP nearby"]                   = "No repackable FARP nearby"
+ctld.i18n["en"]["You must be on the ground to pack a FARP."]   = "You must be on the ground to pack a FARP."
+ctld.i18n["en"]["FARP no longer deployed."]                    = "FARP no longer deployed."
+ctld.i18n["en"]["FARP packed successfully!"]                   = "FARP packed successfully!"
+
 --- Pack Vehicle submenu
 ctld.i18n["en"]["Land to pack vehicles"] = "Land to pack vehicles"
 ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
@@ -2221,6 +2231,15 @@ ctld.i18n["fr"]["You must be on the ground to deploy a FARP."] = "Vous devez êt
 ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir avant de déballer les caisses !"
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
+
+--- Pack FARP submenu
+ctld.i18n["fr"]["Pack FARP"]                                   = "Remballer FARP"
+ctld.i18n["fr"]["Pack %1"]                                     = "Remballer %1"
+ctld.i18n["fr"]["Land to pack a FARP"]                         = "Atterrissez pour remballer un FARP"
+ctld.i18n["fr"]["No repackable FARP nearby"]                   = "Aucun FARP remballable à proximité"
+ctld.i18n["fr"]["You must be on the ground to pack a FARP."]   = "Vous devez être au sol pour remballer un FARP."
+ctld.i18n["fr"]["FARP no longer deployed."]                    = "Le FARP n'est plus déployé."
+ctld.i18n["fr"]["FARP packed successfully!"]                   = "FARP remballé avec succès !"
 
 --- Pack Vehicle submenu
 ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
@@ -2696,6 +2715,15 @@ ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar a
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
+--- Pack FARP submenu
+ctld.i18n["es"]["Pack FARP"]                                   = "Reempacar FARP"
+ctld.i18n["es"]["Pack %1"]                                     = "Reempacar %1"
+ctld.i18n["es"]["Land to pack a FARP"]                         = "Aterriza para reempacar un FARP"
+ctld.i18n["es"]["No repackable FARP nearby"]                   = "No hay FARP reempacable cerca"
+ctld.i18n["es"]["You must be on the ground to pack a FARP."]   = "Debes estar en tierra para reempacar un FARP."
+ctld.i18n["es"]["FARP no longer deployed."]                    = "El FARP ya no está desplegado."
+ctld.i18n["es"]["FARP packed successfully!"]                   = "¡FARP reempacado con éxito!"
+
 --- Pack Vehicle submenu
 ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehículos"
 ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetables cercanos"
@@ -3114,6 +3142,15 @@ ctld.i18n["ko"]["AI %1 dropped troops: %2 (%3)"]               = "AI %1이(가) 
 ctld.i18n["ko"]["AI %1 loaded: %2"]                    = "AI %1이(가) 차량을 적재했습니다: %2"
 ctld.i18n["ko"]["AI %1 unloaded: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
 ctld.i18n["ko"]["AI %1 delivered: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
+
+--- Pack FARP submenu
+ctld.i18n["ko"]["Pack FARP"]                                   = "FARP 재포장"
+ctld.i18n["ko"]["Pack %1"]                                     = "%1 재포장"
+ctld.i18n["ko"]["Land to pack a FARP"]                         = "FARP를 재포장하려면 착륙하세요"
+ctld.i18n["ko"]["No repackable FARP nearby"]                   = "근처에 재포장 가능한 FARP 없음"
+ctld.i18n["ko"]["You must be on the ground to pack a FARP."]   = "FARP를 재포장하려면 지상에 있어야 합니다."
+ctld.i18n["ko"]["FARP no longer deployed."]                    = "FARP가 더 이상 배치되어 있지 않습니다."
+ctld.i18n["ko"]["FARP packed successfully!"]                   = "FARP가 성공적으로 재포장되었습니다!"
 
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
@@ -6803,9 +6840,10 @@ local _sceneCounter = 0
 -- @param onComplete  function — optional callback called with (scene) when last step finishes
 function CtldScene:init(unit, model, params, onComplete)
     _sceneCounter  = _sceneCounter + 1
-    self._name     = string.format("%s#%d", model.name, _sceneCounter)
-    self._unit     = unit
-    self._steps    = model.steps
+    self._name      = string.format("%s#%d", model.name, _sceneCounter)
+    self._modelName = model.name   -- original model name for registry lookups (repack support)
+    self._unit      = unit
+    self._steps     = model.steps
     self._stepIndex   = 0
     self._timeMarker  = 0
     self._spawnedObjs = {}
@@ -7093,6 +7131,63 @@ end
 -- Used by AI vehicle pickup to distinguish whole-unit types from crate-assembled scenes.
 function CTLDSceneManager:getScene(name)
     return self._models[name]
+end
+
+-- ====================================================================================================
+-- Repack support
+-- ====================================================================================================
+
+--- Returns scene instances that support onRepack and are within radius of pos.
+-- Used by refreshPackSection to discover nearby repackable FARP scenes.
+-- @param pos    vec3    reference position (player unit position)
+-- @param radius number  search radius in metres
+-- @return table  ordered list of CtldScene instances
+function CTLDSceneManager:findNearbyRepackableScenes(pos, radius)
+    local result = {}
+    local r2     = radius * radius
+    for _, scene in pairs(self._active) do
+        local dx = scene._refX - pos.x
+        local dz = scene._refZ - pos.z
+        if dx * dx + dz * dz <= r2 then
+            local model = self._models[scene._modelName]
+            if model and model.onRepack then
+                result[#result + 1] = scene
+            end
+        end
+    end
+    return result
+end
+
+--- Capture warehouse snapshot via onRepack, destroy all spawned objects, remove from active.
+-- Must be called BEFORE the scene objects are gone (onRepack reads the live warehouse).
+-- @param scene CtldScene
+-- @return table  repackData (may contain .warehouseSnapshot)
+function CTLDSceneManager:packScene(scene)
+    local model      = self._models[scene._modelName]
+    local repackData = {}
+    if model and model.onRepack then
+        local ok, err = pcall(model.onRepack, scene, repackData)
+        if not ok then
+            ctld.utils.log("ERROR", "CTLDSceneManager:packScene onRepack error for '%s': %s",
+                scene._name, tostring(err))
+        end
+    end
+    local destroyed = 0
+    for _, obj in ipairs(scene._spawnedObjs) do
+        local ok, err = pcall(function()
+            if obj.isExist and obj:isExist() then
+                obj:destroy()
+                destroyed = destroyed + 1
+            end
+        end)
+        if not ok then
+            ctld.utils.log("WARN", "CTLDSceneManager:packScene destroy error: %s", tostring(err))
+        end
+    end
+    self._active[scene._name] = nil
+    ctld.utils.log("INFO", "CTLDSceneManager:packScene: '%s' packed (%d object(s) destroyed)",
+        scene._name, destroyed)
+    return repackData
 end
 
 -- ====================================================================================================
@@ -11099,6 +11194,7 @@ function CTLDCrate:init(data)
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
+    self.metadata               = {}   -- arbitrary key/value bag (e.g. warehouseSnapshot from repack)
 end
 
 --- Load the crate into a transport unit.
@@ -11607,7 +11703,10 @@ end
 -- @param unitName string
 function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
-    if playerObj then self:refreshUnpackSection(playerObj) end
+    if playerObj then
+        self:refreshUnpackSection(playerObj)
+        self:refreshPackSection(playerObj)
+    end
 end
 
 --- Rebuild the "Unpack Crate" dynamic submenu for playerObj.
@@ -11788,24 +11887,32 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
                         return
                     end
                     local mgr      = CTLDCrateManager.getInstance()
-                    local nearC    = mgr:getCratesInRange(t:getPoint(), 300)
-                    local consumed = 0
+                    local nearC     = mgr:getCratesInRange(t:getPoint(), 300)
+                    local toConsume = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
                             and c.descriptor and c.descriptor.unit == arg.sceneName
-                            and consumed < arg.cratesRequired
+                            and #toConsume < arg.cratesRequired
                         then
-                            mgr:unpackCrate(c.crateName, t)
-                            consumed = consumed + 1
+                            toConsume[#toConsume + 1] = c
                         end
                     end
-                    if consumed < arg.cratesRequired then
+                    if #toConsume < arg.cratesRequired then
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("Not enough crates nearby to unpack!"), 10)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
-                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName, nil, nil)
+                    -- Extract repackData from crates before unpacking (metadata survives the loop).
+                    local repackData = nil
+                    for _, c in ipairs(toConsume) do
+                        if c.metadata and c.metadata.warehouseSnapshot and not repackData then
+                            repackData = { warehouseSnapshot = c.metadata.warehouseSnapshot }
+                        end
+                        mgr:unpackCrate(c.crateName, t)
+                    end
+                    CTLDSceneManager.getInstance():playScene(t, arg.sceneName,
+                        repackData and { repackData = repackData } or nil, nil)
                 end,
                 {
                     unitName      = playerObj.unitName,
@@ -11819,6 +11926,95 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     if not hasAny then
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("No complete crate sets nearby"), function() end, {})
+    end
+    menu:refresh()
+end
+
+--- Rebuild the "Pack FARP" dynamic submenu for playerObj.
+-- Appears only when enableFARPRepack = true.
+-- Lists repackable FARP scene instances within 300 m.
+-- @param playerObj CTLDPlayer
+function CTLDCrateManager:refreshPackSection(playerObj)
+    if ctld.gs("enableFARPRepack") ~= true then return end
+
+    local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
+    if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
+
+    local mm   = ctld.MenuManager:getInstance()
+    local menu = mm:getMenuByGroupId(playerObj.groupId)
+    if not menu then return end
+
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local packSub   = ctld.tr("Pack FARP")
+
+    menu:clearBranch({ root, cratesSub, packSub })
+
+    local transport = Unit.getByName(playerObj.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("Land to pack a FARP"), function() end, {})
+        menu:refresh()
+        return
+    end
+
+    local sm     = CTLDSceneManager.getInstance()
+    local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+
+    local hasAny = false
+    for _, scene in ipairs(scenes) do
+        hasAny = true
+        local label = ctld.tr("Pack %1", scene._modelName)
+        menu:addCommand({ root, cratesSub, packSub }, label,
+            function(arg)
+                local t = Unit.getByName(arg.unitName)
+                if not (t and t:isExist()) then return end
+                local gid = t:getGroup():getID()
+                if ctld.utils.inAir(t) then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("You must be on the ground to pack a FARP."), 10)
+                    return
+                end
+                local smgr = CTLDSceneManager.getInstance()
+                local sc   = smgr._active[arg.sceneName]
+                if not sc then
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("FARP no longer deployed."), 10)
+                    return
+                end
+                local model = smgr:getModel(sc._modelName)
+                local cd    = model and model.crate
+                local mgr_c = CTLDCrateManager.getInstance()
+                local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
+                if not (cd and desc) then return end
+                -- Capture warehouse snapshot then destroy scene objects.
+                local repackData = smgr:packScene(sc)
+                -- Spawn N crates near the transport with repackData in metadata.
+                local required  = cd.cratesRequired or 1
+                local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
+                local spacing   = ctld.gs("crateSpacing") or 5
+                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, required, safeDist, spacing)
+                local modelKey  = mgr_c:_crateModelKey(t)
+                for i = 1, required do
+                    local spos = spawnInfo.positions[i]
+                    if spos then
+                        local crate = mgr_c:spawnCrate(
+                            desc, spos, t:getCoalition(), t:getName(),
+                            CTLDCrate.SPAWN_METHOD.CRATE_SPAWN, t:getCountry(), modelKey)
+                        if crate and repackData and repackData.warehouseSnapshot then
+                            crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
+                        end
+                    end
+                end
+                trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
+                mgr_c:refreshUnpackSectionForUnit(arg.unitName)
+            end,
+            { unitName = playerObj.unitName, sceneName = scene._name })
+    end
+
+    if not hasAny then
+        menu:addCommand({ root, cratesSub, packSub },
+            ctld.tr("No repackable FARP nearby"), function() end, {})
     end
     menu:refresh()
 end
@@ -13247,11 +13443,18 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
                 "CTLDCrateManager: auto-unpack (parachute) FOB — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
         else
-            -- Generic scene (FARP, etc.): destroy crates then play at centroid, no player required.
+            -- Generic scene (FARP, etc.): extract repackData, destroy crates, play at centroid.
+            local repackData = nil
+            for _, c in ipairs(toUnpack) do
+                if c.metadata and c.metadata.warehouseSnapshot and not repackData then
+                    repackData = { warehouseSnapshot = c.metadata.warehouseSnapshot }
+                end
+            end
             for _, c in ipairs(toUnpack) do
                 self:unpackCrate(c.crateName, nil)
             end
-            sm:playSceneAtPos(desc.unit, centroid, coa, cId, nil)
+            sm:playSceneAtPos(desc.unit, centroid, coa, cId,
+                repackData and { repackData = repackData } or nil)
             ctld.utils.log("INFO",
                 "CTLDCrateManager: auto-unpack (parachute) SCENE — name=%s required=%d centroid=(%.0f,%.0f,%.0f)",
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
@@ -13479,6 +13682,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
+    if ctld.gs("enableFARPRepack") == true then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack FARP") }, not inAir)
+    end
     if ctld.gs("enablePackingVehicles") == true then
         menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
     end
@@ -13634,6 +13840,12 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
         end,
         { unitName = playerObj.unitName })
+
+    if ctld.gs("enableFARPRepack") == true then
+        local packFarpSub = ctld.tr("Pack FARP")
+        menu:addSubMenu({ root, cratesSub }, packFarpSub, { order = 25 })
+        self:refreshPackSection(playerObj)
+    end
 
     if ctld.gs("enablePackingVehicles") == true then
         local packSub   = ctld.tr("Pack Vehicle")
@@ -22231,12 +22443,20 @@ countrysideFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    -- Invisible FARP spawns with default DCS fuel levels — zero them out
-                    -- so aircraft cannot refuel here (visual FARP only, no fuel service).
-                    w:setLiquidAmount(0, 0)   -- jet fuel
-                    w:setLiquidAmount(1, 0)   -- aviation gasoline
-                    w:setLiquidAmount(2, 0)   -- MW50
-                    w:setLiquidAmount(3, 0)   -- diesel
+                    -- If this is a redeployed FARP, restore the snapshot; otherwise zero the warehouse
+                    -- (Invisible FARP spawns with default DCS levels — visual FARP only, no fuel service).
+                    local snap = ctx.scene._params.repackData
+                              and ctx.scene._params.repackData.warehouseSnapshot
+                    if snap and snap.liquid then
+                        for fuelType = 0, 3 do
+                            w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                        end
+                    else
+                        w:setLiquidAmount(0, 0)   -- jet fuel
+                        w:setLiquidAmount(1, 0)   -- aviation gasoline
+                        w:setLiquidAmount(2, 0)   -- MW50
+                        w:setLiquidAmount(3, 0)   -- diesel
+                    end
                 end
             end
             trigger.action.outText(
@@ -22375,6 +22595,27 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
     shape_name = "H-Windsock_RW",
     rate       = 3,
 })
+
+-- ====================================================================================================
+-- BLOC : onRepack — called by CTLDSceneManager:packScene before objects are destroyed.
+-- Captures the current warehouse fuel levels so they can be restored on next deployment.
+-- ====================================================================================================
+
+countrysideFarpScene.onRepack = function(scene, repackData)
+    local farpName = scene._params and scene._params.farpName
+    if not farpName then return end
+    local ab = Airbase.getByName(farpName)
+    if not ab then return end
+    local w = ab:getWarehouse()
+    repackData.warehouseSnapshot = {
+        liquid = {
+            [0] = w:getLiquid(0),   -- jet fuel
+            [1] = w:getLiquid(1),   -- aviation gasoline
+            [2] = w:getLiquid(2),   -- MW50
+            [3] = w:getLiquid(3),   -- diesel
+        }
+    }
+end
 
 -- ====================================================================================================
 -- Self-registration
@@ -23010,10 +23251,19 @@ metalFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    w:addLiquid(0, 10000)   -- jet fuel
-                    w:addLiquid(1, 10000)   -- aviation gasoline
-                    w:addLiquid(2, 10000)   -- MW50
-                    w:addLiquid(3, 10000)   -- diesel
+                    -- If this is a redeployed FARP, restore the snapshot; otherwise stock defaults.
+                    local snap = ctx.scene._params.repackData
+                              and ctx.scene._params.repackData.warehouseSnapshot
+                    if snap and snap.liquid then
+                        for fuelType = 0, 3 do
+                            w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                        end
+                    else
+                        w:addLiquid(0, 10000)   -- jet fuel
+                        w:addLiquid(1, 10000)   -- aviation gasoline
+                        w:addLiquid(2, 10000)   -- MW50
+                        w:addLiquid(3, 10000)   -- diesel
+                    end
                 end
             end
             trigger.action.outText(
@@ -23024,7 +23274,28 @@ metalFarpScene.steps = {
 }
 
 -- ====================================================================================================
--- BLOC 4 : self-registration
+-- BLOC 4 : onRepack — called by CTLDSceneManager:packScene before objects are destroyed.
+-- Captures the current warehouse fuel levels so they can be restored on next deployment.
+-- ====================================================================================================
+
+metalFarpScene.onRepack = function(scene, repackData)
+    local farpName = scene._params and scene._params.farpName
+    if not farpName then return end
+    local ab = Airbase.getByName(farpName)
+    if not ab then return end
+    local w = ab:getWarehouse()
+    repackData.warehouseSnapshot = {
+        liquid = {
+            [0] = w:getLiquid(0),   -- jet fuel
+            [1] = w:getLiquid(1),   -- aviation gasoline
+            [2] = w:getLiquid(2),   -- MW50
+            [3] = w:getLiquid(3),   -- diesel
+        }
+    }
+end
+
+-- ====================================================================================================
+-- BLOC 5 : self-registration
 -- ====================================================================================================
 
 CTLDSceneManager.getInstance():registerSceneModel(metalFarpScene)

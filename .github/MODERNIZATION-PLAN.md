@@ -1329,22 +1329,14 @@ Minor cleanups identified — low priority, no functional impact.
     (sans `isTransport`). Fix : récupération du vrai `CTLDPlayer` via `getPlayer(unitName)`.
     Menu multi-groupe → 1 groupe → vide : comportement correct. commit e964eab.
 
-  **TODO [I]** — **Feature : repack FARP avec mémorisation du stock warehouse** :
-    Lors du repack d'une scène FARP (ex. Countryside FARP), mémoriser le stock courant de la
-    warehouse DCS (`getLiquidAmount` × 4 types + `getInventory` munitions) dans les métadonnées
-    des caisses packées, afin de le restaurer lors du prochain unpack du même jeu de caisses.
-    Questions de conception à résoudre :
-    (a) Lien inter-caisses : avec `cratesRequired=3`, les 3 caisses sont indépendantes —
-        une seule doit porter le stock mémorisé (crate "primaire" désignée à l'unpack, ex.
-        la première packée). Les 2 autres restent des porteuses sans données warehouse.
-    (b) Persistance du stock : stocker dans `CTLDCrate.metadata.warehouseSnapshot =
-        { liquid={[0]=v,[1]=v,[2]=v,[3]=v}, items={...} }` ; sérialisable si on implémente
-        la persistence mission plus tard.
-    (c) Détermination de la crate primaire : à l'unpack multi-crates, le `CTLDSceneManager`
-        reçoit le set complet — itérer et utiliser la première qui a un `warehouseSnapshot`.
-    (d) API warehouse : `setLiquidAmount` est disponible (confirmé empiriquement 2026-06-08) ;
-        `setItem` disponible pour munitions — vérifier limites API pour les items armement.
-    À analyser en détail avant implémentation.
+  **TODO [I] ✅ DONE [2026-06-28]** — **Feature : repack FARP avec mémorisation du stock warehouse** :
+    Implémenté via `CTLDCrate.metadata = {}` (bag arbitraire par instance) + `crate.metadata.warehouseSnapshot`
+    (`{ liquid={[0]=v,[1]=v,[2]=v,[3]=v} }`) porté par la première crate du set. `CTLDSceneManager:packScene`
+    appelle `model.onRepack(scene, repackData)` (pcall) avant destruction, stocke dans `repackData.warehouseSnapshot`.
+    À l'unpack (manuel + auto), `repackData` extrait des crates avant `unpackCrate`, passé à `playScene`/
+    `playSceneAtPos` → step warehouse lit `ctx.scene._params.repackData.warehouseSnapshot` si présent
+    (`setLiquidAmount`) sinon initialise aux valeurs par défaut de la scène. Config `enableFARPRepack`
+    (défaut `false`) contrôle l'affichage du menu "Pack FARP". Conditionné sur `ctld.gs("enableFARPRepack")`.
 
   **TODO [F] ✅ DONE [2026-06-09]** — **S_EVENT_PLAYER_ENTER/LEAVE_UNIT — comportement validé** :
     Tests live DCS (2026-06-09) : LEAVE+ENTER se déclenchent sur tout changement réel de slot
@@ -1389,37 +1381,19 @@ Minor cleanups identified — low priority, no functional impact.
     Scripts : `scenario_fob_scene.lua` (fixé : nom "FOB", params complets, plus de callback `_onFOBBuilt`),
     `scenario_p2_fob_parachute.lua`, `scenario_p3_csfarp_parachute.lua`, `scenario_p4_metal_farp.lua`.
 
-  **TODO [Q]** — **Feature : cycle de vie scène complet — composants, index inverse, onRepack, warehouse** :
-    Architecture validée 2026-06-09. Specs détaillées :
-
-    (a) `CtldScene._spawnedComponents` : enrichir `_runStep` — pour chaque spawn réussi (polar/axis),
-        stocker `{ registryKey, obj, x, z, hdgRad }` (position monde calculée). Complète `_spawnedObjs`.
-
-    (b) Index inverse `CTLDSceneManager._objectToScene[objName] = scene._name` : alimenté à chaque
-        spawn. Permet `findSceneByObject(objName)` → instance CtldScene. Nettoyé au repack.
-        Alternative : `findSceneAtPosition(pos, radius)` via `_spawnedComponents` si objet détruit.
-
-    (c) Robustesse repack avec objets détruits : `onRepack` itère `_spawnedComponents` avec
-        `pcall` + guard `if obj and obj:isExist() then` sur chaque accès. Pas de crash si partiellement
-        détruit. Règle : le prochain unpack rejoue la scène complète depuis le modèle (pas seulement
-        les composants survivants) — la liste `_spawnedComponents` sert uniquement à lire l'état,
-        pas à définir ce qui sera respawné.
-
-    (d) `model.onRepack(scene, repackData)` : hook optionnel déclaré dans le fichier de scène.
-        Appelé par le flow de repack avant destruction des objets. Remplit `repackData` (ex. stock
-        warehouse). Stocké dans `crate.metadata.sceneRepackData` de la crate primaire (cf. TODO [I]).
-
-    (e) Cycle de vie warehouse :
-        - 1er unpack : initialisé aux valeurs définies dans la scène (`scene.warehouseInit` ou inline
-          dans le step warehouse). Valeur par défaut configurable dans le fichier de scène.
-        - Repack : `onRepack` lit les niveaux courants (`w:getLiquid(i)`) avec guard `isExist`.
-        - Unpack suivant : `params.repackData.warehouseStock` présent → restauré en lieu et place
-          de l'init par défaut. Stock jamais perdu entre les cycles repack/unpack.
-
-    (f) Restauration : `params.repackData` passé à `playScene`/`playSceneAtPos`. Step warehouse
-        (ou prescript) lit `ctx.scene._params.repackData` si présent.
-
-    Dépend de TODO [I] (mécanisme `crate.metadata`). Concevoir TODO [I] en premier.
+  **TODO [Q] ✅ DONE [2026-06-28]** — **Feature : cycle de vie scène complet — onRepack, warehouse** :
+    Implémenté conjointement avec TODO [I]. Architecture finale (simplifiée par rapport aux specs) :
+    - `CtldScene._modelName` : nom du modèle pour lookup inverse dans le registry.
+    - `CTLDSceneManager:findNearbyRepackableScenes(pos, radius)` : itère `_active`, filtre distance²
+      et `model.onRepack` présent, retourne liste CtldScene candidats.
+    - `CTLDSceneManager:packScene(scene)` : appelle `model.onRepack` (pcall), détruit tous `_spawnedObjs`
+      (pcall par objet), retire de `_active`, retourne `repackData`.
+    - `countrysideFarpScene.onRepack` / `metalFarpScene.onRepack` : lecture warehouse live (`getLiquid 0-3`)
+      stockée dans `repackData.warehouseSnapshot`.
+    - Steps warehouse adaptatifs : snapshot présent → `setLiquidAmount`; absent → init par défaut.
+    - Menu "Pack FARP" (`refreshPackSection`) : sous-menu dans Crates, enabled/disabled selon sol/vol.
+    - `_spawnedComponents` et index inverse non implémentés (hors scope — `_spawnedObjs` suffisant).
+    - i18n 4 langues (EN/FR/ES/KO) + MM guide mis à jour.
 
 ## Risks and mitigations
 

@@ -298,6 +298,15 @@ ctld.i18n["ko"]["AI %1 loaded: %2"]                    = "AI %1이(가) 차량�
 ctld.i18n["ko"]["AI %1 unloaded: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
 ctld.i18n["ko"]["AI %1 delivered: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
 
+--- Pack FARP submenu
+ctld.i18n["ko"]["Pack FARP"]                                   = "FARP 재포장"
+ctld.i18n["ko"]["Pack %1"]                                     = "%1 재포장"
+ctld.i18n["ko"]["Land to pack a FARP"]                         = "FARP를 재포장하려면 착륙하세요"
+ctld.i18n["ko"]["No repackable FARP nearby"]                   = "근처에 재포장 가능한 FARP 없음"
+ctld.i18n["ko"]["You must be on the ground to pack a FARP."]   = "FARP를 재포장하려면 지상에 있어야 합니다."
+ctld.i18n["ko"]["FARP no longer deployed."]                    = "FARP가 더 이상 배치되어 있지 않습니다."
+ctld.i18n["ko"]["FARP packed successfully!"]                   = "FARP가 성공적으로 재포장되었습니다!"
+
 --- AIZ zone validation (_validateZoneNames)
 ctld.i18n["ko"]["  AIZ[%1] ERROR: missing dcsZoneName"]                                    = "  AIZ[%1] 오류: dcsZoneName 누락"
 ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': duplicate dcsZoneName — entry ignored"]             = "  AIZ[%1] 오류 '%2': dcsZoneName 중복 — 항목 무시됨"

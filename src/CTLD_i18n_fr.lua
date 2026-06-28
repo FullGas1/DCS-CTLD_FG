@@ -352,6 +352,15 @@ ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
 
+--- Pack FARP submenu
+ctld.i18n["fr"]["Pack FARP"]                                   = "Remballer FARP"
+ctld.i18n["fr"]["Pack %1"]                                     = "Remballer %1"
+ctld.i18n["fr"]["Land to pack a FARP"]                         = "Atterrissez pour remballer un FARP"
+ctld.i18n["fr"]["No repackable FARP nearby"]                   = "Aucun FARP remballable à proximité"
+ctld.i18n["fr"]["You must be on the ground to pack a FARP."]   = "Vous devez être au sol pour remballer un FARP."
+ctld.i18n["fr"]["FARP no longer deployed."]                    = "Le FARP n'est plus déployé."
+ctld.i18n["fr"]["FARP packed successfully!"]                   = "FARP remballé avec succès !"
+
 --- Pack Vehicle submenu
 ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
 ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"

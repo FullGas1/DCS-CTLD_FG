@@ -208,12 +208,20 @@ countrysideFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    -- Invisible FARP spawns with default DCS fuel levels — zero them out
-                    -- so aircraft cannot refuel here (visual FARP only, no fuel service).
-                    w:setLiquidAmount(0, 0)   -- jet fuel
-                    w:setLiquidAmount(1, 0)   -- aviation gasoline
-                    w:setLiquidAmount(2, 0)   -- MW50
-                    w:setLiquidAmount(3, 0)   -- diesel
+                    -- If this is a redeployed FARP, restore the snapshot; otherwise zero the warehouse
+                    -- (Invisible FARP spawns with default DCS levels — visual FARP only, no fuel service).
+                    local snap = ctx.scene._params.repackData
+                              and ctx.scene._params.repackData.warehouseSnapshot
+                    if snap and snap.liquid then
+                        for fuelType = 0, 3 do
+                            w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                        end
+                    else
+                        w:setLiquidAmount(0, 0)   -- jet fuel
+                        w:setLiquidAmount(1, 0)   -- aviation gasoline
+                        w:setLiquidAmount(2, 0)   -- MW50
+                        w:setLiquidAmount(3, 0)   -- diesel
+                    end
                 end
             end
             trigger.action.outText(
@@ -352,6 +360,27 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
     shape_name = "H-Windsock_RW",
     rate       = 3,
 })
+
+-- ====================================================================================================
+-- BLOC : onRepack — called by CTLDSceneManager:packScene before objects are destroyed.
+-- Captures the current warehouse fuel levels so they can be restored on next deployment.
+-- ====================================================================================================
+
+countrysideFarpScene.onRepack = function(scene, repackData)
+    local farpName = scene._params and scene._params.farpName
+    if not farpName then return end
+    local ab = Airbase.getByName(farpName)
+    if not ab then return end
+    local w = ab:getWarehouse()
+    repackData.warehouseSnapshot = {
+        liquid = {
+            [0] = w:getLiquid(0),   -- jet fuel
+            [1] = w:getLiquid(1),   -- aviation gasoline
+            [2] = w:getLiquid(2),   -- MW50
+            [3] = w:getLiquid(3),   -- diesel
+        }
+    }
+end
 
 -- ====================================================================================================
 -- Self-registration

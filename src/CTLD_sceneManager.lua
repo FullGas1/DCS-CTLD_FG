@@ -49,9 +49,10 @@ local _sceneCounter = 0
 -- @param onComplete  function — optional callback called with (scene) when last step finishes
 function CtldScene:init(unit, model, params, onComplete)
     _sceneCounter  = _sceneCounter + 1
-    self._name     = string.format("%s#%d", model.name, _sceneCounter)
-    self._unit     = unit
-    self._steps    = model.steps
+    self._name      = string.format("%s#%d", model.name, _sceneCounter)
+    self._modelName = model.name   -- original model name for registry lookups (repack support)
+    self._unit      = unit
+    self._steps     = model.steps
     self._stepIndex   = 0
     self._timeMarker  = 0
     self._spawnedObjs = {}
@@ -339,6 +340,63 @@ end
 -- Used by AI vehicle pickup to distinguish whole-unit types from crate-assembled scenes.
 function CTLDSceneManager:getScene(name)
     return self._models[name]
+end
+
+-- ====================================================================================================
+-- Repack support
+-- ====================================================================================================
+
+--- Returns scene instances that support onRepack and are within radius of pos.
+-- Used by refreshPackSection to discover nearby repackable FARP scenes.
+-- @param pos    vec3    reference position (player unit position)
+-- @param radius number  search radius in metres
+-- @return table  ordered list of CtldScene instances
+function CTLDSceneManager:findNearbyRepackableScenes(pos, radius)
+    local result = {}
+    local r2     = radius * radius
+    for _, scene in pairs(self._active) do
+        local dx = scene._refX - pos.x
+        local dz = scene._refZ - pos.z
+        if dx * dx + dz * dz <= r2 then
+            local model = self._models[scene._modelName]
+            if model and model.onRepack then
+                result[#result + 1] = scene
+            end
+        end
+    end
+    return result
+end
+
+--- Capture warehouse snapshot via onRepack, destroy all spawned objects, remove from active.
+-- Must be called BEFORE the scene objects are gone (onRepack reads the live warehouse).
+-- @param scene CtldScene
+-- @return table  repackData (may contain .warehouseSnapshot)
+function CTLDSceneManager:packScene(scene)
+    local model      = self._models[scene._modelName]
+    local repackData = {}
+    if model and model.onRepack then
+        local ok, err = pcall(model.onRepack, scene, repackData)
+        if not ok then
+            ctld.utils.log("ERROR", "CTLDSceneManager:packScene onRepack error for '%s': %s",
+                scene._name, tostring(err))
+        end
+    end
+    local destroyed = 0
+    for _, obj in ipairs(scene._spawnedObjs) do
+        local ok, err = pcall(function()
+            if obj.isExist and obj:isExist() then
+                obj:destroy()
+                destroyed = destroyed + 1
+            end
+        end)
+        if not ok then
+            ctld.utils.log("WARN", "CTLDSceneManager:packScene destroy error: %s", tostring(err))
+        end
+    end
+    self._active[scene._name] = nil
+    ctld.utils.log("INFO", "CTLDSceneManager:packScene: '%s' packed (%d object(s) destroyed)",
+        scene._name, destroyed)
+    return repackData
 end
 
 -- ====================================================================================================

@@ -487,8 +487,56 @@ ctld.spawnableCrates["My Deployments"] = {
 | Scene name | Description |
 |---|---|
 | `FARP Alpha` | Full FARP deployment: helipad, tent, ammo dump, fuel truck, repair truck, security squad, décor |
+| `Countryside FARP` | Invisible-FARP heliport + tent + trucks + guards + lights. Warehouse is zeroed (visual FARP, no fuel service by default). Supports repack. |
+| `Metal FARP` | Metallic helipad (requires `Farp_FG_Petit_Helipad` mod) + tent + trucks + lights. Warehouse stocked with 10 000 L × 4 fuel types. Supports repack. |
 | `mineField` | Lays a configurable grid of landmines in front of the helicopter, marked on the F10 map |
 | `FOB` | Forward Operating Base: outpost structure + watchtower, deployed from FOB crates |
+
+### FARP Repack (`enableFARPRepack`)
+
+When `enableFARPRepack = true`, a **Pack FARP** submenu appears under **Crate Commands** whenever the player is on the ground within 300 m of a deployed FARP scene that supports repack. Selecting it:
+
+1. Captures the current fuel levels from the FARP warehouse (snapshot).
+2. Destroys all spawned scene objects.
+3. Spawns the required crates near the helicopter, carrying the warehouse snapshot in their metadata.
+
+When those crates are later unpacked at a new location, the warehouse is restored to the captured levels instead of using the defaults.
+
+**Configuration:**
+```lua
+cfg.settings["enableFARPRepack"] = true   -- default: false
+```
+
+**Supported scenes:** `Countryside FARP`, `Metal FARP`.
+
+**Custom scenes:** Add an `onRepack` function to your scene model to enable repack support:
+```lua
+myScene.onRepack = function(scene, repackData)
+    -- Read current state before objects are destroyed.
+    -- Store anything you want restored on next deploy in repackData.
+    local farpName = scene._params and scene._params.farpName
+    if not farpName then return end
+    local ab = Airbase.getByName(farpName)
+    if not ab then return end
+    local w = ab:getWarehouse()
+    repackData.warehouseSnapshot = {
+        liquid = { [0]=w:getLiquid(0), [1]=w:getLiquid(1), [2]=w:getLiquid(2), [3]=w:getLiquid(3) }
+    }
+end
+```
+
+In your warehouse step, check `ctx.scene._params.repackData` to decide whether to restore or use defaults:
+```lua
+local snap = ctx.scene._params.repackData and ctx.scene._params.repackData.warehouseSnapshot
+if snap and snap.liquid then
+    for fuelType = 0, 3 do
+        w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+    end
+else
+    -- first deployment: apply defaults
+    w:addLiquid(0, 10000)
+end
+```
 
 ---
 
