@@ -208,8 +208,8 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         ✅ F-110: config JTAC_unitTypeNames — 8/8 PASS [2026-05-07] (assertions MQ-9/RQ-1A retirées : non dans JTAC_unitTypeNames)
         ✅ F-111: spawnJTACVehicleForTransport + registerJTACVehicle + deregister — 6/6 PASS [2026-04-27]
         ✅ F-112: deregisterJTAC anti-false-KIA + laser pool freed + idempotent — 7/7 PASS [2026-04-27]
-        ⬜ F-113: virtual load/unload suspend+resume — différé (C-130J-30 requis)
-        ⬜ F-114: DCS native bbox load/unload — différé (C-130J-30 ou CH-47Fbl1 requis)
+        ✅ F-113: virtual load/unload suspend+resume — FERMÉ [2026-06-28] : parachutage des crates chargées via UI DCS std exclu par conception (CTLD-loaded only) ; cas C-130 hors périmètre.
+        ✅ F-114: DCS native bbox load/unload — FERMÉ [2026-06-28] : même décision que F-113 ; Sprint 2a couvre le bbox CTLD (F-128→F-131 ✅).
 
 ✅  FG  Troop lifecycle rewrite — terminologie, états, transitions [2026-05-02]
          Schema: `docs/assets/troops_jtac_lifecycle.svg`
@@ -307,9 +307,8 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Labels dynamiques [activate]/[deactivate], i18n EN/FR/ES/KO, confirmation outText.
         Recette : F-TL 12/12 PASS + F-SC 11/11 PASS (scénarios auto Witchcraft)
 
-⬜  FG  JTAC InTransit — recettes live manquantes (modules requis)
-        À revenir quand modules C-130J-30 ou CH-47Fbl1 disponibles :
-          • F-113 + F-114 (voir ci-dessus)
+✅  FG  JTAC InTransit — recettes live manquantes (modules requis) — FERMÉ [2026-06-28]
+        F-113 + F-114 fermés : parachutage crates DCS native exclu par conception (CTLD-loaded only).
         Décision MM-placed vehicle [2026-05-06] :
           • Les caisses posées par le MM sont du décor — CTLD ne peut pas connaître leur contenu
             (même type de static pour tous les objets DCS transportables).
@@ -381,7 +380,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
             → autoOrbit sur cible → cible mobile suivie → cible hors LOS → retour route initiale
           • Troupes JTAC : charger "JTAC Group" → déposer → lasing actif → menu JTAC F10
           • IN_TRANSIT : embarquer JTAC sol → log IN_TRANSIT → débarquer → lasing reprend
-• Troops full cycle (2 JTAC) — `recette/scenarios/scenarioTroopsFullCycle.lua` (created ⬜ pending exec) :
+• Troops full cycle (2 JTAC) — remplacé par `scenarioTroopsFullCycle_v2.lua` ✅ 8/8 PASS [2026-05-05] :
                - Créer template de test `jtac = 2` (2 JTAC soldiers dans le group)
                - embarkFromTroopZone() → TRZ_LOADED (log state)
                - disembark() 1er déploiement → DCS group spawn, 2 JTAC instances créées
@@ -677,7 +676,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
         Recette :
           • F-125→F-127 : scenario_feature_k_jtac_vehicle.lua (Sprint 1) ✅
           • Sprint 2a : ✅ F-128→F-131 (19/19 PASS [2026-05-06], mock)
-          • F-113/F-114 : bbox vehicles entiers — différé Sprint 2b (C-130J-30/CH-47Fbl1 requis)
+          • F-113/F-114 : FERMÉS [2026-06-28] — voir décision ci-dessus
 
 ✅  FG  JTAC vehicle in-transit — vérification code coverage [2026-05-06]
         Analyse + recette des 4 hooks JTAC (vehicle via crate + vehicle entier) :
@@ -716,7 +715,7 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           ✅ MT-03 : test manuel multi-vehicle entier PASS live DCS [2026-05-12] — bugs fixed: inAir guard load closure + refreshLoadSection absent de onTakeoff/onLand
           ✅ MT-04 : test manuel combinaison crate + troops PASS live DCS [2026-05-13] — bug fix: message confirmation parachutage crates manquant (parachuteCrates)
           ✅ MT-05 : crate + véhicule entier isolation 12/12 PASS auto [2026-05-13] — scénario Witchcraft (poids UH-1H insuffisant pour test manuel)
-          ⬜ Scénario gros porteur C-130/CH-47 — différé (module requis)
+
 
 ✅  FG  Feature M — JTAC smoke x/z offset [2026-05-12]
         Objectif : appliquer un décalage horizontal configurable (x et z) sur la fumée JTAC,
@@ -1261,7 +1260,7 @@ Minor cleanups identified — low priority, no functional impact.
   Clé config corrigée : `"buildableGroups"` → `"spawnableCrates"` (bug pré-existant).
   Commits : d459120, b48a5a3.
 
-- **Feature V — Repack de scène (Countryside FARP / FARP Alpha)** ⬜ BACKLOG
+- **Feature V — Repack de scène (Countryside FARP / FARP Alpha)** ✅ IMPLÉMENTÉE [2026-06-28] — voir TODO [I]/[Q]/[P] ci-dessous
   Permettre au joueur de "repacker" une scène déployée en recréant la caisse d'origine dans l'inventaire logistique.
   Prérequis techniques :
   1. `CTLDSceneManager` doit conserver les références des objets spawned après `_execute()` terminé (purger `_active` seulement sur repack/destroy, pas après la dernière step).
