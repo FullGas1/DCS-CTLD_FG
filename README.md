@@ -774,6 +774,8 @@ When `canParachuteDrop = true` on the aircraft type and the unit is airborne abo
 - Each item has independent forward inertia (`ctld.parachuteInertiaFactor` × transport speed) plus random lateral drift (`ctld.parachuteLateralDriftMin`–`ctld.parachuteLateralDriftMax`).
 - Troops land dispersed; parachuted crates auto-unpack on landing if the target area is clear within `ctld.autoUnpackRadiusParachute`.
 
+> **Crate parachute limitation:** only crates loaded via the **CTLD F10 menu** (Load Crate / hover-load / virtual slingload) are eligible for parachute drop. Crates loaded through the DCS native cargo system (`useNativeDcsCargoSystem = true`) are managed by DCS and cannot be released via CTLD's parachute menu.
+
 ---
 
 ## Virtual Slingload
