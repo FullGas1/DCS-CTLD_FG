@@ -74,6 +74,7 @@ function CTLDCrate:init(data)
     self.parachuteStartAltitude = nil
     self.estimatedLandingTime   = nil
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
+    self.loadedByDCSNative      = false   -- true → loaded via DCS standard UI (not CTLD menu); excluded from parachute
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
@@ -91,10 +92,11 @@ end
 --- Unload the crate to the ground (transport is landed).
 -- @param position vec3
 function CTLDCrate:unload(position)
-    self.state    = CTLDCrate.STATE.LANDED
-    self.position = position
-    self.loadedBy = nil
-    self.loadTime = nil
+    self.state            = CTLDCrate.STATE.LANDED
+    self.position         = position
+    self.loadedBy         = nil
+    self.loadTime         = nil
+    self.loadedByDCSNative = false
 end
 
 --- Drop the crate in flight (transitions to falling).
@@ -1090,7 +1092,8 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                         if crate.dcsStatic and crate.dcsStatic:isExist() then
                             crate.dcsStatic:destroy()
                         end
-                        crate.dcsStatic = nil
+                        crate.dcsStatic        = nil
+                        crate.loadedByDCSNative = true   -- exclude from parachute: slot cannot be freed in-flight
                         self._nativeCrateLink[crate.crateName] = nil  -- drift detection no longer needed
                         self:_publish("OnCrateLoaded", {
                             crate           = crate,
@@ -2030,7 +2033,8 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateCrates") or 5
     local loaded      = {}
     for _, crate in pairs(self.crates) do
-        if crate:isLoadedByCTLD() and crate.loadedBy == transport then
+        if crate:isLoadedByCTLD() and not crate.loadedByDCSNative
+                and crate.loadedBy == transport then
             table.insert(loaded, crate)
         end
     end
@@ -2463,7 +2467,8 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
         local onboard = 0
         if transport and transport:isExist() then
             for _, c in pairs(self.crates) do
-                if c:isLoadedByCTLD() and not c.inTransitOnSlingload
+                if c:isLoadedByCTLD() and not c.loadedByDCSNative
+                        and not c.inTransitOnSlingload
                         and c.loadedBy
                         and c.loadedBy:getName() == playerObj.unitName then
                     onboard = onboard + 1

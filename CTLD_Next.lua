@@ -11095,6 +11095,7 @@ function CTLDCrate:init(data)
     self.parachuteStartAltitude = nil
     self.estimatedLandingTime   = nil
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
+    self.loadedByDCSNative      = false   -- true → loaded via DCS standard UI (not CTLD menu); excluded from parachute
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
@@ -11112,10 +11113,11 @@ end
 --- Unload the crate to the ground (transport is landed).
 -- @param position vec3
 function CTLDCrate:unload(position)
-    self.state    = CTLDCrate.STATE.LANDED
-    self.position = position
-    self.loadedBy = nil
-    self.loadTime = nil
+    self.state            = CTLDCrate.STATE.LANDED
+    self.position         = position
+    self.loadedBy         = nil
+    self.loadTime         = nil
+    self.loadedByDCSNative = false
 end
 
 --- Drop the crate in flight (transitions to falling).
@@ -12111,7 +12113,8 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                         if crate.dcsStatic and crate.dcsStatic:isExist() then
                             crate.dcsStatic:destroy()
                         end
-                        crate.dcsStatic = nil
+                        crate.dcsStatic        = nil
+                        crate.loadedByDCSNative = true   -- exclude from parachute: slot cannot be freed in-flight
                         self._nativeCrateLink[crate.crateName] = nil  -- drift detection no longer needed
                         self:_publish("OnCrateLoaded", {
                             crate           = crate,
@@ -13051,7 +13054,8 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     local descentRate = ctld.gs("parachuteDescentRateCrates") or 5
     local loaded      = {}
     for _, crate in pairs(self.crates) do
-        if crate:isLoadedByCTLD() and crate.loadedBy == transport then
+        if crate:isLoadedByCTLD() and not crate.loadedByDCSNative
+                and crate.loadedBy == transport then
             table.insert(loaded, crate)
         end
     end
@@ -13484,7 +13488,8 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
         local onboard = 0
         if transport and transport:isExist() then
             for _, c in pairs(self.crates) do
-                if c:isLoadedByCTLD() and not c.inTransitOnSlingload
+                if c:isLoadedByCTLD() and not c.loadedByDCSNative
+                        and not c.inTransitOnSlingload
                         and c.loadedBy
                         and c.loadedBy:getName() == playerObj.unitName then
                     onboard = onboard + 1
@@ -21259,16 +21264,16 @@ local _SHAPE_NAME = {
 -- dist_m    : metres from FOB reference point.
 -- ----------------------------------------------------------------
 local _STATIC_LAYOUT = {
-    f1  = { angle =   0, dist = 28 },   -- 12 o'clock — landmark (crane / tower)
-    fh1 = { angle =  90, dist = 22 },   -- E — worker near Tower Crane (f3)
-    f2  = { angle =  60, dist = 22 },   -- NE — materials
-    f3  = { angle =  90, dist = 28 },   -- 3 o'clock — Tower Crane
-    fh2 = { angle = 210, dist = 24 },   -- SSW — worker near Camouflage06 (f5)
-    f4  = { angle = 180, dist = 25 },   -- 6 o'clock — materials
-    f5  = { angle = 205, dist = 31 },   -- SSW — Camouflage06 tent (shifted 15 m toward helo)
-    fh3 = { angle = 265, dist = 22 },   -- W — worker near Cargo05 (f6)
-    f6  = { angle = 270, dist = 28 },   -- 9 o'clock — materials
-    f7  = { angle = 315, dist = 20 },   -- NW — materials
+    f1  = { angle =   0, dist = 28 },             -- 12 o'clock — landmark (crane / tower)
+    fh1 = { angle =  90, dist = 22, hdgDeg =  90 }, -- E — worker faces E (toward Tower Crane)
+    f2  = { angle =  60, dist = 22 },             -- NE — materials
+    f3  = { angle =  90, dist = 28 },             -- 3 o'clock — Tower Crane
+    fh2 = { angle = 210, dist = 24, hdgDeg = 210 }, -- SSW — worker faces SSW (toward Camouflage06)
+    f4  = { angle = 180, dist = 25 },             -- 6 o'clock — materials
+    f5  = { angle = 205, dist = 31 },             -- SSW — Camouflage06 tent
+    fh3 = { angle = 265, dist = 22, hdgDeg = 265 }, -- W — worker faces W (toward Cargo05)
+    f6  = { angle = 270, dist = 28 },             -- 9 o'clock — materials
+    f7  = { angle = 315, dist = 20 },             -- NW — materials
 }
 
 -- Ordered scan list (only for prescript type-read loop)
@@ -21324,7 +21329,7 @@ local function _spawnMissionStatic(ctx, name)
         type          = typeName,
         x             = nx,
         y             = ez,
-        heading       = ctx.scene._refHdgRad,
+        heading       = ctx.scene._refHdgRad + math.rad(layout.hdgDeg or 0),
         start_time    = 0,
         transportable = { randomTransportable = false },
     }
@@ -22763,9 +22768,9 @@ CTLDSceneManager.getInstance():registerSceneModel(farpAlphaScene)
 --   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
 --   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
 --   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
---   Ammo cargo              — 30 m / 340°             (t+10 s)
---   M92 light panel         — 30 m / 349° alt+4 m    (t+15 s)
---   Windsock                — 26 m / 357°             (t+15 s)
+--   Ammo cargo              — 75 m / 346°             (t+10 s)
+--   M92 light panel         — 75 m / 355° alt+4 m    (t+15 s)
+--   Windsock                — 73 m / 346°             (t+15 s)
 --   Warehouse stocking      — 10 000 L × 4 fuel types (t+20 s)
 --
 -- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
@@ -22920,7 +22925,7 @@ metalFarpScene.steps = {
     -- Step 2: Fuel truck — right side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 60, angle = 342 },
+        polar                    = { distance = 60, angle = 342.5 },
         delayAfterPreviousStep   = 5,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
@@ -22931,7 +22936,7 @@ metalFarpScene.steps = {
     -- Step 3: Repair truck — left side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 61, angle = 340 },
+        polar                    = { distance = 61, angle = 340.5 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
@@ -22953,7 +22958,7 @@ metalFarpScene.steps = {
     -- Step 5: Ammo cargo (t0 + 10 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 30, angle = 340 },
+        polar                    = { distance = 75, angle = 346 },
         delayAfterPreviousStep   = 4.5,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
@@ -22964,7 +22969,7 @@ metalFarpScene.steps = {
     -- Step 6: M92 light panel at tent height (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 30, angle = 349 },
+        polar                    = { distance = 75, angle = 355 },
         delayAfterPreviousStep   = 5,
         relativeHeadingInDegrees = 310,
         relativeAltitudeInMeters = 4,
@@ -22975,7 +22980,7 @@ metalFarpScene.steps = {
     -- Step 7: Windsock near the light, same timing (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 28, angle = 340 },
+        polar                    = { distance = 73, angle = 346 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 220,
         relativeAltitudeInMeters = 0,

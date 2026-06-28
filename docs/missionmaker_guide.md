@@ -1097,6 +1097,8 @@ When `canParachute = true`, up to three F10 menu entries become available. Each 
 - **Parachute Troops** — drops all embarked troops
 - **Parachute Vehicle** — drops the loaded whole vehicle
 
+> **Restriction — DCS native cargo:** crates loaded via the **DCS standard cargo UI** (not the CTLD F10 menu) are **excluded from the Parachute Crates menu**, even if CTLD has detected and claimed them in-flight. This is a hard DCS limitation: no API exists to free an aircraft cargo slot in-flight, so calling `destroy()` on a native cargo would permanently block the slot for the session. Players must use the CTLD F10 "Load Crate" menu to load crates that they intend to parachute.
+
 All three share the same altitude gate: the action is refused (with an on-screen message) if the aircraft is below the configured minimum AGL for that payload type.
 
 ### 6.2 Landing position algorithm

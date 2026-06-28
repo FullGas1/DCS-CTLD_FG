@@ -159,15 +159,19 @@ if step == 1 then
         end
     end
 
-    -- Lancement direct de la scène (bypass guards pour recette visuelle)
+    -- Lancement direct de la scène (bypass guards pour recette visuelle).
+    -- Step 21 (func-only) appelle CTLDFOBManager:_registerDeployedFOB(ctx.scene)
+    -- automatiquement — pas besoin de callback onComplete ici.
     local sceneStarted = CTLDSceneManager.getInstance():playScene(
-        transport, "fobScene",
-        { player = playerName, centroid = centroid },
-        function(scene)
-            CTLDFOBManager.getInstance():_onFOBBuilt(
-                scene, transport:getName(), playerName, centroid,
-                cId, transport:getCountry(), {})
-        end
+        transport, "FOB",
+        {
+            player        = playerName,
+            centroid      = centroid,
+            coalitionId   = cId,
+            countryId     = transport:getCountry(),
+            transportName = transport:getName(),
+            cratesUsed    = {},
+        }
     )
     check("F-SCN.3", "scene fobScene demarree", sceneStarted ~= nil)
 

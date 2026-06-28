@@ -12,9 +12,9 @@
 --   Fuel truck              — 35 m / 8°   heading 90° (t+5 s)
 --   Repair truck            — 35 m / 11°  heading 90° (t+5 s)
 --   Tent                    — 35 m / 10°  heading 90° (t+5.5 s)
---   Ammo cargo              — 30 m / 340°             (t+10 s)
---   M92 light panel         — 30 m / 349° alt+4 m    (t+15 s)
---   Windsock                — 26 m / 357°             (t+15 s)
+--   Ammo cargo              — 75 m / 346°             (t+10 s)
+--   M92 light panel         — 75 m / 355° alt+4 m    (t+15 s)
+--   Windsock                — 73 m / 346°             (t+15 s)
 --   Warehouse stocking      — 10 000 L × 4 fuel types (t+20 s)
 --
 -- Dependencies: CTLDObjectRegistry, CTLDSceneManager, CTLDUtils
@@ -169,7 +169,7 @@ metalFarpScene.steps = {
     -- Step 2: Fuel truck — right side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 60, angle = 342 },
+        polar                    = { distance = 60, angle = 342.5 },
         delayAfterPreviousStep   = 5,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
@@ -180,7 +180,7 @@ metalFarpScene.steps = {
     -- Step 3: Repair truck — left side under tent (t0 + 5 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 61, angle = 340 },
+        polar                    = { distance = 61, angle = 340.5 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 90,
         relativeAltitudeInMeters = 0,
@@ -202,7 +202,7 @@ metalFarpScene.steps = {
     -- Step 5: Ammo cargo (t0 + 10 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 30, angle = 340 },
+        polar                    = { distance = 75, angle = 346 },
         delayAfterPreviousStep   = 4.5,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
@@ -213,7 +213,7 @@ metalFarpScene.steps = {
     -- Step 6: M92 light panel at tent height (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 30, angle = 349 },
+        polar                    = { distance = 75, angle = 355 },
         delayAfterPreviousStep   = 5,
         relativeHeadingInDegrees = 310,
         relativeAltitudeInMeters = 4,
@@ -224,7 +224,7 @@ metalFarpScene.steps = {
     -- Step 7: Windsock near the light, same timing (t0 + 15 s).
     -- ----------------------------------------------------------------
     {
-        polar                    = { distance = 28, angle = 340 },
+        polar                    = { distance = 73, angle = 346 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 220,
         relativeAltitudeInMeters = 0,

@@ -150,16 +150,16 @@ local _SHAPE_NAME = {
 -- dist_m    : metres from FOB reference point.
 -- ----------------------------------------------------------------
 local _STATIC_LAYOUT = {
-    f1  = { angle =   0, dist = 28 },   -- 12 o'clock — landmark (crane / tower)
-    fh1 = { angle =  90, dist = 22 },   -- E — worker near Tower Crane (f3)
-    f2  = { angle =  60, dist = 22 },   -- NE — materials
-    f3  = { angle =  90, dist = 28 },   -- 3 o'clock — Tower Crane
-    fh2 = { angle = 210, dist = 24 },   -- SSW — worker near Camouflage06 (f5)
-    f4  = { angle = 180, dist = 25 },   -- 6 o'clock — materials
-    f5  = { angle = 205, dist = 31 },   -- SSW — Camouflage06 tent (shifted 15 m toward helo)
-    fh3 = { angle = 265, dist = 22 },   -- W — worker near Cargo05 (f6)
-    f6  = { angle = 270, dist = 28 },   -- 9 o'clock — materials
-    f7  = { angle = 315, dist = 20 },   -- NW — materials
+    f1  = { angle =   0, dist = 28 },             -- 12 o'clock — landmark (crane / tower)
+    fh1 = { angle =  90, dist = 22, hdgDeg =  90 }, -- E — worker faces E (toward Tower Crane)
+    f2  = { angle =  60, dist = 22 },             -- NE — materials
+    f3  = { angle =  90, dist = 28 },             -- 3 o'clock — Tower Crane
+    fh2 = { angle = 210, dist = 24, hdgDeg = 210 }, -- SSW — worker faces SSW (toward Camouflage06)
+    f4  = { angle = 180, dist = 25 },             -- 6 o'clock — materials
+    f5  = { angle = 205, dist = 31 },             -- SSW — Camouflage06 tent
+    fh3 = { angle = 265, dist = 22, hdgDeg = 265 }, -- W — worker faces W (toward Cargo05)
+    f6  = { angle = 270, dist = 28 },             -- 9 o'clock — materials
+    f7  = { angle = 315, dist = 20 },             -- NW — materials
 }
 
 -- Ordered scan list (only for prescript type-read loop)
@@ -215,7 +215,7 @@ local function _spawnMissionStatic(ctx, name)
         type          = typeName,
         x             = nx,
         y             = ez,
-        heading       = ctx.scene._refHdgRad,
+        heading       = ctx.scene._refHdgRad + math.rad(layout.hdgDeg or 0),
         start_time    = 0,
         transportable = { randomTransportable = false },
     }

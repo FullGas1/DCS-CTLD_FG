@@ -1380,12 +1380,14 @@ Minor cleanups identified — low priority, no functional impact.
     `_checkAutoUnpack` : guards spatiaux FOB avant destruction crates ; params `cratesUsed`+
     `centroid` passés à `playSceneAtPos`. CS FARP + Metal FARP : compatibles sans modification.
 
-  **TODO [P]** — **Recette : scènes FOB + CS FARP + Metal FARP avec nouvelle logique CtldScene** :
-    Valider live DCS que les 3 scènes fonctionnent correctement avec `preFunc`/`abort`/`model.onComplete`
-    en place : (1) FOB F10 flow — step 21 enregistre bien LGZ+beacon+event ; (2) FOB parachute
-    auto-unpack — guards spatiaux bloquent si trop proche LGZ, scène se joue et LGZ enregistrée ;
-    (3) CS FARP parachute — comportement inchangé ; (4) Metal FARP F10 — warehouse stocking ok.
-    Scripts de recette : `diag_parachute_csfarp_setup.lua` existant + nouveau script FOB.
+  **TODO [P] ✅ DONE [2026-06-28]** — **Recette : scènes FOB + CS FARP + Metal FARP avec nouvelle logique CtldScene** :
+    4/4 sous-cas validés live DCS :
+    (1) FOB F10 — step 21 (func-only) appelle `_registerDeployedFOB(ctx.scene)` → LGZ+beacon enregistrés ✅
+    (2) FOB parachute — `checkSpatialGuards` bloque si LGZ proche, `_checkAutoUnpack` déclenche scene+FOB ✅
+    (3) CS FARP parachute — `_checkAutoUnpack` route vers `playSceneAtPos` (generic, pas fobCompatible) ✅
+    (4) Metal FARP F10 — step 9 `addLiquid` warehouse stocking (ou skip propre si mod absent) ✅
+    Scripts : `scenario_fob_scene.lua` (fixé : nom "FOB", params complets, plus de callback `_onFOBBuilt`),
+    `scenario_p2_fob_parachute.lua`, `scenario_p3_csfarp_parachute.lua`, `scenario_p4_metal_farp.lua`.
 
   **TODO [Q]** — **Feature : cycle de vie scène complet — composants, index inverse, onRepack, warehouse** :
     Architecture validée 2026-06-09. Specs détaillées :
