@@ -244,7 +244,7 @@ function CTLDConfig:load()
     self.settings["fobLogisticZoneRadius"]              = 150  -- radius (m) of the logistic zone created around a deployed FOB
     self.settings["fobDestructionThreshold"]            = 0.5  -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
     self.settings["fobTroopPickupRadius"]               = 150  -- radius (m) within which troops can be picked up at a FOB (troopPickupAtFOB)
-    self.settings["enableFARPRepack"]                   = false -- if true, players can pack deployed FARP scenes back into crates to redeploy elsewhere
+    self.settings["enableFARPRepack"]                   = true  -- if true, players can pack deployed FARP scenes back into crates to redeploy elsewhere
 
 
     -- ═══════════════════════════════════════════════════════════

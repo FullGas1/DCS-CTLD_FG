@@ -494,7 +494,7 @@ ctld.spawnableCrates["My Deployments"] = {
 
 ### FARP Repack (`enableFARPRepack`)
 
-When `enableFARPRepack = true`, a **Pack FARP** submenu appears under **Crate Commands** whenever the player is on the ground within 300 m of a deployed FARP scene that supports repack. Selecting it:
+When `enableFARPRepack = true` (default), a **Pack Equipt** submenu appears under **Crate Commands** whenever the player is on the ground within 300 m of a deployed FARP scene that supports repack. Selecting it:
 
 1. Captures the current fuel levels from the FARP warehouse (snapshot).
 2. Destroys all spawned scene objects.
@@ -504,7 +504,7 @@ When those crates are later unpacked at a new location, the warehouse is restore
 
 **Configuration:**
 ```lua
-cfg.settings["enableFARPRepack"] = true   -- default: false
+cfg.settings["enableFARPRepack"] = false  -- default: true (set to false to disable)
 ```
 
 **Supported scenes:** `Countryside FARP`, `Metal FARP`.
