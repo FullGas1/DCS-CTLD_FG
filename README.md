@@ -38,6 +38,10 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
   - [Parachute Configuration](#parachute-configuration)
   - [Slingload Configuration](#slingload-configuration)
   - [FOB Configuration](#fob-configuration)
+  - [Beacon Layer Configuration](#beacon-layer-configuration)
+  - [Smoke Drop Configuration](#smoke-drop-configuration)
+  - [Minefield Configuration](#minefield-configuration)
+  - [Miscellaneous Parameters](#miscellaneous-parameters)
 - [Mission Editor Script Functions](#mission-editor-script-functions)
   - [Troops](#troops)
   - [Zones](#zones)
@@ -54,7 +58,9 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - [FARP Deployment](#farp-deployment)
 - [Radio Beacons](#radio-beacons)
 - [JTAC Auto-Lase](#jtac-auto-lase)
+- [Smoke Drop](#smoke-drop)
 - [Recon and Target Marking](#recon-and-target-marking)
+- [Minefield Deployment](#minefield-deployment)
 - [AA System Construction](#aa-system-construction)
 - [Pack Equipt](#pack-equipt)
 - [Migration from v1](#migration-from-v1)
@@ -72,9 +78,12 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - **Virtual Slingload** — simulate cargo sling loading without DCS sling-load physics bugs (hover detection, overspeed loss)
 - **FOB Construction** — assemble a Forward Operating Base from dropped crates; becomes a new spawn and logistics point
 - **FARP Deployment** — deploy a Forward Arming and Refuelling Point using a helicopter-carried crate sequence
-- **Radio Beacons** — deploy homing beacons (VHF / UHF / FM) usable by all ADF-capable aircraft; battery timer; F10 map markers
+- **FARP Repack** — pack a deployed FARP scene back into crates and redeploy it elsewhere; warehouse fuel levels snapshot and restore
+- **Radio Beacons** — deploy homing beacons (VHF / UHF / FM) usable by all ADF-capable aircraft; battery timer; optional F10 map layer
 - **JTAC Auto-Lase** — deploy JTAC units that auto-lase the nearest enemy, mark with smoke, give 9-lines, orbit (drones), optional SRS speech
-- **Recon** — scan areas for enemy contacts and display them as F10 map markers
+- **Smoke Drop** — drop coloured smoke grenades from the F10 menu; optional auto-resume keeps smoke visible continuously
+- **Recon** — scan areas for enemy contacts and display them as F10 map markers with configurable layer and auto-refresh
+- **Minefield** — deploy a staggered landmine field in front of the transport; optional F10 map outline; player-triggered clear
 - **AA Systems** — multi-crate assembly: HAWK, NASAMS (BLUE), KUB, BUK (RED), Patriot, S-300; repair crates; configurable limits per coalition; defined once in `CTLDCrateAssemblyManager.TEMPLATES`
 - **AI Zones (Feature S)** — configure pickup and dropoff zones for AI transports independently of player zones; supports troops, vehicles, scenes and AA systems
 - **Waypoint Zones** — automatically route deployed troops to an objective marker
@@ -450,6 +459,12 @@ Custom roles beyond the standard set (e.g. `civ1`, `civ2`, `civ3`) are supported
 # ctld.JTAC_smokeColour_RED: 4   -- 0=Green 1=Red 2=White 3=Orange 4=Blue
 # ctld.JTAC_smokeColour_BLUE: 1
 # ctld.enableAutoOrbitingFlyingJtacOnTarget: false
+# ctld.JTAC_laseIntervalSeconds: 15     -- auto-lase loop reschedule delay (s) when actively lasing a target
+# ctld.JTAC_searchIntervalSeconds: 10   -- auto-lase loop reschedule delay (s) when searching (no target acquired)
+# ctld.JTAC_smokeMarginOfError: 50      -- max position error (m) when popping target smoke
+# ctld.JTAC_smokeOffset_x: 0.0         -- additional X offset applied to target smoke position (m)
+# ctld.JTAC_smokeOffset_y: 2.0         -- height offset applied to target smoke position (m)
+# ctld.JTAC_smokeOffset_z: 0.0         -- additional Z offset applied to target smoke position (m)
 ```
 
 ### Parachute Configuration
@@ -494,9 +509,55 @@ Virtual slingload uses hover detection instead of DCS sling physics (avoids cras
 # ctld.troopPickupAtFOB: true
 # ctld.fobMinDistanceFromZones: 500   -- minimum distance from existing logistic zones (m)
 # ctld.fobLogisticZoneRadius: 150     -- logistic zone radius around the built FOB (m)
+# ctld.fobDestructionThreshold: 0.5   -- fraction of scene objects destroyed before FOB is considered lost (0.0–1.0)
 # ctld.radioSound: beacon.ogg
 # ctld.radioSoundFC3: beaconsilent.ogg
 # ctld.deployedBeaconBattery: 30      -- beacon battery life (minutes)
+```
+
+### Beacon Layer Configuration
+
+When `ctld.beaconLayerEnabled` is true, each deployed beacon is drawn as a coloured circle icon on the F10 map.
+
+```lua
+-- In the YAML block:
+# ctld.beaconLayerEnabled: false         -- draw beacon positions as icons on the F10 map
+# ctld.beaconAutoRefreshLayer: false     -- auto-add newly-dropped beacons to the active layer
+# ctld.beaconRefreshInterval: 60         -- seconds between beacon layer refreshes
+# ctld.beaconIconRadius: 25              -- radius (m) of each beacon circle icon on the F10 map
+# ctld.beaconTextSize: 12                -- font size of beacon name / frequency label
+```
+
+Beacon icon colour is set as an RGBA table (not a YAML line) in `CTLD_userConfig.lua`:
+
+```lua
+_cfg.settings["beaconIconColor"] = { 1.0, 0.5, 0.0, 1.0 }  -- R, G, B, A  (default: orange)
+```
+
+### Smoke Drop Configuration
+
+```lua
+# In the YAML block:
+# ctld.enableSmokeDrop: true              -- allow transport units to drop smoke from F10 menu
+# ctld.smokeAutoResume: false             -- global default for smoke auto-resume (per-player toggle overrides)
+# ctld.smokeAutoResumeInterval: 270       -- seconds before a smoke is re-triggered (default 4 min 30 s; DCS smoke lasts ~5 min)
+```
+
+### Minefield Configuration
+
+```lua
+# In the YAML block:
+# ctld.showMinefieldOnF10Map: true        -- draw a bounding outline on the F10 map when a minefield is deployed
+# ctld.demineRadius: 150                  -- max distance (m) from player to minefield center for "Clear Mine Field" to appear
+```
+
+### Miscellaneous Parameters
+
+```lua
+# In the YAML block:
+# ctld.groundAglThreshold: 5.0           -- AGL (m) below which a stationary aircraft is considered on the ground
+# ctld.crateSpacing: 5                   -- spacing (m) between consecutive crate spawn positions along the drop axis
+# ctld.spawnDistanceInCircle: 10         -- extra radius (m) added when placing units in circle formation on deploy
 ```
 
 ---
@@ -705,31 +766,49 @@ Menu structure:
 ```
 F10 Other / [Transport Name]
 ├── Troop Commands
-│   ├── Load Troops          (at pickup zone)
-│   ├── Load [Custom Group]  (custom template entries)
-│   ├── Unload Troops        (on ground with troops aboard)
-│   ├── Parachute Troops     (in air, if canParachuteDrop enabled)
-│   └── Fast Rope Troops     (low altitude, if enabled)
+│   ├── Load Troops                  (at pickup zone; one entry per template)
+│   ├── Extract Troops from Field    (if extractable troops nearby)
+│   ├── Disembark Troops             (on ground with troops aboard)
+│   ├── Check Cargo                  (lists current aboard manifest)
+│   └── Parachute Troops             (in air, canParachuteDrop enabled)
+├── Request Equipment                (at logistic zone: zone → category → crate)
+├── Vehicle Commands
+│   ├── Load Vehicle                 (whole vehicle pick-up, on ground)
+│   ├── Unload Vehicle               (on ground with whole vehicle aboard)
+│   └── Parachute Vehicle            (in air, canParachuteDrop enabled)
 ├── Crate Commands
-│   ├── Spawn Crate          (at logistic zone: sub-menu by category)
-│   ├── Load Crate           (hover above crate, or menu if loadCrateFromMenu=true)
-│   ├── Drop Crate           (releases loaded crate)
-│   ├── Unpack Crate         (on ground, assembles unit)
-│   ├── Slingload Release    (virtual sling: release in flight)
-│   ├── Slingload Cut        (virtual sling: emergency cut)
-│   └── Pack Equipt          (pack a nearby FARP or ground vehicle into crates; ground only)
-├── JTAC Commands
-│   ├── Spawn JTAC           (at logistic zone)
-│   └── JTAC Status          (all active JTACs)
-├── FOB Commands
-│   ├── Spawn FOB Crate      (at logistic zone)
-│   └── Build FOB            (when enough FOB crates dropped)
-├── FARP Commands
-│   └── Deploy FARP          (scene: sequence of static spawns around heli)
-├── Beacon Commands
-│   └── Drop Beacon
-└── Smoke Commands
-    └── Drop Smoke
+│   ├── Spawn Crate → [Category] → [Crate]   (at logistic zone)
+│   ├── Load Crate                   (hover-load, or menu if loadCrateFromMenu=true)
+│   ├── Drop Crate(s)                (releases loaded crate in flight)
+│   ├── Unpack Crate                 (on ground, assembles unit)
+│   ├── Pack Equipt                  (ground only; pack nearby FARP or vehicle)
+│   │   ├── Pack [Vehicle name]      (each packable ground vehicle nearby)
+│   │   └── Pack [FARP name]         (each repackable FARP scene nearby)
+│   ├── Parachute Crates             (in air, canParachuteDrop enabled)
+│   ├── Slingload Release            (virtual sling: controlled drop in flight)
+│   └── Slingload Cut                (virtual sling: emergency cut, crate falls)
+├── Radio Beacons
+│   ├── Drop Beacon                  (deploys beacon at current position)
+│   ├── Remove Closest Beacon        (removes nearest active beacon)
+│   └── List Beacons                 (shows all active beacons, freq, time remaining)
+├── FOBs List                        (lists all active FOBs and their positions)
+├── RECON
+│   ├── RECON Scan / RECON Stop      (manual scan for enemy contacts)
+│   ├── Toggle Auto-Refresh          (enable / disable periodic re-scan)
+│   └── Toggle Layer [name]          (show / hide a RECON map layer)
+├── Smoke Commands
+│   ├── Drop Red / Blue / Orange / Green Smoke
+│   └── Toggle Smoke Auto-Resume     (keeps smoke continuously refreshed)
+├── Mine Field
+│   └── Clear Mine Field             (appears when near a deployed minefield)
+└── JTAC Commands
+    ├── Request JTAC Equipment       (spawn JTAC crate at logistic zone)
+    ├── JTAC Status                  (all active JTACs and their targets)
+    └── [JTAC name]
+        ├── Toggle Lasing
+        ├── Spot Corrections
+        ├── Smoke on Target
+        └── Request 9-Line
 ```
 
 ---
@@ -849,6 +928,18 @@ Beacons broadcast on HF/FM, UHF and VHF simultaneously. Frequencies are drawn fr
 **F10 menu** — if `ctld.JTAC_jtacStatusF10 = true`, a **JTAC Status** entry lists all active JTACs, their target, laser code and options (toggle lasing, request smoke, request 9-line).
 
 **Drone orbit** — if `ctld.enableAutoOrbitingFlyingJtacOnTarget = true`, flying JTAC units (drones) orbit above their lased target; they return to their flight plan when no target is visible.
+
+---
+
+## Smoke Drop
+
+Transport units can drop coloured smoke grenades from the **Smoke Commands** F10 menu.
+
+**Colours available:** Red, Blue, Orange, Green (colours hard-coded; the four entries are always present when `ctld.enableSmokeDrop = true`).
+
+**Auto-Resume** — select **Toggle Smoke Auto-Resume** from the menu to keep smoke continuously active. When enabled, CTLD re-triggers smoke automatically every `ctld.smokeAutoResumeInterval` seconds (default 270 s — just before DCS smoke dissipates at ~300 s). The toggle is per-player; it can be enabled at any time and persists until the player toggles it off or disconnects.
+
+**Disable globally:** set `ctld.enableSmokeDrop = false` in the YAML block.
 
 ---
 
@@ -973,6 +1064,31 @@ Pack a deployed FARP scene back into crates to redeploy it elsewhere. The FARP w
 **Enable:** `_cfg.settings["enableFARPRepack"] = true` (default: `true`)
 
 **Supported scenes:** `Countryside FARP`, `Metal FARP`. Custom scenes can support repack by implementing an `onRepack(scene, repackData)` hook — see [MM guide §16](docs/missionmaker_guide.md).
+
+---
+
+## Minefield Deployment
+
+A minefield deploys a staggered grid of landmine static objects in front of the transport unit. The layout uses a quinconce pattern (alternating row offsets) for realistic coverage.
+
+**Deploying from the F10 menu** — a FARP scene or crate unpack can trigger minefield deployment automatically. The scene calls `mineFieldScene.setLandMineAuto()` internally; the player sees the mines spawn around the aircraft.
+
+**Scripted deployment (Mission Editor):**
+
+```lua
+-- Simple call: explicit grid
+-- setLandMine(unitObj, distFromUnit, nbColumns, nbPerColumn, colSpacing, rowSpacing)
+mineFieldScene.setLandMine(Unit.getByName("helo1"), 20, 5, 6, 12, 15)
+
+-- Parametric call: specify area dimensions and count; spacing computed automatically
+-- setLandMineAuto(unitObj, distFromUnit, widthMeters, lengthMeters, nbMines)
+local ok, result = mineFieldScene.setLandMineAuto(Unit.getByName("helo1"), 30, 50, 80, 40)
+-- deploys ~40 mines in a 50 m wide × 80 m long field starting 30 m ahead
+```
+
+**F10 map outline** — when `ctld.showMinefieldOnF10Map = true` (default), a bounding quadrilateral is drawn on the F10 map to mark the minefield extent.
+
+**Clearing** — when the player is within `ctld.demineRadius` (default 150 m) of a minefield center, **Clear Mine Field** appears in the F10 menu. Selecting it destroys all mines in that set and removes the F10 map outline.
 
 ---
 
