@@ -589,7 +589,7 @@ function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
     if playerObj then
         self:refreshUnpackSection(playerObj)
-        self:refreshPackSection(playerObj)
+        self:refreshPackEquiptSection(playerObj)
     end
 end
 
@@ -814,12 +814,15 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     menu:refresh()
 end
 
---- Rebuild the "Pack FARP" dynamic submenu for playerObj.
--- Appears only when enableFARPRepack = true.
--- Lists repackable FARP scene instances within 300 m.
+--- Rebuild the unified "Pack Equipt" dynamic submenu for playerObj.
+-- Appears only when enableFARPRepack or enablePackingVehicles is true.
+-- Visible only when on the ground — absent in flight.
+-- Lists repackable FARP scenes (within 300 m) and packable vehicles nearby.
 -- @param playerObj CTLDPlayer
-function CTLDCrateManager:refreshPackSection(playerObj)
-    if ctld.gs("enableFARPRepack") ~= true then return end
+function CTLDCrateManager:refreshPackEquiptSection(playerObj)
+    local farpEnabled    = ctld.gs("enableFARPRepack") == true
+    local vehicleEnabled = ctld.gs("enablePackingVehicles") == true
+    if not (farpEnabled or vehicleEnabled) then return end
 
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
@@ -830,33 +833,44 @@ function CTLDCrateManager:refreshPackSection(playerObj)
 
     local root      = ctld.tr("CTLD")
     local cratesSub = ctld.tr("Crate Commands")
-    local packSub   = ctld.tr("Pack FARP")
+    local packSub   = ctld.tr("Pack Equipt")
 
-    -- Always clear any previously built branch first.
     menu:clearBranch({ root, cratesSub, packSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) then return end
-
-    -- In-flight: show submenu only as a disabled hint that landing is required.
-    if ctld.utils.inAir(transport) then
-        menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("Land to pack a FARP"), function() end, {})
+    if not (transport and transport:isExist()) then
         menu:refresh()
         return
     end
 
-    -- On ground: only show submenu when at least one repackable scene is nearby.
-    local sm     = CTLDSceneManager.getInstance()
-    local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
-    if #scenes == 0 then
-        -- No FARP nearby: do not add the submenu at all.
+    -- In-flight: submenu absent.
+    if ctld.utils.inAir(transport) then
+        menu:refresh()
+        return
+    end
+
+    -- Collect FARP scenes to pack.
+    local scenes = {}
+    if farpEnabled then
+        local sm = CTLDSceneManager.getInstance()
+        scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+    end
+
+    -- Collect packable vehicles.
+    local packableVehicles = {}
+    if vehicleEnabled then
+        packableVehicles = CTLDVehicleSpawner.getInstance():findPackableVehicles(transport)
+    end
+
+    -- If nothing to pack, do not add the submenu.
+    if #scenes == 0 and #packableVehicles == 0 then
         menu:refresh()
         return
     end
 
     menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
+
+    -- FARP entries
     for _, scene in ipairs(scenes) do
         local label = ctld.tr("Pack %1", scene._modelName)
         menu:addCommand({ root, cratesSub, packSub }, label,
@@ -881,9 +895,7 @@ function CTLDCrateManager:refreshPackSection(playerObj)
                 local mgr_c = CTLDCrateManager.getInstance()
                 local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
                 if not (cd and desc) then return end
-                -- Capture warehouse snapshot then destroy scene objects.
                 local repackData = smgr:packScene(sc)
-                -- Spawn N crates near the transport with repackData in metadata.
                 local required  = cd.cratesRequired or 1
                 local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
                 local spacing   = ctld.gs("crateSpacing") or 5
@@ -905,6 +917,21 @@ function CTLDCrateManager:refreshPackSection(playerObj)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })
     end
+
+    -- Vehicle entries
+    for _, v in ipairs(packableVehicles) do
+        menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
+            function(arg)
+                CTLDVehicleSpawner.getInstance():packVehicle(
+                    arg.transportName, arg.packableUnitName, arg)
+            end,
+            { transportName    = playerObj.unitName,
+              packableUnitName = v.unitName,
+              groupId          = playerObj.groupId,
+              unitName         = playerObj.unitName,
+              coalition        = playerObj.coalition })
+    end
+
     menu:refresh()
 end
 
@@ -2571,14 +2598,7 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
-    if ctld.gs("enableFARPRepack") == true then
-        -- Pack FARP submenu is built dynamically by refreshPackSection (only when a FARP
-        -- is nearby); setBranchEnabled is not needed here — refreshPackSection handles it.
-        self:refreshPackSection(playerObj)
-    end
-    if ctld.gs("enablePackingVehicles") == true then
-        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
-    end
+    self:refreshPackEquiptSection(playerObj)
 
     -- Parachute Crates: enabled only in air + CTLD crates loaded
     if caps.canParachuteDrop then
@@ -2732,15 +2752,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    if ctld.gs("enableFARPRepack") == true then
-        self:refreshPackSection(playerObj)
-    end
-
-    if ctld.gs("enablePackingVehicles") == true then
-        local packSub   = ctld.tr("Pack Vehicle")
-        menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })
-        CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
-    end
+    self:refreshPackEquiptSection(playerObj)
 
     -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
     if caps.canParachuteDrop then

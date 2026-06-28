@@ -1318,57 +1318,19 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     end, nil, timer.getTime())
 end
 
---- Refresh the "Pack Vehicle" submenu for a single player by unit name.
+--- Delegates to CTLDCrateManager:refreshPackEquiptSection for a single player by unit name.
 -- @param unitName string
 function CTLDVehicleSpawner:refreshPackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
-    if playerObj then self:refreshPackSection(playerObj) end
+    if playerObj then
+        CTLDCrateManager.getInstance():refreshPackEquiptSection(playerObj)
+    end
 end
 
---- Rebuild the "Pack Vehicle" dynamic submenu for playerObj.
--- Scans for packable ground vehicles within maximumDistancePackableUnitsSearch.
--- Called on menu build, on land, and after vehicle spawn (unpack).
+--- Delegates to CTLDCrateManager:refreshPackEquiptSection (unified Pack Equipt menu).
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshPackSection(playerObj)
-    if ctld.gs("enablePackingVehicles") ~= true then return end
-
-    local mm   = ctld.MenuManager:getInstance()
-    local menu = mm:getMenuByGroupId(playerObj.groupId)
-    if not menu then return end
-
-    local root      = ctld.tr("CTLD")
-    local cratesSub = ctld.tr("Crate Commands")
-    local packSub   = ctld.tr("Pack Vehicle")
-
-    menu:clearBranch({ root, cratesSub, packSub })
-
-    local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("Land to pack vehicles"), function() end, {})
-        menu:refresh()
-        return
-    end
-
-    local packable = self:findPackableVehicles(transport)
-    if #packable == 0 then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("No packable vehicles nearby"), function() end, {})
-    else
-        for _, v in ipairs(packable) do
-            menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
-                function(arg)
-                    CTLDVehicleSpawner.getInstance():packVehicle(
-                        arg.transportName, arg.packableUnitName, arg)
-                end,
-                { transportName    = playerObj.unitName,
-                  packableUnitName = v.unitName,
-                  groupId          = playerObj.groupId,
-                  unitName         = playerObj.unitName,
-                  coalition        = playerObj.coalition })
-        end
-    end
-    menu:refresh()
+    CTLDCrateManager.getInstance():refreshPackEquiptSection(playerObj)
 end
 
 -- ============================================================

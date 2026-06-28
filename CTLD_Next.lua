@@ -1750,17 +1750,12 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
---- Pack FARP submenu
-ctld.i18n["en"]["Pack FARP"]                                   = "Pack FARP"
+--- Pack Equipt submenu (unified — replaces Pack FARP + Pack Vehicle)
+ctld.i18n["en"]["Pack Equipt"]                                 = "Pack Equipt"
 ctld.i18n["en"]["Pack %1"]                                     = "Pack %1"
-ctld.i18n["en"]["Land to pack a FARP"]                         = "Land to pack a FARP"
-ctld.i18n["en"]["No repackable FARP nearby"]                   = "No repackable FARP nearby"
 ctld.i18n["en"]["You must be on the ground to pack a FARP."]   = "You must be on the ground to pack a FARP."
 ctld.i18n["en"]["FARP no longer deployed."]                    = "FARP no longer deployed."
 ctld.i18n["en"]["FARP packed successfully!"]                   = "FARP packed successfully!"
-
---- Pack Vehicle submenu
-ctld.i18n["en"]["Land to pack vehicles"] = "Land to pack vehicles"
 ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
 ctld.i18n["en"]["Vehicle no longer exists."] = "Vehicle no longer exists."
 ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle type."
@@ -2232,17 +2227,12 @@ ctld.i18n["fr"]["You must land before unpacking crates!"] = "Vous devez atterrir
 ctld.i18n["fr"]["Not enough crates nearby to unpack!"] = "Pas assez de caisses à proximité pour déballer !"
 ctld.i18n["fr"]["%1 unpacked successfully!"] = "%1 déballé avec succès !"
 
---- Pack FARP submenu
-ctld.i18n["fr"]["Pack FARP"]                                   = "Remballer FARP"
+--- Pack Equipt submenu (unifié — remplace Pack FARP + Pack Vehicle)
+ctld.i18n["fr"]["Pack Equipt"]                                 = "Emballer équipement"
 ctld.i18n["fr"]["Pack %1"]                                     = "Remballer %1"
-ctld.i18n["fr"]["Land to pack a FARP"]                         = "Atterrissez pour remballer un FARP"
-ctld.i18n["fr"]["No repackable FARP nearby"]                   = "Aucun FARP remballable à proximité"
 ctld.i18n["fr"]["You must be on the ground to pack a FARP."]   = "Vous devez être au sol pour remballer un FARP."
 ctld.i18n["fr"]["FARP no longer deployed."]                    = "Le FARP n'est plus déployé."
 ctld.i18n["fr"]["FARP packed successfully!"]                   = "FARP remballé avec succès !"
-
---- Pack Vehicle submenu
-ctld.i18n["fr"]["Land to pack vehicles"] = "Atterrissez pour emballer des véhicules"
 ctld.i18n["fr"]["No packable vehicles nearby"] = "Aucun véhicule emballable à proximité"
 ctld.i18n["fr"]["Vehicle no longer exists."] = "Le véhicule n'existe plus."
 ctld.i18n["fr"]["Cannot pack this vehicle type."] = "Impossible d'emballer ce type de véhicule."
@@ -2715,17 +2705,12 @@ ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar a
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
---- Pack FARP submenu
-ctld.i18n["es"]["Pack FARP"]                                   = "Reempacar FARP"
+--- Pack Equipt submenu (unificado — reemplaza Pack FARP + Pack Vehicle)
+ctld.i18n["es"]["Pack Equipt"]                                 = "Empacar equipo"
 ctld.i18n["es"]["Pack %1"]                                     = "Reempacar %1"
-ctld.i18n["es"]["Land to pack a FARP"]                         = "Aterriza para reempacar un FARP"
-ctld.i18n["es"]["No repackable FARP nearby"]                   = "No hay FARP reempacable cerca"
 ctld.i18n["es"]["You must be on the ground to pack a FARP."]   = "Debes estar en tierra para reempacar un FARP."
 ctld.i18n["es"]["FARP no longer deployed."]                    = "El FARP ya no está desplegado."
 ctld.i18n["es"]["FARP packed successfully!"]                   = "¡FARP reempacado con éxito!"
-
---- Pack Vehicle submenu
-ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehículos"
 ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetables cercanos"
 ctld.i18n["es"]["Vehicle no longer exists."] = "El vehículo ya no existe."
 ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehículo."
@@ -3143,11 +3128,9 @@ ctld.i18n["ko"]["AI %1 loaded: %2"]                    = "AI %1이(가) 차량�
 ctld.i18n["ko"]["AI %1 unloaded: %2"]                  = "AI %1이(가) 차량을 하역했습니다: %2"
 ctld.i18n["ko"]["AI %1 delivered: %2"]                 = "AI %1이(가) 차량을 인도했습니다: %2"
 
---- Pack FARP submenu
-ctld.i18n["ko"]["Pack FARP"]                                   = "FARP 재포장"
+--- Pack Equipt submenu (통합 — Pack FARP + Pack Vehicle 대체)
+ctld.i18n["ko"]["Pack Equipt"]                                 = "장비 포장"
 ctld.i18n["ko"]["Pack %1"]                                     = "%1 재포장"
-ctld.i18n["ko"]["Land to pack a FARP"]                         = "FARP를 재포장하려면 착륙하세요"
-ctld.i18n["ko"]["No repackable FARP nearby"]                   = "근처에 재포장 가능한 FARP 없음"
 ctld.i18n["ko"]["You must be on the ground to pack a FARP."]   = "FARP를 재포장하려면 지상에 있어야 합니다."
 ctld.i18n["ko"]["FARP no longer deployed."]                    = "FARP가 더 이상 배치되어 있지 않습니다."
 ctld.i18n["ko"]["FARP packed successfully!"]                   = "FARP가 성공적으로 재포장되었습니다!"
@@ -11705,7 +11688,7 @@ function CTLDCrateManager:refreshUnpackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
     if playerObj then
         self:refreshUnpackSection(playerObj)
-        self:refreshPackSection(playerObj)
+        self:refreshPackEquiptSection(playerObj)
     end
 end
 
@@ -11930,12 +11913,15 @@ function CTLDCrateManager:refreshUnpackSection(playerObj)
     menu:refresh()
 end
 
---- Rebuild the "Pack FARP" dynamic submenu for playerObj.
--- Appears only when enableFARPRepack = true.
--- Lists repackable FARP scene instances within 300 m.
+--- Rebuild the unified "Pack Equipt" dynamic submenu for playerObj.
+-- Appears only when enableFARPRepack or enablePackingVehicles is true.
+-- Visible only when on the ground — absent in flight.
+-- Lists repackable FARP scenes (within 300 m) and packable vehicles nearby.
 -- @param playerObj CTLDPlayer
-function CTLDCrateManager:refreshPackSection(playerObj)
-    if ctld.gs("enableFARPRepack") ~= true then return end
+function CTLDCrateManager:refreshPackEquiptSection(playerObj)
+    local farpEnabled    = ctld.gs("enableFARPRepack") == true
+    local vehicleEnabled = ctld.gs("enablePackingVehicles") == true
+    if not (farpEnabled or vehicleEnabled) then return end
 
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
@@ -11946,33 +11932,44 @@ function CTLDCrateManager:refreshPackSection(playerObj)
 
     local root      = ctld.tr("CTLD")
     local cratesSub = ctld.tr("Crate Commands")
-    local packSub   = ctld.tr("Pack FARP")
+    local packSub   = ctld.tr("Pack Equipt")
 
-    -- Always clear any previously built branch first.
     menu:clearBranch({ root, cratesSub, packSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) then return end
-
-    -- In-flight: show submenu only as a disabled hint that landing is required.
-    if ctld.utils.inAir(transport) then
-        menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("Land to pack a FARP"), function() end, {})
+    if not (transport and transport:isExist()) then
         menu:refresh()
         return
     end
 
-    -- On ground: only show submenu when at least one repackable scene is nearby.
-    local sm     = CTLDSceneManager.getInstance()
-    local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
-    if #scenes == 0 then
-        -- No FARP nearby: do not add the submenu at all.
+    -- In-flight: submenu absent.
+    if ctld.utils.inAir(transport) then
+        menu:refresh()
+        return
+    end
+
+    -- Collect FARP scenes to pack.
+    local scenes = {}
+    if farpEnabled then
+        local sm = CTLDSceneManager.getInstance()
+        scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+    end
+
+    -- Collect packable vehicles.
+    local packableVehicles = {}
+    if vehicleEnabled then
+        packableVehicles = CTLDVehicleSpawner.getInstance():findPackableVehicles(transport)
+    end
+
+    -- If nothing to pack, do not add the submenu.
+    if #scenes == 0 and #packableVehicles == 0 then
         menu:refresh()
         return
     end
 
     menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
+
+    -- FARP entries
     for _, scene in ipairs(scenes) do
         local label = ctld.tr("Pack %1", scene._modelName)
         menu:addCommand({ root, cratesSub, packSub }, label,
@@ -11997,9 +11994,7 @@ function CTLDCrateManager:refreshPackSection(playerObj)
                 local mgr_c = CTLDCrateManager.getInstance()
                 local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
                 if not (cd and desc) then return end
-                -- Capture warehouse snapshot then destroy scene objects.
                 local repackData = smgr:packScene(sc)
-                -- Spawn N crates near the transport with repackData in metadata.
                 local required  = cd.cratesRequired or 1
                 local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
                 local spacing   = ctld.gs("crateSpacing") or 5
@@ -12021,6 +12016,21 @@ function CTLDCrateManager:refreshPackSection(playerObj)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })
     end
+
+    -- Vehicle entries
+    for _, v in ipairs(packableVehicles) do
+        menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
+            function(arg)
+                CTLDVehicleSpawner.getInstance():packVehicle(
+                    arg.transportName, arg.packableUnitName, arg)
+            end,
+            { transportName    = playerObj.unitName,
+              packableUnitName = v.unitName,
+              groupId          = playerObj.groupId,
+              unitName         = playerObj.unitName,
+              coalition        = playerObj.coalition })
+    end
+
     menu:refresh()
 end
 
@@ -13687,14 +13697,7 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
-    if ctld.gs("enableFARPRepack") == true then
-        -- Pack FARP submenu is built dynamically by refreshPackSection (only when a FARP
-        -- is nearby); setBranchEnabled is not needed here — refreshPackSection handles it.
-        self:refreshPackSection(playerObj)
-    end
-    if ctld.gs("enablePackingVehicles") == true then
-        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
-    end
+    self:refreshPackEquiptSection(playerObj)
 
     -- Parachute Crates: enabled only in air + CTLD crates loaded
     if caps.canParachuteDrop then
@@ -13848,15 +13851,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    if ctld.gs("enableFARPRepack") == true then
-        self:refreshPackSection(playerObj)
-    end
-
-    if ctld.gs("enablePackingVehicles") == true then
-        local packSub   = ctld.tr("Pack Vehicle")
-        menu:addSubMenu({ root, cratesSub }, packSub, { order = 99 })
-        CTLDVehicleSpawner.getInstance():refreshPackSection(playerObj)
-    end
+    self:refreshPackEquiptSection(playerObj)
 
     -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
     if caps.canParachuteDrop then
@@ -15371,57 +15366,19 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     end, nil, timer.getTime())
 end
 
---- Refresh the "Pack Vehicle" submenu for a single player by unit name.
+--- Delegates to CTLDCrateManager:refreshPackEquiptSection for a single player by unit name.
 -- @param unitName string
 function CTLDVehicleSpawner:refreshPackSectionForUnit(unitName)
     local playerObj = CTLDPlayerManager.getInstance()._players[unitName]
-    if playerObj then self:refreshPackSection(playerObj) end
+    if playerObj then
+        CTLDCrateManager.getInstance():refreshPackEquiptSection(playerObj)
+    end
 end
 
---- Rebuild the "Pack Vehicle" dynamic submenu for playerObj.
--- Scans for packable ground vehicles within maximumDistancePackableUnitsSearch.
--- Called on menu build, on land, and after vehicle spawn (unpack).
+--- Delegates to CTLDCrateManager:refreshPackEquiptSection (unified Pack Equipt menu).
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshPackSection(playerObj)
-    if ctld.gs("enablePackingVehicles") ~= true then return end
-
-    local mm   = ctld.MenuManager:getInstance()
-    local menu = mm:getMenuByGroupId(playerObj.groupId)
-    if not menu then return end
-
-    local root      = ctld.tr("CTLD")
-    local cratesSub = ctld.tr("Crate Commands")
-    local packSub   = ctld.tr("Pack Vehicle")
-
-    menu:clearBranch({ root, cratesSub, packSub })
-
-    local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("Land to pack vehicles"), function() end, {})
-        menu:refresh()
-        return
-    end
-
-    local packable = self:findPackableVehicles(transport)
-    if #packable == 0 then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("No packable vehicles nearby"), function() end, {})
-    else
-        for _, v in ipairs(packable) do
-            menu:addCommand({ root, cratesSub, packSub }, v.descriptor.desc,
-                function(arg)
-                    CTLDVehicleSpawner.getInstance():packVehicle(
-                        arg.transportName, arg.packableUnitName, arg)
-                end,
-                { transportName    = playerObj.unitName,
-                  packableUnitName = v.unitName,
-                  groupId          = playerObj.groupId,
-                  unitName         = playerObj.unitName,
-                  coalition        = playerObj.coalition })
-        end
-    end
-    menu:refresh()
+    CTLDCrateManager.getInstance():refreshPackEquiptSection(playerObj)
 end
 
 -- ============================================================
@@ -20998,7 +20955,6 @@ function CTLDPlayerManager:onLand(event)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured)
         CTLDCrateManager.getInstance():refreshCrateFlightSection(captured)
-        CTLDVehicleSpawner.getInstance():refreshPackSection(captured)
         CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
         CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)

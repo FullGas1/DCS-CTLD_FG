@@ -353,17 +353,12 @@ ctld.i18n["es"]["You must land before unpacking crates!"] = "¡Debes aterrizar a
 ctld.i18n["es"]["Not enough crates nearby to unpack!"] = "¡No hay suficientes cajas cercanas para desempaquetar!"
 ctld.i18n["es"]["%1 unpacked successfully!"] = "¡%1 desempaquetado con éxito!"
 
---- Pack FARP submenu
-ctld.i18n["es"]["Pack FARP"]                                   = "Reempacar FARP"
+--- Pack Equipt submenu (unificado — reemplaza Pack FARP + Pack Vehicle)
+ctld.i18n["es"]["Pack Equipt"]                                 = "Empacar equipo"
 ctld.i18n["es"]["Pack %1"]                                     = "Reempacar %1"
-ctld.i18n["es"]["Land to pack a FARP"]                         = "Aterriza para reempacar un FARP"
-ctld.i18n["es"]["No repackable FARP nearby"]                   = "No hay FARP reempacable cerca"
 ctld.i18n["es"]["You must be on the ground to pack a FARP."]   = "Debes estar en tierra para reempacar un FARP."
 ctld.i18n["es"]["FARP no longer deployed."]                    = "El FARP ya no está desplegado."
 ctld.i18n["es"]["FARP packed successfully!"]                   = "¡FARP reempacado con éxito!"
-
---- Pack Vehicle submenu
-ctld.i18n["es"]["Land to pack vehicles"] = "Aterriza para empaquetar vehículos"
 ctld.i18n["es"]["No packable vehicles nearby"] = "No hay vehículos empaquetables cercanos"
 ctld.i18n["es"]["Vehicle no longer exists."] = "El vehículo ya no existe."
 ctld.i18n["es"]["Cannot pack this vehicle type."] = "No se puede empaquetar este tipo de vehículo."

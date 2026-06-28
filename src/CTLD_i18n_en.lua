@@ -356,17 +356,12 @@ ctld.i18n["en"]["You must land before unpacking crates!"] = "You must land befor
 ctld.i18n["en"]["Not enough crates nearby to unpack!"] = "Not enough crates nearby to unpack!"
 ctld.i18n["en"]["%1 unpacked successfully!"] = "%1 unpacked successfully!"
 
---- Pack FARP submenu
-ctld.i18n["en"]["Pack FARP"]                                   = "Pack FARP"
+--- Pack Equipt submenu (unified — replaces Pack FARP + Pack Vehicle)
+ctld.i18n["en"]["Pack Equipt"]                                 = "Pack Equipt"
 ctld.i18n["en"]["Pack %1"]                                     = "Pack %1"
-ctld.i18n["en"]["Land to pack a FARP"]                         = "Land to pack a FARP"
-ctld.i18n["en"]["No repackable FARP nearby"]                   = "No repackable FARP nearby"
 ctld.i18n["en"]["You must be on the ground to pack a FARP."]   = "You must be on the ground to pack a FARP."
 ctld.i18n["en"]["FARP no longer deployed."]                    = "FARP no longer deployed."
 ctld.i18n["en"]["FARP packed successfully!"]                   = "FARP packed successfully!"
-
---- Pack Vehicle submenu
-ctld.i18n["en"]["Land to pack vehicles"] = "Land to pack vehicles"
 ctld.i18n["en"]["No packable vehicles nearby"] = "No packable vehicles nearby"
 ctld.i18n["en"]["Vehicle no longer exists."] = "Vehicle no longer exists."
 ctld.i18n["en"]["Cannot pack this vehicle type."] = "Cannot pack this vehicle type."
