@@ -821,16 +821,19 @@ Deliverable: single `.lua` file produced by `tools/merger_V2/merge_CTLD.ps1`.
           MT-10a ✅ PASS [2026-06-06] — re-recette Feature S (zones depuis userConfig) : gotoNearestWPZ PASS
           MT-10b ✅ PASS [2026-06-06] — re-recette Feature S : AttackNearestEnemyOnLos PASS
 
-⬜  FG  SVG troops transport flows — schéma visuel transport troupes
-        Produire docs/assets/troops_transport_flows.svg au même format que transport_flows.svg
-        (colonnes Méthode / Déclencheur / Posé requis / LGZ / État) couvrant :
-          • Flow BOARD : héli posé + menu → troops embarquées
-          • Flow DEPLOY : héli posé + menu → troops déployées (DZ) / LZ
-          • Flow EXTRACT : héli en LZ + menu → troops récupérées
-          • Parachute virtuel (Feature A) : altitude ≥ parachuteMinAltitudeTroops
-          • DCS native slingload troops (si applicable)
-          • JTAC annotations si une troupe déployée est JTAC
-        Ajouter lien dans missionmaker_guide.md §5 (Troop Transport).
+✅  FG  SVG troops transport flows — schéma visuel transport troupes  [2026-06-28]
+        docs/assets/troops_transport_flows.svg produit (même format que transport_flows.svg)
+        Flows couverts :
+          • Flow 1 BOARD    : embarkFromTroopZone — sol, TRZ requise
+          • Flow 2 DISEMBARK : context-sensitive (sol/hors TRZ→DEPLOYED, TRZ+flag→EXZ, TRZ pickup→RTB, vol→parachute)
+          • Flow 2d parachute virtuel (Feature A) : alt ≥ parachuteMinAltitudeTroops, startLase au landing
+          • Feature I post-spawn route : gotoNearestWPZ / AttackNearestEnemyOnLos
+          • Flow 3 EXTRACT  : embarkFromField — sol, préserve survivants
+          • Transport détruit (S_EVENT_DEAD) — deregisterJTAC×N protège contre zombies
+          • AI Transport (Feature R) : AIZ_ P/D zones, S_EVENT_LAND trigger
+          • State machine summary : TRZ_LOADED → DEPLOYED → FIELD_LOADED → DEPLOYED_EXZ → RETURNED_TO_TRZ
+          • JTAC annotations sur chaque flow (startLase×N, deregisterJTAC×N, IN_TRANSIT)
+        Lien ajouté dans missionmaker_guide.md §5 (Troop Transport).
 
 ── APRÈS PHASE 2 COMPLÈTE ───────────────────────────────────────────────────
 ✅  Q1  src/compat/legacy_api.lua  [2026-04-15]

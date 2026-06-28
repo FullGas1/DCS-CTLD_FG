@@ -941,6 +941,10 @@ Troops are **never** physically on board the aircraft as DCS units — they are 
 memory until deployed. JTAC soldiers are tracked individually: one `CTLDJTAC` instance
 per alive JTAC unit, managed through the `_jtacUnits` map in `CTLDTroopGroup`.
 
+> **Troop transport flows diagram** — all boarding, deploy, extract, and parachute flows with
+> context-sensitive disembark logic, JTAC actions, and AI transport:
+> [docs/assets/troops_transport_flows.svg](assets/troops_transport_flows.svg)
+>
 > **Troop + JTAC lifecycle reference diagram** — complete state machine with all
 > transitions, per-unit JTAC tracking, and `_aliveUnits` / `_jtacUnits` details:
 > [docs/assets/troops_jtac_lifecycle.svg](assets/troops_jtac_lifecycle.svg)
