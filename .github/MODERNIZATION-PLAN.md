@@ -1388,12 +1388,16 @@ Minor cleanups identified — low priority, no functional impact.
       et `model.onRepack` présent, retourne liste CtldScene candidats.
     - `CTLDSceneManager:packScene(scene)` : appelle `model.onRepack` (pcall), détruit tous `_spawnedObjs`
       (pcall par objet), retire de `_active`, retourne `repackData`.
-    - `countrysideFarpScene.onRepack` / `metalFarpScene.onRepack` : lecture warehouse live (`getLiquid 0-3`)
+    - `countrysideFarpScene.onRepack` / `metalFarpScene.onRepack` : lecture warehouse live (`getLiquidAmount(0-3)`)
       stockée dans `repackData.warehouseSnapshot`.
     - Steps warehouse adaptatifs : snapshot présent → `setLiquidAmount`; absent → init par défaut.
-    - Menu "Pack FARP" (`refreshPackSection`) : sous-menu dans Crates, enabled/disabled selon sol/vol.
+    - Menu "Pack FARP" (`refreshPackSection`) : sous-menu créé dynamiquement dans Crates, uniquement
+      si `enableFARPRepack=true` ET scènes repackables à portée. Enabled/disabled selon sol/vol.
+    - `findPackableVehicles` : itère `self._vehicles` WAITING (guard `if uName then`) au lieu de scanner
+      `coalition.getGroups` — évite crash `Unit.getByName(nil)` et faux positifs.
     - `_spawnedComponents` et index inverse non implémentés (hors scope — `_spawnedObjs` suffisant).
     - i18n 4 langues (EN/FR/ES/KO) + MM guide mis à jour.
+    - Recette warehouse_cycle : 3/3 PASS live DCS [2026-06-28] — crate présente, snapshot metadata, fuel restauré 5k/10k/15k/20k.
 
 ## Risks and mitigations
 

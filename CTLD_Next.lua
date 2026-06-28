@@ -11948,22 +11948,32 @@ function CTLDCrateManager:refreshPackSection(playerObj)
     local cratesSub = ctld.tr("Crate Commands")
     local packSub   = ctld.tr("Pack FARP")
 
+    -- Always clear any previously built branch first.
     menu:clearBranch({ root, cratesSub, packSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+    if not (transport and transport:isExist()) then return end
+
+    -- In-flight: show submenu only as a disabled hint that landing is required.
+    if ctld.utils.inAir(transport) then
+        menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
         menu:addCommand({ root, cratesSub, packSub },
             ctld.tr("Land to pack a FARP"), function() end, {})
         menu:refresh()
         return
     end
 
+    -- On ground: only show submenu when at least one repackable scene is nearby.
     local sm     = CTLDSceneManager.getInstance()
     local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+    if #scenes == 0 then
+        -- No FARP nearby: do not add the submenu at all.
+        menu:refresh()
+        return
+    end
 
-    local hasAny = false
+    menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
     for _, scene in ipairs(scenes) do
-        hasAny = true
         local label = ctld.tr("Pack %1", scene._modelName)
         menu:addCommand({ root, cratesSub, packSub }, label,
             function(arg)
@@ -12010,11 +12020,6 @@ function CTLDCrateManager:refreshPackSection(playerObj)
                 mgr_c:refreshUnpackSectionForUnit(arg.unitName)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })
-    end
-
-    if not hasAny then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("No repackable FARP nearby"), function() end, {})
     end
     menu:refresh()
 end
@@ -13683,7 +13688,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
     if ctld.gs("enableFARPRepack") == true then
-        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack FARP") }, not inAir)
+        -- Pack FARP submenu is built dynamically by refreshPackSection (only when a FARP
+        -- is nearby); setBranchEnabled is not needed here — refreshPackSection handles it.
+        self:refreshPackSection(playerObj)
     end
     if ctld.gs("enablePackingVehicles") == true then
         menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
@@ -13792,7 +13799,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             trigger.action.outTextForGroup(gid,
                 ctld.tr("%1 crate(s) dropped at your %2 o'clock", #loaded, spawnInfo.clock), 10)
         end,
-        { unitName = playerObj.unitName })
+        { unitName = playerObj.unitName }, { order = 15 })
 
     local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
@@ -13842,8 +13849,6 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         { unitName = playerObj.unitName })
 
     if ctld.gs("enableFARPRepack") == true then
-        local packFarpSub = ctld.tr("Pack FARP")
-        menu:addSubMenu({ root, cratesSub }, packFarpSub, { order = 25 })
         self:refreshPackSection(playerObj)
     end
 
@@ -15252,32 +15257,29 @@ function CTLDVehicleSpawner:_checkVehicleHoverHint()
 end
 
 --- Return packable vehicles within maximumDistancePackableUnitsSearch of a transport.
--- Searches ground units of the same coalition; matches DCS typeName against spawnableCrates[*].unit.
+-- Only considers CTLD-managed vehicles in WAITING state — not arbitrary coalition ground units.
+-- This prevents scene props (guards, workers) from polluting the Pack Vehicle menu.
 -- @param transport DCS Unit
 -- @return table  array of { unitName (string), descriptor (table) }
 function CTLDVehicleSpawner:findPackableVehicles(transport)
     local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
-    local coa     = transport:getCoalition()
     local tPos    = transport:getPoint()
     local result  = {}
 
-    local groups = coalition.getGroups(coa, Group.Category.GROUND) or {}
-    for _, grp in ipairs(groups) do
-        for _, unit in ipairs(grp:getUnits() or {}) do
-            -- Use Unit.getByName for a fresh registry lookup instead of unit:isExist()
-            -- on a stale group-iteration reference.  coalition.getGroups() may still
-            -- return groups containing units that were destroy()-ed in the same tick;
-            -- Unit.getByName returns nil for such units immediately after destroy().
-            local uName   = unit:getName()
-            local liveRef = Unit.getByName(uName)
-            if liveRef and liveRef:isExist() then
-                local dist = ctld.utils.getDistance(
-                    "CTLDVehicleSpawner:findPackableVehicles", tPos, liveRef:getPoint())
-                if dist <= maxDist then
-                    local descriptor = CTLDCrateManager.getInstance()
-                        :findDescriptorByUnitType(liveRef:getTypeName())
-                    if descriptor then
-                        table.insert(result, { unitName = uName, descriptor = descriptor })
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.WAITING then
+            local uName = veh.unitName
+            if uName then
+                local liveRef = Unit.getByName(uName)
+                if liveRef and liveRef:isExist() then
+                    local dist = ctld.utils.getDistance(
+                        "CTLDVehicleSpawner:findPackableVehicles", tPos, liveRef:getPoint())
+                    if dist <= maxDist then
+                        local descriptor = CTLDCrateManager.getInstance()
+                            :findDescriptorByUnitType(liveRef:getTypeName())
+                        if descriptor then
+                            table.insert(result, { unitName = uName, descriptor = descriptor })
+                        end
                     end
                 end
             end
@@ -22443,19 +22445,22 @@ countrysideFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    -- If this is a redeployed FARP, restore the snapshot; otherwise zero the warehouse
-                    -- (Invisible FARP spawns with default DCS levels — visual FARP only, no fuel service).
-                    local snap = ctx.scene._params.repackData
-                              and ctx.scene._params.repackData.warehouseSnapshot
-                    if snap and snap.liquid then
-                        for fuelType = 0, 3 do
-                            w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                    -- Invisible FARP airbases (DCS built-in) return nil for getWarehouse().
+                    -- Only mod-based helipad FARPs have an accessible warehouse.
+                    if w then
+                        -- If this is a redeployed FARP, restore the snapshot; otherwise zero the warehouse.
+                        local snap = ctx.scene._params.repackData
+                                  and ctx.scene._params.repackData.warehouseSnapshot
+                        if snap and snap.liquid then
+                            for fuelType = 0, 3 do
+                                w:setLiquidAmount(fuelType, snap.liquid[fuelType] or 0)
+                            end
+                        else
+                            w:setLiquidAmount(0, 0)   -- jet fuel
+                            w:setLiquidAmount(1, 0)   -- aviation gasoline
+                            w:setLiquidAmount(2, 0)   -- MW50
+                            w:setLiquidAmount(3, 0)   -- diesel
                         end
-                    else
-                        w:setLiquidAmount(0, 0)   -- jet fuel
-                        w:setLiquidAmount(1, 0)   -- aviation gasoline
-                        w:setLiquidAmount(2, 0)   -- MW50
-                        w:setLiquidAmount(3, 0)   -- diesel
                     end
                 end
             end
@@ -22607,12 +22612,13 @@ countrysideFarpScene.onRepack = function(scene, repackData)
     local ab = Airbase.getByName(farpName)
     if not ab then return end
     local w = ab:getWarehouse()
+    if not w then return end   -- Invisible FARP has no warehouse
     repackData.warehouseSnapshot = {
         liquid = {
-            [0] = w:getLiquid(0),   -- jet fuel
-            [1] = w:getLiquid(1),   -- aviation gasoline
-            [2] = w:getLiquid(2),   -- MW50
-            [3] = w:getLiquid(3),   -- diesel
+            [0] = w:getLiquidAmount(0),   -- jet fuel
+            [1] = w:getLiquidAmount(1),   -- aviation gasoline
+            [2] = w:getLiquidAmount(2),   -- MW50
+            [3] = w:getLiquidAmount(3),   -- diesel
         }
     }
 end
@@ -23286,10 +23292,10 @@ metalFarpScene.onRepack = function(scene, repackData)
     local w = ab:getWarehouse()
     repackData.warehouseSnapshot = {
         liquid = {
-            [0] = w:getLiquid(0),   -- jet fuel
-            [1] = w:getLiquid(1),   -- aviation gasoline
-            [2] = w:getLiquid(2),   -- MW50
-            [3] = w:getLiquid(3),   -- diesel
+            [0] = w:getLiquidAmount(0),   -- jet fuel
+            [1] = w:getLiquidAmount(1),   -- aviation gasoline
+            [2] = w:getLiquidAmount(2),   -- MW50
+            [3] = w:getLiquidAmount(3),   -- diesel
         }
     }
 end

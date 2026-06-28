@@ -1204,32 +1204,29 @@ function CTLDVehicleSpawner:_checkVehicleHoverHint()
 end
 
 --- Return packable vehicles within maximumDistancePackableUnitsSearch of a transport.
--- Searches ground units of the same coalition; matches DCS typeName against spawnableCrates[*].unit.
+-- Only considers CTLD-managed vehicles in WAITING state — not arbitrary coalition ground units.
+-- This prevents scene props (guards, workers) from polluting the Pack Vehicle menu.
 -- @param transport DCS Unit
 -- @return table  array of { unitName (string), descriptor (table) }
 function CTLDVehicleSpawner:findPackableVehicles(transport)
     local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
-    local coa     = transport:getCoalition()
     local tPos    = transport:getPoint()
     local result  = {}
 
-    local groups = coalition.getGroups(coa, Group.Category.GROUND) or {}
-    for _, grp in ipairs(groups) do
-        for _, unit in ipairs(grp:getUnits() or {}) do
-            -- Use Unit.getByName for a fresh registry lookup instead of unit:isExist()
-            -- on a stale group-iteration reference.  coalition.getGroups() may still
-            -- return groups containing units that were destroy()-ed in the same tick;
-            -- Unit.getByName returns nil for such units immediately after destroy().
-            local uName   = unit:getName()
-            local liveRef = Unit.getByName(uName)
-            if liveRef and liveRef:isExist() then
-                local dist = ctld.utils.getDistance(
-                    "CTLDVehicleSpawner:findPackableVehicles", tPos, liveRef:getPoint())
-                if dist <= maxDist then
-                    local descriptor = CTLDCrateManager.getInstance()
-                        :findDescriptorByUnitType(liveRef:getTypeName())
-                    if descriptor then
-                        table.insert(result, { unitName = uName, descriptor = descriptor })
+    for _, veh in pairs(self._vehicles) do
+        if veh:getState() == CTLDVehicle.STATE.WAITING then
+            local uName = veh.unitName
+            if uName then
+                local liveRef = Unit.getByName(uName)
+                if liveRef and liveRef:isExist() then
+                    local dist = ctld.utils.getDistance(
+                        "CTLDVehicleSpawner:findPackableVehicles", tPos, liveRef:getPoint())
+                    if dist <= maxDist then
+                        local descriptor = CTLDCrateManager.getInstance()
+                            :findDescriptorByUnitType(liveRef:getTypeName())
+                        if descriptor then
+                            table.insert(result, { unitName = uName, descriptor = descriptor })
+                        end
                     end
                 end
             end

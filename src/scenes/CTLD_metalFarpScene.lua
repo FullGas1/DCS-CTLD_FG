@@ -289,10 +289,10 @@ metalFarpScene.onRepack = function(scene, repackData)
     local w = ab:getWarehouse()
     repackData.warehouseSnapshot = {
         liquid = {
-            [0] = w:getLiquid(0),   -- jet fuel
-            [1] = w:getLiquid(1),   -- aviation gasoline
-            [2] = w:getLiquid(2),   -- MW50
-            [3] = w:getLiquid(3),   -- diesel
+            [0] = w:getLiquidAmount(0),   -- jet fuel
+            [1] = w:getLiquidAmount(1),   -- aviation gasoline
+            [2] = w:getLiquidAmount(2),   -- MW50
+            [3] = w:getLiquidAmount(3),   -- diesel
         }
     }
 end

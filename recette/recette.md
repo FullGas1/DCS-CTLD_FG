@@ -49,6 +49,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 
 | `scenarios/interactive/scenario_farp_repack.lua` | TODO[I]+[Q] — CTLDSceneManager.packScene + CTLDCrate.metadata | F-MT16.1→F-MT16.8 (3 injections : deploy CS FARP → findNearbyRepackable + packScene + repackData → metadata.warehouseSnapshot + scene._params.repackData transmis) | ✅ PASS 12/12 [2026-06-28] — mod absent (warehouseSnapshot nil) comportement attendu ✅ | Witchcraft — 3 injections |
 
+| `scenarios/interactive/scenario_warehouse_cycle.lua` | TODO[I]+[Q] — Cycle complet deploy→pack→snapshot→redeploy→vérif warehouse | W.1→W.3 (3 injections : setup enableFARPRepack + cratesRequired=1 → crate présente + snapshot metadata → fuel restauré 5k/10k/15k/20k sur CS FARP-26) | ✅ PASS 3/3 [2026-06-28] — cycle complet live DCS avec CS FARP invisible warehouse validé | Witchcraft — 3 injections |
+
 ---
 
 ## Section U — Tests unitaires (U-01 à U-80)
@@ -416,7 +418,8 @@ Scripts multi-injections exécutés via Witchcraft en mission réelle. Chaque sc
 - **Mine field demine menu [2026-06-08]** — drawQuad retourne markId, _sets tracking, buildDemineSection/refreshDemineSection, clearSet, demineRadius=150, onLand generic refreshMethod loop.
 - **TODO [P] — Recette scènes CtldScene** : 4/4 sous-cas ✅ PASS live DCS [2026-06-28] — (P1) FOB F10 step 21 → `_registerDeployedFOB` LGZ+beacon ✅ ; (P2) FOB parachute guard block (LGZ fictive) + auto-unpack → FOB enregistré ✅ ; (P3) CS FARP parachute `_checkAutoUnpack` → `playSceneAtPos` chemin generic ✅ ; (P4) Metal FARP F10 `addLiquid` warehouse (skip propre si mod absent) ✅. Scripts : `scenario_fob_scene.lua` (fixé), `scenario_p2_fob_parachute.lua`, `scenario_p3_csfarp_parachute.lua`, `scenario_p4_metal_farp.lua`.
 - **TODO [I]+[Q] — FARP Repack** : `scenario_farp_repack.lua` **12/12 PASS** live DCS [2026-06-28] — `playSceneAtPos` CS FARP démarre ✅ ; `_modelName="Countryside FARP"` dans `_active` ✅ ; `findNearbyRepackableScenes(300m)` trouve la scène ✅ ; `packScene` retire `_active[name]` ✅ ; `repackData` table retournée ✅ ; `warehouseSnapshot` nil (mod absent) → comportement attendu ✅ ; `crate.metadata.warehouseSnapshot` assigné + `liquid[0]` numérique ✅ ; `scene._params.repackData.warehouseSnapshot.liquid[0]==7777` transmis via `playSceneAtPos` ✅.
-- **Total** : **557 cas** — 1501/1501 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS + MT-11 PASS + MT-12 PASS + MT-13 PASS + MT-14 PASS + MT-15 13/13 PASS + MT-16 PASS + TODO[D] PASS + Metal FARP layout PASS + Countryside FARP layout PASS [2026-06-08b] + U-106/U-107/U-108 (ModValidator) 12/12 PASS + TODO[P] 4/4 PASS [2026-06-28] + TODO[I+Q] 12/12 PASS [2026-06-28]
+- **warehouse_cycle — TODO[I]+[Q] cycle complet live DCS [2026-06-28]** : `scenario_warehouse_cycle.lua` **3/3 PASS** — setup enableFARPRepack + cratesRequired=1 ✅ ; crate présente + snapshot metadata ✅ ; fuel 5k/10k/15k/20k restauré sur CS_FARP-26 ✅. Bugfixes validés : `getLiquidAmount` (API correcte), menu Pack FARP conditionnel, `findPackableVehicles` guard `if uName then`, `enableFARPRepack` non restauré par cleanup scénario.
+- **Total** : **557 cas** — 1501/1501 PASS ✅ + MT-06 9/9 PASS + MT-07 4/4 PASS + MT-08 4/4 PASS + MT-09 4/4 PASS + MT-10a PASS + MT-10b PASS + MT-11 PASS + MT-12 PASS + MT-13 PASS + MT-14 PASS + MT-15 13/13 PASS + MT-16 PASS + TODO[D] PASS + Metal FARP layout PASS + Countryside FARP layout PASS [2026-06-08b] + U-106/U-107/U-108 (ModValidator) 12/12 PASS + TODO[P] 4/4 PASS [2026-06-28] + TODO[I+Q] 12/12 PASS [2026-06-28] + warehouse_cycle 3/3 PASS [2026-06-28]
 
 ---
 

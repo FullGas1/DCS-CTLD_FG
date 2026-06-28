@@ -832,22 +832,32 @@ function CTLDCrateManager:refreshPackSection(playerObj)
     local cratesSub = ctld.tr("Crate Commands")
     local packSub   = ctld.tr("Pack FARP")
 
+    -- Always clear any previously built branch first.
     menu:clearBranch({ root, cratesSub, packSub })
 
     local transport = Unit.getByName(playerObj.unitName)
-    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
+    if not (transport and transport:isExist()) then return end
+
+    -- In-flight: show submenu only as a disabled hint that landing is required.
+    if ctld.utils.inAir(transport) then
+        menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
         menu:addCommand({ root, cratesSub, packSub },
             ctld.tr("Land to pack a FARP"), function() end, {})
         menu:refresh()
         return
     end
 
+    -- On ground: only show submenu when at least one repackable scene is nearby.
     local sm     = CTLDSceneManager.getInstance()
     local scenes = sm:findNearbyRepackableScenes(transport:getPoint(), 300)
+    if #scenes == 0 then
+        -- No FARP nearby: do not add the submenu at all.
+        menu:refresh()
+        return
+    end
 
-    local hasAny = false
+    menu:addSubMenu({ root, cratesSub }, packSub, { order = 25 })
     for _, scene in ipairs(scenes) do
-        hasAny = true
         local label = ctld.tr("Pack %1", scene._modelName)
         menu:addCommand({ root, cratesSub, packSub }, label,
             function(arg)
@@ -894,11 +904,6 @@ function CTLDCrateManager:refreshPackSection(playerObj)
                 mgr_c:refreshUnpackSectionForUnit(arg.unitName)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })
-    end
-
-    if not hasAny then
-        menu:addCommand({ root, cratesSub, packSub },
-            ctld.tr("No repackable FARP nearby"), function() end, {})
     end
     menu:refresh()
 end
@@ -2567,7 +2572,9 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
     if ctld.gs("enableFARPRepack") == true then
-        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack FARP") }, not inAir)
+        -- Pack FARP submenu is built dynamically by refreshPackSection (only when a FARP
+        -- is nearby); setBranchEnabled is not needed here — refreshPackSection handles it.
+        self:refreshPackSection(playerObj)
     end
     if ctld.gs("enablePackingVehicles") == true then
         menu:setBranchEnabled({ root, cratesSub, ctld.tr("Pack Vehicle") }, not inAir)
@@ -2676,7 +2683,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             trigger.action.outTextForGroup(gid,
                 ctld.tr("%1 crate(s) dropped at your %2 o'clock", #loaded, spawnInfo.clock), 10)
         end,
-        { unitName = playerObj.unitName })
+        { unitName = playerObj.unitName }, { order = 15 })
 
     local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
@@ -2726,8 +2733,6 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         { unitName = playerObj.unitName })
 
     if ctld.gs("enableFARPRepack") == true then
-        local packFarpSub = ctld.tr("Pack FARP")
-        menu:addSubMenu({ root, cratesSub }, packFarpSub, { order = 25 })
         self:refreshPackSection(playerObj)
     end
 
